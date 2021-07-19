@@ -1,0 +1,1 @@
+ALTER TABLE  `bkiam`.`policy` DROP INDEX `idx_expression_expire`;

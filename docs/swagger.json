@@ -1,0 +1,3977 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "蓝鲸权限中心后台服务 API 文档",
+        "title": "IAM API",
+        "contact": {},
+        "license": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/v1/engine/credentials/verify": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "check app code secret exists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "engine"
+                ],
+                "summary": "Credentials Verify/认证信息验证",
+                "operationId": "api-engine-check-appcode-secret-exists",
+                "parameters": [
+                    {
+                        "description": "the credential request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.credentialsVerifySerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.credentialsVerifyResponseSerializer"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/engine/policies": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "list policies of ids or between min-max ids",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "engine"
+                ],
+                "summary": "policy list",
+                "operationId": "api-engine-policies-list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "timestamp",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "min_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "max_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "ids",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.policyListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/engine/policies/ids": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "list policy pks by condition",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "engine"
+                ],
+                "summary": "policy ids list",
+                "operationId": "api-engine-policy-id-list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "begin_updated_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "end_updated_at",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.listPolicyIDsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/engine/policies/ids/max": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get max policy id by condition",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "engine"
+                ],
+                "summary": "policy max id",
+                "operationId": "api-engine-policy-id-max",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "updated_at",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.getMaxPolicyIDResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/engine/systems/:system_id": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get system info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "engine"
+                ],
+                "summary": "system info",
+                "operationId": "api-engine-system-info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.System"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/auth": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "eval all the policies queried by conditions: system/subject/action and resources[required]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "policy auth/鉴权",
+                "operationId": "api-policy-auth",
+                "parameters": [
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/auth_by_actions": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch auth by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch auth by actions/批量鉴权接口",
+                "operationId": "api-policy-batch-auth-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch auth by actions request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByActionsResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/auth_by_resources": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch auth by resources",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch auth by resources/批量鉴权接口",
+                "operationId": "api-policy-batch-auth-by-resources",
+                "parameters": [
+                    {
+                        "description": "the batch auth by resources request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByResourcesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByResourcesResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/query": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query the policy by conditions: system/subject/action and resources[optional]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "policy query/策略查询",
+                "operationId": "api-policy-query",
+                "parameters": [
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/query_by_actions": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch query policies by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch query by actions/批量查询策略",
+                "operationId": "api-policy-batch-query-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch query by action request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.actionPoliciesResponse"
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policy/query_by_ext_resources": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query the policy by conditions: system/subject/action and resources[optional]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "policy query by ext resources/批量第三方依赖策略查询",
+                "operationId": "api-policy-query-by-ext-resources",
+                "parameters": [
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryByExtResourcesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "register a system to iam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "system create",
+                "operationId": "api-model-system-create",
+                "parameters": [
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.systemSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.systemCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "system get",
+                "operationId": "api-model-system-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.systemResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update a system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "system update",
+                "operationId": "api-model-system-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.systemUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/action/{action_id}": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action update",
+                "operationId": "api-model-action-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.actionUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action delete",
+                "operationId": "api-model-action-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch create actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "batch actions create",
+                "operationId": "api-model-action-create",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.actionSerializer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "actions batch delete",
+                "operationId": "api-model-action-batch-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Resource Type ID",
+                        "name": "resource_type_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.deleteViaID"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/clients": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get clients of the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "get system clients",
+                "operationId": "api-model-system-clients-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.systemClientsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/configs/{name}": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "create system config",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "system config create",
+                "operationId": "api-model-system-config-create",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "\"action_groups\""
+                        ],
+                        "type": "string",
+                        "description": "Config Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.actionGroupSerializer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/instance-selections": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch create instance_selections",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "batch instance selection create",
+                "operationId": "api-model-instance-selection-create",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.instanceSelectionSerializer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete instance_selection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "instance selection batch delete",
+                "operationId": "api-model-instance-selection-batch-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Instance Selection ID",
+                        "name": "instance_selection_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.deleteViaID"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/instance-selections/{instance_selection_id}": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update instance_selection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "instance selection update",
+                "operationId": "api-model-instance-selection-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Instance Selection ID",
+                        "name": "instance_selection_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.instanceSelectionUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete instance_selection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "instance selection delete",
+                "operationId": "api-model-instance-selection-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Instance Selection ID",
+                        "name": "instance_selection_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/policies": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "list policies of a action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "policy list",
+                "operationId": "api-open-system-policies-list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "actionID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "timestamp",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.policyListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/policies/-/subjects": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "system+action+policy_ids =\u003e subjects",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "query subjects/获取有权限的用户列表",
+                "operationId": "api-open-system-policies-subjects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "ids",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.policySubjectsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/policies/{policy_id}": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "policy get",
+                "operationId": "api-open-system-policies-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Policy ID",
+                        "name": "policy_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.policyGetResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/query": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "system info query",
+                "operationId": "api-model-system-query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.querySerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/gin.H"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/resource-types": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch create resource_types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "batch resource type create",
+                "operationId": "api-model-resource-type-create",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.resourceTypeSerializer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete resource_type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "resource type batch delete",
+                "operationId": "api-model-resource-type-batch-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Resource Type ID",
+                        "name": "resource_type_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.deleteViaID"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/resource-types/{resource_type_id}": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update resource_type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "resource type update",
+                "operationId": "api-model-resource-type-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Resource Type ID",
+                        "name": "resource_type_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.resourceTypeUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete resource_type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "resource type delete",
+                "operationId": "api-model-resource-type-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Resource Type ID",
+                        "name": "resource_type_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/token": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get the token of system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "token get",
+                "operationId": "api-model-system-token-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.tokenResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/custom-policy": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get custom policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "GetCustomPolicy/获取自定义策略",
+                "operationId": "api-web-get-custom-policy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject type",
+                        "name": "subject_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject id",
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "action id",
+                        "name": "action_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/perm-templates/policies": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update template policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "update template policy/更新模板授权的策略",
+                "operationId": "api-web-update-template-policies",
+                "parameters": [
+                    {
+                        "description": "update templates policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.updateTemplatePolicySerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "Create and delete template policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Create and delete template policy/创建删除模板授权的策略",
+                "operationId": "api-web-create-delete-template-policies",
+                "parameters": [
+                    {
+                        "description": "create and delete templates policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.createAndDeleteTemplatePolicySerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete template policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "delete template policy/删除模板授权的策略",
+                "operationId": "api-web-delete-template-policies",
+                "parameters": [
+                    {
+                        "description": "delete templates policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.subjectTemplateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/policies": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query all authorized policies: subject/template[required]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "List policy/获取策略列表",
+                "operationId": "api-web-list-policy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject type",
+                        "name": "subject_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject id",
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "until expired at",
+                        "name": "before_expired_at",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.SaaSPolicy"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete policies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Batch delete policies/删除用户策略",
+                "operationId": "api-web-batch-delete-policies",
+                "parameters": [
+                    {
+                        "description": "delete policy info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.policiesDeleteSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/policies/expired_at": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "renew policies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Renew policies/权限续期",
+                "operationId": "api-web-renew-policies",
+                "parameters": [
+                    {
+                        "description": "renew policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.policiesUpdateExpiredAtSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/systems/{system_id}/policies": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query all authorized policies: subject/template[required]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "List policy/获取策略列表",
+                "operationId": "api-web-list-system-policy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject type",
+                        "name": "subject_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject id",
+                        "name": "subject_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "template id",
+                        "name": "template_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.SaaSPolicy"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "alter policies by custom application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Alter policies/变更用户自定义申请策略",
+                "operationId": "api-web-alter-policies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "create and update policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.policiesAlterSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "/healthz to make sure the server is health",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "healthz for server health check",
+                "operationId": "healthz",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "description": "/metrics",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "prometheus metrics",
+                "operationId": "metrics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "/ping to get response from iam, make sure the server is alive",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "ping-pong for alive test",
+                "operationId": "ping",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "description": "/version to get the version of iam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "basic"
+                ],
+                "summary": "version for identify",
+                "operationId": "version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "handler.action": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "handler.actionGroupActionSerializer": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "handler.actionGroupSerializer": {
+            "type": "object",
+            "required": [
+                "name",
+                "name_en"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.actionGroupActionSerializer"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "sub_groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.actionGroupSerializer"
+                    }
+                }
+            }
+        },
+        "handler.actionInResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "handler.actionPoliciesResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.actionInResponse"
+                },
+                "condition": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "handler.actionSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "name_en"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_create is"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_create is"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "biz_create"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_create"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_create"
+                },
+                "related_actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "related_resource_types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.relatedResourceType"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handler.actionUpdateSerializer": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_create is"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_create is"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_create"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_create"
+                },
+                "related_actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "related_resource_types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.relatedResourceType"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handler.appCodeAppSecretSerializer": {
+            "type": "object",
+            "properties": {
+                "app_code": {
+                    "type": "string"
+                },
+                "app_secret": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.authByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "resources",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can't be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.authByActionsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "boolean"
+            }
+        },
+        "handler.authByResourcesRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.action"
+                },
+                "resources_list": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/handler.resource"
+                        }
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.authByResourcesResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "boolean"
+            }
+        },
+        "handler.authRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "resources",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.action"
+                },
+                "resources": {
+                    "description": "required",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.authResponse": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "handler.createAndDeleteTemplatePolicySerializer": {
+            "type": "object",
+            "required": [
+                "create_policies",
+                "delete_policy_ids",
+                "subject",
+                "system_id",
+                "template_id"
+            ],
+            "properties": {
+                "create_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.policy"
+                    }
+                },
+                "delete_policy_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system_id": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.credentialsVerifyResponseSerializer": {
+            "type": "object",
+            "properties": {
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handler.credentialsVerifySerializer": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.appCodeAppSecretSerializer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.deleteViaID": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "192.168.1.1"
+                }
+            }
+        },
+        "handler.extResource": {
+            "type": "object",
+            "required": [
+                "ids",
+                "system",
+                "type"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "app"
+                }
+            }
+        },
+        "handler.getMaxPolicyIDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.getMaxPolicyIDSerializer": {
+            "type": "object",
+            "properties": {
+                "updated_at": {
+                    "type": "integer",
+                    "example": 1592899208
+                }
+            }
+        },
+        "handler.idExpiredAtSerializer": {
+            "type": "object",
+            "required": [
+                "expired_at",
+                "id"
+            ],
+            "properties": {
+                "expired_at": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.instanceSelectionSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "name_en",
+                "resource_type_chain"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "is_dynamic": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "resource_type_chain": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                }
+            }
+        },
+        "handler.instanceSelectionUpdateSerializer": {
+            "type": "object",
+            "required": [
+                "name",
+                "name_en",
+                "resource_type_chain"
+            ],
+            "properties": {
+                "is_dynamic": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "name": {
+                    "description": "ID     string `json:\"id\" binding:\"required\"`",
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "resource_type_chain": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                }
+            }
+        },
+        "handler.listPolicyIDsResponse": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "handler.listPolicyIDsSerializer": {
+            "type": "object",
+            "properties": {
+                "begin_updated_at": {
+                    "type": "integer",
+                    "example": 1592899208
+                },
+                "end_updated_at": {
+                    "type": "integer",
+                    "example": 1592899208
+                }
+            }
+        },
+        "handler.listPolicySerializer": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "string",
+                    "example": "1,2,3"
+                },
+                "max_id": {
+                    "type": "integer",
+                    "example": 10001
+                },
+                "min_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1592899208
+                }
+            }
+        },
+        "handler.listQuerySerializer": {
+            "type": "object",
+            "required": [
+                "actionID"
+            ],
+            "properties": {
+                "actionID": {
+                    "type": "string",
+                    "example": "edit_host"
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1592899208
+                }
+            }
+        },
+        "handler.policiesAlterSerializer": {
+            "type": "object",
+            "required": [
+                "create_policies",
+                "delete_policy_ids",
+                "subject",
+                "update_policies"
+            ],
+            "properties": {
+                "create_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.policy"
+                    }
+                },
+                "delete_policy_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "update_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.updatePolicy"
+                    }
+                }
+            }
+        },
+        "handler.policiesDeleteSerializer": {
+            "type": "object",
+            "required": [
+                "ids",
+                "subject_id",
+                "subject_type",
+                "system_id"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "subject_id": {
+                    "type": "string"
+                },
+                "subject_type": {
+                    "type": "string"
+                },
+                "system_id": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.policiesUpdateExpiredAtSerializer": {
+            "type": "object",
+            "required": [
+                "policies",
+                "subject_id",
+                "subject_type"
+            ],
+            "properties": {
+                "policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.idExpiredAtSerializer"
+                    }
+                },
+                "subject_id": {
+                    "type": "string"
+                },
+                "subject_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.policy": {
+            "type": "object",
+            "required": [
+                "action_id",
+                "expired_at",
+                "resource_expression"
+            ],
+            "properties": {
+                "action_id": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "integer"
+                },
+                "resource_expression": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.policyGetResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseAction"
+                },
+                "expired_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "expression": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseSubject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_test"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "handler.policyIDSubject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseSubject"
+                }
+            }
+        },
+        "handler.policyListResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 120
+                },
+                "metadata": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyListResponseMetadata"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.thinPolicyResponse"
+                    }
+                }
+            }
+        },
+        "handler.policyListResponseMetadata": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseAction"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_test"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1592899208
+                }
+            }
+        },
+        "handler.policyResponseAction": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "handler.policyResponseSubject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Administer"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "handler.policySubjectsResponse": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/handler.policyIDSubject"
+            }
+        },
+        "handler.queryByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.queryByExtResourcesRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "ext_resources",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.action"
+                },
+                "ext_resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.extResource"
+                    }
+                },
+                "resources": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.queryRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "subject",
+                "system"
+            ],
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.action"
+                },
+                "resources": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.querySerializer": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "string",
+                    "example": "base_info,resource_types,actions"
+                }
+            }
+        },
+        "handler.referenceResourceType": {
+            "type": "object",
+            "required": [
+                "id",
+                "system_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "host"
+                },
+                "system_id": {
+                    "type": "string",
+                    "example": "bk_cmdb"
+                }
+            }
+        },
+        "handler.resource": {
+            "type": "object",
+            "required": [
+                "attribute",
+                "id",
+                "system",
+                "type"
+            ],
+            "properties": {
+                "attribute": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "string",
+                    "example": "framework"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "app"
+                }
+            }
+        },
+        "handler.resourceProviderConfig": {
+            "type": "object",
+            "required": [
+                "path"
+            ],
+            "properties": {
+                "path": {
+                    "description": "TODO: valid path?",
+                    "type": "string",
+                    "example": "/api/v1/resources/biz_set/query"
+                }
+            }
+        },
+        "handler.resourceTypeSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "name_en",
+                "provider_config"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "parents": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                },
+                "provider_config": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handler.resourceTypeUpdateSerializer": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "name": {
+                    "description": "ID     string `json:\"id\" binding:\"required\"`",
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "parents": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                },
+                "provider_config": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handler.subject": {
+            "type": "object",
+            "required": [
+                "id",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.subjectTemplateSerializer": {
+            "type": "object",
+            "required": [
+                "subject_id",
+                "subject_type",
+                "system_id",
+                "template_id"
+            ],
+            "properties": {
+                "subject_id": {
+                    "type": "string"
+                },
+                "subject_type": {
+                    "type": "string"
+                },
+                "system_id": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.subjectsSerializer": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "string",
+                    "example": "1,2,3"
+                }
+            }
+        },
+        "handler.systemClientsResponse": {
+            "type": "object",
+            "properties": {
+                "clients": {
+                    "type": "string",
+                    "example": "bk_paas,bk_esb"
+                }
+            }
+        },
+        "handler.systemCreateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "bk_paas"
+                }
+            }
+        },
+        "handler.systemProviderConfig": {
+            "type": "object",
+            "required": [
+                "auth",
+                "host"
+            ],
+            "properties": {
+                "auth": {
+                    "type": "string",
+                    "example": "basic"
+                },
+                "healthz": {
+                    "type": "string",
+                    "example": "/healthz"
+                },
+                "host": {
+                    "description": "TODO: valid host?",
+                    "type": "string",
+                    "example": "http://bkpaas.service.consul"
+                }
+            }
+        },
+        "handler.systemResponse": {
+            "type": "object",
+            "properties": {
+                "clients": {
+                    "type": "string",
+                    "example": "bk_paas,bk_esb"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "provider_config": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "handler.systemSerializer": {
+            "type": "object",
+            "required": [
+                "clients",
+                "id",
+                "name",
+                "name_en",
+                "provider_config"
+            ],
+            "properties": {
+                "clients": {
+                    "type": "string",
+                    "example": "bk_paas,bk_esb"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "provider_config": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.systemProviderConfig"
+                }
+            }
+        },
+        "handler.systemUpdateSerializer": {
+            "type": "object",
+            "properties": {
+                "clients": {
+                    "type": "string",
+                    "example": "bk_paas,bk_esb"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "Platform as A Service"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "bk_paas"
+                },
+                "provider_config": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.systemProviderConfig"
+                }
+            }
+        },
+        "handler.thinPolicyResponse": {
+            "type": "object",
+            "properties": {
+                "expired_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "expression": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseSubject"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "handler.tokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "vgclj4ddfe3ydr6eg3wjfx4vc8ogjxhi"
+                }
+            }
+        },
+        "handler.updatePolicy": {
+            "type": "object",
+            "required": [
+                "action_id",
+                "expired_at",
+                "id",
+                "resource_expression"
+            ],
+            "properties": {
+                "action_id": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "resource_expression": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.updateTemplatePolicySerializer": {
+            "type": "object",
+            "required": [
+                "subject",
+                "system_id",
+                "template_id",
+                "update_policies"
+            ],
+            "properties": {
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
+                },
+                "system_id": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
+                },
+                "update_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.updatePolicy"
+                    }
+                }
+            }
+        },
+        "types.SaaSPolicy": {
+            "type": "object",
+            "properties": {
+                "action_id": {
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "system": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.System": {
+            "type": "object",
+            "properties": {
+                "clients": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "description_en": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "name_en": {
+                    "type": "string"
+                },
+                "provider_config": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "util.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "AppCode": {
+            "type": "apiKey",
+            "name": "X-Bk-App-Code",
+            "in": "header"
+        },
+        "AppSecret": {
+            "type": "apiKey",
+            "name": "X-Bk-App-Secret",
+            "in": "header"
+        }
+    }
+}

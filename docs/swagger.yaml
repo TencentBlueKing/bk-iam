@@ -1,0 +1,2560 @@
+definitions:
+  gin.H:
+    additionalProperties: true
+    type: object
+  handler.action:
+    properties:
+      id:
+        example: edit
+        type: string
+    required:
+    - id
+    type: object
+  handler.actionGroupActionSerializer:
+    properties:
+      id:
+        example: edit
+        type: string
+    required:
+    - id
+    type: object
+  handler.actionGroupSerializer:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/handler.actionGroupActionSerializer'
+        type: array
+      name:
+        example: admin
+        type: string
+      name_en:
+        example: admin
+        type: string
+      sub_groups:
+        items:
+          $ref: '#/definitions/handler.actionGroupSerializer'
+        type: array
+    required:
+    - name
+    - name_en
+    type: object
+  handler.actionInResponse:
+    properties:
+      id:
+        example: edit
+        type: string
+    type: object
+  handler.actionPoliciesResponse:
+    properties:
+      action:
+        $ref: '#/definitions/handler.actionInResponse'
+        type: object
+      condition:
+        additionalProperties: true
+        type: object
+    type: object
+  handler.actionSerializer:
+    properties:
+      description:
+        example: biz_create is
+        type: string
+      description_en:
+        example: biz_create is
+        type: string
+      id:
+        example: biz_create
+        type: string
+      name:
+        example: biz_create
+        type: string
+      name_en:
+        example: biz_create
+        type: string
+      related_actions:
+        items:
+          type: string
+        type: array
+      related_resource_types:
+        items:
+          $ref: '#/definitions/handler.relatedResourceType'
+        type: array
+      type:
+        type: string
+      version:
+        example: 1
+        type: integer
+    required:
+    - id
+    - name
+    - name_en
+    type: object
+  handler.actionUpdateSerializer:
+    properties:
+      description:
+        example: biz_create is
+        type: string
+      description_en:
+        example: biz_create is
+        type: string
+      name:
+        example: biz_create
+        type: string
+      name_en:
+        example: biz_create
+        type: string
+      related_actions:
+        items:
+          type: string
+        type: array
+      related_resource_types:
+        items:
+          $ref: '#/definitions/handler.relatedResourceType'
+        type: array
+      type:
+        type: string
+      version:
+        example: 1
+        type: integer
+    type: object
+  handler.appCodeAppSecretSerializer:
+    properties:
+      app_code:
+        type: string
+      app_secret:
+        type: string
+    type: object
+  handler.authByActionsRequest:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/handler.action'
+        type: array
+      resources:
+        description: can't be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - actions
+    - resources
+    - subject
+    - system
+    type: object
+  handler.authByActionsResponse:
+    additionalProperties:
+      type: boolean
+    type: object
+  handler.authByResourcesRequest:
+    properties:
+      action:
+        $ref: '#/definitions/handler.action'
+        type: object
+      resources_list:
+        items:
+          items:
+            $ref: '#/definitions/handler.resource'
+          type: array
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - action
+    - subject
+    - system
+    type: object
+  handler.authByResourcesResponse:
+    additionalProperties:
+      type: boolean
+    type: object
+  handler.authRequest:
+    properties:
+      action:
+        $ref: '#/definitions/handler.action'
+        type: object
+      resources:
+        description: required
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - action
+    - resources
+    - subject
+    - system
+    type: object
+  handler.authResponse:
+    properties:
+      allowed:
+        example: false
+        type: boolean
+    type: object
+  handler.createAndDeleteTemplatePolicySerializer:
+    properties:
+      create_policies:
+        items:
+          $ref: '#/definitions/handler.policy'
+        type: array
+      delete_policy_ids:
+        items:
+          type: integer
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system_id:
+        type: string
+      template_id:
+        type: integer
+    required:
+    - create_policies
+    - delete_policy_ids
+    - subject
+    - system_id
+    - template_id
+    type: object
+  handler.credentialsVerifyResponseSerializer:
+    properties:
+      valid:
+        type: boolean
+    type: object
+  handler.credentialsVerifySerializer:
+    properties:
+      data:
+        $ref: '#/definitions/handler.appCodeAppSecretSerializer'
+        type: object
+      type:
+        type: string
+    type: object
+  handler.deleteViaID:
+    properties:
+      id:
+        example: 192.168.1.1
+        type: string
+    required:
+    - id
+    type: object
+  handler.extResource:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+      system:
+        example: bk_paas
+        type: string
+      type:
+        example: app
+        type: string
+    required:
+    - ids
+    - system
+    - type
+    type: object
+  handler.getMaxPolicyIDResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  handler.getMaxPolicyIDSerializer:
+    properties:
+      updated_at:
+        example: 1592899208
+        type: integer
+    type: object
+  handler.idExpiredAtSerializer:
+    properties:
+      expired_at:
+        type: integer
+      id:
+        type: integer
+    required:
+    - expired_at
+    - id
+    type: object
+  handler.instanceSelectionSerializer:
+    properties:
+      id:
+        example: biz_set
+        type: string
+      is_dynamic:
+        example: false
+        type: boolean
+      name:
+        example: biz_set
+        type: string
+      name_en:
+        example: biz_set
+        type: string
+      resource_type_chain:
+        items:
+          $ref: '#/definitions/handler.referenceResourceType'
+        type: array
+    required:
+    - id
+    - name
+    - name_en
+    - resource_type_chain
+    type: object
+  handler.instanceSelectionUpdateSerializer:
+    properties:
+      is_dynamic:
+        example: false
+        type: boolean
+      name:
+        description: ID     string `json:"id" binding:"required"`
+        example: biz_set
+        type: string
+      name_en:
+        example: biz_set
+        type: string
+      resource_type_chain:
+        items:
+          $ref: '#/definitions/handler.referenceResourceType'
+        type: array
+    required:
+    - name
+    - name_en
+    - resource_type_chain
+    type: object
+  handler.listPolicyIDsResponse:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  handler.listPolicyIDsSerializer:
+    properties:
+      begin_updated_at:
+        example: 1592899208
+        type: integer
+      end_updated_at:
+        example: 1592899208
+        type: integer
+    type: object
+  handler.listPolicySerializer:
+    properties:
+      ids:
+        example: 1,2,3
+        type: string
+      max_id:
+        example: 10001
+        type: integer
+      min_id:
+        example: 1
+        type: integer
+      timestamp:
+        example: 1592899208
+        type: integer
+    type: object
+  handler.listQuerySerializer:
+    properties:
+      actionID:
+        example: edit_host
+        type: string
+      page:
+        example: 1
+        type: integer
+      pageSize:
+        example: 100
+        type: integer
+      timestamp:
+        example: 1592899208
+        type: integer
+    required:
+    - actionID
+    type: object
+  handler.policiesAlterSerializer:
+    properties:
+      create_policies:
+        items:
+          $ref: '#/definitions/handler.policy'
+        type: array
+      delete_policy_ids:
+        items:
+          type: integer
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      update_policies:
+        items:
+          $ref: '#/definitions/handler.updatePolicy'
+        type: array
+    required:
+    - create_policies
+    - delete_policy_ids
+    - subject
+    - update_policies
+    type: object
+  handler.policiesDeleteSerializer:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      system_id:
+        type: string
+      template_id:
+        type: integer
+    required:
+    - ids
+    - subject_id
+    - subject_type
+    - system_id
+    type: object
+  handler.policiesUpdateExpiredAtSerializer:
+    properties:
+      policies:
+        items:
+          $ref: '#/definitions/handler.idExpiredAtSerializer'
+        type: array
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+    required:
+    - policies
+    - subject_id
+    - subject_type
+    type: object
+  handler.policy:
+    properties:
+      action_id:
+        type: string
+      environment:
+        type: string
+      expired_at:
+        type: integer
+      resource_expression:
+        type: string
+    required:
+    - action_id
+    - expired_at
+    - resource_expression
+    type: object
+  handler.policyGetResponse:
+    properties:
+      action:
+        $ref: '#/definitions/handler.policyResponseAction'
+        type: object
+      expired_at:
+        example: 4102444800
+        type: integer
+      expression:
+        additionalProperties: true
+        type: object
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/handler.policyResponseSubject'
+        type: object
+      system:
+        example: bk_test
+        type: string
+      version:
+        example: "1"
+        type: string
+    type: object
+  handler.policyIDSubject:
+    properties:
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/handler.policyResponseSubject'
+        type: object
+    type: object
+  handler.policyListResponse:
+    properties:
+      count:
+        example: 120
+        type: integer
+      metadata:
+        $ref: '#/definitions/handler.policyListResponseMetadata'
+        type: object
+      results:
+        items:
+          $ref: '#/definitions/handler.thinPolicyResponse'
+        type: array
+    type: object
+  handler.policyListResponseMetadata:
+    properties:
+      action:
+        $ref: '#/definitions/handler.policyResponseAction'
+        type: object
+      system:
+        example: bk_test
+        type: string
+      timestamp:
+        example: 1592899208
+        type: integer
+    type: object
+  handler.policyResponseAction:
+    properties:
+      id:
+        example: edit
+        type: string
+    type: object
+  handler.policyResponseSubject:
+    properties:
+      id:
+        example: admin
+        type: string
+      name:
+        example: Administer
+        type: string
+      type:
+        example: user
+        type: string
+    type: object
+  handler.policySubjectsResponse:
+    items:
+      $ref: '#/definitions/handler.policyIDSubject'
+    type: array
+  handler.queryByActionsRequest:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/handler.action'
+        type: array
+      resources:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - actions
+    - subject
+    - system
+    type: object
+  handler.queryByExtResourcesRequest:
+    properties:
+      action:
+        $ref: '#/definitions/handler.action'
+        type: object
+      ext_resources:
+        items:
+          $ref: '#/definitions/handler.extResource'
+        type: array
+      resources:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - action
+    - ext_resources
+    - subject
+    - system
+    type: object
+  handler.queryRequest:
+    properties:
+      action:
+        $ref: '#/definitions/handler.action'
+        type: object
+      resources:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system:
+        example: bk_paas
+        type: string
+    required:
+    - action
+    - subject
+    - system
+    type: object
+  handler.querySerializer:
+    properties:
+      fields:
+        example: base_info,resource_types,actions
+        type: string
+    type: object
+  handler.referenceResourceType:
+    properties:
+      id:
+        example: host
+        type: string
+      system_id:
+        example: bk_cmdb
+        type: string
+    required:
+    - id
+    - system_id
+    type: object
+  handler.resource:
+    properties:
+      attribute:
+        additionalProperties: true
+        type: object
+      id:
+        example: framework
+        type: string
+      system:
+        example: bk_paas
+        type: string
+      type:
+        example: app
+        type: string
+    required:
+    - attribute
+    - id
+    - system
+    - type
+    type: object
+  handler.resourceProviderConfig:
+    properties:
+      path:
+        description: 'TODO: valid path?'
+        example: /api/v1/resources/biz_set/query
+        type: string
+    required:
+    - path
+    type: object
+  handler.resourceTypeSerializer:
+    properties:
+      description:
+        example: biz_set is a
+        type: string
+      description_en:
+        example: biz_set is a
+        type: string
+      id:
+        example: biz_set
+        type: string
+      name:
+        example: biz_set
+        type: string
+      name_en:
+        example: biz_set
+        type: string
+      parents:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.referenceResourceType'
+        type: array
+      provider_config:
+        $ref: '#/definitions/handler.resourceProviderConfig'
+        type: object
+      version:
+        example: 1
+        type: integer
+    required:
+    - id
+    - name
+    - name_en
+    - provider_config
+    type: object
+  handler.resourceTypeUpdateSerializer:
+    properties:
+      description:
+        example: biz_set is a
+        type: string
+      description_en:
+        example: biz_set is a
+        type: string
+      name:
+        description: ID     string `json:"id" binding:"required"`
+        example: biz_set
+        type: string
+      name_en:
+        example: biz_set
+        type: string
+      parents:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.referenceResourceType'
+        type: array
+      provider_config:
+        $ref: '#/definitions/handler.resourceProviderConfig'
+        type: object
+      version:
+        example: 1
+        type: integer
+    type: object
+  handler.subject:
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+    required:
+    - id
+    - type
+    type: object
+  handler.subjectTemplateSerializer:
+    properties:
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      system_id:
+        type: string
+      template_id:
+        type: integer
+    required:
+    - subject_id
+    - subject_type
+    - system_id
+    - template_id
+    type: object
+  handler.subjectsSerializer:
+    properties:
+      ids:
+        example: 1,2,3
+        type: string
+    required:
+    - ids
+    type: object
+  handler.systemClientsResponse:
+    properties:
+      clients:
+        example: bk_paas,bk_esb
+        type: string
+    type: object
+  handler.systemCreateResponse:
+    properties:
+      id:
+        example: bk_paas
+        type: string
+    type: object
+  handler.systemProviderConfig:
+    properties:
+      auth:
+        example: basic
+        type: string
+      healthz:
+        example: /healthz
+        type: string
+      host:
+        description: 'TODO: valid host?'
+        example: http://bkpaas.service.consul
+        type: string
+    required:
+    - auth
+    - host
+    type: object
+  handler.systemResponse:
+    properties:
+      clients:
+        example: bk_paas,bk_esb
+        type: string
+      description:
+        example: Platform as A Service
+        type: string
+      description_en:
+        example: Platform as A Service
+        type: string
+      id:
+        example: bk_paas
+        type: string
+      name:
+        example: bk_paas
+        type: string
+      name_en:
+        example: bk_paas
+        type: string
+      provider_config:
+        additionalProperties: true
+        type: object
+    type: object
+  handler.systemSerializer:
+    properties:
+      clients:
+        example: bk_paas,bk_esb
+        type: string
+      description:
+        example: Platform as A Service
+        type: string
+      description_en:
+        example: Platform as A Service
+        type: string
+      id:
+        example: bk_paas
+        type: string
+      name:
+        example: bk_paas
+        type: string
+      name_en:
+        example: bk_paas
+        type: string
+      provider_config:
+        $ref: '#/definitions/handler.systemProviderConfig'
+        type: object
+    required:
+    - clients
+    - id
+    - name
+    - name_en
+    - provider_config
+    type: object
+  handler.systemUpdateSerializer:
+    properties:
+      clients:
+        example: bk_paas,bk_esb
+        type: string
+      description:
+        example: Platform as A Service
+        type: string
+      description_en:
+        example: Platform as A Service
+        type: string
+      name:
+        example: bk_paas
+        type: string
+      name_en:
+        example: bk_paas
+        type: string
+      provider_config:
+        $ref: '#/definitions/handler.systemProviderConfig'
+        type: object
+    type: object
+  handler.thinPolicyResponse:
+    properties:
+      expired_at:
+        example: 4102444800
+        type: integer
+      expression:
+        additionalProperties: true
+        type: object
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/handler.policyResponseSubject'
+        type: object
+      version:
+        example: "1"
+        type: string
+    type: object
+  handler.tokenResponse:
+    properties:
+      token:
+        example: vgclj4ddfe3ydr6eg3wjfx4vc8ogjxhi
+        type: string
+    type: object
+  handler.updatePolicy:
+    properties:
+      action_id:
+        type: string
+      environment:
+        type: string
+      expired_at:
+        type: integer
+      id:
+        type: integer
+      resource_expression:
+        type: string
+    required:
+    - action_id
+    - expired_at
+    - id
+    - resource_expression
+    type: object
+  handler.updateTemplatePolicySerializer:
+    properties:
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+      system_id:
+        type: string
+      template_id:
+        type: integer
+      update_policies:
+        items:
+          $ref: '#/definitions/handler.updatePolicy'
+        type: array
+    required:
+    - subject
+    - system_id
+    - template_id
+    - update_policies
+    type: object
+  types.SaaSPolicy:
+    properties:
+      action_id:
+        type: string
+      expired_at:
+        type: integer
+      id:
+        type: integer
+      system:
+        type: string
+      version:
+        type: string
+    type: object
+  types.System:
+    properties:
+      clients:
+        type: string
+      description:
+        type: string
+      description_en:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      name_en:
+        type: string
+      provider_config:
+        additionalProperties: true
+        type: object
+    type: object
+  util.Response:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: 蓝鲸权限中心后台服务 API 文档
+  license: {}
+  title: IAM API
+  version: "1.0"
+paths:
+  /api/v1/engine/credentials/verify:
+    post:
+      consumes:
+      - application/json
+      description: check app code secret exists
+      operationId: api-engine-check-appcode-secret-exists
+      parameters:
+      - description: the credential request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.credentialsVerifySerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.credentialsVerifyResponseSerializer'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Credentials Verify/认证信息验证
+      tags:
+      - engine
+  /api/v1/engine/policies:
+    get:
+      consumes:
+      - application/json
+      description: list policies of ids or between min-max ids
+      operationId: api-engine-policies-list
+      parameters:
+      - in: query
+        name: timestamp
+        type: integer
+      - in: query
+        name: min_id
+        type: integer
+      - in: query
+        name: max_id
+        type: integer
+      - in: query
+        name: ids
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.policyListResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy list
+      tags:
+      - engine
+  /api/v1/engine/policies/ids:
+    get:
+      consumes:
+      - application/json
+      description: list policy pks by condition
+      operationId: api-engine-policy-id-list
+      parameters:
+      - in: query
+        name: begin_updated_at
+        type: integer
+      - in: query
+        name: end_updated_at
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.listPolicyIDsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy ids list
+      tags:
+      - engine
+  /api/v1/engine/policies/ids/max:
+    get:
+      consumes:
+      - application/json
+      description: get max policy id by condition
+      operationId: api-engine-policy-id-max
+      parameters:
+      - in: query
+        name: updated_at
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.getMaxPolicyIDResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy max id
+      tags:
+      - engine
+  /api/v1/engine/systems/:system_id:
+    get:
+      consumes:
+      - application/json
+      description: get system info
+      operationId: api-engine-system-info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.System'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system info
+      tags:
+      - engine
+  /api/v1/policy/auth:
+    post:
+      consumes:
+      - application/json
+      description: 'eval all the policies queried by conditions: system/subject/action
+        and resources[required]'
+      operationId: api-policy-auth
+      parameters:
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/handler.authResponse'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy auth/鉴权
+      tags:
+      - policy
+  /api/v1/policy/auth_by_actions:
+    post:
+      consumes:
+      - application/json
+      description: batch auth by actions
+      operationId: api-policy-batch-auth-by-actions
+      parameters:
+      - description: the batch auth by actions request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authByActionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/handler.authByActionsResponse'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch auth by actions/批量鉴权接口
+      tags:
+      - policy
+  /api/v1/policy/auth_by_resources:
+    post:
+      consumes:
+      - application/json
+      description: batch auth by resources
+      operationId: api-policy-batch-auth-by-resources
+      parameters:
+      - description: the batch auth by resources request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authByResourcesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/handler.authByResourcesResponse'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch auth by resources/批量鉴权接口
+      tags:
+      - policy
+  /api/v1/policy/query:
+    post:
+      consumes:
+      - application/json
+      description: 'query the policy by conditions: system/subject/action and resources[optional]'
+      operationId: api-policy-query
+      parameters:
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.queryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy query/策略查询
+      tags:
+      - policy
+  /api/v1/policy/query_by_actions:
+    post:
+      consumes:
+      - application/json
+      description: batch query policies by actions
+      operationId: api-policy-batch-query-by-actions
+      parameters:
+      - description: the batch query by action request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.queryByActionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/handler.actionPoliciesResponse'
+            type: array
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch query by actions/批量查询策略
+      tags:
+      - policy
+  /api/v1/policy/query_by_ext_resources:
+    post:
+      consumes:
+      - application/json
+      description: 'query the policy by conditions: system/subject/action and resources[optional]'
+      operationId: api-policy-query-by-ext-resources
+      parameters:
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.queryByExtResourcesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy query by ext resources/批量第三方依赖策略查询
+      tags:
+      - policy
+  /api/v1/systems:
+    post:
+      consumes:
+      - application/json
+      description: register a system to iam
+      operationId: api-model-system-create
+      parameters:
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.systemSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.systemCreateResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system create
+      tags:
+      - model
+  /api/v1/systems/{system_id}:
+    get:
+      consumes:
+      - application/json
+      description: get a system
+      operationId: api-model-system-get
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.systemResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system get
+      tags:
+      - model
+    put:
+      consumes:
+      - application/json
+      description: update a system
+      operationId: api-model-system-update
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.systemUpdateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system update
+      tags:
+      - model
+  /api/v1/systems/{system_id}/action/{action_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete action
+      operationId: api-model-action-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Action ID
+        in: path
+        name: action_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: action delete
+      tags:
+      - model
+    put:
+      consumes:
+      - application/json
+      description: update action
+      operationId: api-model-action-update
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Action ID
+        in: path
+        name: action_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.actionUpdateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: action update
+      tags:
+      - model
+  /api/v1/systems/{system_id}/actions:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete actions
+      operationId: api-model-action-batch-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Resource Type ID
+        in: path
+        name: resource_type_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.deleteViaID'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: actions batch delete
+      tags:
+      - model
+    post:
+      consumes:
+      - application/json
+      description: batch create actions
+      operationId: api-model-action-create
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.actionSerializer'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch actions create
+      tags:
+      - model
+  /api/v1/systems/{system_id}/clients:
+    get:
+      consumes:
+      - application/json
+      description: get clients of the system
+      operationId: api-model-system-clients-get
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.systemClientsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: get system clients
+      tags:
+      - model
+  /api/v1/systems/{system_id}/configs/{name}:
+    post:
+      consumes:
+      - application/json
+      description: create system config
+      operationId: api-model-system-config-create
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Config Name
+        enum:
+        - '"action_groups"'
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.actionGroupSerializer'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system config create
+      tags:
+      - model
+  /api/v1/systems/{system_id}/instance-selections:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete instance_selection
+      operationId: api-model-instance-selection-batch-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Instance Selection ID
+        in: path
+        name: instance_selection_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.deleteViaID'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: instance selection batch delete
+      tags:
+      - model
+    post:
+      consumes:
+      - application/json
+      description: batch create instance_selections
+      operationId: api-model-instance-selection-create
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.instanceSelectionSerializer'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch instance selection create
+      tags:
+      - model
+  /api/v1/systems/{system_id}/instance-selections/{instance_selection_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete instance_selection
+      operationId: api-model-instance-selection-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Instance Selection ID
+        in: path
+        name: instance_selection_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: instance selection delete
+      tags:
+      - model
+    put:
+      consumes:
+      - application/json
+      description: update instance_selection
+      operationId: api-model-instance-selection-update
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Instance Selection ID
+        in: path
+        name: instance_selection_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.instanceSelectionUpdateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: instance selection update
+      tags:
+      - model
+  /api/v1/systems/{system_id}/policies:
+    get:
+      consumes:
+      - application/json
+      description: list policies of a action
+      operationId: api-open-system-policies-list
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - in: query
+        name: actionID
+        required: true
+        type: string
+      - in: query
+        name: pageSize
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: timestamp
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.policyListResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy list
+      tags:
+      - open
+  /api/v1/systems/{system_id}/policies/-/subjects:
+    get:
+      consumes:
+      - application/json
+      description: system+action+policy_ids => subjects
+      operationId: api-open-system-policies-subjects
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.policySubjectsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: query subjects/获取有权限的用户列表
+      tags:
+      - open
+  /api/v1/systems/{system_id}/policies/{policy_id}:
+    get:
+      consumes:
+      - application/json
+      description: get a policy
+      operationId: api-open-system-policies-get
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Policy ID
+        in: path
+        name: policy_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.policyGetResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy get
+      tags:
+      - open
+  /api/v1/systems/{system_id}/query:
+    get:
+      consumes:
+      - application/json
+      description: query the system
+      operationId: api-model-system-query
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.querySerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/gin.H'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system info query
+      tags:
+      - model
+  /api/v1/systems/{system_id}/resource-types:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete resource_type
+      operationId: api-model-resource-type-batch-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Resource Type ID
+        in: path
+        name: resource_type_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.deleteViaID'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: resource type batch delete
+      tags:
+      - model
+    post:
+      consumes:
+      - application/json
+      description: batch create resource_types
+      operationId: api-model-resource-type-create
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handler.resourceTypeSerializer'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch resource type create
+      tags:
+      - model
+  /api/v1/systems/{system_id}/resource-types/{resource_type_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete resource_type
+      operationId: api-model-resource-type-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Resource Type ID
+        in: path
+        name: resource_type_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: resource type delete
+      tags:
+      - model
+    put:
+      consumes:
+      - application/json
+      description: update resource_type
+      operationId: api-model-resource-type-update
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Resource Type ID
+        in: path
+        name: resource_type_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.resourceTypeUpdateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: resource type update
+      tags:
+      - model
+  /api/v1/systems/{system_id}/token:
+    get:
+      consumes:
+      - application/json
+      description: get the token of system
+      operationId: api-model-system-token-get
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.tokenResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: token get
+      tags:
+      - model
+  /api/v1/web/custom-policy:
+    get:
+      consumes:
+      - application/json
+      description: get custom policy
+      operationId: api-web-get-custom-policy
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: subject type
+        in: query
+        name: subject_type
+        required: true
+        type: string
+      - description: subject id
+        in: query
+        name: subject_id
+        required: true
+        type: string
+      - description: action id
+        in: query
+        name: action_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: GetCustomPolicy/获取自定义策略
+      tags:
+      - web
+  /api/v1/web/perm-templates/policies:
+    delete:
+      consumes:
+      - application/json
+      description: delete template policy
+      operationId: api-web-delete-template-policies
+      parameters:
+      - description: delete templates policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.subjectTemplateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: delete template policy/删除模板授权的策略
+      tags:
+      - web
+    post:
+      consumes:
+      - application/json
+      description: Create and delete template policy
+      operationId: api-web-create-delete-template-policies
+      parameters:
+      - description: create and delete templates policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createAndDeleteTemplatePolicySerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Create and delete template policy/创建删除模板授权的策略
+      tags:
+      - web
+    put:
+      consumes:
+      - application/json
+      description: update template policy
+      operationId: api-web-update-template-policies
+      parameters:
+      - description: update templates policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateTemplatePolicySerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: update template policy/更新模板授权的策略
+      tags:
+      - web
+  /api/v1/web/policies:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete policies
+      operationId: api-web-batch-delete-policies
+      parameters:
+      - description: delete policy info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.policiesDeleteSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Batch delete policies/删除用户策略
+      tags:
+      - web
+    get:
+      consumes:
+      - application/json
+      description: 'query all authorized policies: subject/template[required]'
+      operationId: api-web-list-policy
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: subject type
+        in: query
+        name: subject_type
+        required: true
+        type: string
+      - description: subject id
+        in: query
+        name: subject_id
+        required: true
+        type: string
+      - description: until expired at
+        in: query
+        name: before_expired_at
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SaaSPolicy'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: List policy/获取策略列表
+      tags:
+      - web
+  /api/v1/web/policies/expired_at:
+    put:
+      consumes:
+      - application/json
+      description: renew policies
+      operationId: api-web-renew-policies
+      parameters:
+      - description: renew policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.policiesUpdateExpiredAtSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Renew policies/权限续期
+      tags:
+      - web
+  /api/v1/web/systems/{system_id}/policies:
+    get:
+      consumes:
+      - application/json
+      description: 'query all authorized policies: subject/template[required]'
+      operationId: api-web-list-system-policy
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: subject type
+        in: query
+        name: subject_type
+        required: true
+        type: string
+      - description: subject id
+        in: query
+        name: subject_id
+        required: true
+        type: string
+      - description: template id
+        in: query
+        name: template_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SaaSPolicy'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: List policy/获取策略列表
+      tags:
+      - web
+    post:
+      consumes:
+      - application/json
+      description: alter policies by custom application
+      operationId: api-web-alter-policies
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: create and update policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.policiesAlterSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Alter policies/变更用户自定义申请策略
+      tags:
+      - web
+  /healthz:
+    get:
+      consumes:
+      - application/json
+      description: /healthz to make sure the server is health
+      operationId: healthz
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: healthz for server health check
+      tags:
+      - basic
+  /metrics:
+    get:
+      consumes:
+      - application/json
+      description: /metrics
+      operationId: metrics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            type: string
+      summary: prometheus metrics
+      tags:
+      - basic
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: /ping to get response from iam, make sure the server is alive
+      operationId: ping
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: ping-pong for alive test
+      tags:
+      - basic
+  /version:
+    get:
+      consumes:
+      - application/json
+      description: /version to get the version of iam
+      operationId: version
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: version for identify
+      tags:
+      - basic
+securityDefinitions:
+  AppCode:
+    in: header
+    name: X-Bk-App-Code
+    type: apiKey
+  AppSecret:
+    in: header
+    name: X-Bk-App-Secret
+    type: apiKey
+swagger: "2.0"

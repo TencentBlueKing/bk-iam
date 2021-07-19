@@ -1,0 +1,85 @@
+debug: false
+
+server:
+  host: __LAN_IP__
+  port: __BK_IAM_PORT__
+
+  readTimeout: 300
+  writeTimeout: 300
+  idleTimeout: 180
+
+# use comma ”,“ separated when multiple app_code
+superAppCode: "bk_iam"
+
+# if cache the policy in redis, for better performance
+# will turn on by default
+policyCache:
+  disabled: false
+  expirationDays: 7
+
+
+databases:
+  - id: "iam"
+    host: "__BK_IAM_MYSQL_HOST__"
+    port: __BK_IAM_MYSQL_PORT__
+    user: "__BK_IAM_MYSQL_USER__"
+    password: "__BK_IAM_MYSQL_PASSWORD__"
+    name: "bkiam"
+    maxOpenConns: 200
+    maxIdleConns: 50
+    connMaxLifetimeSecond: 600
+
+  - id: "open_paas"
+    host: "__BK_PAAS_MYSQL_HOST__"
+    port: __BK_PAAS_MYSQL_PORT__
+    user: "__BK_PAAS_MYSQL_USER__"
+    password: "__BK_PAAS_MYSQL_PASSWORD__"
+    name: "open_paas"
+
+redis:
+  - id: "__BK_IAM_REDIS_MODE__"
+    addr: "__BK_IAM_REDIS_ADDR__"
+    password: "__BK_IAM_REDIS_PASSWORD__"
+    db: 0
+    poolSize: 160
+    dialTimeout: 3
+    readTimeout: 1
+    writeTimeout: 1
+    # use comma ”,“ separated when multiple addr
+    sentinelAddr: "__BK_IAM_REDIS_SENTINEL_ADDR__"
+    masterName: "__BK_IAM_REDIS_SENTINEL_MASTER_NAME__"
+    sentinelPassword: "__BK_IAM_REDIS_SENTINEL_PASSWORD__"
+
+customQuotas:
+  - id: bk_cmdb
+    quota:
+      model:
+        max_actions_limit: 1500
+
+logger:
+  system:
+    level: info
+    # writer: os
+    # settings: {name: stdout}
+    writer: file
+    settings: {name: iam.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  api:
+    level: info
+    writer: file
+    settings: {name: iam_api.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  sql:
+    level: info
+    writer: file
+    settings: {name: iam_sql.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  audit:
+    level: info
+    writer: file
+    settings: {name: iam_audit.log, size: 500, backups: 20, age: 365, path: __BK_HOME__/logs/bkiam/}
+  web:
+    level: info
+    writer: file
+    settings: {name: iam_web.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  component:
+    level: error
+    writer: file
+    settings: {name: iam_component.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
