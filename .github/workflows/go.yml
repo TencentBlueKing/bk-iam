@@ -25,4 +25,4 @@ jobs:
       run: make test
 
     - name: Lint
-      run: make lint
+      run: go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.24.0 && make lint
