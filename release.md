@@ -1,3 +1,7 @@
+# 1.8.2
+
+- bugfix: wrong config reference by web logger
+
 # 1.8.1
 
 - bugfix: policy cache database make slice with wrong cap size
