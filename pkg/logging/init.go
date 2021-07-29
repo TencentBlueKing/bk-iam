@@ -40,7 +40,7 @@ func InitLogger(logger *config.Logger) {
 	loggerInitOnce.Do(func() {
 		// json logger
 		apiLogger = newZapJSONLogger(&logger.API)
-		webLogger = newZapJSONLogger(&logger.API)
+		webLogger = newZapJSONLogger(&logger.Web)
 
 		sqlLogger = newJSONLogger(&logger.SQL)
 		auditLogger = newJSONLogger(&logger.Audit)
