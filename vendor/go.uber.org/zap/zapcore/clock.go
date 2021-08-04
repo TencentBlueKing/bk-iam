@@ -18,41 +18,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package atomic
+package zapcore
 
 import (
-	"sync/atomic"
-	"unsafe"
+	"time"
 )
 
-// UnsafePointer is an atomic wrapper around unsafe.Pointer.
-type UnsafePointer struct {
-	_ nocmp // disallow non-atomic comparison
+// DefaultClock is the default clock used by Zap in operations that require
+// time. This clock uses the system clock for all operations.
+var DefaultClock = systemClock{}
 
-	v unsafe.Pointer
+// Clock is a source of time for logged entries.
+type Clock interface {
+	// Now returns the current local time.
+	Now() time.Time
+
+	// NewTicker returns *time.Ticker that holds a channel
+	// that delivers "ticks" of a clock.
+	NewTicker(time.Duration) *time.Ticker
 }
 
-// NewUnsafePointer creates a new UnsafePointer.
-func NewUnsafePointer(val unsafe.Pointer) *UnsafePointer {
-	return &UnsafePointer{v: val}
+// systemClock implements default Clock that uses system time.
+type systemClock struct{}
+
+func (systemClock) Now() time.Time {
+	return time.Now()
 }
 
-// Load atomically loads the wrapped value.
-func (p *UnsafePointer) Load() unsafe.Pointer {
-	return atomic.LoadPointer(&p.v)
-}
-
-// Store atomically stores the passed value.
-func (p *UnsafePointer) Store(val unsafe.Pointer) {
-	atomic.StorePointer(&p.v, val)
-}
-
-// Swap atomically swaps the wrapped unsafe.Pointer and returns the old value.
-func (p *UnsafePointer) Swap(val unsafe.Pointer) (old unsafe.Pointer) {
-	return atomic.SwapPointer(&p.v, val)
-}
-
-// CAS is an atomic compare-and-swap.
-func (p *UnsafePointer) CAS(old, new unsafe.Pointer) (swapped bool) {
-	return atomic.CompareAndSwapPointer(&p.v, old, new)
+func (systemClock) NewTicker(duration time.Duration) *time.Ticker {
+	return time.NewTicker(duration)
 }

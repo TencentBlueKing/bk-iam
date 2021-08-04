@@ -1,3 +1,8 @@
+# 1.8.3
+
+- add: zap buffered logger
+- add: rate limit for api
+
 # 1.8.2
 
 - bugfix: wrong config reference by web logger
