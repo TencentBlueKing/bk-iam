@@ -8,7 +8,6 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dlmiddlecote/sqlstats v1.0.2
 	github.com/elazarl/goproxy v0.0.0-20200710112657-153946a5f232 // indirect
 	github.com/fatih/structs v1.1.0
@@ -23,6 +22,7 @@ require (
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible
+	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
@@ -50,9 +50,9 @@ require (
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.4
 	github.com/yuin/gopher-lua v0.0.0-20200603152657-dc2b0ca8b37e // indirect
-	go.uber.org/atomic v1.8.0 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0
-	go.uber.org/zap v1.17.0
+	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0

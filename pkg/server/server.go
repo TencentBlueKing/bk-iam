@@ -19,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/config"
+	"iam/pkg/logging"
 )
 
 const (
@@ -115,6 +116,10 @@ func (s *Server) Stop() {
 		log.WithError(err).Error("Wait is over due to error")
 		s.server.Close()
 	}
+
+	// flush logger
+	logging.GetAPILogger().Sync()
+	logging.GetWebLogger().Sync()
 
 	s.stopChan <- struct{}{}
 }
