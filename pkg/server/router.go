@@ -57,6 +57,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouter.Use(middleware.Metrics())
 	policyRouter.Use(middleware.APILogger())
 	policyRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	policy.Register(policyRouter)
 
 	// restful apis for open api
@@ -64,6 +65,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	openAPIRouter.Use(middleware.Metrics())
 	openAPIRouter.Use(middleware.APILogger())
 	openAPIRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	open.Register(openAPIRouter)
 
 	// perm-model for register
@@ -71,6 +73,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	permModelRouter.Use(middleware.Metrics())
 	permModelRouter.Use(middleware.Audit())
 	permModelRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	model.Register(permModelRouter)
 
 	// debug api
