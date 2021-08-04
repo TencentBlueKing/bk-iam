@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
@@ -130,7 +131,12 @@ func newZapJSONLogger(cfg *config.LogConfig) *zap.Logger {
 	if err != nil {
 		panic(err)
 	}
-	w := zapcore.AddSync(writer)
+	//w := zapcore.AddSync(writer)
+	w := &zapcore.BufferedWriteSyncer{
+		WS:            zapcore.AddSync(writer),
+		Size:          256 * 1024, // 256 kB
+		FlushInterval: 30 * time.Second,
+	}
 
 	// 设置日志级别
 	l, err := parseZapLogLevel(cfg.Level)
