@@ -23,7 +23,7 @@ import (
 	"iam/pkg/util"
 )
 
-// GetPolicy godoc
+// Get godoc
 // @Summary policy get
 // @Description get a policy
 // @ID api-open-system-policies-get

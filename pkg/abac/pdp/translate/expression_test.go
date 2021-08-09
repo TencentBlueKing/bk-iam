@@ -119,6 +119,75 @@ var _ = Describe("Expression", func() {
 			assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, ec) || assert.ObjectsAreEqualValues(want2, ec))
 		})
 
+		Describe("got one any expr", func() {
+			It("ok, single any policy", func() {
+				policies = []types.AuthPolicy{
+					{
+						Expression: `[{"system":"iam","type":"biz","expression":{"Any":{"id":[]}}}]`,
+					},
+				}
+				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, ec)
+			})
+
+			It("ok, two policy, one is any", func() {
+				policies = []types.AuthPolicy{
+					{
+						Expression: `[{"system": "iam", "type": "job", 
+"expression": {"StringEquals": {"id": ["abc"]}}}]`,
+					},
+					{
+						Expression: `[{"system":"iam","type":"biz","expression":{"Any":{"id":[]}}}]`,
+					},
+				}
+				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, ec)
+			})
+			It("ok, two policy, one is any, inverse order", func() {
+				policies = []types.AuthPolicy{
+					{
+						Expression: `[{"system":"iam","type":"job","expression":{"Any":{"id":[]}}}]`,
+					},
+					{
+						Expression: `[{"system": "iam", "type": "job", 
+"expression": {"StringEquals": {"id": ["abc"]}}}]`,
+					},
+				}
+				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, ec)
+			})
+			It("ok, multiple policy, one is any", func() {
+				policies = []types.AuthPolicy{
+					{
+						Expression: `[{"system": "iam", "type": "job",
+		"expression": {"StringEquals": {"name": ["abc"]}}}]`,
+					},
+					{
+						Expression: `[{"system": "iam", "type": "job",
+		"expression": {"StringEquals": {"name2": ["abc"]}}}]`,
+					},
+					{
+						Expression: `[{"system":"iam","type":"job","expression":{"Any":{"id":[]}}}]`,
+					},
+					{
+						Expression: `[{"system": "iam", "type": "job",
+		"expression": {"StringEquals": {"name3": ["abc"]}}}]`,
+					},
+					{
+						Expression: `[{"system": "iam", "type": "job",
+		"expression": {"StringEquals": {"id": ["def"]}}}]`,
+					},
+				}
+				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, ec)
+			})
+
+		})
+
 		It("ok, two resource", func() {
 			policies = []types.AuthPolicy{
 				{
