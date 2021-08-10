@@ -343,10 +343,72 @@ var _ = Describe("Expression", func() {
 	Describe("mergeContentField", func() {
 		It("ok, empty content", func() {
 			content := []ExprCell{}
-			content = mergeContentField(content)
-			assert.Len(GinkgoT(), content, 0)
+			newC := mergeContentField(content)
+			assert.Empty(GinkgoT(), newC)
 		})
-		It("ok, not same field", func() {
+
+		It("ok, not in/eq", func() {
+			content := []ExprCell{
+				{
+					"op":    "starts_with",
+					"field": "host.os",
+					"value": "abc",
+				},
+				{
+					"op":    "gte",
+					"field": "host.id",
+					"value": 23,
+				},
+			}
+			content = mergeContentField(content)
+			assert.Len(GinkgoT(), content, 2)
+		})
+
+		It("ok, not eq or in", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+			}
+			content = mergeContentField(content)
+			assert.Len(GinkgoT(), content, 2)
+		})
+
+		It("ok, single in", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+			}
+			content = mergeContentField(content)
+			want := content
+			assert.Len(GinkgoT(), content, 1)
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
+		It("ok, single eq", func() {
+			content := []ExprCell{
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "abc",
+				},
+			}
+			content = mergeContentField(content)
+			want := content
+			assert.Len(GinkgoT(), content, 1)
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
+		It("ok, in/eq, not same field", func() {
 			content := []ExprCell{
 				{
 					"op":    "in",
@@ -362,6 +424,7 @@ var _ = Describe("Expression", func() {
 			content = mergeContentField(content)
 			assert.Len(GinkgoT(), content, 2)
 		})
+
 		It("ok, merge", func() {
 			content := []ExprCell{
 				{
@@ -396,21 +459,7 @@ var _ = Describe("Expression", func() {
 			}
 			assert.EqualValues(GinkgoT(), want, content)
 		})
-		It("ok, not eq or in", func() {
-			content := []ExprCell{
-				{
-					"op":    "in",
-					"field": "host.id",
-					"value": []interface{}{"abc", "def"},
-				},
-				{
-					"op":      "AND",
-					"content": []interface{}{},
-				},
-			}
-			content = mergeContentField(content)
-			assert.Len(GinkgoT(), content, 2)
-		})
+
 		It("ok, merge part", func() {
 			content := []ExprCell{
 				{

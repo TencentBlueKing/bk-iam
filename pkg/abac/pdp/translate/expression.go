@@ -49,7 +49,7 @@ func PoliciesTranslate(
 		content = append(content, condition)
 	}
 
-	// NOTE: if got an `any`, return `any`!!!!
+	// NOTE: if got an `any`, return `any`!
 	for _, c := range content {
 		if c.Op() == "any" {
 			return ExprCell{
