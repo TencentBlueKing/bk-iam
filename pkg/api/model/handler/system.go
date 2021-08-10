@@ -241,7 +241,7 @@ func GetSystem(c *gin.Context) {
 	})
 }
 
-// GetSystem godoc
+// GetSystemClients godoc
 // @Summary get system clients
 // @Description get clients of the system
 // @ID api-model-system-clients-get

@@ -11,9 +11,6 @@
 package types
 
 import (
-	"fmt"
-	"strings"
-
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 )
@@ -39,26 +36,6 @@ func NewExprContext(ctx *request.Request, resource *types.Resource) *ExprContext
 	}
 }
 
-// GetFullNameAttr 获取带前缀的属性值
-func (c *ExprContext) GetFullNameAttr(name string) (interface{}, error) {
-	// 属性name格式 resource.id 使用 . 分割
-	parts := strings.Split(name, ".")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("name format error %s", name)
-	}
-
-	switch parts[0] {
-	case "resource":
-		return c.getResourceAttr(parts[1])
-	case "action":
-		return c.getActionAttr(parts[1])
-	case "subject":
-		return c.getSubjectAttr(parts[1])
-	default:
-		return nil, fmt.Errorf("name not support %s", name)
-	}
-}
-
 // GetAttr 获取资源的属性值
 func (c *ExprContext) GetAttr(name string) (interface{}, error) {
 	return c.getResourceAttr(name)
@@ -74,22 +51,42 @@ func (c *ExprContext) getResourceAttr(name string) (interface{}, error) {
 	}
 }
 
-func (c *ExprContext) getActionAttr(name string) (interface{}, error) {
-	switch name {
-	case "id":
-		return c.Action.ID, nil
-	default: // action 的公用属性暂时只有group相关信息, 存储为interface{}, 暂不处理
-		return nil, nil
-	}
-}
+// GetFullNameAttr 获取带前缀的属性值
+//func (c *ExprContext) GetFullNameAttr(name string) (interface{}, error) {
+//	// 属性name格式 resource.id 使用 . 分割
+//	parts := strings.Split(name, ".")
+//	if len(parts) != 2 {
+//		return nil, fmt.Errorf("name format error %s", name)
+//	}
+//
+//	switch parts[0] {
+//	case "resource":
+//		return c.getResourceAttr(parts[1])
+//	case "action":
+//		return c.getActionAttr(parts[1])
+//	case "subject":
+//		return c.getSubjectAttr(parts[1])
+//	default:
+//		return nil, fmt.Errorf("name not support %s", name)
+//	}
+//}
 
-func (c *ExprContext) getSubjectAttr(name string) (interface{}, error) {
-	switch name {
-	case "type":
-		return c.Subject.Type, nil
-	case "id":
-		return c.Subject.ID, nil
-	default: // subject 的公用属性暂时只有group相关信息, 存储为interface{}, 暂不处理
-		return nil, nil
-	}
-}
+//func (c *ExprContext) getActionAttr(name string) (interface{}, error) {
+//	switch name {
+//	case "id":
+//		return c.Action.ID, nil
+//	default: // action 的公用属性暂时只有group相关信息, 存储为interface{}, 暂不处理
+//		return nil, nil
+//	}
+//}
+//
+//func (c *ExprContext) getSubjectAttr(name string) (interface{}, error) {
+//	switch name {
+//	case "type":
+//		return c.Subject.Type, nil
+//	case "id":
+//		return c.Subject.ID, nil
+//	default: // subject 的公用属性暂时只有group相关信息, 存储为interface{}, 暂不处理
+//		return nil, nil
+//	}
+//}
