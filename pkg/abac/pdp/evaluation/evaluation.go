@@ -76,6 +76,8 @@ func EvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 		return false, fmt.Errorf("evalPolicy action: %s get resource nil", ctx.Action.ID)
 	}
 
+	// TODO: newExpression, 两阶段计算
+
 	cond, err := condition.ParseResourceConditionFromExpression(ctx.Resource,
 		policy.Expression,
 		policy.ExpressionSignature)

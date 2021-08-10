@@ -50,6 +50,7 @@ var _ = Describe("Expression", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), anyExpr, ec)
 		})
+
 		It("any, 2", func() {
 			policies = []types.AuthPolicy{
 				{
@@ -115,11 +116,10 @@ var _ = Describe("Expression", func() {
 			}
 			ec, err := PoliciesTranslate(policies, resourceTypeSet)
 			assert.NoError(GinkgoT(), err)
-			//assert.EqualValues(GinkgoT(), want, ec)
 			assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, ec) || assert.ObjectsAreEqualValues(want2, ec))
 		})
 
-		Describe("got one any expr", func() {
+		Describe("got one any expr, merged", func() {
 			It("ok, single any policy", func() {
 				policies = []types.AuthPolicy{
 					{
@@ -145,6 +145,7 @@ var _ = Describe("Expression", func() {
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), anyExpr, ec)
 			})
+
 			It("ok, two policy, one is any, inverse order", func() {
 				policies = []types.AuthPolicy{
 					{
@@ -159,6 +160,7 @@ var _ = Describe("Expression", func() {
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), anyExpr, ec)
 			})
+
 			It("ok, multiple policy, one is any", func() {
 				policies = []types.AuthPolicy{
 					{
@@ -273,19 +275,13 @@ var _ = Describe("Expression", func() {
 		})
 
 		It("ok, single", func() {
-			resourceExpression := `[{"system": "bk_cmdb", "type": "host", 
-"expression": {"OR": {"content": [{"StringEquals": {"id": ["abc"]}}]}}}]`
-			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_cmdb:host"})
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"StringEquals":{"id":["2"]}}}]`
+			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_cmdb:biz"})
 
 			want := ExprCell{
-				"op": "OR",
-				"content": []interface{}{
-					ExprCell{
-						"op":    "eq",
-						"field": "host.id",
-						"value": "abc",
-					},
-				},
+				"op":    "eq",
+				"field": "biz.id",
+				"value": "2",
 			}
 			expr, err := PolicyTranslate(resourceExpression, resourceTypeSet)
 			assert.NoError(GinkgoT(), err)
@@ -293,17 +289,16 @@ var _ = Describe("Expression", func() {
 		})
 
 		It("fail, singleTranslate fail", func() {
-			resourceExpression := `[{"system": "bk_cmdb", "type": "host", 
-"expression": {"OR": {"content": [{"NotExists": {"id": ["abc"]}}]}}}]`
-			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_cmdb:host"})
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
+			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_cmdb:biz"})
 
 			_, err := PolicyTranslate(resourceExpression, resourceTypeSet)
 			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "pdp PolicyTranslate expression")
 		})
 
 		It("ok, resourceTypeSet not match, return any", func() {
-			resourceExpression := `[{"system": "bk_cmdb", "type": "host", 
-"expression": {"OR": {"content": [{"StringEquals": {"id": ["abc"]}}]}}}]`
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
 			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_test:job"})
 			expr, err := PolicyTranslate(resourceExpression, resourceTypeSet)
 			assert.NoError(GinkgoT(), err)
@@ -311,25 +306,18 @@ var _ = Describe("Expression", func() {
 		})
 
 		It("ok, two expression", func() {
-			resourceExpression := `[{"system": "bk_job", "type": "job", 
-"expression": {"OR": {"content": [{"Any": {"id": []}}]}}}, 
-{"system": "bk_cmdb", "type": "host", "expression": {"OR": {"content": [{"Any": {"id": []}}]}}}]`
-			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_job:job", "bk_cmdb:host"})
+			resourceExpression := `[{"system":"bk_sops","type":"common_flow","expression":{"Any":{"id":[]}}},
+{"system":"bk_sops","type":"project","expression":{"Any":{"id":[]}}}]`
+			resourceTypeSet = util.NewStringSetWithValues([]string{"bk_sops:common_flow", "bk_sops:project"})
 
 			want := ExprCell{
 				"op": "AND",
 				"content": []ExprCell{
 					{
-						"op": "OR",
-						"content": []interface{}{
-							ExprCell{"field": "job.id", "op": "any", "value": []interface{}{}},
-						},
+						"field": "common_flow.id", "op": "any", "value": []interface{}{},
 					},
 					{
-						"op": "OR",
-						"content": []interface{}{
-							ExprCell{"field": "host.id", "op": "any", "value": []interface{}{}},
-						},
+						"field": "project.id", "op": "any", "value": []interface{}{},
 					},
 				},
 			}

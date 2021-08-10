@@ -84,6 +84,7 @@ func PolicyTranslate(
 ) (ExprCell, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(Translate, "PolicyTranslate")
 
+	// TODO: newExpression, do translate here
 	expressions := []pdptypes.ResourceExpression{}
 
 	// NOTE: if expression == "" or expression == "[]", all return any
@@ -96,7 +97,7 @@ func PolicyTranslate(
 		}
 	}
 
-	// 注意, 如果resourceType不匹配, 那么最终会返回any
+	// 注意, 如果resourceType不匹配, 那么最终会返回any => 这里有没有问题? 两阶段计算?
 	content := make([]ExprCell, 0, len(expressions))
 	for _, expression := range expressions {
 		key := expression.System + ":" + expression.Type
@@ -121,7 +122,7 @@ func PolicyTranslate(
 	case 1:
 		return content[0], nil
 	default:
-		// NOTE: 这里是满足 一个操作依赖两个资源的场景, 所以是 AND
+		// NOTE: 这里是满足 一个操作依赖两个资源的场景, 所以是 AND => 两阶段计算
 		return ExprCell{
 			"op":      "AND",
 			"content": content,
