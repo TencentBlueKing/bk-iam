@@ -98,6 +98,9 @@ type Sentry struct {
 // Quota ...
 type Quota struct {
 	Model map[string]int
+
+	// NOTE: only used for rate limit middleware, will remove in the future
+	API map[string]int
 }
 
 // SystemQuota store the settings for specific system

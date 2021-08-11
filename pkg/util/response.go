@@ -91,6 +91,7 @@ var (
 	UnauthorizedJSONResponse    = NewErrorJSONResponse(UnauthorizedError, "unauthorized")
 	NotFoundJSONResponse        = NewErrorJSONResponse(NotFoundError, "not found")
 	ConflictJSONResponse        = NewErrorJSONResponse(ConflictError, "conflict")
+	TooManyRequestsJSONResponse = NewErrorJSONResponse(TooManyRequests, "too many requests")
 )
 
 // SystemErrorJSONResponse ...
