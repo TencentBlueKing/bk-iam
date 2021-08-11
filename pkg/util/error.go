@@ -28,6 +28,7 @@ const (
 	NotFoundError     = 1901404
 	ConflictError     = 1901409
 	SystemError       = 1901500
+	TooManyRequests   = 1901429
 )
 
 // ReportToSentry is a shortcut to build and send an event to sentry

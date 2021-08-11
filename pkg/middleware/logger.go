@@ -39,7 +39,7 @@ func APILogger() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		fields := logContextFields(c)
-		logger.With(fields...).Info("-")
+		logger.Info("-", fields...)
 	}
 }
 
@@ -49,7 +49,7 @@ func WebLogger() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		fields := logContextFields(c)
-		logger.With(fields...).Info("-")
+		logger.Info("-", fields...)
 	}
 }
 
