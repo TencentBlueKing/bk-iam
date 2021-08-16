@@ -1,3 +1,7 @@
+# 1.8.4
+
+- bugfix: ratelimit middleware use wrong first param Limit, should be float number, not 1 every second
+
 # 1.8.3
 
 - add: zap buffered logger
