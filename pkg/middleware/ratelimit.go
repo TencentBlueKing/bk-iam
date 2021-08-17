@@ -2,10 +2,8 @@ package middleware
 
 import (
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 
 	"iam/pkg/config"
@@ -33,11 +31,9 @@ func NewRateLimitMiddleware(c *config.Config) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		log.Debug("Middleware: RateLimit")
-
 		appCode := util.GetClientID(c)
 
-		value, _ := rateLimiters.LoadOrStore(appCode, rate.NewLimiter(rate.Every(1*time.Second), limitCount))
+		value, _ := rateLimiters.LoadOrStore(appCode, rate.NewLimiter(rate.Limit(limitCount), 2*limitCount))
 		limiter := value.(*rate.Limiter)
 
 		if !limiter.Allow() {
