@@ -14,7 +14,10 @@
 
 新建issues 时请提供详细的描述、截屏或者短视频来辅助我们定位问题
 
-### [分支管理](./VERSION.md)
+### 分支管理
+
+- develop: 开发分支, 所有PR 统一推到develop
+- master: 稳定分支, 验证通过的develop合并
 
 ###  Pull Requests
 

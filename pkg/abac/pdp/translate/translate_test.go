@@ -18,6 +18,15 @@ import (
 )
 
 var _ = Describe("Translate", func() {
+	Describe("ExprCell.Op", func() {
+		It("ok", func() {
+			cell := ExprCell{
+				"op": "AND",
+			}
+			assert.Equal(GinkgoT(), cell.Op(), "AND")
+		})
+	})
+
 	Describe("singleTranslate", func() {
 		It("fail, empty", func() {
 			_, err := singleTranslate(types.PolicyCondition{}, "host")
@@ -100,7 +109,6 @@ var _ = Describe("Translate", func() {
 	})
 
 	Describe("andTranslate", func() {
-
 		It("ok, empty", func() {
 			want := ExprCell{
 				"op":      "AND",
@@ -114,6 +122,15 @@ var _ = Describe("Translate", func() {
 
 		It("fail, wrong value", func() {
 			_, err := andTranslate("host", []interface{}{123})
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("fail, singleTranslate error", func() {
+			_, err := andTranslate("host", []interface{}{
+				map[string]interface{}{
+					"NoSupportOP": "",
+				},
+			})
 			assert.Error(GinkgoT(), err)
 		})
 
@@ -186,6 +203,15 @@ var _ = Describe("Translate", func() {
 			assert.Error(GinkgoT(), err)
 		})
 
+		It("fail, singleTranslate error", func() {
+			_, err := orTranslate("host", []interface{}{
+				map[string]interface{}{
+					"NoSupportOP": "",
+				},
+			})
+			assert.Error(GinkgoT(), err)
+		})
+
 		It("ok", func() {
 			want := ExprCell{
 				"op": "OR",
@@ -255,7 +281,7 @@ var _ = Describe("Translate", func() {
 		It("fail, empty value", func() {
 			_, err := stringEqualsTranslate("key", []interface{}{})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "string equals value must not be empty")
+			assert.Equal(GinkgoT(), errMustNotEmpty, err)
 		})
 
 		It("ok, single eq", func() {
@@ -282,6 +308,7 @@ var _ = Describe("Translate", func() {
 
 		})
 	})
+
 	Describe("stringPrefixTranslate", func() {
 		It("fail, empty value", func() {
 			_, err := stringPrefixTranslate("key", []interface{}{})
@@ -324,6 +351,12 @@ var _ = Describe("Translate", func() {
 	})
 
 	Describe("numericEqualsTranslate", func() {
+		It("fail, empty value", func() {
+			_, err := numericEqualsTranslate("key", []interface{}{})
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+		})
+
 		It("ok, eq", func() {
 			expected := ExprCell{
 				"op":    "eq",
@@ -347,19 +380,13 @@ var _ = Describe("Translate", func() {
 			assert.Equal(GinkgoT(), expected, c)
 
 		})
-
-		It("fail, empty value", func() {
-			_, err := numericEqualsTranslate("key", []interface{}{})
-			assert.Error(GinkgoT(), err)
-
-		})
-
 	})
+
 	Describe("boolTranslate", func() {
 		It("not support multi value", func() {
 			_, err := boolTranslate("key", []interface{}{true, false})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "bool not support multi valu")
+			assert.Contains(GinkgoT(), err.Error(), "bool not support multi value")
 		})
 
 		It("ok", func() {
@@ -371,14 +398,6 @@ var _ = Describe("Translate", func() {
 			c, err := boolTranslate("key", []interface{}{true})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c)
-		})
-	})
-	Describe("ExprCell.Op", func() {
-		It("ok", func() {
-			cell := ExprCell{
-				"op": "AND",
-			}
-			assert.Equal(GinkgoT(), cell.Op(), "AND")
 		})
 	})
 })

@@ -31,7 +31,7 @@ var errMustNotEmpty = errors.New("value must not be empty")
 // ExprCell 表达式基本单元
 type ExprCell map[string]interface{}
 
-// Op ...
+// Op return the operator of ExprCell
 func (c ExprCell) Op() string {
 	return c["op"].(string)
 }
@@ -52,25 +52,9 @@ func init() {
 	}
 }
 
-// ExpressionTranslate 表达式转换
-//func ExpressionTranslate(expression []byte, _type string) (ExprCell, error) {
-//	condition := types.PolicyCondition{}
-//	err := jsoniter.Unmarshal(expression, &condition)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	singleExpression, err := singleTranslate(condition, _type)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return singleExpression, nil
-//}
-
 func singleTranslate(expression types.PolicyCondition, _type string) (ExprCell, error) {
 	for operator, option := range expression {
-		translateFunc, ok := translateFactories[operator]
+		tf, ok := translateFactories[operator]
 		if !ok {
 			return nil, fmt.Errorf("can not support operator %s", operator)
 		}
@@ -78,11 +62,11 @@ func singleTranslate(expression types.PolicyCondition, _type string) (ExprCell, 
 		for field, value := range option {
 			switch operator {
 			case "OR", "AND":
-				return translateFunc(_type, value)
+				return tf(_type, value)
 			default:
 				//typeField := fmt.Sprintf("%s.%s", _type, field)
 				typeField := _type + "." + field
-				return translateFunc(typeField, value)
+				return tf(typeField, value)
 			}
 		}
 	}
@@ -97,9 +81,9 @@ func andTranslate(_type string, value []interface{}) (ExprCell, error) {
 		if err != nil {
 			return nil, err
 		}
-		condition, err := singleTranslate(m, _type)
-		if err != nil {
-			return nil, err
+		condition, err2 := singleTranslate(m, _type)
+		if err2 != nil {
+			return nil, err2
 		}
 
 		content = append(content, condition)
@@ -119,9 +103,9 @@ func orTranslate(_type string, value []interface{}) (ExprCell, error) {
 		if err != nil {
 			return nil, err
 		}
-		condition, err := singleTranslate(m, _type)
-		if err != nil {
-			return nil, err
+		condition, err2 := singleTranslate(m, _type)
+		if err2 != nil {
+			return nil, err2
 		}
 
 		content = append(content, condition)
@@ -149,7 +133,7 @@ func stringEqualsTranslate(field string, value []interface{}) (ExprCell, error) 
 
 	switch len(value) {
 	case 0:
-		return nil, fmt.Errorf("string equals value must not be empty")
+		return nil, errMustNotEmpty
 	case 1:
 		exprCell["op"] = "eq"
 		exprCell["value"] = value[0]

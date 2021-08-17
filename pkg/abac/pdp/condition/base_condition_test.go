@@ -23,28 +23,16 @@ func (c ctx) GetAttr(key string) (interface{}, error) {
 	return int(c), nil
 }
 
-func (c ctx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
-}
-
 type strCtx string
 
 func (c strCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
 
-func (c strCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
-}
-
 type boolCtx bool
 
 func (c boolCtx) GetAttr(key string) (interface{}, error) {
 	return bool(c), nil
-}
-
-func (c boolCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
 }
 
 type listCtx []interface{}
@@ -54,17 +42,9 @@ func (c listCtx) GetAttr(key string) (interface{}, error) {
 	return x, nil
 }
 
-func (c listCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
-}
-
 type errCtx int
 
 func (c errCtx) GetAttr(key string) (interface{}, error) {
-	return nil, errors.New("missing key")
-}
-
-func (c errCtx) GetFullNameAttr(key string) (interface{}, error) {
 	return nil, errors.New("missing key")
 }
 
