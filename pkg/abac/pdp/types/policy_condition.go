@@ -68,7 +68,7 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 			// content = []interface{}
 			newContent := make([]interface{}, 0, len(c["content"]))
 			for _, i := range content {
-				pp, err := interfaceToPolicyCondition(i)
+				pp, err := InterfaceToPolicyCondition(i)
 				if err != nil {
 					return nil, errors.New("convert fail")
 				}
@@ -99,6 +99,7 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 }
 
 // ResourceExpression keep the expression with fields:system/type
+// will be removed later, DO NOT USE IT IN ANY NEW CODES
 type ResourceExpression struct {
 	System     string          `json:"system"`
 	Type       string          `json:"type"`
@@ -107,41 +108,4 @@ type ResourceExpression struct {
 
 func (r ResourceExpression) ToNewPolicyCondition() (PolicyCondition, error) {
 	return r.Expression.ToNewPolicyCondition(r.System, r.Type)
-}
-
-var ErrTypeAssertFail = errors.New("type assert fail in loader")
-
-// InterfaceToPolicyCondition 嵌套的条件interface换行为可解析的类型
-func interfaceToPolicyCondition(value interface{}) (PolicyCondition, error) {
-	// 从interface{}转换为操作符key的map
-	operatorMap, ok := value.(map[string]interface{})
-	if !ok {
-		return nil, ErrTypeAssertFail
-	}
-
-	// 函数返回的解析好的条件map
-	// map[string]map[string][]interface{}
-	conditionMap := make(PolicyCondition, len(operatorMap))
-
-	// 解析第一层map, key为操作符
-	for operator, options := range operatorMap {
-		// 操作附加的属性选项
-		options, ok := options.(map[string]interface{})
-		if !ok {
-			return nil, ErrTypeAssertFail
-		}
-
-		// condition中的属性map
-		attributeMap := make(map[string][]interface{}, len(options))
-		// 解析第二层map, key为属性名称
-		for k, v := range options {
-			attributeMap[k], ok = v.([]interface{}) // 属性的值转换为数组
-			if !ok {
-				return nil, ErrTypeAssertFail
-			}
-		}
-
-		conditionMap[operator] = attributeMap
-	}
-	return conditionMap, nil
 }

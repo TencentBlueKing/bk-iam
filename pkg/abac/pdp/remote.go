@@ -11,7 +11,8 @@
 package pdp
 
 import (
-	"iam/pkg/abac/pdp/loader"
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/parser"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
@@ -41,7 +42,7 @@ func queryRemoteResourceAttrs(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
 	var keys []string
-	keys, err = loader.GetPoliciesAttrKeys(resource, policies)
+	keys, err = parser.GetPoliciesAttrKeys(resource, policies)
 	if err != nil {
 		err = errorWrapf(err,
 			"condition.GetPoliciesAttrKeys policies=`%+v`, resource=`%+v` fail",
@@ -62,11 +63,11 @@ func queryRemoteResourceAttrs(
 
 func queryExtResourceAttrs(
 	resource *types.ExtResource,
-	policies []types.AuthPolicy,
+	policies []condition.Condition,
 ) (resources []map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryExtResourceAttrs")
 
-	keys, err := loader.GetPoliciesAttrKeys(&types.Resource{
+	keys, err := parser.GetConditionAttrKeys(&types.Resource{
 		System: resource.System,
 		Type:   resource.Type,
 		ID:     resource.IDs[0],

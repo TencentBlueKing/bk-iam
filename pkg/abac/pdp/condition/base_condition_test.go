@@ -23,16 +23,26 @@ func (c ctx) GetAttr(key string) (interface{}, error) {
 	return int(c), nil
 }
 
+func (c ctx) HasKey(key string) bool {
+	return false
+}
+
 type strCtx string
 
 func (c strCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
+}
+func (c strCtx) HasKey(key string) bool {
+	return false
 }
 
 type boolCtx bool
 
 func (c boolCtx) GetAttr(key string) (interface{}, error) {
 	return bool(c), nil
+}
+func (c boolCtx) HasKey(key string) bool {
+	return false
 }
 
 type listCtx []interface{}
@@ -41,11 +51,17 @@ func (c listCtx) GetAttr(key string) (interface{}, error) {
 	x := []interface{}(c)
 	return x, nil
 }
+func (c listCtx) HasKey(key string) bool {
+	return false
+}
 
 type errCtx int
 
 func (c errCtx) GetAttr(key string) (interface{}, error) {
 	return nil, errors.New("missing key")
+}
+func (c errCtx) HasKey(key string) bool {
+	return false
 }
 
 var _ = Describe("BaseCondition", func() {

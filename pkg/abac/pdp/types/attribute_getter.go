@@ -12,9 +12,8 @@ package types
 
 // AttributeGetter 属性获取接口
 type AttributeGetter interface {
-	//// GetFullNameAttr get the attr like subject.id, resource.id
-	//GetFullNameAttr(name string) (interface{}, error)
-
 	// GetAttr get the attr like id / type / name, currently only support resource
 	GetAttr(name string) (interface{}, error)
+	// TODO: change name, not key, it's the system+resource_type
+	HasKey(key string) bool
 }

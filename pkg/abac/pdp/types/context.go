@@ -19,8 +19,6 @@ import (
 PDP模块表达式求值
 */
 
-// think about the Context? it's request + index of the resource
-
 // ExprContext 表达式求值上下文
 // 只有一个Resource的信息
 type ExprContext struct {
@@ -28,8 +26,18 @@ type ExprContext struct {
 	objSet ObjectSetInterface
 }
 
+// GetAttr 获取资源的属性值
+func (c *ExprContext) GetAttr(name string) (interface{}, error) {
+	// name should be {system}.{resource_type}.{attr_key}
+	return c.objSet.GetAttribute(name), nil
+}
+
+func (c *ExprContext) HasKey(key string) bool {
+	// has {system}.{resource_type}
+	return c.objSet.Has(key)
+}
+
 // NewExprContext new context
-//func NewExprContext(req *request.Request, resource *types.Resource) *ExprContext {
 func NewExprContext(req *request.Request) *ExprContext {
 	// TODO: get from sync.Pool
 	objSet := NewObjectSet()
@@ -53,10 +61,4 @@ func NewExprContext(req *request.Request) *ExprContext {
 		Request: req,
 		objSet:  objSet,
 	}
-}
-
-// GetAttr 获取资源的属性值
-func (c *ExprContext) GetAttr(name string) (interface{}, error) {
-	// name should be {system}.{resource_type}.{attr_key}
-	return c.objSet.GetAttribute(name), nil
 }

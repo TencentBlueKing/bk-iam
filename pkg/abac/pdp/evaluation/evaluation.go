@@ -13,7 +13,7 @@ package evaluation
 import (
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/abac/pdp/loader"
+	"iam/pkg/abac/pdp/parser"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 )
@@ -76,7 +76,7 @@ func EvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 
 	// TODO: newExpression, 两阶段计算
 
-	cond, err := loader.ParseResourceConditionFromExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := parser.ParseResourceConditionFromExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)

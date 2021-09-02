@@ -8,20 +8,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package util_test
+package types
 
 import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/abac/pdp/types"
-	"iam/pkg/abac/pdp/util"
 )
 
 var _ = Describe("Util", func() {
 	Describe("InterfaceToPolicyCondition", func() {
 		It("ok", func() {
-			expected := types.PolicyCondition{
+			expected := PolicyCondition{
 				"StringEqual": {
 					"id": {"1", "2"},
 				},
@@ -32,15 +29,15 @@ var _ = Describe("Util", func() {
 					"id": []interface{}{"1", "2"},
 				},
 			}
-			c, err := util.InterfaceToPolicyCondition(value)
+			c, err := InterfaceToPolicyCondition(value)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c)
 		})
 
 		It("invalid value", func() {
-			_, err := util.InterfaceToPolicyCondition("abc")
+			_, err := InterfaceToPolicyCondition("abc")
 			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), util.ErrTypeAssertFail, err)
+			assert.Equal(GinkgoT(), ErrTypeAssertFail, err)
 		})
 
 		It("invalid attribute, should be an array", func() {
@@ -49,18 +46,18 @@ var _ = Describe("Util", func() {
 					"id": "invalid",
 				},
 			}
-			_, err := util.InterfaceToPolicyCondition(value)
+			_, err := InterfaceToPolicyCondition(value)
 			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), util.ErrTypeAssertFail, err)
+			assert.Equal(GinkgoT(), ErrTypeAssertFail, err)
 		})
 
 		It("invalid operatorMap", func() {
 			value := map[string]interface{}{
 				"StringEqual": "invalid",
 			}
-			_, err := util.InterfaceToPolicyCondition(value)
+			_, err := InterfaceToPolicyCondition(value)
 			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), util.ErrTypeAssertFail, err)
+			assert.Equal(GinkgoT(), ErrTypeAssertFail, err)
 		})
 	})
 })

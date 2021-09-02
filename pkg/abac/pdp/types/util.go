@@ -8,13 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package util
+package types
 
-import (
-	"errors"
-
-	"iam/pkg/abac/pdp/types"
-)
+import "errors"
 
 /*
 带有逻辑条件的操作符会有嵌套的内容, 比如:
@@ -63,7 +59,7 @@ map[string]map[string][]interface{}{
 var ErrTypeAssertFail = errors.New("type assert fail")
 
 // InterfaceToPolicyCondition 嵌套的条件interface换行为可解析的类型
-func InterfaceToPolicyCondition(value interface{}) (types.PolicyCondition, error) {
+func InterfaceToPolicyCondition(value interface{}) (PolicyCondition, error) {
 	// 从interface{}转换为操作符key的map
 	operatorMap, ok := value.(map[string]interface{})
 	if !ok {
@@ -72,7 +68,7 @@ func InterfaceToPolicyCondition(value interface{}) (types.PolicyCondition, error
 
 	// 函数返回的解析好的条件map
 	// map[string]map[string][]interface{}
-	conditionMap := make(types.PolicyCondition, len(operatorMap))
+	conditionMap := make(PolicyCondition, len(operatorMap))
 
 	// 解析第一层map, key为操作符
 	for operator, options := range operatorMap {
