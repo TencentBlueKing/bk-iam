@@ -140,51 +140,23 @@ func Eval(
 	}
 
 	debug.AddStep(entry, "Eval")
-	// 5. 针对只有一个本地资源的操作, 只需要计算一次(大部分场景, 只计算一次)
-	if r.HasSingleLocalResource() {
-		debug.AddStep(entry, "Single local resource eval")
-		resource := r.GetSortedResources()[0]
-
-		var passPolicyID int64
-		isPass, passPolicyID, err = evaluation.EvalPolicies(pdptypes.NewExprContext(r, resource), policies)
-		if err != nil {
-			err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, resource=`%+v` fail",
-				policies, *resource)
-
-			return false, err
-		}
-		if !isPass {
-			// if isPass is false, update all to `no pass`
-			debug.WithNoPassEvalPolicies(entry, policies)
-		} else {
-			// if isPass is true, how to know which policy?
-			debug.WithPassEvalPolicy(entry, passPolicyID)
-		}
-
-		return isPass, err
-	}
-
-	// 6. 过滤policies
-	debug.AddStep(entry, "Filter policies by eval resources")
-	var filteredPolicies []types.AuthPolicy
-	filteredPolicies, err = filterPoliciesByEvalResources(r, policies)
+	var passPolicyID int64
+	isPass, passPolicyID, err = evaluation.EvalPolicies(pdptypes.NewExprContext(r), policies)
 	if err != nil {
-		if errors.Is(err, ErrNoPolicies) {
-			// if is len(filteredPolicies) == 0, update all to no pass
-			debug.WithNoPassEvalPolicies(entry, policies)
-
-			return false, nil
-		}
-
-		err = errorWrapf(err, "filterPoliciesByEvalResources policies=`%+v` fail", policies)
+		err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, request=`%+v` fail",
+			policies, *r)
 
 		return false, err
 	}
+	if !isPass {
+		// if isPass is false, update all to `no pass`
+		debug.WithNoPassEvalPolicies(entry, policies)
+	} else {
+		// if isPass is true, how to know which policy?
+		debug.WithPassEvalPolicy(entry, passPolicyID)
+	}
 
-	// update all  filteredPolicies to pass, 有一条过就算过
-	debug.WithPassEvalPolicies(entry, filteredPolicies)
-
-	return true, nil
+	return isPass, err
 }
 
 // Query 查询请求相关的Policy
@@ -374,20 +346,4 @@ func QueryAuthPolicies(
 	debug.WithValue(entry, "policies", policies)
 
 	return policies, nil
-}
-
-// EvalPolicies ...
-func EvalPolicies(req *request.Request, policies []types.AuthPolicy) (bool, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "EvalPolicies")
-
-	_, err := filterPoliciesByEvalResources(req, policies)
-	if err != nil {
-		if errors.Is(err, ErrNoPolicies) {
-			return false, nil
-		}
-
-		err = errorWrapf(err, "filterPoliciesByEvalResources policies=`%+v` fail", policies)
-		return false, err
-	}
-	return true, nil
 }

@@ -174,69 +174,70 @@ var _ = Describe("Entrance", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "eval fail")
 		})
+		// TODO: add EvalPolicies multi(not single) success and fail
 
-		It("fail, QueryPolicies filter error", func() {
-			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
-				return nil
-			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
-				return nil
-			})
-			patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
-				func(_ *request.Request) bool {
-					return false
-				})
-			patches.ApplyFunc(queryPolicies, func(system string,
-				subject types.Subject,
-				action types.Action,
-				withoutCache bool,
-				entry *debug.Entry,
-			) (policies []types.AuthPolicy, err error) {
-				return []types.AuthPolicy{}, nil
-			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(
-				r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return nil, errors.New("test")
-			})
-
-			ok, err := Eval(req, entry, false)
-			assert.False(GinkgoT(), ok)
-			assert.Error(GinkgoT(), err, "test")
-		})
-
-		It("ok, QueryPolicies filter success", func() {
-			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
-				return nil
-			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
-				return nil
-			})
-			patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
-				func(_ *request.Request) bool {
-					return false
-				})
-			patches.ApplyFunc(queryPolicies, func(system string,
-				subject types.Subject,
-				action types.Action,
-				withoutCache bool,
-				entry *debug.Entry,
-			) (policies []types.AuthPolicy, err error) {
-				return []types.AuthPolicy{}, nil
-			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(
-				r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return []types.AuthPolicy{{}}, nil
-			})
-			defer patches.Reset()
-
-			ok, err := Eval(req, entry, false)
-			assert.True(GinkgoT(), ok)
-			assert.NoError(GinkgoT(), err)
-		})
+		//It("fail, QueryPolicies filter error", func() {
+		//	patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+		//		return nil
+		//	})
+		//	patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+		//		return nil
+		//	})
+		//	patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
+		//		func(_ *request.Request) bool {
+		//			return false
+		//		})
+		//	patches.ApplyFunc(queryPolicies, func(system string,
+		//		subject types.Subject,
+		//		action types.Action,
+		//		withoutCache bool,
+		//		entry *debug.Entry,
+		//	) (policies []types.AuthPolicy, err error) {
+		//		return []types.AuthPolicy{}, nil
+		//	})
+		//	patches.ApplyFunc(filterPoliciesByEvalResources, func(
+		//		r *request.Request,
+		//		policies []types.AuthPolicy,
+		//	) (filteredPolicies []types.AuthPolicy, err error) {
+		//		return nil, errors.New("test")
+		//	})
+		//
+		//	ok, err := Eval(req, entry, false)
+		//	assert.False(GinkgoT(), ok)
+		//	assert.Error(GinkgoT(), err, "test")
+		//})
+		//
+		//It("ok, QueryPolicies filter success", func() {
+		//	patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+		//		return nil
+		//	})
+		//	patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+		//		return nil
+		//	})
+		//	patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
+		//		func(_ *request.Request) bool {
+		//			return false
+		//		})
+		//	patches.ApplyFunc(queryPolicies, func(system string,
+		//		subject types.Subject,
+		//		action types.Action,
+		//		withoutCache bool,
+		//		entry *debug.Entry,
+		//	) (policies []types.AuthPolicy, err error) {
+		//		return []types.AuthPolicy{}, nil
+		//	})
+		//	patches.ApplyFunc(filterPoliciesByEvalResources, func(
+		//		r *request.Request,
+		//		policies []types.AuthPolicy,
+		//	) (filteredPolicies []types.AuthPolicy, err error) {
+		//		return []types.AuthPolicy{{}}, nil
+		//	})
+		//	defer patches.Reset()
+		//
+		//	ok, err := Eval(req, entry, false)
+		//	assert.True(GinkgoT(), ok)
+		//	assert.NoError(GinkgoT(), err)
+		//})
 	})
 
 	Describe("Query", func() {

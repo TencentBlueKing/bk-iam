@@ -8,14 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package condition
+package loader
 
 import (
 	"fmt"
+	"strings"
 
-	"iam/pkg/cache/impls"
-
+	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/types"
+	"iam/pkg/cache/impls"
 	"iam/pkg/util"
 )
 
@@ -24,16 +25,22 @@ func GetPoliciesAttrKeys(
 	resource *types.Resource,
 	policies []types.AuthPolicy,
 ) ([]string, error) {
+	// TODO: unittest
 	// 查询policies相关的属性key
-	conditions, err := parseResourceConditionFromPolicies(resource, policies)
+	conditions, err := parseResourceConditionFromPolicies(policies)
 	if err != nil {
 		return nil, fmt.Errorf("parseResourceConditionFromPolicies error: %w", err)
 	}
 
+	keyPrefix := resource.System + "." + resource.Type + "."
+
 	keySet := util.NewFixedLengthStringSet(len(conditions))
 	for _, condition := range conditions {
 		for _, key := range condition.GetKeys() {
-			keySet.Add(key)
+			// NOTE: here remove all the prefix: {system}.{type}.
+			if strings.HasPrefix(key, keyPrefix) {
+				keySet.Add(strings.TrimPrefix(key, keyPrefix))
+			}
 		}
 	}
 
@@ -42,14 +49,13 @@ func GetPoliciesAttrKeys(
 
 // parseResourceConditionFromPolicies 从policies中解析出resource相关的conditions数组
 func parseResourceConditionFromPolicies(
-	resource *types.Resource,
 	policies []types.AuthPolicy,
-) ([]Condition, error) {
-	conditions := make([]Condition, 0, len(policies))
+) ([]condition.Condition, error) {
+	conditions := make([]condition.Condition, 0, len(policies))
 
 	// 查询policies的key
 	for _, policy := range policies {
-		condition, err := ParseResourceConditionFromExpression(resource, policy.Expression, policy.ExpressionSignature)
+		condition, err := ParseResourceConditionFromExpression(policy.Expression, policy.ExpressionSignature)
 		if err != nil {
 			return nil, err
 		}
@@ -61,10 +67,9 @@ func parseResourceConditionFromPolicies(
 
 // ParseResourceConditionFromExpression ...
 func ParseResourceConditionFromExpression(
-	resource *types.Resource,
 	policyExpression string,
 	policyExpressionSignature string,
-) (Condition, error) {
+) (condition.Condition, error) {
 	// TODO: newExpression, 对于这里的改造,
 	//       - 需要支持兼容老的 []types.ResourceExpression
 	//       - 需要支持新的 condition(这里就是一个表达式, 或者一个 AND/OR嵌套的condition
@@ -74,25 +79,36 @@ func ParseResourceConditionFromExpression(
 	//              => 1. 变更现有的filter逻辑, 构造好, 直接执行! 去掉 filterPolicies (EVAL)
 	//              => 2. 支持 eval part, 得到的是表达式的剩余无法计算的部分 (EvalPart => For query)
 
-	expressions, err := impls.GetUnmarshalledResourceExpression(policyExpression, policyExpressionSignature)
+	// TODO: 这里未来做兼容, 支持新旧两种格式
+	c, err := impls.GetUnmarshalledResourceExpression(policyExpression, policyExpressionSignature)
 	if err != nil {
 		err = fmt.Errorf("pdp impls.GetUnmarshalledResourceExpression expression=`%s`,signature=`%s` fail %w",
 			policyExpression, policyExpressionSignature, err)
 		return nil, err
 	}
-
 	// TODO: newExpression, got an expression, only get part of them(specific resource_type)
 
+	return c, nil
+
 	// NOTE: 这里只会返回第一个condition
-	for _, expression := range expressions {
-		if resource.System == expression.System && resource.Type == expression.Type {
-			condition, err := NewConditionFromPolicyCondition(expression.Expression)
-			// 表达式解析出错, 容错
-			if err != nil {
-				return nil, fmt.Errorf("expression parser error: %w", err)
-			}
-			return condition, err
-		}
-	}
-	return nil, fmt.Errorf("resource not match expression")
+	//content := make([]Condition, 0, len(expressions))
+	//for _, expression := range expressions {
+	//	// NOTE: change the expression
+	//	pc := expression.ToNewPolicyCondition()
+	//	condition, err := NewConditionFromPolicyCondition(pc)
+	//	// 表达式解析出错, 容错
+	//	if err != nil {
+	//		return nil, fmt.Errorf("expression parser error: %w", err)
+	//	}
+	//	content = append(content, condition)
+	//}
+	// TODO: if empty?
+	//if len(conditions) == 1 {
+	//	return conditions[0], nil
+	//} else {
+	//	return NewAndCondition(content), nil
+	//}
+
+	// TODO: should test the reosurce not match expression!!!!!!!!
+	//return nil, fmt.Errorf("resource not match expression")
 }

@@ -16,6 +16,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
+	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/types"
 	"iam/pkg/cache"
 )
@@ -43,14 +44,37 @@ func UnmarshalExpression(key cache.Key) (interface{}, error) {
 			k.expression, err)
 		return nil, err
 	}
-	return expressions, nil
+
+	content := make([]condition.Condition, 0, len(expressions))
+	for _, expression := range expressions {
+		// NOTE: change the expression
+		pc, err1 := expression.ToNewPolicyCondition()
+		if err1 != nil {
+			return nil, fmt.Errorf("toNewPolicyCondition error: %w", err1)
+		}
+
+		c, err2 := condition.NewConditionFromPolicyCondition(pc)
+		// 表达式解析出错, 容错
+		if err2 != nil {
+			return nil, fmt.Errorf("newConditionFromPolicyCondition error: %w", err2)
+		}
+		content = append(content, c)
+	}
+
+	if len(content) == 1 {
+		return content[0], nil
+	} else {
+		return condition.NewAndCondition(content), nil
+	}
+
+	//return content, nil
 }
 
 // GetUnmarshalledResourceExpression ...
 func GetUnmarshalledResourceExpression(
 	expression string,
 	signature string,
-) (expressions []types.ResourceExpression, err error) {
+) (c condition.Condition, err error) {
 	key := ResourceExpressionCacheKey{
 		expression: expression,
 		signature:  signature,
@@ -63,9 +87,9 @@ func GetUnmarshalledResourceExpression(
 	}
 
 	var ok bool
-	expressions, ok = value.([]types.ResourceExpression)
+	c, ok = value.(condition.Condition)
 	if !ok {
-		err = errors.New("not []types.ResourceExpression in cache")
+		err = errors.New("not []condition.Condition in cache")
 		return
 	}
 

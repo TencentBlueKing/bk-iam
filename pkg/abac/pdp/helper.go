@@ -62,6 +62,7 @@ func queryPolicies(
 	return
 }
 
+// TODO & NOTE: 这里是两阶段计算?????
 func filterPoliciesByEvalResources(
 	r *request.Request,
 	policies []types.AuthPolicy,
@@ -81,8 +82,9 @@ func filterPoliciesByEvalResources(
 
 	// get local + remote resources
 	resources := r.GetSortedResources()
+	// TODO: 这里是两阶段计算 => 会有问题
 	for _, resource := range resources {
-		ctx := pdptypes.NewExprContext(r, resource)
+		ctx := pdptypes.NewExprContext(r)
 
 		// 10. PDP遍历计算依赖resource的属性是否满足policies
 		policies, err = evaluation.FilterPolicies(ctx, policies)

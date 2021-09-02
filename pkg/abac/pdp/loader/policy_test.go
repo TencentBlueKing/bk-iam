@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package condition
+package loader
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -91,20 +91,13 @@ var _ = Describe("Policy", func() {
 	})
 
 	Describe("parseResourceConditionFromPolicies", func() {
-		var resource *types.Resource
 		var policies []types.AuthPolicy
 		BeforeEach(func() {
-			resource = &types.Resource{
-				System:    "bk_test",
-				Type:      "host",
-				ID:        "1",
-				Attribute: nil,
-			}
 			policies = []types.AuthPolicy{}
 		})
 
 		It("empty policies", func() {
-			cs, err := parseResourceConditionFromPolicies(resource, policies)
+			cs, err := parseResourceConditionFromPolicies(policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Empty(GinkgoT(), cs)
 		})
@@ -117,7 +110,7 @@ var _ = Describe("Policy", func() {
 					ExpressionSignature: "ca306516f261c6127a8fd4c78d4c6b47",
 				},
 			}
-			cs, err := parseResourceConditionFromPolicies(resource, policies)
+			cs, err := parseResourceConditionFromPolicies(policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), cs, 1)
 		})
@@ -134,7 +127,7 @@ var _ = Describe("Policy", func() {
 					ExpressionSignature: "ca306516f261c6127a8fd4c78d4c6b47",
 				},
 			}
-			cs, err := parseResourceConditionFromPolicies(resource, policies)
+			cs, err := parseResourceConditionFromPolicies(policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), cs, 2)
 		})
@@ -152,54 +145,39 @@ var _ = Describe("Policy", func() {
 					ExpressionSignature: "4f7c070bc6a94e69ecb7205716857af9",
 				},
 			}
-			_, err := parseResourceConditionFromPolicies(resource, policies)
+			_, err := parseResourceConditionFromPolicies(policies)
 			assert.Error(GinkgoT(), err)
 		})
 
 	})
 
 	Describe("ParseResourceConditionFromExpression", func() {
-		var resource *types.Resource
 		BeforeEach(func() {
-			resource = &types.Resource{}
-
 			impls.LocalUnmarshaledExpressionCache = memory.NewMockCache(impls.UnmarshalExpression)
 		})
 
 		It("unmarshal fail", func() {
-			_, err := ParseResourceConditionFromExpression(resource, "", "d41d8cd98f00b204e9800998ecf8427e")
+			_, err := ParseResourceConditionFromExpression("", "d41d8cd98f00b204e9800998ecf8427e")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "unmarshal")
 		})
 
 		It("empty resourceExpression", func() {
-			_, err := ParseResourceConditionFromExpression(resource, "[]", "d751713988987e9331980363e24189ce")
+			_, err := ParseResourceConditionFromExpression("[]", "d751713988987e9331980363e24189ce")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "resource not match expression")
 		})
 
 		It("fail, not match", func() {
 			expr := `[{"system": "bk_test", "type": "host", "expression": {"OR": {"content": [{"Any": {"id": []}}]}}}]`
-			resource = &types.Resource{
-				System:    "bk_aaa",
-				Type:      "host",
-				ID:        "1",
-				Attribute: nil,
-			}
-			_, err := ParseResourceConditionFromExpression(resource, expr, "ca306516f261c6127a8fd4c78d4c6b47")
+			_, err := ParseResourceConditionFromExpression(expr, "ca306516f261c6127a8fd4c78d4c6b47")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "resource not match expression")
 		})
 
 		It("single, hit", func() {
 			expr := `[{"system": "bk_test", "type": "host", "expression": {"OR": {"content": [{"Any": {"id": []}}]}}}]`
-			resource = &types.Resource{
-				System:    "bk_test",
-				Type:      "host",
-				ID:        "1",
-				Attribute: nil,
-			}
-			condition, err := ParseResourceConditionFromExpression(resource, expr, "ca306516f261c6127a8fd4c78d4c6b47")
+			condition, err := ParseResourceConditionFromExpression(expr, "ca306516f261c6127a8fd4c78d4c6b47")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "OR", condition.GetName())
 			assert.Equal(GinkgoT(), []string{}, condition.GetKeys())
@@ -207,13 +185,7 @@ var _ = Describe("Policy", func() {
 
 		It("single, hit, but condition fail", func() {
 			expr := `[{"system": "bk_test", "type": "host", "expression": {"OR": {"content": [{"NotExists": {"id": []}}]}}}]`
-			resource = &types.Resource{
-				System:    "bk_test",
-				Type:      "host",
-				ID:        "1",
-				Attribute: nil,
-			}
-			_, err := ParseResourceConditionFromExpression(resource, expr, "4f7c070bc6a94e69ecb7205716857af9")
+			_, err := ParseResourceConditionFromExpression(expr, "4f7c070bc6a94e69ecb7205716857af9")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "expression parser error")
 		})

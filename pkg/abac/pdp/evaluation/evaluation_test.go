@@ -89,6 +89,17 @@ var _ = Describe("Evaluation", func() {
 				ID:        "execute_job",
 				Attribute: types.NewActionAttribute(),
 			},
+			Resources: []types.Resource{
+				{
+					System: "iam",
+					Type:   "job",
+					ID:     "job1",
+					Attribute: map[string]interface{}{
+						"system": "linux",
+						"path":   []interface{}{"/biz,1/set,2/", "/biz,1/set,3/"},
+					},
+				},
+			},
 		}
 		request.Action.Attribute.SetResourceTypes([]types.ActionResourceType{
 			{
@@ -96,16 +107,7 @@ var _ = Describe("Evaluation", func() {
 				Type:   "job",
 			},
 		})
-		resource := &types.Resource{
-			System: "iam",
-			Type:   "job",
-			ID:     "job1",
-			Attribute: map[string]interface{}{
-				"system": "linux",
-				"path":   []interface{}{"/biz,1/set,2/", "/biz,1/set,3/"},
-			},
-		}
-		c = pdptypes.NewExprContext(request, resource)
+		c = pdptypes.NewExprContext(request)
 		policy = types.AuthPolicy{
 			Expression: "",
 		}
@@ -162,15 +164,15 @@ var _ = Describe("Evaluation", func() {
 			assert.True(GinkgoT(), allowed)
 		})
 
-		It("fail, EvalPolicy err", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-			}
-			c.Resource = nil
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
-			assert.Error(GinkgoT(), err)
-			assert.False(GinkgoT(), allowed)
-		})
+		//It("fail, EvalPolicy err", func() {
+		//	policies := []types.AuthPolicy{
+		//		willPassPolicy,
+		//	}
+		//	//c.Resource = nil
+		//	allowed, _, err := evaluation.EvalPolicies(c, policies)
+		//	assert.Error(GinkgoT(), err)
+		//	assert.False(GinkgoT(), allowed)
+		//})
 
 	})
 
@@ -206,15 +208,15 @@ var _ = Describe("Evaluation", func() {
 			assert.Len(GinkgoT(), ps, 1)
 		})
 
-		It("fail, EvalPolicy err", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-			}
-			c.Resource = nil
-			ps, err := evaluation.FilterPolicies(c, policies)
-			assert.Error(GinkgoT(), err)
-			assert.Empty(GinkgoT(), ps)
-		})
+		//It("fail, EvalPolicy err", func() {
+		//	policies := []types.AuthPolicy{
+		//		willPassPolicy,
+		//	}
+		//	//c.Resource = nil
+		//	ps, err := evaluation.FilterPolicies(c, policies)
+		//	assert.Error(GinkgoT(), err)
+		//	assert.Empty(GinkgoT(), ps)
+		//})
 	})
 
 	Describe("EvalPolicy", func() {
@@ -226,13 +228,13 @@ var _ = Describe("Evaluation", func() {
 			assert.True(GinkgoT(), allowed)
 		})
 
-		It("ctx.Resource == nil", func() {
-			c.Resource = nil
-			allowed, err := evaluation.EvalPolicy(c, policy)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "get resource nil")
-			assert.False(GinkgoT(), allowed)
-		})
+		//It("ctx.Resource == nil", func() {
+		//	//c.Resource = nil
+		//	allowed, err := evaluation.EvalPolicy(c, policy)
+		//	assert.Error(GinkgoT(), err)
+		//	assert.Contains(GinkgoT(), err.Error(), "get resource nil")
+		//	assert.False(GinkgoT(), allowed)
+		//})
 
 		It("ParseResourceConditionFromExpression fail", func() {
 			policy = types.AuthPolicy{

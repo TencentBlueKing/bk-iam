@@ -11,11 +11,9 @@
 package evaluation
 
 import (
-	"fmt"
-
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/loader"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 )
@@ -72,15 +70,13 @@ func EvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 	}
 
 	// 如果请求中没有相关的资源信息
-	if ctx.Resource == nil {
-		return false, fmt.Errorf("evalPolicy action: %s get resource nil", ctx.Action.ID)
-	}
+	//if ctx.Resource == nil {
+	//	return false, fmt.Errorf("evalPolicy action: %s get resource nil", ctx.Action.ID)
+	//}
 
 	// TODO: newExpression, 两阶段计算
 
-	cond, err := condition.ParseResourceConditionFromExpression(ctx.Resource,
-		policy.Expression,
-		policy.ExpressionSignature)
+	cond, err := loader.ParseResourceConditionFromExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)

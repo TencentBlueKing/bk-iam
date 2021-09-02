@@ -67,10 +67,18 @@ func NewConditionByJSON(data []byte) (Condition, error) {
 }
 
 func newConditionFromInterface(value interface{}) (Condition, error) {
-	pd, err := util.InterfaceToPolicyCondition(value)
-	if err != nil {
-		return nil, err
+	var err error
+	var pd types.PolicyCondition
+	var ok bool
+
+	pd, ok = value.(types.PolicyCondition)
+	if !ok {
+		pd, err = util.InterfaceToPolicyCondition(value)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return NewConditionFromPolicyCondition(pd)
 }
 
@@ -96,6 +104,10 @@ type AndCondition struct {
 	content []Condition
 }
 
+func NewAndCondition(content []Condition) Condition {
+	return &AndCondition{content: content}
+}
+
 func newAndCondition(key string, values []interface{}) (Condition, error) {
 	if key != "content" {
 		return nil, fmt.Errorf("and condition not support key %s", key)
@@ -109,7 +121,7 @@ func newAndCondition(key string, values []interface{}) (Condition, error) {
 	for _, v := range values {
 		condition, err = newConditionFromInterface(v)
 		if err != nil {
-			return nil, fmt.Errorf("or condition parser error: %w", err)
+			return nil, fmt.Errorf("and condition parser error: %w", err)
 		}
 
 		conditions = append(conditions, condition)
