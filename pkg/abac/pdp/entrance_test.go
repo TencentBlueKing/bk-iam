@@ -317,7 +317,7 @@ var _ = Describe("Entrance", func() {
 			) ([]types.AuthPolicy, error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []types.AuthPolicy,
+			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {
 				return nil, errors.New("test")
 			})
@@ -333,10 +333,10 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
-			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []types.AuthPolicy,
+			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {
 				return map[string]interface{}{}, nil
 			})
@@ -375,7 +375,7 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
+			) ([]condition.Condition, error) {
 				return nil, errors.New("test")
 			})
 
@@ -391,8 +391,8 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
 
 			expr, resources, err := QueryByExtResources(req, []types.ExtResource{}, entry, false)
@@ -407,8 +407,8 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
 			patches.ApplyFunc(queryExtResourceAttrs, func(
 				resource *types.ExtResource,
@@ -429,8 +429,8 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
 
 			expr, resources, err := QueryByExtResources(req, []types.ExtResource{}, entry, false)
@@ -445,10 +445,10 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
-			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []types.AuthPolicy,
+			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {
 				return nil, errors.New("test")
 			})
@@ -465,10 +465,10 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{}, nil
 			})
-			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []types.AuthPolicy,
+			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {
 				return map[string]interface{}{}, nil
 			})

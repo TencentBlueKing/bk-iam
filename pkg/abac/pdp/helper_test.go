@@ -94,6 +94,7 @@ var _ = Describe("Helper", func() {
 			ctl = gomock.NewController(GinkgoT())
 			req = &request.Request{
 				System: "test",
+				Action: types.Action{},
 				Resources: []types.Resource{{
 					System: "test",
 				}},

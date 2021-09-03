@@ -198,7 +198,7 @@ var _ = Describe("Remote", func() {
 			}
 			keys, err := getPoliciesAttrKeys(resource, policies)
 			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), keys, 1)
+
 			assert.Contains(GinkgoT(), keys, "area")
 			//assert.Contains(GinkgoT(), keys, "path")
 			//assert.Contains(GinkgoT(), keys, "area")

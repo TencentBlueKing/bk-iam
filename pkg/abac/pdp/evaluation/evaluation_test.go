@@ -181,7 +181,7 @@ var _ = Describe("Evaluation", func() {
 				willPassPolicy,
 			}
 
-			ps, err := PartialEvalPolicies(c, policies)
+			ps, _, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), ps, 1)
 		})
@@ -191,7 +191,7 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			ps, err := PartialEvalPolicies(c, policies)
+			ps, _, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Empty(GinkgoT(), ps)
 		})
@@ -202,7 +202,7 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			ps, err := PartialEvalPolicies(c, policies)
+			ps, _, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), ps, 1)
 		})
