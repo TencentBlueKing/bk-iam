@@ -20,6 +20,7 @@ import (
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/cache/impls"
 	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
@@ -129,13 +130,9 @@ func Eval(
 	if entry != nil {
 		debug.WithValue(entry, "expression", "set fail")
 
-		//queryResourceTypes, err := r.GetQueryResourceTypes()
-		queryResourceTypes, err1 := r.Action.Attribute.GetResourceTypes()
+		expr, err1 := impls.PoliciesTranslate(policies)
 		if err1 == nil {
-			expr, err2 := translate.PoliciesTranslate(policies, queryResourceTypes)
-			if err2 == nil {
-				debug.WithValue(entry, "expression", expr)
-			}
+			debug.WithValue(entry, "expression", expr)
 		}
 	}
 
@@ -169,29 +166,20 @@ func Query(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "Query")
 
 	// 1. 查询请求相关的策略
-	policies, err := queryFilterPolicies(r, entry, willCheckRemoteResource, withoutCache)
+	conditions, err := queryAndPartialEvalConditions(r, entry, willCheckRemoteResource, withoutCache)
 	if err != nil {
-		err = errorWrapf(err, "queryFilterPolicies fail", r.Action)
+		err = errorWrapf(err, "queryAndPartialEvalConditions fail", r.Action)
 		return nil, err
 	}
 
-	if len(policies) == 0 {
+	if len(conditions) == 0 {
 		return EmptyPolicies, nil
 	}
 
 	// 2. policies表达式转换
-	// 查找请求的local action resource type
-	queryResourceTypes, err := r.GetQueryResourceTypes()
+	expr, err := translate.ConditionsTranslate(conditions)
 	if err != nil {
-		err = errorWrapf(err, "getQueryResourceTypes action=`%+v` fail", r.Action)
-
-		return nil, err
-	}
-
-	expr, err := translate.PoliciesTranslate(policies, queryResourceTypes)
-	if err != nil {
-		err = errorWrapf(err, "PoliciesTranslate resourceTypes=`%+v` fail", queryResourceTypes)
-
+		err = errorWrapf(err, "translate.ConditionsTranslate conditions=`%+v` fail", conditions)
 		return nil, err
 	}
 	debug.WithValue(entry, "expression", expr)
@@ -208,14 +196,10 @@ func QueryByExtResources(
 ) (map[string]interface{}, []types.ExtResourceWithAttribute, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "QueryByExtResources")
 
-	var (
-		policies []types.AuthPolicy
-		err      error
-	)
 	// 1. 查询请求相关的策略
-	policies, err = queryFilterPolicies(r, entry, false, withoutCache)
+	conditions, err := queryAndPartialEvalConditions(r, entry, false, withoutCache)
 	if err != nil {
-		err = errorWrapf(err, "queryFilterPolicies fail", r.Action)
+		err = errorWrapf(err, "queryAndPartialEvalConditions fail", r.Action)
 		return nil, nil, err
 	}
 
@@ -229,7 +213,7 @@ func QueryByExtResources(
 	}
 
 	// 如果策略为空, 直接返回空结果
-	if len(policies) == 0 {
+	if len(conditions) == 0 {
 		for i, resource := range extResources {
 			for _, id := range resource.IDs {
 				extResourcesWithAttr[i].Instances = append(extResourcesWithAttr[i].Instances, types.Instance{
@@ -245,7 +229,7 @@ func QueryByExtResources(
 	// 2. 批量查询 ext resource 的属性
 	var remoteResources []map[string]interface{}
 	for i := range extResources {
-		remoteResources, err = queryExtResourceAttrs(&extResources[i], policies)
+		remoteResources, err = queryExtResourceAttrs(&extResources[i], conditions)
 		if err != nil {
 			err = errorWrapf(err, "queryExtResourceAttrs resource=`%+v` fail", extResources[i])
 			return nil, nil, err
@@ -261,19 +245,12 @@ func QueryByExtResources(
 
 	// 3. policies表达式转换
 	// 查找请求的local action resource type
-	var queryResourceTypes []types.ActionResourceType
-	queryResourceTypes, err = r.GetQueryResourceTypes()
-	if err != nil {
-		err = errorWrapf(err, "getQueryResourceTypes action=`%+v` fail", r.Action)
-
-		return nil, nil, err
-	}
+	// TODO: 没有queryResourceTypes, 会有什么问题?
 
 	var expr map[string]interface{}
-	expr, err = translate.PoliciesTranslate(policies, queryResourceTypes)
+	expr, err = translate.ConditionsTranslate(conditions)
 	if err != nil {
-		err = errorWrapf(err, "PoliciesTranslate resourceTypes=`%+v` fail", queryResourceTypes)
-
+		err = errorWrapf(err, "translate.ConditionsTranslate conditions=`%+v` fail", conditions)
 		return nil, nil, err
 	}
 	debug.WithValue(entry, "expression", expr)

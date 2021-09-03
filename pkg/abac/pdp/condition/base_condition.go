@@ -19,6 +19,11 @@ type baseCondition struct {
 	Value []interface{}
 }
 
+// GetKeys 返回条件中属性key值
+func (c *baseCondition) GetKeys() []string {
+	return []string{c.Key}
+}
+
 // GetValues 如果Value中有参数, 获取参数的值
 func (c *baseCondition) GetValues() []interface{} {
 	return c.Value
@@ -51,9 +56,4 @@ func (c *baseCondition) forOr(ctx types.AttributeGetter, fn func(interface{}, in
 		}
 	}
 	return false
-}
-
-// GetKeys 返回条件中属性key值
-func (c *baseCondition) GetKeys() []string {
-	return []string{c.Key}
 }

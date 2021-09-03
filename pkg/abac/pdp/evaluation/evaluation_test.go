@@ -8,13 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package evaluation_test
+package evaluation
 
 import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/pdp/evaluation"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
@@ -116,7 +115,7 @@ var _ = Describe("Evaluation", func() {
 	})
 	Describe("EvalPolicies", func() {
 		It("no policies", func() {
-			allowed, id, err := evaluation.EvalPolicies(c, []types.AuthPolicy{})
+			allowed, id, err := EvalPolicies(c, []types.AuthPolicy{})
 			assert.False(GinkgoT(), allowed)
 			assert.Equal(GinkgoT(), int64(-1), id)
 			assert.NoError(GinkgoT(), err)
@@ -127,7 +126,7 @@ var _ = Describe("Evaluation", func() {
 				willPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, _, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
@@ -137,7 +136,7 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, _, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
@@ -148,7 +147,7 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, _, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
@@ -159,12 +158,12 @@ var _ = Describe("Evaluation", func() {
 				willPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, _, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
 
-		//It("fail, EvalPolicy err", func() {
+		//It("fail, evalPolicy err", func() {
 		//	policies := []types.AuthPolicy{
 		//		willPassPolicy,
 		//	}
@@ -176,13 +175,13 @@ var _ = Describe("Evaluation", func() {
 
 	})
 
-	Describe("FilterPolicies", func() {
+	Describe("PartialEvalPolicies", func() {
 		It("ok, one policy pass", func() {
 			policies := []types.AuthPolicy{
 				willPassPolicy,
 			}
 
-			ps, err := evaluation.FilterPolicies(c, policies)
+			ps, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), ps, 1)
 		})
@@ -192,7 +191,7 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			ps, err := evaluation.FilterPolicies(c, policies)
+			ps, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Empty(GinkgoT(), ps)
 		})
@@ -203,34 +202,34 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			ps, err := evaluation.FilterPolicies(c, policies)
+			ps, err := PartialEvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), ps, 1)
 		})
 
-		//It("fail, EvalPolicy err", func() {
+		//It("fail, evalPolicy err", func() {
 		//	policies := []types.AuthPolicy{
 		//		willPassPolicy,
 		//	}
 		//	//c.Resource = nil
-		//	ps, err := evaluation.FilterPolicies(c, policies)
+		//	ps, err := evaluation.PartialEvalPolicies(c, policies)
 		//	assert.Error(GinkgoT(), err)
 		//	assert.Empty(GinkgoT(), ps)
 		//})
 	})
 
-	Describe("EvalPolicy", func() {
+	Describe("evalPolicy", func() {
 
 		It("ctx.Action.WithoutResourceType", func() {
 			c.Action.FillAttributes(1, []types.ActionResourceType{})
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
 
 		//It("ctx.Resource == nil", func() {
 		//	//c.Resource = nil
-		//	allowed, err := evaluation.EvalPolicy(c, policy)
+		//	allowed, err := evaluation.evalPolicy(c, policy)
 		//	assert.Error(GinkgoT(), err)
 		//	assert.Contains(GinkgoT(), err.Error(), "get resource nil")
 		//	assert.False(GinkgoT(), allowed)
@@ -240,7 +239,7 @@ var _ = Describe("Evaluation", func() {
 			policy = types.AuthPolicy{
 				Expression: "123",
 			}
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.Error(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
@@ -272,7 +271,7 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "33268b97074629d05fda196e2f7e59d2",
 			}
 
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
@@ -304,7 +303,7 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "cfeeb810bf45de623f8007d25d25293a",
 			}
 
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})

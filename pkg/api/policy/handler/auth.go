@@ -17,10 +17,10 @@ import (
 
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/pdp/evaluation"
-	"iam/pkg/abac/pdp/translate"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/cache/impls"
 	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -252,6 +252,7 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 	_, isForce := c.GetQuery("force")
 
+	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
 	if err != nil {
@@ -306,12 +307,9 @@ func BatchAuthByResources(c *gin.Context) {
 	// NOTE: debug mode, do translate, for understanding easier
 	if entry != nil && len(body.ResourcesList) > 0 {
 		debug.WithValue(entry, "expression", "set fail")
-		queryResourceTypes, err := req.Action.Attribute.GetResourceTypes()
-		if err == nil {
-			expr, err := translate.PoliciesTranslate(policies, queryResourceTypes)
-			if err == nil {
-				debug.WithValue(entry, "expression", expr)
-			}
+		expr, err1 := impls.PoliciesTranslate(policies)
+		if err1 == nil {
+			debug.WithValue(entry, "expression", expr)
 		}
 	}
 

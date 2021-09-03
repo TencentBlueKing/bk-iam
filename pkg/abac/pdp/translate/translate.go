@@ -34,18 +34,18 @@ func (c ExprCell) Op() string {
 	return c["op"].(string)
 }
 
-// PoliciesTranslate 策略列表转换为QL表达式
-func PoliciesTranslate(
-	policies []condition.Condition,
+// ConditionsTranslate 策略列表转换为QL表达式
+func ConditionsTranslate(
+	conditions []condition.Condition,
 ) (map[string]interface{}, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(Translate, "PoliciesTranslate")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(Translate, "ConditionsTranslate")
 
-	content := make([]ExprCell, 0, len(policies))
-	for _, policy := range policies {
+	content := make([]ExprCell, 0, len(conditions))
+	for _, c := range conditions {
 		// TODO: 可以优化的点, expression + resourceTypeSet => Condition的local cache
-		condition, err := policyTranslate(policy)
+		condition, err := conditionTranslate(c)
 		if err != nil {
-			err = errorWrapf(err, "policyTranslate condition=`%+v` fail", policy)
+			err = errorWrapf(err, "conditionTranslate condition=`%+v` fail", c)
 			return nil, err
 		}
 
@@ -79,29 +79,25 @@ func PoliciesTranslate(
 	}
 }
 
-func policyTranslate(
+func conditionTranslate(
 	cond condition.Condition,
 ) (ExprCell, error) {
 	return cond.Translate()
 }
 
-func PolicyStringTranslate(resourceExpression string) (ExprCell, error) {
-
-	// TODO: 代码重复
-	//pkg/cache/impls/local_unmarshaled_expression.go
-
+func expressionToConditions(expr string) ([]condition.Condition, error) {
 	expressions := []pdptypes.ResourceExpression{}
-	err := jsoniter.UnmarshalFromString(resourceExpression, &expressions)
+	err := jsoniter.UnmarshalFromString(expr, &expressions)
 	// 无效的policy条件表达式, 容错
 	if err != nil {
 		err = fmt.Errorf("cache UnmarshalExpression unmarshal %s error: %w",
-			resourceExpression, err)
+			expr, err)
 		return nil, err
 	}
 
 	content := make([]condition.Condition, 0, len(expressions))
 	for _, expression := range expressions {
-		// NOTE: change the expression
+		// NOTE: change the expr
 		pc, err1 := expression.ToNewPolicyCondition()
 		if err1 != nil {
 			return nil, fmt.Errorf("toNewPolicyCondition error: %w", err1)
@@ -114,11 +110,33 @@ func PolicyStringTranslate(resourceExpression string) (ExprCell, error) {
 		}
 		content = append(content, c)
 	}
+	return content, nil
+
+}
+
+func PolicyExpressionTranslate(expr string) (ExprCell, error) {
+	content, err := expressionToConditions(expr)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(content) == 1 {
 		return content[0].Translate()
 	} else {
 		return condition.NewAndCondition(content).Translate()
+	}
+}
+
+func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
+	content, err := expressionToConditions(expr)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(content) == 1 {
+		return content[0], nil
+	} else {
+		return condition.NewAndCondition(content), nil
 	}
 }
 

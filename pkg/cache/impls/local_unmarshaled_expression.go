@@ -12,12 +12,12 @@ package impls
 
 import (
 	"errors"
-	"fmt"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
-	"iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/translate"
+	"iam/pkg/abac/types"
 	"iam/pkg/cache"
 )
 
@@ -36,38 +36,7 @@ func (k ResourceExpressionCacheKey) Key() string {
 func UnmarshalExpression(key cache.Key) (interface{}, error) {
 	k := key.(ResourceExpressionCacheKey)
 
-	expressions := []types.ResourceExpression{}
-	err := jsoniter.UnmarshalFromString(k.expression, &expressions)
-	// 无效的policy条件表达式, 容错
-	if err != nil {
-		err = fmt.Errorf("cache UnmarshalExpression unmarshal %s error: %w",
-			k.expression, err)
-		return nil, err
-	}
-
-	content := make([]condition.Condition, 0, len(expressions))
-	for _, expression := range expressions {
-		// NOTE: change the expression
-		pc, err1 := expression.ToNewPolicyCondition()
-		if err1 != nil {
-			return nil, fmt.Errorf("toNewPolicyCondition error: %w", err1)
-		}
-
-		c, err2 := condition.NewConditionFromPolicyCondition(pc)
-		// 表达式解析出错, 容错
-		if err2 != nil {
-			return nil, fmt.Errorf("newConditionFromPolicyCondition error: %w", err2)
-		}
-		content = append(content, c)
-	}
-
-	if len(content) == 1 {
-		return content[0], nil
-	} else {
-		return condition.NewAndCondition(content), nil
-	}
-
-	//return content, nil
+	return translate.PolicyExpressionToCondition(k.expression)
 }
 
 // GetUnmarshalledResourceExpression ...
@@ -94,4 +63,20 @@ func GetUnmarshalledResourceExpression(
 	}
 
 	return
+}
+
+func PoliciesTranslate(policies []types.AuthPolicy) (map[string]interface{}, error) {
+	conditions := make([]condition.Condition, 0, len(policies))
+	for _, policy := range policies {
+
+		cond, err := GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		if err != nil {
+			logrus.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",
+				policy.ID, policy.Expression, err)
+			return nil, err
+		}
+		conditions = append(conditions, cond)
+	}
+
+	return translate.ConditionsTranslate(conditions)
 }

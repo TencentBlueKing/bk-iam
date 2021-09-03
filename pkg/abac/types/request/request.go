@@ -12,7 +12,6 @@ package request
 
 import (
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	"iam/pkg/util"
 )
 
@@ -37,13 +36,6 @@ func NewRequest() *Request {
 	}
 }
 
-// HasSingleLocalResource 是否只有一个本地依赖资源
-func (r *Request) HasSingleLocalResource() bool {
-	resourceTypes, _ := r.Action.Attribute.GetResourceTypes()
-
-	return len(resourceTypes) == 1 && resourceTypes[0].System == r.System
-}
-
 // HasRemoteResources ...
 func (r *Request) HasRemoteResources() bool {
 	for i := range r.Resources {
@@ -63,24 +55,6 @@ func (r *Request) GetRemoteResources() []*types.Resource {
 			resources = append(resources, &r.Resources[i])
 		}
 	}
-	return resources
-}
-
-// GetSortedResources ...
-func (r *Request) GetSortedResources() []*types.Resource {
-	resources := make([]*types.Resource, 0, len(r.Resources))
-
-	remoteResources := make([]*types.Resource, 0, len(r.Resources))
-
-	for i := range r.Resources {
-		if r.System == r.Resources[i].System {
-			resources = append(resources, &r.Resources[i])
-		} else {
-			remoteResources = append(remoteResources, &r.Resources[i])
-		}
-	}
-
-	resources = append(resources, remoteResources...)
 	return resources
 }
 
@@ -133,37 +107,6 @@ func (r *Request) ValidateActionRemoteResource() bool {
 	return remoteTypeSet.Size() == remoteCount
 }
 
-// GetQueryResourceTypes ...
-func (r *Request) GetQueryResourceTypes() (queryResourceTypes []types.ActionResourceType, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Request", "GetActionResourceTypes")
-
-	resourceTypes, err := r.Action.Attribute.GetResourceTypes()
-	if err != nil {
-		err = errorWrapf(err, "action GetResourceTypes fail")
-		return
-	}
-
-	existingResourceSet := util.NewStringSet()
-	for _, resource := range r.Resources {
-		key := r.genResourceTypeKey(resource.System, resource.Type)
-		existingResourceSet.Add(key)
-	}
-
-	// 只查找参数中不存在的资源类型
-	for _, rt := range resourceTypes {
-		key := r.genResourceTypeKey(rt.System, rt.Type)
-		if !existingResourceSet.Has(key) {
-			queryResourceTypes = append(queryResourceTypes, rt)
-		}
-	}
-
-	return
-}
-
-func (r *Request) genResourceTypeKey(system, _type string) string {
-	return system + ":" + _type
-}
-
 func (r *Request) getActionResourceTypeIDSet() *util.StringSet {
 	resourceTypes, _ := r.Action.Attribute.GetResourceTypes()
 	typeSet := util.NewStringSet()
@@ -173,4 +116,8 @@ func (r *Request) getActionResourceTypeIDSet() *util.StringSet {
 	}
 
 	return typeSet
+}
+
+func (r *Request) genResourceTypeKey(system, _type string) string {
+	return system + ":" + _type
 }

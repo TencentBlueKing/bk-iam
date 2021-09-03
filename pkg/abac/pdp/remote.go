@@ -11,12 +11,15 @@
 package pdp
 
 import (
+	"strings"
+
 	"iam/pkg/abac/pdp/condition"
-	"iam/pkg/abac/pdp/parser"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/cache/impls"
 	"iam/pkg/errorx"
+	"iam/pkg/util"
 )
 
 func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (err error) {
@@ -42,10 +45,10 @@ func queryRemoteResourceAttrs(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
 	var keys []string
-	keys, err = parser.GetPoliciesAttrKeys(resource, policies)
+	keys, err = getPoliciesAttrKeys(resource, policies)
 	if err != nil {
 		err = errorWrapf(err,
-			"condition.GetPoliciesAttrKeys policies=`%+v`, resource=`%+v` fail",
+			"getPoliciesAttrKeys policies=`%+v`, resource=`%+v` fail",
 			policies, resource)
 		return
 	}
@@ -67,14 +70,14 @@ func queryExtResourceAttrs(
 ) (resources []map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryExtResourceAttrs")
 
-	keys, err := parser.GetConditionAttrKeys(&types.Resource{
+	keys, err := getConditionAttrKeys(&types.Resource{
 		System: resource.System,
 		Type:   resource.Type,
 		ID:     resource.IDs[0],
 	}, policies)
 	if err != nil {
 		err = errorWrapf(err,
-			"condition.GetPoliciesAttrKeys policies=`%+v`, resource=`%+v` fail",
+			"getConditionAttrKeys policies=`%+v`, resource=`%+v` fail",
 			policies, resource)
 		return
 	}
@@ -88,4 +91,43 @@ func queryExtResourceAttrs(
 		return
 	}
 	return
+}
+
+// getPoliciesAttrKeys 条件中的属性key
+func getPoliciesAttrKeys(
+	resource *types.Resource,
+	policies []types.AuthPolicy,
+) ([]string, error) {
+	// TODO: unittest
+	// 查询policies相关的属性key
+	conditions := make([]condition.Condition, 0, len(policies))
+	for _, policy := range policies {
+		condition, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		if err != nil {
+			return nil, err
+		}
+		conditions = append(conditions, condition)
+	}
+
+	return getConditionAttrKeys(resource, conditions)
+}
+
+func getConditionAttrKeys(
+	resource *types.Resource,
+	conditions []condition.Condition,
+) ([]string, error) {
+	// TODO: unittest
+	keyPrefix := resource.System + "." + resource.Type + "."
+
+	keySet := util.NewFixedLengthStringSet(len(conditions))
+	for _, condition := range conditions {
+		for _, key := range condition.GetKeys() {
+			// NOTE: here remove all the prefix: {system}.{type}.
+			if strings.HasPrefix(key, keyPrefix) {
+				keySet.Add(strings.TrimPrefix(key, keyPrefix))
+			}
+		}
+	}
+
+	return keySet.ToSlice(), nil
 }

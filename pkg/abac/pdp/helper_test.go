@@ -19,8 +19,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/mock"
@@ -88,71 +86,7 @@ var _ = Describe("Helper", func() {
 
 	})
 
-	Describe("filterPoliciesByEvalResources", func() {
-		var ctl *gomock.Controller
-		var patches *gomonkey.Patches
-		var req *request.Request
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-			req = &request.Request{
-				System: "test",
-				Resources: []types.Resource{{
-					System: "test",
-				}},
-			}
-		})
-		AfterEach(func() {
-			ctl.Finish()
-			patches.Reset()
-		})
-
-		It("fillRemoteResourceAttrs error", func() {
-			patches = gomonkey.ApplyFunc(fillRemoteResourceAttrs,
-				func(r *request.Request, policies []types.AuthPolicy) error {
-					return errors.New("test")
-				})
-
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Nil(GinkgoT(), policies)
-			assert.Error(GinkgoT(), err, "test1")
-
-		})
-
-		It("filter error", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return nil, errors.New("test")
-				})
-
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Nil(GinkgoT(), policies)
-			assert.Error(GinkgoT(), err, "test1")
-
-		})
-
-		It("filter empty", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return []types.AuthPolicy{}, nil
-				})
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Len(GinkgoT(), policies, 0)
-			assert.Error(GinkgoT(), err, "no")
-		})
-
-		It("ok", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return []types.AuthPolicy{{}}, nil
-				})
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Len(GinkgoT(), policies, 1)
-			assert.NoError(GinkgoT(), err)
-		})
-
-	})
-
-	Describe("queryFilterPolicies", func() {
+	Describe("queryAndPartialEvalConditions", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		var req *request.Request
@@ -182,7 +116,7 @@ var _ = Describe("Helper", func() {
 				return errors.New("fill action fail")
 			})
 
-			policies, err := queryFilterPolicies(req, nil, false, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, false, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill action fail")
@@ -197,7 +131,7 @@ var _ = Describe("Helper", func() {
 					return false
 				})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 		})
@@ -210,7 +144,7 @@ var _ = Describe("Helper", func() {
 				return errors.New("fill subject fail")
 			})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
@@ -231,7 +165,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return nil, errors.New("query policies fail")
 			})
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "query policies fail")
@@ -252,13 +186,13 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return nil, errors.New("filter error")
-			})
+			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
+			//	policies []types.AuthPolicy,
+			//) (filteredPolicies []types.AuthPolicy, err error) {
+			//	return nil, errors.New("filter error")
+			//})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "filter error")
@@ -279,13 +213,13 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return nil, ErrNoPolicies
-			})
+			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
+			//	policies []types.AuthPolicy,
+			//) (filteredPolicies []types.AuthPolicy, err error) {
+			//	return nil, ErrNoPolicies
+			//})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Len(GinkgoT(), policies, 0)
 			assert.NoError(GinkgoT(), err)
 		})
@@ -305,13 +239,13 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return []types.AuthPolicy{{}}, nil
-			})
+			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
+			//	policies []types.AuthPolicy,
+			//) (filteredPolicies []types.AuthPolicy, err error) {
+			//	return []types.AuthPolicy{{}}, nil
+			//})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})

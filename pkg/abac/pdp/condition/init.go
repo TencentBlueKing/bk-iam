@@ -47,11 +47,9 @@ func init() {
 // Condition 条件接口
 type Condition interface {
 	GetName() string
-
-	Eval(ctx types.AttributeGetter) bool
-
 	GetKeys() []string // 返回条件中包含的所有属性key
 
+	Eval(ctx types.AttributeGetter) bool
 	Translate() (map[string]interface{}, error)
 }
 
@@ -90,5 +88,3 @@ func NewConditionFromPolicyCondition(data types.PolicyCondition) (Condition, err
 	}
 	return nil, fmt.Errorf("can not support data %v", data)
 }
-
-// ================== conditions ==================

@@ -250,9 +250,9 @@ func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy engin
 		return
 	}
 
-	translatedExpr, err := translate.PolicyStringTranslate(expr)
+	translatedExpr, err := translate.PolicyExpressionTranslate(expr)
 	if err != nil {
-		err = errorWrapf(err, "translate.PolicyStringTranslate expr=`%s` fail", expr)
+		err = errorWrapf(err, "translate.PolicyExpressionTranslate expr=`%s` fail", expr)
 		return
 	}
 

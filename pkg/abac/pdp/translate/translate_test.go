@@ -25,7 +25,7 @@ var _ = Describe("Expression", func() {
 	}
 
 	// TODO: refactor it
-	//	Describe("PolicyStringTranslate", func() {
+	//	Describe("PolicyExpressionTranslate", func() {
 	//		var policies []types.AuthPolicy
 	//		var resourceTypeSet []types.ActionResourceType
 	//		BeforeEach(func() {
@@ -43,7 +43,7 @@ var _ = Describe("Expression", func() {
 	//					Expression: ``,
 	//				},
 	//			}
-	//			ec, err := PolicyStringTranslate(policies[0].Expression)
+	//			ec, err := PolicyExpressionTranslate(policies[0].Expression)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.Equal(GinkgoT(), anyExpr, ec)
 	//		})
@@ -54,18 +54,18 @@ var _ = Describe("Expression", func() {
 	//					Expression: `[]`,
 	//				},
 	//			}
-	//			ec, err := PolicyStringTranslate(policies[0].Expression)
+	//			ec, err := PolicyExpressionTranslate(policies[0].Expression)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.Equal(GinkgoT(), anyExpr, ec)
 	//		})
 	//
-	//		It("fail, policyTranslate fail", func() {
+	//		It("fail, conditionTranslate fail", func() {
 	//			policies = []types.AuthPolicy{
 	//				{
 	//					Expression: `123`,
 	//				},
 	//			}
-	//			_, err := PolicyStringTranslate(policies[0].Expression)
+	//			_, err := PolicyExpressionTranslate(policies[0].Expression)
 	//			assert.Error(GinkgoT(), err)
 	//		})
 	//
@@ -81,7 +81,7 @@ var _ = Describe("Expression", func() {
 	//				"field": "job.id",
 	//				"value": "abc",
 	//			}
-	//			ec, err := PolicyStringTranslate(policies[0].Expression)
+	//			ec, err := PolicyExpressionTranslate(policies[0].Expression)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.Equal(GinkgoT(), want, ec)
 	//		})
@@ -111,7 +111,7 @@ var _ = Describe("Expression", func() {
 	//					{"field": "job.id", "op": "eq", "value": "abc"},
 	//				},
 	//			}
-	//			ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//			ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, ec) || assert.ObjectsAreEqualValues(want2, ec))
 	//		})
@@ -123,7 +123,7 @@ var _ = Describe("Expression", func() {
 	//						Expression: `[{"system":"iam","type":"biz","expression":{"Any":{"id":[]}}}]`,
 	//					},
 	//				}
-	//				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//				ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//				assert.NoError(GinkgoT(), err)
 	//				assert.Equal(GinkgoT(), anyExpr, ec)
 	//			})
@@ -138,7 +138,7 @@ var _ = Describe("Expression", func() {
 	//						Expression: `[{"system":"iam","type":"biz","expression":{"Any":{"id":[]}}}]`,
 	//					},
 	//				}
-	//				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//				ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//				assert.NoError(GinkgoT(), err)
 	//				assert.Equal(GinkgoT(), anyExpr, ec)
 	//			})
@@ -153,7 +153,7 @@ var _ = Describe("Expression", func() {
 	//"expression": {"StringEquals": {"id": ["abc"]}}}]`,
 	//					},
 	//				}
-	//				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//				ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//				assert.NoError(GinkgoT(), err)
 	//				assert.Equal(GinkgoT(), anyExpr, ec)
 	//			})
@@ -180,7 +180,7 @@ var _ = Describe("Expression", func() {
 	//		"expression": {"StringEquals": {"id": ["def"]}}}]`,
 	//					},
 	//				}
-	//				ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//				ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//				assert.NoError(GinkgoT(), err)
 	//				assert.Equal(GinkgoT(), anyExpr, ec)
 	//			})
@@ -223,7 +223,7 @@ var _ = Describe("Expression", func() {
 	//					},
 	//				},
 	//			}
-	//			ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//			ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.EqualValues(GinkgoT(), want, ec)
 	//		})
@@ -240,7 +240,7 @@ var _ = Describe("Expression", func() {
 	//				},
 	//			}
 	//			want := map[string]interface{}{"field": "job.id", "op": "in", "value": []interface{}{"abc", "def", "ghi"}}
-	//			ec, err := PoliciesTranslate(policies, resourceTypeSet)
+	//			ec, err := ConditionsTranslate(policies, resourceTypeSet)
 	//			assert.NoError(GinkgoT(), err)
 	//			assert.Equal(GinkgoT(), want, ec)
 	//		})
@@ -254,21 +254,21 @@ var _ = Describe("Expression", func() {
 		//})
 
 		It("ok, any, expression=``", func() {
-			expr, err := PolicyStringTranslate("")
+			expr, err := PolicyExpressionTranslate("")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), ExprCell(anyExpr), expr)
 		})
 
 		It("ok, any, expression=`[]`", func() {
 			//expr, err := PolicyTranslate("[]", resourceTypeSet)
-			expr, err := PolicyStringTranslate("[]")
+			expr, err := PolicyExpressionTranslate("[]")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), ExprCell(anyExpr), expr)
 		})
 
 		It("fail, wrong expression", func() {
 			//_, err := PolicyTranslate("123", resourceTypeSet)
-			_, err := PolicyStringTranslate("123")
+			_, err := PolicyExpressionTranslate("123")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "unmarshal resourceExpression")
 		})
@@ -282,7 +282,7 @@ var _ = Describe("Expression", func() {
 				"field": "biz.id",
 				"value": "2",
 			}
-			expr, err := PolicyStringTranslate(resourceExpression)
+			expr, err := PolicyExpressionTranslate(resourceExpression)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, expr)
 		})
@@ -290,14 +290,14 @@ var _ = Describe("Expression", func() {
 		It("fail, singleTranslate fail", func() {
 			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
 
-			_, err := PolicyStringTranslate(resourceExpression)
+			_, err := PolicyExpressionTranslate(resourceExpression)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "pdp PolicyTranslate expression")
 		})
 
 		It("ok, resourceTypeSet not match, return any", func() {
 			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
-			expr, err := PolicyStringTranslate(resourceExpression)
+			expr, err := PolicyExpressionTranslate(resourceExpression)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), ExprCell(anyExpr), expr)
 		})
@@ -317,7 +317,7 @@ var _ = Describe("Expression", func() {
 					},
 				},
 			}
-			expr, err := PolicyStringTranslate(resourceExpression)
+			expr, err := PolicyExpressionTranslate(resourceExpression)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, expr)
 		})
