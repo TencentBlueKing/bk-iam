@@ -30,7 +30,7 @@ func newAnyCondition(key string, values []interface{}) (Condition, error) {
 func NewAnyCondition() Condition {
 	return &AnyCondition{
 		baseCondition: baseCondition{
-			Key:   "Any",
+			Key:   "",
 			Value: []interface{}{},
 		},
 	}

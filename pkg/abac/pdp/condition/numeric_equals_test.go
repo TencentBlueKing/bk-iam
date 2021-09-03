@@ -42,37 +42,44 @@ var _ = Describe("NumericEquals", func() {
 
 	})
 
-	//Describe("numericEqualsTranslate", func() {
-	//	It("fail, empty value", func() {
-	//		_, err := numericEqualsTranslate("key", []interface{}{})
-	//		assert.Error(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), errMustNotEmpty, err)
-	//	})
-	//
-	//	It("ok, eq", func() {
-	//		expected := ExprCell{
-	//			"op":    "eq",
-	//			"field": "key",
-	//			"value": 1,
-	//		}
-	//		c, err := numericEqualsTranslate("key", []interface{}{1})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, c)
-	//
-	//	})
-	//
-	//	It("ok, in", func() {
-	//		expected := ExprCell{
-	//			"op":    "in",
-	//			"field": "key",
-	//			"value": []interface{}{1, 2},
-	//		}
-	//		c, err := numericEqualsTranslate("key", []interface{}{1, 2})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, c)
-	//
-	//	})
-	//})
-	//
+	Describe("Translate", func() {
+		It("fail, empty value", func() {
+			c1, err := newNumericEqualsCondition("key", []interface{}{})
+			assert.NoError(GinkgoT(), err)
+
+			_, err = c1.Translate()
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+		})
+
+		It("ok, eq", func() {
+			expected := map[string]interface{}{
+				"op":    "eq",
+				"field": "key",
+				"value": 1,
+			}
+			c, err := newNumericEqualsCondition("key", []interface{}{1})
+			assert.NoError(GinkgoT(), err)
+
+			c1, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, c1)
+		})
+
+		It("ok, in", func() {
+			expected := map[string]interface{}{
+				"op":    "in",
+				"field": "key",
+				"value": []interface{}{1, 2},
+			}
+			c, err := newNumericEqualsCondition("key", []interface{}{1, 2})
+			assert.NoError(GinkgoT(), err)
+
+			c1, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, c1)
+
+		})
+	})
 
 })

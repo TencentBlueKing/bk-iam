@@ -13,9 +13,6 @@ package pdp
 import (
 	"errors"
 
-	"iam/pkg/cache/impls"
-	"iam/pkg/cache/memory"
-
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -137,74 +134,74 @@ var _ = Describe("Remote", func() {
 
 	})
 
-	Describe("getPoliciesAttrKeys", func() {
-		var resource *types.Resource
-		var policies []types.AuthPolicy
-		BeforeEach(func() {
-			resource = &types.Resource{
-				System:    "bk_test",
-				Type:      "host",
-				ID:        "1",
-				Attribute: nil,
-			}
-			policies = []types.AuthPolicy{}
-
-			impls.LocalUnmarshaledExpressionCache = memory.NewMockCache(impls.UnmarshalExpression)
-		})
-
-		It("fail", func() {
-			errExpr := `[{"system": "bk_test", "type": "host", "expression": 
-{"OR": {"content": [{"NotExists": {"id": []}}]}}}]`
-			policies = []types.AuthPolicy{
-				{
-					Expression:          errExpr,
-					ExpressionSignature: "e77288fd872ccc464ac610272a56e7fb",
-				},
-			}
-			_, err := getPoliciesAttrKeys(resource, policies)
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("ok, one expression", func() {
-			expr := `[{"system": "bk_job", "type": "job", 
-"expression": {"OR": {"content": [{"StringEquals": {"id": ["job1"]}}]}}}, 
-{"system": "bk_test", "type": "host", 
-"expression": {"OR": {"content": [{"StringEquals": {"id": ["192.168.1.1"]}}, 
-{"StringPrefix": {"path": ["/biz,1/"]}}]}}}]`
-			policies = []types.AuthPolicy{
-				{
-					Expression:          expr,
-					ExpressionSignature: "0e4fa20b19222af3110199099907e0c0",
-				},
-			}
-			keys, err := getPoliciesAttrKeys(resource, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), keys, 2)
-			assert.Contains(GinkgoT(), keys, "id")
-			assert.Contains(GinkgoT(), keys, "path")
-		})
-
-		It("ok, same resource in list, will get the first one", func() {
-			expr := `[{"system": "bk_test", "type": "host", 
-"expression": {"OR": {"content": [{"StringEquals": {"area": ["job1"]}}]}}}, 
-{"system": "bk_test", "type": "host", 
-"expression": {"OR": {"content": [{"StringEquals": {"id": ["192.168.1.1"]}}, 
-{"StringPrefix": {"path": ["/biz,1/"]}}]}}}]`
-			policies = []types.AuthPolicy{
-				{
-					Expression:          expr,
-					ExpressionSignature: "69d8e41a17d42661fced58040a272337",
-				},
-			}
-			keys, err := getPoliciesAttrKeys(resource, policies)
-			assert.NoError(GinkgoT(), err)
-
-			assert.Contains(GinkgoT(), keys, "area")
-			//assert.Contains(GinkgoT(), keys, "path")
-			//assert.Contains(GinkgoT(), keys, "area")
-		})
-
-	})
+	//	Describe("getPoliciesAttrKeys", func() {
+	//		var resource *types.Resource
+	//		var policies []types.AuthPolicy
+	//		BeforeEach(func() {
+	//			resource = &types.Resource{
+	//				System:    "bk_test",
+	//				Type:      "host",
+	//				ID:        "1",
+	//				Attribute: nil,
+	//			}
+	//			policies = []types.AuthPolicy{}
+	//
+	//			impls.LocalUnmarshaledExpressionCache = memory.NewMockCache(impls.UnmarshalExpression)
+	//		})
+	//
+	//		It("fail", func() {
+	//			errExpr := `[{"system": "bk_test", "type": "host", "expression":
+	//{"OR": {"content": [{"NotExists": {"id": []}}]}}}]`
+	//			policies = []types.AuthPolicy{
+	//				{
+	//					Expression:          errExpr,
+	//					ExpressionSignature: "e77288fd872ccc464ac610272a56e7fb",
+	//				},
+	//			}
+	//			_, err := getPoliciesAttrKeys(resource, policies)
+	//			assert.Error(GinkgoT(), err)
+	//		})
+	//
+	//		It("ok, one expression", func() {
+	//			expr := `[{"system": "bk_job", "type": "job",
+	//"expression": {"OR": {"content": [{"StringEquals": {"id": ["job1"]}}]}}},
+	//{"system": "bk_test", "type": "host",
+	//"expression": {"OR": {"content": [{"StringEquals": {"id": ["192.168.1.1"]}},
+	//{"StringPrefix": {"path": ["/biz,1/"]}}]}}}]`
+	//			policies = []types.AuthPolicy{
+	//				{
+	//					Expression:          expr,
+	//					ExpressionSignature: "0e4fa20b19222af3110199099907e0c0",
+	//				},
+	//			}
+	//			keys, err := getPoliciesAttrKeys(resource, policies)
+	//			assert.NoError(GinkgoT(), err)
+	//			assert.Len(GinkgoT(), keys, 2)
+	//			assert.Contains(GinkgoT(), keys, "id")
+	//			assert.Contains(GinkgoT(), keys, "path")
+	//		})
+	//
+	//		It("ok, same resource in list, will get the first one", func() {
+	//			expr := `[{"system": "bk_test", "type": "host",
+	//"expression": {"OR": {"content": [{"StringEquals": {"area": ["job1"]}}]}}},
+	//{"system": "bk_test", "type": "host",
+	//"expression": {"OR": {"content": [{"StringEquals": {"id": ["192.168.1.1"]}},
+	//{"StringPrefix": {"path": ["/biz,1/"]}}]}}}]`
+	//			policies = []types.AuthPolicy{
+	//				{
+	//					Expression:          expr,
+	//					ExpressionSignature: "69d8e41a17d42661fced58040a272337",
+	//				},
+	//			}
+	//			keys, err := getPoliciesAttrKeys(resource, policies)
+	//			assert.NoError(GinkgoT(), err)
+	//
+	//			assert.Contains(GinkgoT(), keys, "area")
+	//			//assert.Contains(GinkgoT(), keys, "path")
+	//			//assert.Contains(GinkgoT(), keys, "area")
+	//		})
+	//
+	//	})
 
 	// TODO: move to new unittest
 	//Describe("parseResourceConditionFromPolicies", func() {

@@ -44,12 +44,23 @@ func queryRemoteResourceAttrs(
 ) (attrs map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
+	// TODO: unittest
+	// 查询policies相关的属性key
+	conditions := make([]condition.Condition, 0, len(policies))
+	for _, policy := range policies {
+		condition, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		if err != nil {
+			return nil, err
+		}
+		conditions = append(conditions, condition)
+	}
+
 	var keys []string
-	keys, err = getPoliciesAttrKeys(resource, policies)
+	keys, err = getConditionAttrKeys(resource, conditions)
 	if err != nil {
 		err = errorWrapf(err,
-			"getPoliciesAttrKeys policies=`%+v`, resource=`%+v` fail",
-			policies, resource)
+			"getConditionAttrKeys resource=`%+v`, conditions=`%+v` fail",
+			resource, conditions)
 		return
 	}
 
@@ -91,25 +102,6 @@ func queryExtResourceAttrs(
 		return
 	}
 	return
-}
-
-// getPoliciesAttrKeys 条件中的属性key
-func getPoliciesAttrKeys(
-	resource *types.Resource,
-	policies []types.AuthPolicy,
-) ([]string, error) {
-	// TODO: unittest
-	// 查询policies相关的属性key
-	conditions := make([]condition.Condition, 0, len(policies))
-	for _, policy := range policies {
-		condition, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
-		if err != nil {
-			return nil, err
-		}
-		conditions = append(conditions, condition)
-	}
-
-	return getConditionAttrKeys(resource, conditions)
 }
 
 func getConditionAttrKeys(

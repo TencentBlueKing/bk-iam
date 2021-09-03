@@ -66,23 +66,25 @@ var _ = Describe("Bool", func() {
 
 	})
 
-	//Describe("boolTranslate", func() {
-	//	It("not support multi value", func() {
-	//		_, err := boolTranslate("key", []interface{}{true, false})
-	//		assert.Error(GinkgoT(), err)
-	//		assert.Contains(GinkgoT(), err.Error(), "bool not support multi value")
-	//	})
-	//
-	//	It("ok", func() {
-	//		expected := ExprCell{
-	//			"op":    "eq",
-	//			"field": "key",
-	//			"value": true,
-	//		}
-	//		c, err := boolTranslate("key", []interface{}{true})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, c)
-	//	})
-	//})
+	Describe("Translate", func() {
+		It("not support multi value", func() {
+			c1, err := newBoolCondition("key", []interface{}{true, false})
+			assert.NoError(GinkgoT(), err)
+
+			_, err = c1.Translate()
+			assert.Contains(GinkgoT(), err.Error(), "bool not support multi value")
+		})
+
+		It("ok", func() {
+			expected := map[string]interface{}{
+				"op":    "eq",
+				"field": "ok",
+				"value": true,
+			}
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+	})
 
 })

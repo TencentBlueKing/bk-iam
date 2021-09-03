@@ -22,6 +22,12 @@ var _ = Describe("Any", func() {
 		assert.NotNil(GinkgoT(), condition)
 	})
 
+	It("New", func() {
+		c := NewAnyCondition()
+		assert.Equal(GinkgoT(), "Any", c.GetName())
+		assert.Equal(GinkgoT(), []string{}, c.GetKeys())
+	})
+
 	It("GetName", func() {
 		assert.Equal(GinkgoT(), "Any", c.GetName())
 	})
@@ -35,20 +41,16 @@ var _ = Describe("Any", func() {
 		assert.True(GinkgoT(), c.Eval(boolCtx(false)))
 		assert.True(GinkgoT(), c.Eval(listCtx{1, 2}))
 		assert.True(GinkgoT(), c.Eval(errCtx(1)))
-
 	})
 
-	//Describe("anyTranslate", func() {
-	//	It("ok", func() {
-	//		expected := ExprCell{
-	//			"op":    "any",
-	//			"field": "key",
-	//			"value": []interface{}{"a"},
-	//		}
-	//		ec, err := anyTranslate("key", []interface{}{"a"})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, ec)
-	//	})
-	//})
-	//
+	It("Translate", func() {
+		ec, err := c.Translate()
+		assert.NoError(GinkgoT(), err)
+		expected := map[string]interface{}{
+			"op":    "any",
+			"field": "ok",
+			"value": []interface{}{"a", "b"},
+		}
+		assert.Equal(GinkgoT(), expected, ec)
+	})
 })

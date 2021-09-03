@@ -91,82 +91,85 @@ var _ = Describe("Or", func() {
 		assert.Equal(GinkgoT(), "hello", keys[0])
 	})
 
-	//Describe("orTranslate", func() {
-	//	It("ok, empty", func() {
-	//		want := ExprCell{
-	//			"op":      "OR",
-	//			"content": []interface{}{},
-	//		}
-	//		ec, err := orTranslate("host", []interface{}{})
-	//
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), want, ec)
-	//	})
-	//
-	//	It("fail, wrong value", func() {
-	//		_, err := orTranslate("host", []interface{}{123})
-	//		assert.Error(GinkgoT(), err)
-	//	})
-	//
-	//	It("fail, singleTranslate error", func() {
-	//		_, err := orTranslate("host", []interface{}{
-	//			map[string]interface{}{
-	//				"NoSupportOP": "",
-	//			},
-	//		})
-	//		assert.Error(GinkgoT(), err)
-	//	})
-	//
-	//	It("ok", func() {
-	//		want := ExprCell{
-	//			"op": "OR",
-	//			"content": []interface{}{
-	//				ExprCell(map[string]interface{}{
-	//					"op":    "eq",
-	//					"field": "host.number",
-	//					"value": 1,
-	//				}),
-	//				ExprCell(map[string]interface{}{
-	//					"op":    "in",
-	//					"field": "host.os",
-	//					"value": []interface{}{"linux", "windows"},
-	//				}),
-	//			},
-	//		}
-	//		value := []interface{}{
-	//			map[string]interface{}{
-	//				"NumericEquals": map[string]interface{}{
-	//					"number": []interface{}{1},
-	//				},
-	//			},
-	//			map[string]interface{}{
-	//				"StringEquals": map[string]interface{}{
-	//					"os": []interface{}{"linux", "windows"},
-	//				},
-	//			},
-	//		}
-	//		ec, err := orTranslate("host", value)
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), want, ec)
-	//	})
-	//
-	//	It("fail, singleTranslate fail", func() {
-	//		value := []interface{}{
-	//			map[string]interface{}{
-	//				"NumericEquals": map[string]interface{}{
-	//					"number": []interface{}{1},
-	//				},
-	//			},
-	//			map[string]interface{}{
-	//				"NotExists": map[string]interface{}{
-	//					"os": []interface{}{"linux", "windows"},
-	//				},
-	//			},
-	//		}
-	//		_, err := orTranslate("host", value)
-	//		assert.Error(GinkgoT(), err)
-	//	})
-	//
-	//})
-	//
+	Describe("orTranslate", func() {
+		It("ok, empty", func() {
+			want := map[string]interface{}{
+				"op":      "OR",
+				"content": []interface{}{},
+			}
+			c, err := newOrCondition("content", []interface{}{})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), want, ec)
+		})
+
+		It("fail, wrong value", func() {
+			_, err := newOrCondition("content", []interface{}{123})
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("fail, singleTranslate error", func() {
+			_, err := newOrCondition("content", []interface{}{
+				map[string]interface{}{
+					"NoSupportOP": "",
+				},
+			})
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("ok", func() {
+			want := map[string]interface{}{
+				"op": "OR",
+				"content": []interface{}{
+					map[string]interface{}{
+						"op":    "eq",
+						"field": "number",
+						"value": 1,
+					},
+					map[string]interface{}{
+						"op":    "in",
+						"field": "os",
+						"value": []interface{}{"linux", "windows"},
+					},
+				},
+			}
+			value := []interface{}{
+				map[string]interface{}{
+					"NumericEquals": map[string]interface{}{
+						"number": []interface{}{1},
+					},
+				},
+				map[string]interface{}{
+					"StringEquals": map[string]interface{}{
+						"os": []interface{}{"linux", "windows"},
+					},
+				},
+			}
+			c, err := newOrCondition("content", value)
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), want, ec)
+		})
+
+		It("fail, singleTranslate fail", func() {
+			value := []interface{}{
+				map[string]interface{}{
+					"NumericEquals": map[string]interface{}{
+						"number": []interface{}{1},
+					},
+				},
+				map[string]interface{}{
+					"NotExists": map[string]interface{}{
+						"os": []interface{}{"linux", "windows"},
+					},
+				},
+			}
+			_, err := newOrCondition("content", value)
+			assert.Error(GinkgoT(), err)
+		})
+
+	})
+
 })

@@ -70,46 +70,51 @@ var _ = Describe("StringPrefix", func() {
 		})
 	})
 
-	//Describe("stringPrefixTranslate", func() {
-	//	It("fail, empty value", func() {
-	//		_, err := stringPrefixTranslate("key", []interface{}{})
-	//		assert.Error(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), errMustNotEmpty, err)
-	//	})
-	//
-	//	It("ok, single", func() {
-	//		expected := ExprCell{
-	//			"op":    "starts_with",
-	//			"field": "key",
-	//			"value": "/biz,1/set,1/",
-	//		}
-	//		ec, err := stringPrefixTranslate("key", []interface{}{"/biz,1/set,1/"})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, ec)
-	//	})
-	//
-	//	It("ok, multiple or", func() {
-	//		expected := ExprCell{
-	//			"op": "OR",
-	//			"content": []map[string]interface{}{
-	//				{
-	//					"op":    "starts_with",
-	//					"field": "key",
-	//					"value": "/biz,1/set,1/",
-	//				},
-	//				{
-	//					"op":    "starts_with",
-	//					"field": "key",
-	//					"value": "/biz,2/set,2/",
-	//				},
-	//			},
-	//		}
-	//
-	//		ec, err := stringPrefixTranslate("key", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, ec)
-	//	})
-	//})
-	//
+	Describe("Translate", func() {
+		It("fail, empty value", func() {
+			c, err := newStringPrefixCondition("key", []interface{}{})
+			assert.NoError(GinkgoT(), err)
+			_, err = c.Translate()
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+		})
+
+		It("ok, single", func() {
+			expected := map[string]interface{}{
+				"op":    "starts_with",
+				"field": "key",
+				"value": "/biz,1/set,1/",
+			}
+			c, err := newStringPrefixCondition("key", []interface{}{"/biz,1/set,1/"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
+		It("ok, multiple or", func() {
+			expected := map[string]interface{}{
+				"op": "OR",
+				"content": []map[string]interface{}{
+					{
+						"op":    "starts_with",
+						"field": "key",
+						"value": "/biz,1/set,1/",
+					},
+					{
+						"op":    "starts_with",
+						"field": "key",
+						"value": "/biz,2/set,2/",
+					},
+				},
+			}
+
+			c, err := newStringPrefixCondition("key", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+	})
 
 })

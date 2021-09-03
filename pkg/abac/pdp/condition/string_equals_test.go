@@ -45,37 +45,43 @@ var _ = Describe("StringEquals", func() {
 
 	})
 
-	//Describe("stringEqualsTranslate", func() {
-	//	It("fail, empty value", func() {
-	//		_, err := stringEqualsTranslate("key", []interface{}{})
-	//		assert.Error(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), errMustNotEmpty, err)
-	//	})
-	//
-	//	It("ok, single eq", func() {
-	//		expected := ExprCell{
-	//			"op":    "eq",
-	//			"field": "key",
-	//			"value": "a",
-	//		}
-	//		ec, err := stringEqualsTranslate("key", []interface{}{"a"})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, ec)
-	//
-	//	})
-	//
-	//	It("ok, multiple in", func() {
-	//		expected := ExprCell{
-	//			"op":    "in",
-	//			"field": "key",
-	//			"value": []interface{}{"a", "b"},
-	//		}
-	//		ec, err := stringEqualsTranslate("key", []interface{}{"a", "b"})
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), expected, ec)
-	//
-	//	})
-	//})
-	//
+	Describe("stringEqualsTranslate", func() {
+		It("fail, empty value", func() {
+			c, err := newStringEqualsCondition("key", []interface{}{})
+			assert.NoError(GinkgoT(), err)
+
+			_, err = c.Translate()
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+		})
+
+		It("ok, single eq", func() {
+			expected := map[string]interface{}{
+				"op":    "eq",
+				"field": "key",
+				"value": "a",
+			}
+			c, err := newStringEqualsCondition("key", []interface{}{"a"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+
+		})
+
+		It("ok, multiple in", func() {
+			expected := map[string]interface{}{
+				"op":    "in",
+				"field": "key",
+				"value": []interface{}{"a", "b"},
+			}
+			c, err := newStringEqualsCondition("key", []interface{}{"a", "b"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+
+		})
+	})
 
 })
