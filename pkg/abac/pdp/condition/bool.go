@@ -13,8 +13,6 @@ package condition
 import (
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
-
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -42,7 +40,6 @@ func (c *BoolCondition) GetName() string {
 func (c *BoolCondition) Eval(ctx types.AttributeGetter) bool {
 	attrValue, err := ctx.GetAttr(c.Key)
 	if err != nil {
-		log.Debugf("get attr %s from ctx %v error %v", c.Key, ctx, err)
 		return false
 	}
 

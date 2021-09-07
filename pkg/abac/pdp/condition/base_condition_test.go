@@ -12,18 +12,19 @@ package condition
 
 import (
 	"errors"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 )
 
-type ctx int
+type intCtx int
 
-func (c ctx) GetAttr(key string) (interface{}, error) {
+func (c intCtx) GetAttr(key string) (interface{}, error) {
 	return int(c), nil
 }
 
-func (c ctx) HasKey(key string) bool {
+func (c intCtx) HasKey(key string) bool {
 	return false
 }
 
@@ -64,10 +65,59 @@ func (c errCtx) HasKey(key string) bool {
 	return false
 }
 
+type HitStrCtx string
+
+func (c HitStrCtx) GetAttr(key string) (interface{}, error) {
+	return string(c), nil
+}
+func (c HitStrCtx) HasKey(key string) bool {
+	return true
+}
+
+type MissStrCtx string
+
+func (c MissStrCtx) GetAttr(key string) (interface{}, error) {
+	return "", nil
+}
+func (c MissStrCtx) HasKey(key string) bool {
+	return false
+}
+
+type MapCtx map[string]interface{}
+
+func (c MapCtx) GetAttr(key string) (interface{}, error) {
+	value, ok := c[key]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	return value, nil
+}
+
+// host.system  has key=system
+func (c MapCtx) HasKey(key string) bool {
+	for k, _ := range c {
+		if strings.HasPrefix(k, key+".") {
+			return true
+		}
+	}
+	return false
+}
+
 var _ = Describe("BaseCondition", func() {
 
-	Describe("GetValues", func() {
+	Describe("GetKeys", func() {
+		It("ok", func() {
+			expectedKey := "test"
 
+			c := baseCondition{
+				Key:   expectedKey,
+				Value: nil,
+			}
+			assert.Equal(GinkgoT(), []string{expectedKey}, c.GetKeys())
+		})
+	})
+
+	Describe("GetValues", func() {
 		It("ok", func() {
 			expectedValues := []interface{}{1, "ab", 3}
 			c := baseCondition{
@@ -100,11 +150,11 @@ var _ = Describe("BaseCondition", func() {
 		})
 
 		It("single, hit one", func() {
-			assert.True(GinkgoT(), condition.forOr(ctx(1), fn))
-			assert.True(GinkgoT(), condition.forOr(ctx(2), fn))
+			assert.True(GinkgoT(), condition.forOr(intCtx(1), fn))
+			assert.True(GinkgoT(), condition.forOr(intCtx(2), fn))
 		})
 		It("single, missing ", func() {
-			assert.False(GinkgoT(), condition.forOr(ctx(3), fn))
+			assert.False(GinkgoT(), condition.forOr(intCtx(3), fn))
 		})
 
 		It("list, hit one", func() {
@@ -112,18 +162,6 @@ var _ = Describe("BaseCondition", func() {
 		})
 		It("list, missing", func() {
 			assert.False(GinkgoT(), condition.forOr(listCtx{3, 4}, fn))
-		})
-
-	})
-	Describe("GetKeys", func() {
-		It("ok", func() {
-			expectedKey := "test"
-
-			c := baseCondition{
-				Key:   expectedKey,
-				Value: nil,
-			}
-			assert.Equal(GinkgoT(), []string{expectedKey}, c.GetKeys())
 		})
 
 	})

@@ -86,5 +86,5 @@ func NewConditionFromPolicyCondition(data types.PolicyCondition) (Condition, err
 			return newConditionFunc(k, v)
 		}
 	}
-	return nil, fmt.Errorf("can not support data %v", data)
+	return nil, fmt.Errorf("not support data %v", data)
 }

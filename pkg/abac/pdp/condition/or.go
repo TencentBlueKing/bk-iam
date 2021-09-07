@@ -75,8 +75,8 @@ func (c *OrCondition) Eval(ctx types.AttributeGetter) bool {
 
 func (c *OrCondition) Translate() (map[string]interface{}, error) {
 	content := make([]map[string]interface{}, 0, len(c.content))
-	for _, c := range c.content {
-		ct, err := c.Translate()
+	for _, ci := range c.content {
+		ct, err := ci.Translate()
 		if err != nil {
 			return nil, err
 		}
@@ -91,28 +91,50 @@ func (c *OrCondition) Translate() (map[string]interface{}, error) {
 }
 
 func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
+	// NOTE: If allowed=False, condition should be nil
+	// once got True => return
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
 		if condition.GetName() == "AND" || condition.GetName() == "OR" {
+			// 这里有个问题, true的时候, 可能还有剩余的表达式
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			if ok {
-				// NOTE: here, return any condition?
-				return true, NewAnyCondition()
-			} else {
-				remainContent = append(remainContent, ci)
+				if ci.GetName() == "Any" {
+					return true, NewAnyCondition()
+				} else {
+					remainContent = append(remainContent, ci)
+				}
 			}
+			// if false, do nothing!
+
 		} else {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
-				panic("should contains dot in key")
+				//panic("should contain dot in key")
+				return false, nil
 			}
 			_type := key[:dotIdx]
 
-			if !ctx.HasKey(_type) {
+			if ctx.HasKey(_type) {
+				// resource exists and eval fail, no remain content
+				if condition.Eval(ctx) {
+					return true, NewAnyCondition()
+				}
+				// if hasKey = true and eval fail, do nothing!
+			} else {
 				remainContent = append(remainContent, condition)
 			}
 		}
+	}
+
+	if len(remainContent) == 0 {
+		// Note: host.id = 1 or biz.id =2  此时传入host.type=3; biz.id=4; 全部命中但是全部false, 导致remainContent空
+		return false, nil
+	}
+
+	if len(remainContent) == 1 {
+		return true, remainContent[0]
 	}
 
 	return true, NewOrCondition(remainContent)

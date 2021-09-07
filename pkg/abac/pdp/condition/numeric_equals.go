@@ -50,9 +50,10 @@ func (c *NumericEqualsCondition) Translate() (map[string]interface{}, error) {
 	case 1:
 		exprCell["op"] = "eq"
 		exprCell["value"] = c.Value[0]
+		return exprCell, nil
 	default:
 		exprCell["op"] = "in"
 		exprCell["value"] = c.Value
+		return exprCell, nil
 	}
-	return exprCell, nil
 }

@@ -58,10 +58,26 @@ var _ = Describe("Condition", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, c)
 		})
+
+		It("ok, a policyCondition", func() {
+
+			data := types.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}}},
+						map[string]interface{}{"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}}},
+					},
+				},
+			}
+
+			c, err := newConditionFromInterface(data)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), wantAndCondition, c)
+
+		})
 	})
 
 	Describe("NewConditionFromPolicyCondition", func() {
-
 		It("empty policy condition", func() {
 			_, err := NewConditionFromPolicyCondition(types.PolicyCondition{})
 			assert.Error(GinkgoT(), err)

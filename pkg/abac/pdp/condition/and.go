@@ -32,12 +32,9 @@ func newAndCondition(key string, values []interface{}) (Condition, error) {
 	}
 
 	conditions := make([]Condition, 0, len(values))
-	var (
-		condition Condition
-		err       error
-	)
+
 	for _, v := range values {
-		condition, err = newConditionFromInterface(v)
+		condition, err := newConditionFromInterface(v)
 		if err != nil {
 			return nil, fmt.Errorf("and condition parser error: %w", err)
 		}
@@ -53,6 +50,15 @@ func (c *AndCondition) GetName() string {
 	return "AND"
 }
 
+// GetKeys 返回嵌套条件中所有包含的属性key
+func (c *AndCondition) GetKeys() []string {
+	keys := make([]string, 0, len(c.content))
+	for _, condition := range c.content {
+		keys = append(keys, condition.GetKeys()...)
+	}
+	return keys
+}
+
 // Eval 求值
 func (c *AndCondition) Eval(ctx types.AttributeGetter) bool {
 	for _, condition := range c.content {
@@ -64,7 +70,27 @@ func (c *AndCondition) Eval(ctx types.AttributeGetter) bool {
 	return true
 }
 
+func (c *AndCondition) Translate() (map[string]interface{}, error) {
+	content := make([]map[string]interface{}, 0, len(c.content))
+	for _, ci := range c.content {
+		ct, err := ci.Translate()
+		if err != nil {
+			return nil, err
+		}
+		content = append(content, ct)
+	}
+
+	return map[string]interface{}{
+		"op":      "AND",
+		"content": content,
+	}, nil
+
+}
+
 func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
+	// NOTE: If allowed=False, condition should be nil
+	// once got False=> return
+
 	// TODO: get from sync.Pool
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
@@ -73,13 +99,17 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 			if !ok {
 				return false, nil
 			} else {
-				remainContent = append(remainContent, ci)
+				// 如果残留单独一个any, any always=True, 则没有必要append
+				if ci.GetName() != "Any" {
+					remainContent = append(remainContent, ci)
+				}
 			}
 		} else {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
-				panic("should contains dot in key")
+				//panic("should contain dot in key")
+				return false, nil
 			}
 			_type := key[:dotIdx]
 
@@ -94,31 +124,14 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 		}
 	}
 
+	// all eval success, 全部执行成功, 理论上只剩any
+	if len(remainContent) == 0 {
+		return true, NewAnyCondition()
+	}
+
+	if len(remainContent) == 1 {
+		return true, remainContent[0]
+	}
+
 	return true, NewAndCondition(remainContent)
-}
-
-func (c *AndCondition) Translate() (map[string]interface{}, error) {
-	content := make([]map[string]interface{}, 0, len(c.content))
-	for _, c := range c.content {
-		ct, err := c.Translate()
-		if err != nil {
-			return nil, err
-		}
-		content = append(content, ct)
-	}
-
-	return map[string]interface{}{
-		"op":      "AND",
-		"content": content,
-	}, nil
-
-}
-
-// GetKeys 返回嵌套条件中所有包含的属性key
-func (c *AndCondition) GetKeys() []string {
-	keys := make([]string, 0, len(c.content))
-	for _, condition := range c.content {
-		keys = append(keys, condition.GetKeys()...)
-	}
-	return keys
 }
