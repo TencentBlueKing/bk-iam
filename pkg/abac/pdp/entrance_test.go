@@ -14,12 +14,12 @@ import (
 	"errors"
 	"reflect"
 
-	"iam/pkg/abac/pdp/condition"
-
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/abac/pdp/condition"
 
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
@@ -174,68 +174,58 @@ var _ = Describe("Entrance", func() {
 		})
 		// TODO: add EvalPolicies multi(not single) success and fail
 
-		//It("fail, QueryPolicies filter error", func() {
-		//	patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
-		//		return nil
-		//	})
-		//	patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
-		//		return nil
-		//	})
-		//	patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
-		//		func(_ *request.Request) bool {
-		//			return false
-		//		})
-		//	patches.ApplyFunc(queryPolicies, func(system string,
-		//		subject types.Subject,
-		//		action types.Action,
-		//		withoutCache bool,
-		//		entry *debug.Entry,
-		//	) (policies []types.AuthPolicy, err error) {
-		//		return []types.AuthPolicy{}, nil
-		//	})
-		//	patches.ApplyFunc(filterPoliciesByEvalResources, func(
-		//		r *request.Request,
-		//		policies []types.AuthPolicy,
-		//	) (filteredPolicies []types.AuthPolicy, err error) {
-		//		return nil, errors.New("test")
-		//	})
+		It("fail, EvalPolicies error", func() {
+			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				return nil
+			})
+			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+				return nil
+			})
+			patches.ApplyFunc(queryPolicies, func(system string,
+				subject types.Subject,
+				action types.Action,
+				withoutCache bool,
+				entry *debug.Entry,
+			) (policies []types.AuthPolicy, err error) {
+				return []types.AuthPolicy{}, nil
+			})
+			patches.ApplyFunc(evaluation.EvalPolicies, func(
+				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+			) (isPass bool, policyID int64, err error) {
+				return false, -1, errors.New("test")
+			})
+
+			ok, err := Eval(req, entry, false)
+			assert.False(GinkgoT(), ok)
+			assert.Error(GinkgoT(), err, "test")
+		})
 		//
-		//	ok, err := Eval(req, entry, false)
-		//	assert.False(GinkgoT(), ok)
-		//	assert.Error(GinkgoT(), err, "test")
-		//})
-		//
-		//It("ok, QueryPolicies filter success", func() {
-		//	patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
-		//		return nil
-		//	})
-		//	patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
-		//		return nil
-		//	})
-		//	patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
-		//		func(_ *request.Request) bool {
-		//			return false
-		//		})
-		//	patches.ApplyFunc(queryPolicies, func(system string,
-		//		subject types.Subject,
-		//		action types.Action,
-		//		withoutCache bool,
-		//		entry *debug.Entry,
-		//	) (policies []types.AuthPolicy, err error) {
-		//		return []types.AuthPolicy{}, nil
-		//	})
-		//	patches.ApplyFunc(filterPoliciesByEvalResources, func(
-		//		r *request.Request,
-		//		policies []types.AuthPolicy,
-		//	) (filteredPolicies []types.AuthPolicy, err error) {
-		//		return []types.AuthPolicy{{}}, nil
-		//	})
-		//	defer patches.Reset()
-		//
-		//	ok, err := Eval(req, entry, false)
-		//	assert.True(GinkgoT(), ok)
-		//	assert.NoError(GinkgoT(), err)
-		//})
+		It("ok, EvalPolicies success", func() {
+			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				return nil
+			})
+			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+				return nil
+			})
+			patches.ApplyFunc(queryPolicies, func(system string,
+				subject types.Subject,
+				action types.Action,
+				withoutCache bool,
+				entry *debug.Entry,
+			) (policies []types.AuthPolicy, err error) {
+				return []types.AuthPolicy{}, nil
+			})
+			patches.ApplyFunc(evaluation.EvalPolicies, func(
+				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+			) (isPass bool, policyID int64, err error) {
+				return true, 1, nil
+			})
+			defer patches.Reset()
+
+			ok, err := Eval(req, entry, false)
+			assert.True(GinkgoT(), ok)
+			assert.NoError(GinkgoT(), err)
+		})
 	})
 
 	Describe("Query", func() {
@@ -314,8 +304,10 @@ var _ = Describe("Entrance", func() {
 				entry *debug.Entry,
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
-			) ([]types.AuthPolicy, error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, error) {
+				return []condition.Condition{
+					condition.NewAnyCondition(),
+				}, nil
 			})
 			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {
@@ -408,32 +400,18 @@ var _ = Describe("Entrance", func() {
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
 			) ([]condition.Condition, error) {
-				return []condition.Condition{}, nil
+				return []condition.Condition{
+					condition.NewAnyCondition(),
+				}, nil
 			})
 			patches.ApplyFunc(queryExtResourceAttrs, func(
 				resource *types.ExtResource,
-				policies []types.AuthPolicy,
+				policies []condition.Condition,
 			) (resources []map[string]interface{}, err error) {
 				return nil, errors.New("test")
 			})
 
 			expr, resources, err := QueryByExtResources(req, []types.ExtResource{{}}, entry, false)
-			assert.Nil(GinkgoT(), expr)
-			assert.Nil(GinkgoT(), resources)
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("get ResourceType error", func() {
-			patches = gomonkey.ApplyFunc(queryAndPartialEvalConditions, func(
-				r *request.Request,
-				entry *debug.Entry,
-				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
-				withoutCache bool,
-			) ([]condition.Condition, error) {
-				return []condition.Condition{}, nil
-			})
-
-			expr, resources, err := QueryByExtResources(req, []types.ExtResource{}, entry, false)
 			assert.Nil(GinkgoT(), expr)
 			assert.Nil(GinkgoT(), resources)
 			assert.Error(GinkgoT(), err)
@@ -446,7 +424,9 @@ var _ = Describe("Entrance", func() {
 				willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 				withoutCache bool,
 			) ([]condition.Condition, error) {
-				return []condition.Condition{}, nil
+				return []condition.Condition{
+					condition.NewAnyCondition(),
+				}, nil
 			})
 			patches.ApplyFunc(translate.ConditionsTranslate, func(policies []condition.Condition,
 			) (map[string]interface{}, error) {

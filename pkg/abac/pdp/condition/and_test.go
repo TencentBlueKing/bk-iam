@@ -36,6 +36,12 @@ var _ = Describe("And", func() {
 	})
 
 	Describe("New", func() {
+		It("New ok", func() {
+			c := NewAndCondition([]Condition{})
+			assert.NotNil(GinkgoT(), c)
+			assert.Equal(GinkgoT(), "AND", c.GetName())
+		})
+
 		It("wrong key", func() {
 			_, err := newAndCondition("wrong", []interface{}{"abc"})
 			assert.Error(GinkgoT(), err)
@@ -95,7 +101,7 @@ var _ = Describe("And", func() {
 		It("ok, empty", func() {
 			want := map[string]interface{}{
 				"op":      "AND",
-				"content": []interface{}{},
+				"content": []map[string]interface{}{},
 			}
 			c, err := newAndCondition("content", []interface{}{})
 			assert.NoError(GinkgoT(), err)
@@ -109,7 +115,7 @@ var _ = Describe("And", func() {
 			assert.Error(GinkgoT(), err)
 		})
 
-		It("fail, singleTranslate error", func() {
+		It("fail, new error", func() {
 			_, err := newAndCondition("content", []interface{}{
 				map[string]interface{}{
 					"NoSupportOP": "",
@@ -118,16 +124,26 @@ var _ = Describe("And", func() {
 			assert.Error(GinkgoT(), err)
 		})
 
+		It("fail, translate error", func() {
+			bc, err := newBoolCondition("test", []interface{}{true, false})
+			assert.NoError(GinkgoT(), err)
+			c := NewAndCondition([]Condition{
+				bc,
+			})
+			_, err = c.Translate()
+			assert.Error(GinkgoT(), err)
+		})
+
 		It("ok", func() {
 			want := map[string]interface{}{
 				"op": "AND",
-				"content": []interface{}{
-					map[string]interface{}{
+				"content": []map[string]interface{}{
+					{
 						"op":    "eq",
 						"field": "number",
 						"value": 1,
 					},
-					map[string]interface{}{
+					{
 						"op":    "in",
 						"field": "os",
 						"value": []interface{}{"linux", "windows"},
@@ -171,5 +187,7 @@ var _ = Describe("And", func() {
 		})
 
 	})
+
+	// TODO: PartialEval
 
 })

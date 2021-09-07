@@ -61,6 +61,7 @@ func evalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
+
 		return false, err
 	}
 
@@ -76,8 +77,8 @@ func PartialEvalPolicies(ctx *pdptypes.ExprContext, policies []types.AuthPolicy)
 	for _, policy := range policies {
 		isPass, condition, err := partialEvalPolicy(ctx, policy)
 		if err != nil {
-			log.Debugf("pdp filterPolicies evalPolicy policy: %+v ctx: %+v error: %s", policy, ctx, err)
 			// TODO: 一条报错怎么处理?????
+			log.Debugf("pdp PartialEvalPoliciesy policy: %+v ctx: %+v error: %s", policy, ctx, err)
 		}
 
 		if condition != nil {

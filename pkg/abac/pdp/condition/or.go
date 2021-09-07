@@ -74,7 +74,7 @@ func (c *OrCondition) Eval(ctx types.AttributeGetter) bool {
 }
 
 func (c *OrCondition) Translate() (map[string]interface{}, error) {
-	content := make([]interface{}, 0, len(c.content))
+	content := make([]map[string]interface{}, 0, len(c.content))
 	for _, c := range c.content {
 		ct, err := c.Translate()
 		if err != nil {

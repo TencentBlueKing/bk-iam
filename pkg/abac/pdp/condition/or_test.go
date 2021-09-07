@@ -36,6 +36,12 @@ var _ = Describe("Or", func() {
 	})
 
 	Describe("New", func() {
+		It("New ok", func() {
+			c := NewOrCondition([]Condition{})
+			assert.NotNil(GinkgoT(), c)
+			assert.Equal(GinkgoT(), "OR", c.GetName())
+		})
+
 		It("wrong key", func() {
 			_, err := newOrCondition("wrong", []interface{}{"abc"})
 			assert.Error(GinkgoT(), err)
@@ -95,7 +101,7 @@ var _ = Describe("Or", func() {
 		It("ok, empty", func() {
 			want := map[string]interface{}{
 				"op":      "OR",
-				"content": []interface{}{},
+				"content": []map[string]interface{}{},
 			}
 			c, err := newOrCondition("content", []interface{}{})
 			assert.NoError(GinkgoT(), err)
@@ -109,7 +115,7 @@ var _ = Describe("Or", func() {
 			assert.Error(GinkgoT(), err)
 		})
 
-		It("fail, singleTranslate error", func() {
+		It("fail, new error", func() {
 			_, err := newOrCondition("content", []interface{}{
 				map[string]interface{}{
 					"NoSupportOP": "",
@@ -118,16 +124,26 @@ var _ = Describe("Or", func() {
 			assert.Error(GinkgoT(), err)
 		})
 
+		It("fail, translate error", func() {
+			bc, err := newBoolCondition("test", []interface{}{true, false})
+			assert.NoError(GinkgoT(), err)
+			c := NewOrCondition([]Condition{
+				bc,
+			})
+			_, err = c.Translate()
+			assert.Error(GinkgoT(), err)
+		})
+
 		It("ok", func() {
 			want := map[string]interface{}{
 				"op": "OR",
-				"content": []interface{}{
-					map[string]interface{}{
+				"content": []map[string]interface{}{
+					{
 						"op":    "eq",
 						"field": "number",
 						"value": 1,
 					},
-					map[string]interface{}{
+					{
 						"op":    "in",
 						"field": "os",
 						"value": []interface{}{"linux", "windows"},
@@ -172,4 +188,5 @@ var _ = Describe("Or", func() {
 
 	})
 
+	// TODO: PartialEval
 })

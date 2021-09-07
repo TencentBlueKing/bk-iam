@@ -27,6 +27,14 @@ var _ = Describe("Context", func() {
 			assert.NotNil(GinkgoT(), ec)
 		})
 
+		It("ok, has resource", func() {
+			ctx := &request.Request{
+				Resources: []types.Resource{},
+			}
+			ec := NewExprContext(ctx)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
 	})
 
 	var c *ExprContext
@@ -61,4 +69,7 @@ var _ = Describe("Context", func() {
 		})
 
 	})
+
+	// TODO: has key
+
 })

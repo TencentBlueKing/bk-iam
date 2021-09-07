@@ -80,12 +80,17 @@ func ConditionsTranslate(
 
 func expressionToConditions(expr string) ([]condition.Condition, error) {
 	expressions := []pdptypes.ResourceExpression{}
-	err := jsoniter.UnmarshalFromString(expr, &expressions)
-	// 无效的policy条件表达式, 容错
-	if err != nil {
-		err = fmt.Errorf("cache UnmarshalExpression unmarshal %s error: %w",
-			expr, err)
-		return nil, err
+
+	// NOTE: if expression == "" or expression == "[]", all return any
+	// if action without resource_types, the expression is ""
+	if expr != "" {
+		err := jsoniter.UnmarshalFromString(expr, &expressions)
+		// 无效的policy条件表达式, 容错
+		if err != nil {
+			err = fmt.Errorf("unmarshalFromString fail expr: %s error: %w",
+				expr, err)
+			return nil, err
+		}
 	}
 
 	content := make([]condition.Condition, 0, len(expressions))
@@ -103,6 +108,12 @@ func expressionToConditions(expr string) ([]condition.Condition, error) {
 		}
 		content = append(content, c)
 	}
+
+	// TODO: test here
+	if len(content) == 0 {
+		content = append(content, condition.NewAnyCondition())
+	}
+
 	return content, nil
 
 }
@@ -131,53 +142,6 @@ func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
 	} else {
 		return condition.NewAndCondition(content), nil
 	}
-}
-
-func mergeContentField(content []ExprCell) []ExprCell {
-	mergeableExprs := map[string][]ExprCell{}
-	newContent := make([]ExprCell, 0, len(content))
-
-	for _, expr := range content {
-		switch expr.Op() {
-		case "eq", "in":
-			field := expr["field"].(string)
-			exprs, ok := mergeableExprs[field]
-			if ok {
-				exprs = append(exprs, expr)
-				mergeableExprs[field] = exprs
-			} else {
-				mergeableExprs[field] = []ExprCell{expr}
-			}
-		default:
-			newContent = append(newContent, expr)
-		}
-	}
-
-	for field, exprs := range mergeableExprs {
-		if len(exprs) == 1 {
-			newContent = append(newContent, exprs[0])
-		} else {
-			values := make([]interface{}, 0, len(exprs))
-
-			// 合并
-			for _, expr := range exprs {
-				switch expr.Op() {
-				case "eq":
-					values = append(values, expr["value"])
-				case "in":
-					values = append(values, expr["value"].([]interface{})...)
-				}
-			}
-
-			newContent = append(newContent, ExprCell{
-				"op":    "in",
-				"field": field,
-				"value": values,
-			})
-		}
-	}
-
-	return newContent
 }
 
 // PolicyTranslate ...
@@ -233,3 +197,50 @@ func mergeContentField(content []ExprCell) []ExprCell {
 //	}, nil
 //}
 //}
+
+func mergeContentField(content []ExprCell) []ExprCell {
+	mergeableExprs := map[string][]ExprCell{}
+	newContent := make([]ExprCell, 0, len(content))
+
+	for _, expr := range content {
+		switch expr.Op() {
+		case "eq", "in":
+			field := expr["field"].(string)
+			exprs, ok := mergeableExprs[field]
+			if ok {
+				exprs = append(exprs, expr)
+				mergeableExprs[field] = exprs
+			} else {
+				mergeableExprs[field] = []ExprCell{expr}
+			}
+		default:
+			newContent = append(newContent, expr)
+		}
+	}
+
+	for field, exprs := range mergeableExprs {
+		if len(exprs) == 1 {
+			newContent = append(newContent, exprs[0])
+		} else {
+			values := make([]interface{}, 0, len(exprs))
+
+			// 合并
+			for _, expr := range exprs {
+				switch expr.Op() {
+				case "eq":
+					values = append(values, expr["value"])
+				case "in":
+					values = append(values, expr["value"].([]interface{})...)
+				}
+			}
+
+			newContent = append(newContent, ExprCell{
+				"op":    "in",
+				"field": field,
+				"value": values,
+			})
+		}
+	}
+
+	return newContent
+}

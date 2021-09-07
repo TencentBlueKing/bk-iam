@@ -98,7 +98,7 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 }
 
 func (c *AndCondition) Translate() (map[string]interface{}, error) {
-	content := make([]interface{}, 0, len(c.content))
+	content := make([]map[string]interface{}, 0, len(c.content))
 	for _, c := range c.content {
 		ct, err := c.Translate()
 		if err != nil {

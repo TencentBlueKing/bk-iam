@@ -19,6 +19,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evaluation"
+	types2 "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/mock"
@@ -172,7 +175,7 @@ var _ = Describe("Helper", func() {
 			assert.Contains(GinkgoT(), err.Error(), "query policies fail")
 		})
 
-		It("filter error", func() {
+		It("PartialEvalPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -187,11 +190,11 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-			//	policies []types.AuthPolicy,
-			//) (filteredPolicies []types.AuthPolicy, err error) {
-			//	return nil, errors.New("filter error")
-			//})
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+				policie []types.AuthPolicy,
+			) ([]condition.Condition, []int64, error) {
+				return nil, nil, errors.New("filter error")
+			})
 
 			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
@@ -199,7 +202,7 @@ var _ = Describe("Helper", func() {
 			assert.Contains(GinkgoT(), err.Error(), "filter error")
 		})
 
-		It("filter empty", func() {
+		It("PartialEvalPolicies empty", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -214,18 +217,18 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-			//	policies []types.AuthPolicy,
-			//) (filteredPolicies []types.AuthPolicy, err error) {
-			//	return nil, ErrNoPolicies
-			//})
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+				policies []types.AuthPolicy,
+			) ([]condition.Condition, []int64, error) {
+				return []condition.Condition{}, []int64{}, nil
+			})
 
 			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Len(GinkgoT(), policies, 0)
 			assert.NoError(GinkgoT(), err)
 		})
 
-		It("filter ok", func() {
+		It("PartialEvalPolicies ok", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -240,11 +243,13 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			//patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-			//	policies []types.AuthPolicy,
-			//) (filteredPolicies []types.AuthPolicy, err error) {
-			//	return []types.AuthPolicy{{}}, nil
-			//})
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+				policies []types.AuthPolicy,
+			) ([]condition.Condition, []int64, error) {
+				return []condition.Condition{
+					condition.NewAnyCondition(),
+				}, []int64{1}, nil
+			})
 
 			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Len(GinkgoT(), policies, 1)

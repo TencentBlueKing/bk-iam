@@ -21,8 +21,10 @@ var _ = Describe("Expression", func() {
 	anyExpr := map[string]interface{}{
 		"op":    "any",
 		"field": "",
-		"value": []string{},
+		"value": []interface{}{},
 	}
+
+	// TODO: condition translate
 
 	// TODO: refactor it
 	//	Describe("PolicyExpressionTranslate", func() {
@@ -248,11 +250,6 @@ var _ = Describe("Expression", func() {
 	//	})
 
 	Describe("PolicyTranslate", func() {
-		//var resourceTypeSet *util.StringSet
-		//BeforeEach(func() {
-		//	resourceTypeSet = util.NewStringSet()
-		//})
-
 		It("ok, any, expression=``", func() {
 			expr, err := PolicyExpressionTranslate("")
 			assert.NoError(GinkgoT(), err)
@@ -260,26 +257,23 @@ var _ = Describe("Expression", func() {
 		})
 
 		It("ok, any, expression=`[]`", func() {
-			//expr, err := PolicyTranslate("[]", resourceTypeSet)
 			expr, err := PolicyExpressionTranslate("[]")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), ExprCell(anyExpr), expr)
 		})
 
 		It("fail, wrong expression", func() {
-			//_, err := PolicyTranslate("123", resourceTypeSet)
 			_, err := PolicyExpressionTranslate("123")
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "unmarshal resourceExpression")
+			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString fail")
 		})
 
 		It("ok, single", func() {
 			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"StringEquals":{"id":["2"]}}}]`
-			//resourceTypeSet = util.NewStringSetWithValues([]string{"bk_cmdb:biz"})
 
 			want := ExprCell{
 				"op":    "eq",
-				"field": "biz.id",
+				"field": "bk_cmdb.biz.id",
 				"value": "2",
 			}
 			expr, err := PolicyExpressionTranslate(resourceExpression)
@@ -292,14 +286,7 @@ var _ = Describe("Expression", func() {
 
 			_, err := PolicyExpressionTranslate(resourceExpression)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "pdp PolicyTranslate expression")
-		})
-
-		It("ok, resourceTypeSet not match, return any", func() {
-			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
-			expr, err := PolicyExpressionTranslate(resourceExpression)
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), ExprCell(anyExpr), expr)
+			assert.Contains(GinkgoT(), err.Error(), "newConditionFromPolicyCondition error: can not support operator NotExist")
 		})
 
 		It("ok, two expression", func() {
@@ -308,12 +295,12 @@ var _ = Describe("Expression", func() {
 
 			want := ExprCell{
 				"op": "AND",
-				"content": []ExprCell{
+				"content": []map[string]interface{}{
 					{
-						"field": "common_flow.id", "op": "any", "value": []interface{}{},
+						"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{},
 					},
 					{
-						"field": "project.id", "op": "any", "value": []interface{}{},
+						"field": "bk_sops.project.id", "op": "any", "value": []interface{}{},
 					},
 				},
 			}

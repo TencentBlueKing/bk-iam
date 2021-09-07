@@ -76,6 +76,20 @@ var _ = Describe("Evaluation", func() {
 		ExpressionSignature: "7dc6d19025f790d4509e6b732ed624a9",
 		ExpiredAt:           0,
 	}
+	willErrorPolicy := types.AuthPolicy{
+		Expression: `[
+						{
+							"system": "iam",
+							"type": "job",
+							"expression": {
+								"NotExists": {
+								}
+							}
+						}
+					]`,
+		ExpressionSignature: "7dc6d19025f790d4509e6b732ed624a9",
+		ExpiredAt:           0,
+	}
 
 	BeforeEach(func() {
 		request := &request.Request{
@@ -163,59 +177,16 @@ var _ = Describe("Evaluation", func() {
 			assert.True(GinkgoT(), allowed)
 		})
 
-		//It("fail, evalPolicy err", func() {
-		//	policies := []types.AuthPolicy{
-		//		willPassPolicy,
-		//	}
-		//	//c.Resource = nil
-		//	allowed, _, err := evaluation.EvalPolicies(c, policies)
-		//	assert.Error(GinkgoT(), err)
-		//	assert.False(GinkgoT(), allowed)
-		//})
-
-	})
-
-	Describe("PartialEvalPolicies", func() {
-		It("ok, one policy pass", func() {
+		It("fail, evalPolicy err", func() {
 			policies := []types.AuthPolicy{
-				willPassPolicy,
+				willErrorPolicy,
 			}
-
-			ps, _, err := PartialEvalPolicies(c, policies)
+			allowed, _, err := EvalPolicies(c, policies)
+			// will skip the policy, only log.debug
 			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), ps, 1)
+			assert.False(GinkgoT(), allowed)
 		})
 
-		It("ok, one policy not pass", func() {
-			policies := []types.AuthPolicy{
-				willNotPassPolicy,
-			}
-
-			ps, _, err := PartialEvalPolicies(c, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Empty(GinkgoT(), ps)
-		})
-
-		It("ok, one pass, one fail", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-				willNotPassPolicy,
-			}
-
-			ps, _, err := PartialEvalPolicies(c, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), ps, 1)
-		})
-
-		//It("fail, evalPolicy err", func() {
-		//	policies := []types.AuthPolicy{
-		//		willPassPolicy,
-		//	}
-		//	//c.Resource = nil
-		//	ps, err := evaluation.PartialEvalPolicies(c, policies)
-		//	assert.Error(GinkgoT(), err)
-		//	assert.Empty(GinkgoT(), ps)
-		//})
 	})
 
 	Describe("evalPolicy", func() {
@@ -227,15 +198,7 @@ var _ = Describe("Evaluation", func() {
 			assert.True(GinkgoT(), allowed)
 		})
 
-		//It("ctx.Resource == nil", func() {
-		//	//c.Resource = nil
-		//	allowed, err := evaluation.evalPolicy(c, policy)
-		//	assert.Error(GinkgoT(), err)
-		//	assert.Contains(GinkgoT(), err.Error(), "get resource nil")
-		//	assert.False(GinkgoT(), allowed)
-		//})
-
-		It("ParseResourceConditionFromExpression fail", func() {
+		It("impls.GetUnmarshalledResourceExpression fail", func() {
 			policy = types.AuthPolicy{
 				Expression: "123",
 			}
@@ -309,4 +272,61 @@ var _ = Describe("Evaluation", func() {
 		})
 
 	})
+
+	Describe("PartialEvalPolicies", func() {
+		It("ok, one policy pass", func() {
+			policies := []types.AuthPolicy{
+				willPassPolicy,
+			}
+
+			ps, _, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+		})
+
+		It("ok, one policy not pass", func() {
+			policies := []types.AuthPolicy{
+				willNotPassPolicy,
+			}
+
+			ps, _, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Empty(GinkgoT(), ps)
+		})
+
+		It("ok, one pass, one fail", func() {
+			policies := []types.AuthPolicy{
+				willPassPolicy,
+				willNotPassPolicy,
+			}
+
+			ps, _, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+		})
+
+		It("ok, one pass, one fail", func() {
+			policies := []types.AuthPolicy{
+				willNotPassPolicy,
+				willPassPolicy,
+			}
+
+			ps, _, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+		})
+
+		It("fail, evalPolicy err", func() {
+			policies := []types.AuthPolicy{
+				willErrorPolicy,
+			}
+			ps, _, err := PartialEvalPolicies(c, policies)
+			// will skip the error
+			assert.NoError(GinkgoT(), err)
+			assert.Empty(GinkgoT(), ps)
+		})
+	})
+
+	// TODO: partialEvalPolicy
+
 })
