@@ -36,6 +36,10 @@ func NewRequest() *Request {
 	}
 }
 
+func (r *Request) HasResources() bool {
+	return len(r.Resources) > 0
+}
+
 // HasRemoteResources ...
 func (r *Request) HasRemoteResources() bool {
 	for i := range r.Resources {

@@ -81,12 +81,12 @@ func PartialEvalPolicies(ctx *pdptypes.ExprContext, policies []types.AuthPolicy)
 			log.Debugf("pdp PartialEvalPoliciesy policy: %+v ctx: %+v error: %s", policy, ctx, err)
 		}
 
-		if condition != nil {
-			passConditions = append(passConditions, condition)
-		}
-
 		if isPass {
 			passedPolicyIDs = append(passedPolicyIDs, policy.ID)
+
+			if condition != nil {
+				passConditions = append(passConditions, condition)
+			}
 		}
 	}
 
@@ -105,6 +105,10 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
 		return false, nil, err
+	}
+	// if no resource passed
+	if !ctx.HasResources() {
+		return true, cond, nil
 	}
 
 	switch cond.GetName() {
