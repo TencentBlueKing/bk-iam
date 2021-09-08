@@ -24,7 +24,7 @@ func (c intCtx) GetAttr(key string) (interface{}, error) {
 	return int(c), nil
 }
 
-func (c intCtx) HasKey(key string) bool {
+func (c intCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -33,7 +33,7 @@ type strCtx string
 func (c strCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
-func (c strCtx) HasKey(key string) bool {
+func (c strCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -42,7 +42,7 @@ type boolCtx bool
 func (c boolCtx) GetAttr(key string) (interface{}, error) {
 	return bool(c), nil
 }
-func (c boolCtx) HasKey(key string) bool {
+func (c boolCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -52,7 +52,7 @@ func (c listCtx) GetAttr(key string) (interface{}, error) {
 	x := []interface{}(c)
 	return x, nil
 }
-func (c listCtx) HasKey(key string) bool {
+func (c listCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -61,7 +61,7 @@ type errCtx int
 func (c errCtx) GetAttr(key string) (interface{}, error) {
 	return nil, errors.New("missing key")
 }
-func (c errCtx) HasKey(key string) bool {
+func (c errCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -70,7 +70,7 @@ type HitStrCtx string
 func (c HitStrCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
-func (c HitStrCtx) HasKey(key string) bool {
+func (c HitStrCtx) HasResource(_type string) bool {
 	return true
 }
 
@@ -79,7 +79,7 @@ type MissStrCtx string
 func (c MissStrCtx) GetAttr(key string) (interface{}, error) {
 	return "", nil
 }
-func (c MissStrCtx) HasKey(key string) bool {
+func (c MissStrCtx) HasResource(_type string) bool {
 	return false
 }
 
@@ -94,9 +94,9 @@ func (c MapCtx) GetAttr(key string) (interface{}, error) {
 }
 
 // host.system  has key=system
-func (c MapCtx) HasKey(key string) bool {
+func (c MapCtx) HasResource(_type string) bool {
 	for k, _ := range c {
-		if strings.HasPrefix(k, key+".") {
+		if strings.HasPrefix(k, _type+".") {
 			return true
 		}
 	}

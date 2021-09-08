@@ -70,6 +70,6 @@ var _ = Describe("Context", func() {
 
 	})
 
-	// TODO: has key
+	// TODO: has _type
 
 })

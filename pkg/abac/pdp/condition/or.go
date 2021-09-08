@@ -116,7 +116,7 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 			}
 			_type := key[:dotIdx]
 
-			if ctx.HasKey(_type) {
+			if ctx.HasResource(_type) {
 				// resource exists and eval fail, no remain content
 				if condition.Eval(ctx) {
 					return true, NewAnyCondition()
@@ -128,14 +128,13 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 		}
 	}
 
-	if len(remainContent) == 0 {
+	switch len(remainContent) {
+	case 0:
 		// Note: host.id = 1 or biz.id =2  此时传入host.type=3; biz.id=4; 全部命中但是全部false, 导致remainContent空
 		return false, nil
-	}
-
-	if len(remainContent) == 1 {
+	case 1:
 		return true, remainContent[0]
+	default:
+		return true, NewOrCondition(remainContent)
 	}
-
-	return true, NewOrCondition(remainContent)
 }

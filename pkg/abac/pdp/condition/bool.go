@@ -31,6 +31,15 @@ func newBoolCondition(key string, values []interface{}) (Condition, error) {
 	}, nil
 }
 
+func NewBoolCondition(key string, value bool) Condition {
+	return &BoolCondition{
+		baseCondition: baseCondition{
+			Key:   key,
+			Value: []interface{}{value},
+		},
+	}
+}
+
 // GetName 名称
 func (c *BoolCondition) GetName() string {
 	return "Bool"

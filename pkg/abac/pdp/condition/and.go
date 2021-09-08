@@ -98,11 +98,11 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			if !ok {
 				return false, nil
-			} else {
-				// 如果残留单独一个any, any always=True, 则没有必要append
-				if ci.GetName() != "Any" {
-					remainContent = append(remainContent, ci)
-				}
+			}
+
+			// 如果残留单独一个any, any always=True, 则没有必要append
+			if ci.GetName() != "Any" {
+				remainContent = append(remainContent, ci)
 			}
 		} else {
 			key := condition.GetKeys()[0]
@@ -113,7 +113,7 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 			}
 			_type := key[:dotIdx]
 
-			if ctx.HasKey(_type) {
+			if ctx.HasResource(_type) {
 				// resource exists and eval fail, no remain content
 				if !condition.Eval(ctx) {
 					return false, nil
@@ -125,13 +125,12 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 	}
 
 	// all eval success, 全部执行成功, 理论上只剩any
-	if len(remainContent) == 0 {
+	switch len(remainContent) {
+	case 0:
 		return true, NewAnyCondition()
-	}
-
-	if len(remainContent) == 1 {
+	case 1:
 		return true, remainContent[0]
+	default:
+		return true, NewAndCondition(remainContent)
 	}
-
-	return true, NewAndCondition(remainContent)
 }

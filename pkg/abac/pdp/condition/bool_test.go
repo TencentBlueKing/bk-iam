@@ -26,6 +26,11 @@ var _ = Describe("Bool", func() {
 		}
 	})
 
+	It("New", func() {
+		c := NewBoolCondition("test", false)
+		assert.NotNil(GinkgoT(), c)
+	})
+
 	It("new", func() {
 		condition, err := newBoolCondition("ok", []interface{}{true})
 		assert.NoError(GinkgoT(), err)

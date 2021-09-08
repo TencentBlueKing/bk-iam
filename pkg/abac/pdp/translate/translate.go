@@ -42,7 +42,6 @@ func ConditionsTranslate(
 
 	content := make([]ExprCell, 0, len(conditions))
 	for _, c := range conditions {
-		// TODO: 可以优化的点, expression + resourceTypeSet => Condition的local cache
 		condition, err := c.Translate()
 		if err != nil {
 			err = errorWrapf(err, "conditionTranslate condition=`%+v` fail", c)
@@ -51,11 +50,12 @@ func ConditionsTranslate(
 
 		// NOTE: if got an `any`, return `any`!
 		if condition["op"].(string) == "any" {
-			return ExprCell{
-				"op":    "any",
-				"field": "",
-				"value": []string{},
-			}, nil
+			return condition, nil
+			//return ExprCell{
+			//	"op":    "any",
+			//	"field": "",
+			//	"value": []interface{}{},
+			//}, nil
 		}
 
 		content = append(content, condition)
@@ -109,7 +109,6 @@ func expressionToConditions(expr string) ([]condition.Condition, error) {
 		content = append(content, c)
 	}
 
-	// TODO: test here
 	if len(content) == 0 {
 		content = append(content, condition.NewAnyCondition())
 	}
@@ -143,60 +142,6 @@ func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
 		return condition.NewAndCondition(content), nil
 	}
 }
-
-// PolicyTranslate ...
-//func PolicyTranslate(
-//	cond condition.Condition,
-//) (ExprCell, error) {
-//	return cond.Translate()
-//errorWrapf := errorx.NewLayerFunctionErrorWrapf(Translate, "PolicyTranslate")
-
-//expressions := []pdptypes.ResourceExpression{}
-
-// TODO: newExpression, do translate here
-//       需要支持, 将新版本表达式搞过来, 支持translate
-// NOTE: if expression == "" or expression == "[]", all return any
-// if action without resource_types, the expression is ""
-//if resourceExpression != "" {
-//	err := jsoniter.UnmarshalFromString(resourceExpression, &expressions)
-//	if err != nil {
-//		err = errorWrapf(err, "unmarshal resourceExpression=`%s` fail", resourceExpression)
-//		return nil, err
-//	}
-//}
-
-// 注意, 如果resourceType不匹配, 那么最终会返回any => 这里有没有问题? 两阶段计算?
-//content := make([]ExprCell, 0, len(expressions))
-//for _, expression := range expressions {
-//	key := expression.System + ":" + expression.Type
-//	if resourceTypeSet.Has(key) {
-//		expr, err := singleTranslate(expression.Expression, expression.Type)
-//		if err != nil {
-//			err = errorWrapf(err, "pdp PolicyTranslate expression: %s", expression.Expression)
-//			return nil, err
-//		}
-//		content = append(content, expr)
-//	}
-//}
-
-//switch len(content) {
-//// content为空, 说明policy的操作不关联资源, 返回any
-//case 0:
-//	return ExprCell{
-//		"op":    "any",
-//		"field": "",
-//		"value": []string{},
-//	}, nil
-//case 1:
-//	return content[0], nil
-//default:
-//	// NOTE: 这里是满足 一个操作依赖两个资源的场景, 所以是 AND => 两阶段计算
-//	return ExprCell{
-//		"op":      "AND",
-//		"content": content,
-//	}, nil
-//}
-//}
 
 func mergeContentField(content []ExprCell) []ExprCell {
 	mergeableExprs := map[string][]ExprCell{}

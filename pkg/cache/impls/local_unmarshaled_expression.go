@@ -58,7 +58,7 @@ func GetUnmarshalledResourceExpression(
 	var ok bool
 	c, ok = value.(condition.Condition)
 	if !ok {
-		err = errors.New("not []condition.Condition in cache")
+		err = errors.New("not condition.Condition in cache")
 		return
 	}
 

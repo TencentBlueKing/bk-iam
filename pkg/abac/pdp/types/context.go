@@ -32,9 +32,9 @@ func (c *ExprContext) GetAttr(name string) (interface{}, error) {
 	return c.objSet.GetAttribute(name), nil
 }
 
-func (c *ExprContext) HasKey(key string) bool {
+func (c *ExprContext) HasResource(_type string) bool {
 	// has {system}.{resource_type}
-	return c.objSet.Has(key)
+	return c.objSet.Has(_type)
 }
 
 // NewExprContext new context
@@ -52,8 +52,8 @@ func NewExprContext(req *request.Request) *ExprContext {
 		r.Attribute.Set("id", r.ID)
 
 		// bk_job.script => attributes
-		key := r.System + "." + r.Type
-		objSet.Set(key, r.Attribute)
+		_type := r.System + "." + r.Type
+		objSet.Set(_type, r.Attribute)
 
 	}
 	// TODO: 需要限制接入系统资源id字段不能配置为attribute; 因为会被覆盖

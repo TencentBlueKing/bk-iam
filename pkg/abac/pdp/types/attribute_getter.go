@@ -14,6 +14,6 @@ package types
 type AttributeGetter interface {
 	// GetAttr get the attr like id / type / name, currently only support resource
 	GetAttr(name string) (interface{}, error)
-	// TODO: change name, not key, it's the system+resource_type
-	HasKey(key string) bool
+
+	HasResource(_type string) bool
 }

@@ -11,6 +11,7 @@
 package evaluation
 
 import (
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -52,10 +53,10 @@ func evalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 		return true, nil
 	}
 
-	// TODO: 如果请求中没有相关的资源信息, 此时执行会怎么样?????
-	//if ctx.Resource == nil {
-	//	return false, fmt.Errorf("evalPolicy action: %s get resource nil", ctx.Action.ID)
-	//}
+	// 需要传递resource却没有传, 此时直接false
+	if !ctx.HasResources() {
+		return false, fmt.Errorf("evalPolicy action: %s get not resource in request", ctx.Action.ID)
+	}
 
 	cond, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
@@ -125,7 +126,7 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 			panic("should contains dot in key")
 		}
 		_type := key[:dotIdx]
-		if ctx.HasKey(_type) {
+		if ctx.HasResource(_type) {
 			if cond.Eval(ctx) {
 				return true, condition.NewAnyCondition(), nil
 			} else {
