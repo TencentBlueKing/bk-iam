@@ -296,7 +296,7 @@ var _ = Describe("Expression", func() {
 					},
 				}
 				assert.NoError(GinkgoT(), err)
-				assert.Equal(GinkgoT(), want, expr)
+				assert.EqualValues(GinkgoT(), want, expr)
 
 			})
 

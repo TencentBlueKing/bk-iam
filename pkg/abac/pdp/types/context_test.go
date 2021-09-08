@@ -20,26 +20,10 @@ import (
 
 var _ = Describe("Context", func() {
 
-	Describe("NewExprContext", func() {
-		It("ok", func() {
-			ctx := &request.Request{}
-			ec := NewExprContext(ctx)
-			assert.NotNil(GinkgoT(), ec)
-		})
-
-		It("ok, has resource", func() {
-			ctx := &request.Request{
-				Resources: []types.Resource{},
-			}
-			ec := NewExprContext(ctx)
-			assert.NotNil(GinkgoT(), ec)
-		})
-
-	})
-
+	var req *request.Request
 	var c *ExprContext
 	BeforeEach(func() {
-		request := &request.Request{
+		req = &request.Request{
 			System: "iam",
 			Subject: types.Subject{
 				Type: "user",
@@ -58,7 +42,34 @@ var _ = Describe("Context", func() {
 				},
 			},
 		}
-		c = NewExprContext(request)
+		c = NewExprContext(req)
+	})
+
+	Describe("NewExprContext", func() {
+		It("no resources", func() {
+			req := &request.Request{}
+			ec := NewExprContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
+		It("ok, has resource", func() {
+			ec := NewExprContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
+		It("ok, has resource, attribute nil", func() {
+			req := &request.Request{
+				Resources: []types.Resource{
+					{
+						ID:        "test",
+						Attribute: nil,
+					},
+				},
+			}
+			ec := NewExprContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
 	})
 
 	Describe("GetAttr", func() {
@@ -68,8 +79,23 @@ var _ = Describe("Context", func() {
 			assert.Equal(GinkgoT(), "job1", a)
 		})
 
+		It("miss", func() {
+			a, err := c.GetAttr("bk_cmdb.job.id")
+			assert.NoError(GinkgoT(), err)
+			assert.Nil(GinkgoT(), a)
+		})
 	})
 
-	// TODO: has _type
+	Describe("HasResource", func() {
+		It("ok", func() {
+			assert.True(GinkgoT(), c.HasResource("iam.job"))
+		})
+
+		It("miss", func() {
+			assert.False(GinkgoT(), c.HasResource("bk_cmdb.job"))
+
+		})
+
+	})
 
 })

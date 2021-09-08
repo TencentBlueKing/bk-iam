@@ -11,7 +11,7 @@
 package types
 
 import (
-	"errors"
+	"fmt"
 )
 
 /*
@@ -62,40 +62,42 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 	for op, c := range p {
 		switch op {
 		case "AND", "OR":
-			// TODO: 错误处理
-			//c = map[string][]interface{}
-			content := c["content"] // .([]map[string]map[string][]interface{})
-			// content = []interface{}
+			content := c["content"]
 			newContent := make([]interface{}, 0, len(c["content"]))
 			for _, i := range content {
 				pp, err := InterfaceToPolicyCondition(i)
 				if err != nil {
-					return nil, errors.New("convert fail")
+					return nil, fmt.Errorf("convert fail %w", err)
 				}
 
 				npc, err2 := pp.ToNewPolicyCondition(system, _type)
 				if err2 != nil {
-					return nil, errors.New("convert fail")
+					return nil, fmt.Errorf("convert fail2 %w", err)
 				}
 
 				newContent = append(newContent, npc)
 			}
-
 			pc[op] = map[string][]interface{}{
 				"content": newContent,
 			}
-		case "ANY":
-			pc[op] = c
+		// NOTE: any is the same as other operatos
+		//case "Any":
+		//	pc[op] = c
 		default:
 			pc[op] = make(map[string][]interface{}, len(c))
 			for k, v := range c {
-				key := keyPrefix + k
-				pc[op][key] = v
+				if k != "" {
+					key := keyPrefix + k
+					pc[op][key] = v
+				} else {
+					// Any, field is empty
+					pc[op][k] = v
+				}
+
 			}
 		}
 	}
 	return pc, nil
-
 }
 
 // ResourceExpression keep the expression with fields:system/type

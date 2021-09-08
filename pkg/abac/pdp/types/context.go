@@ -26,17 +26,6 @@ type ExprContext struct {
 	objSet ObjectSetInterface
 }
 
-// GetAttr 获取资源的属性值
-func (c *ExprContext) GetAttr(name string) (interface{}, error) {
-	// name should be {system}.{resource_type}.{attr_key}
-	return c.objSet.GetAttribute(name), nil
-}
-
-func (c *ExprContext) HasResource(_type string) bool {
-	// has {system}.{resource_type}
-	return c.objSet.Has(_type)
-}
-
 // NewExprContext new context
 func NewExprContext(req *request.Request) *ExprContext {
 	// TODO: get from sync.Pool
@@ -61,4 +50,15 @@ func NewExprContext(req *request.Request) *ExprContext {
 		Request: req,
 		objSet:  objSet,
 	}
+}
+
+// GetAttr 获取资源的属性值
+func (c *ExprContext) GetAttr(name string) (interface{}, error) {
+	// name should be {system}.{resource_type}.{attr_key}
+	return c.objSet.GetAttribute(name), nil
+}
+
+func (c *ExprContext) HasResource(_type string) bool {
+	// has {system}.{resource_type}
+	return c.objSet.Has(_type)
 }

@@ -10,7 +10,9 @@
 
 package types
 
-import "errors"
+import (
+	"errors"
+)
 
 /*
 带有逻辑条件的操作符会有嵌套的内容, 比如:
