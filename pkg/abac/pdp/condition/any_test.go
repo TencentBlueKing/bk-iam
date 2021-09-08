@@ -20,7 +20,7 @@ var _ = Describe("Any", func() {
 	BeforeEach(func() {
 		c = &AnyCondition{
 			baseCondition{
-				Key:   "ok",
+				Key:   "bk_cmdb.host.id",
 				Value: []interface{}{"a", "b"},
 			},
 		}
@@ -53,14 +53,29 @@ var _ = Describe("Any", func() {
 		assert.True(GinkgoT(), c.Eval(errCtx(1)))
 	})
 
-	It("Translate", func() {
-		ec, err := c.Translate()
-		assert.NoError(GinkgoT(), err)
-		expected := map[string]interface{}{
-			"op":    "any",
-			"field": "ok",
-			"value": []interface{}{"a", "b"},
-		}
-		assert.Equal(GinkgoT(), expected, ec)
+	Describe("Translate", func() {
+		It("withSystem=True", func() {
+			ec, err := c.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			expected := map[string]interface{}{
+				"op":    "any",
+				"field": "bk_cmdb.host.id",
+				"value": []interface{}{"a", "b"},
+			}
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
+		It("withSystem=False", func() {
+			ec, err := c.Translate(false)
+			assert.NoError(GinkgoT(), err)
+			expected := map[string]interface{}{
+				"op":    "any",
+				"field": "host.id",
+				"value": []interface{}{"a", "b"},
+			}
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
 	})
+
 })

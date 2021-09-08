@@ -115,7 +115,7 @@ var _ = Describe("Or", func() {
 			}
 			c, err := newOrCondition("content", []interface{}{})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, ec)
 		})
@@ -140,7 +140,7 @@ var _ = Describe("Or", func() {
 			c := NewOrCondition([]Condition{
 				bc,
 			})
-			_, err = c.Translate()
+			_, err = c.Translate(true)
 			assert.Error(GinkgoT(), err)
 		})
 
@@ -174,7 +174,7 @@ var _ = Describe("Or", func() {
 			}
 			c, err := newOrCondition("content", value)
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, ec)
 		})
@@ -245,7 +245,7 @@ var _ = Describe("Or", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MissStrCtx("linux"))
 					assert.True(GinkgoT(), allowed)
 					assert.NotNil(GinkgoT(), nc)
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{"field": "host.system", "op": "eq", "value": "linux"}
 					assert.Equal(GinkgoT(), got, ct)
@@ -322,7 +322,7 @@ var _ = Describe("Or", func() {
 					})
 					assert.True(GinkgoT(), allowed)
 
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{
 						"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"},
@@ -333,7 +333,7 @@ var _ = Describe("Or", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MapCtx{})
 					assert.True(GinkgoT(), allowed)
 
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{
 						"op": "OR",
@@ -380,7 +380,7 @@ var _ = Describe("Or", func() {
 					"subject.type": "windows",
 				})
 				assert.True(GinkgoT(), allowed)
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{"field": "host.system", "op": "eq", "value": "linux"}
 				assert.Equal(GinkgoT(), got, ct)
@@ -400,7 +400,7 @@ var _ = Describe("Or", func() {
 				})
 				assert.True(GinkgoT(), allowed)
 				//assert.Nil(GinkgoT(), nc)
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}
 				assert.Equal(GinkgoT(), got, ct)
@@ -410,7 +410,7 @@ var _ = Describe("Or", func() {
 				allowed, nc := c.(LogicalCondition).PartialEval(MapCtx{})
 				assert.True(GinkgoT(), allowed)
 
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{
 					"op": "OR",

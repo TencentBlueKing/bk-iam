@@ -63,7 +63,7 @@ var _ = Describe("StringEquals", func() {
 			c, err := newStringEqualsCondition("key", []interface{}{})
 			assert.NoError(GinkgoT(), err)
 
-			_, err = c.Translate()
+			_, err = c.Translate(true)
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), errMustNotEmpty, err)
 		})
@@ -76,7 +76,7 @@ var _ = Describe("StringEquals", func() {
 			}
 			c, err := newStringEqualsCondition("key", []interface{}{"a"})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 
@@ -85,12 +85,25 @@ var _ = Describe("StringEquals", func() {
 		It("ok, multiple in", func() {
 			expected := map[string]interface{}{
 				"op":    "in",
-				"field": "key",
+				"field": "bk_cmdb.host.path",
 				"value": []interface{}{"a", "b"},
 			}
-			c, err := newStringEqualsCondition("key", []interface{}{"a", "b"})
+			c, err := newStringEqualsCondition("bk_cmdb.host.path", []interface{}{"a", "b"})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
+		It("ok, multiple in, withSystem=False", func() {
+			expected := map[string]interface{}{
+				"op":    "in",
+				"field": "host.path",
+				"value": []interface{}{"a", "b"},
+			}
+			c, err := newStringEqualsCondition("bk_cmdb.host.path", []interface{}{"a", "b"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate(false)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})

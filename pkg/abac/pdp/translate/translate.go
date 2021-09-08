@@ -21,8 +21,33 @@ import (
 	"iam/pkg/errorx"
 )
 
+/*
+request 中:
+```
+ObjectSet:
+    {system}.{type}   => {attr: abc}
+
+```
+
+表达式中:
+
+```
+{system}.{type}.{attr} eq abc
+```
+
+转换给到接入系统的表达式(translate)
+
+1. 当前policy版本v1:  `{type}.{attr} eq abc`
+2. 未来policy版本v2:  `{system}.{type}.{attr} eq abc`
+*/
+
+// NOTE: currently, policy v1 should remove system from field, withSystem=False
+// TODO: when we upgrade policy to v2, we should support withSystem=True
+
 // Translate ...
 const Translate = "Translate"
+
+const defaultWithSystem = false
 
 var errMustNotEmpty = errors.New("value must not be empty")
 
@@ -42,7 +67,7 @@ func ConditionsTranslate(
 
 	content := make([]ExprCell, 0, len(conditions))
 	for _, c := range conditions {
-		condition, err := c.Translate()
+		condition, err := c.Translate(defaultWithSystem)
 		if err != nil {
 			err = errorWrapf(err, "conditionTranslate condition=`%+v` fail", c)
 			return nil, err
@@ -124,9 +149,9 @@ func PolicyExpressionTranslate(expr string) (ExprCell, error) {
 	}
 
 	if len(content) == 1 {
-		return content[0].Translate()
+		return content[0].Translate(defaultWithSystem)
 	} else {
-		return condition.NewAndCondition(content).Translate()
+		return condition.NewAndCondition(content).Translate(defaultWithSystem)
 	}
 }
 

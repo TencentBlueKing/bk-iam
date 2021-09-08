@@ -118,7 +118,7 @@ var _ = Describe("And", func() {
 			}
 			c, err := newAndCondition("content", []interface{}{})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, ec)
 		})
@@ -130,7 +130,7 @@ var _ = Describe("And", func() {
 			c := NewAndCondition([]Condition{
 				bc,
 			})
-			_, err = c.Translate()
+			_, err = c.Translate(true)
 			assert.Error(GinkgoT(), err)
 		})
 
@@ -164,7 +164,7 @@ var _ = Describe("And", func() {
 			}
 			c, err := newAndCondition("content", value)
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, ec)
 		})
@@ -220,7 +220,7 @@ var _ = Describe("And", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MissStrCtx("linux"))
 					assert.True(GinkgoT(), allowed)
 					assert.NotNil(GinkgoT(), nc)
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{"field": "host.system", "op": "eq", "value": "linux"}
 					assert.Equal(GinkgoT(), got, ct)
@@ -290,7 +290,7 @@ var _ = Describe("And", func() {
 					})
 					assert.True(GinkgoT(), allowed)
 
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{
 						"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"},
@@ -309,7 +309,7 @@ var _ = Describe("And", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MapCtx{})
 					assert.True(GinkgoT(), allowed)
 
-					ct, err := nc.Translate()
+					ct, err := nc.Translate(true)
 					assert.NoError(GinkgoT(), err)
 					got := map[string]interface{}{
 						"op": "AND",
@@ -349,7 +349,7 @@ var _ = Describe("And", func() {
 				})
 				assert.True(GinkgoT(), allowed)
 
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{"field": "host.system", "op": "eq", "value": "linux"}
 				assert.Equal(GinkgoT(), got, ct)
@@ -369,7 +369,7 @@ var _ = Describe("And", func() {
 				})
 				assert.True(GinkgoT(), allowed)
 
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{
 					"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"},
@@ -389,7 +389,7 @@ var _ = Describe("And", func() {
 				allowed, nc := c.(LogicalCondition).PartialEval(MapCtx{})
 				assert.True(GinkgoT(), allowed)
 
-				ct, err := nc.Translate()
+				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 
 				got := map[string]interface{}{

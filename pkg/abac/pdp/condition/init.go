@@ -13,6 +13,7 @@ package condition
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"iam/pkg/abac/pdp/types"
 )
@@ -50,7 +51,7 @@ type Condition interface {
 	GetKeys() []string // 返回条件中包含的所有属性key
 
 	Eval(ctx types.AttributeGetter) bool
-	Translate() (map[string]interface{}, error)
+	Translate(withSystem bool) (map[string]interface{}, error)
 }
 
 type LogicalCondition interface {
@@ -87,4 +88,18 @@ func NewConditionFromPolicyCondition(data types.PolicyCondition) (Condition, err
 		}
 	}
 	return nil, fmt.Errorf("not support data %v", data)
+}
+
+func removeSystemFromKey(key string) string {
+	idx := strings.IndexByte(key, '.')
+	if idx == -1 {
+		return key
+	}
+
+	lidx := strings.LastIndexByte(key, '.')
+	if idx == lidx {
+		return key
+	}
+
+	return key[idx+1:]
 }

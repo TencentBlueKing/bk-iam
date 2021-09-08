@@ -244,9 +244,6 @@ func QueryByExtResources(
 	}
 
 	// 3. policies表达式转换
-	// 查找请求的local action resource type
-	// TODO: 没有queryResourceTypes, 会有什么问题?
-
 	var expr map[string]interface{}
 	expr, err = translate.ConditionsTranslate(conditions)
 	if err != nil {

@@ -20,7 +20,7 @@ var _ = Describe("Bool", func() {
 	BeforeEach(func() {
 		c = &BoolCondition{
 			baseCondition{
-				Key:   "ok",
+				Key:   "bk_cmdb.host.ok",
 				Value: []interface{}{true},
 			},
 		}
@@ -86,17 +86,28 @@ var _ = Describe("Bool", func() {
 			c1, err := newBoolCondition("key", []interface{}{true, false})
 			assert.NoError(GinkgoT(), err)
 
-			_, err = c1.Translate()
+			_, err = c1.Translate(true)
 			assert.Contains(GinkgoT(), err.Error(), "bool not support multi value")
 		})
 
 		It("ok", func() {
 			expected := map[string]interface{}{
 				"op":    "eq",
-				"field": "ok",
+				"field": "bk_cmdb.host.ok",
 				"value": true,
 			}
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
+		It("ok, withSystem=False", func() {
+			expected := map[string]interface{}{
+				"op":    "eq",
+				"field": "host.ok",
+				"value": true,
+			}
+			ec, err := c.Translate(false)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})

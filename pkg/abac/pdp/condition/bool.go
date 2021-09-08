@@ -78,14 +78,19 @@ func (c *BoolCondition) Eval(ctx types.AttributeGetter) bool {
 	}
 }
 
-func (c *BoolCondition) Translate() (map[string]interface{}, error) {
+func (c *BoolCondition) Translate(withSystem bool) (map[string]interface{}, error) {
+	key := c.Key
+	if !withSystem {
+		key = removeSystemFromKey(key)
+	}
+
 	if len(c.Value) != 1 {
 		return nil, fmt.Errorf("bool not support multi value %+v", c.Value)
 	}
 
 	return map[string]interface{}{
 		"op":    "eq",
-		"field": c.Key,
+		"field": key,
 		"value": c.Value[0],
 	}, nil
 }

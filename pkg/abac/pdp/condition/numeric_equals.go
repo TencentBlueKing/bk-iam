@@ -39,9 +39,14 @@ func (c *NumericEqualsCondition) Eval(ctx types.AttributeGetter) bool {
 	})
 }
 
-func (c *NumericEqualsCondition) Translate() (map[string]interface{}, error) {
+func (c *NumericEqualsCondition) Translate(withSystem bool) (map[string]interface{}, error) {
+	key := c.Key
+	if !withSystem {
+		key = removeSystemFromKey(key)
+	}
+
 	exprCell := map[string]interface{}{
-		"field": c.Key,
+		"field": key,
 	}
 
 	switch len(c.Value) {

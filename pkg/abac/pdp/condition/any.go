@@ -51,10 +51,15 @@ func (c *AnyCondition) Eval(ctx types.AttributeGetter) bool {
 	return true
 }
 
-func (c *AnyCondition) Translate() (map[string]interface{}, error) {
+func (c *AnyCondition) Translate(withSystem bool) (map[string]interface{}, error) {
+	key := c.Key
+	if !withSystem {
+		key = removeSystemFromKey(key)
+	}
+
 	return map[string]interface{}{
 		"op":    "any",
-		"field": c.Key,
+		"field": key,
 		"value": c.Value,
 	}, nil
 }

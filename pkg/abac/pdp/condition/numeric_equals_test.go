@@ -62,7 +62,7 @@ var _ = Describe("NumericEquals", func() {
 			c1, err := newNumericEqualsCondition("key", []interface{}{})
 			assert.NoError(GinkgoT(), err)
 
-			_, err = c1.Translate()
+			_, err = c1.Translate(true)
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), errMustNotEmpty, err)
 		})
@@ -76,7 +76,7 @@ var _ = Describe("NumericEquals", func() {
 			c, err := newNumericEqualsCondition("key", []interface{}{1})
 			assert.NoError(GinkgoT(), err)
 
-			c1, err := c.Translate()
+			c1, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c1)
 		})
@@ -84,13 +84,28 @@ var _ = Describe("NumericEquals", func() {
 		It("ok, in", func() {
 			expected := map[string]interface{}{
 				"op":    "in",
-				"field": "key",
+				"field": "bk_cmdb.host.id",
 				"value": []interface{}{1, 2},
 			}
-			c, err := newNumericEqualsCondition("key", []interface{}{1, 2})
+			c, err := newNumericEqualsCondition("bk_cmdb.host.id", []interface{}{1, 2})
 			assert.NoError(GinkgoT(), err)
 
-			c1, err := c.Translate()
+			c1, err := c.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, c1)
+
+		})
+
+		It("ok, in, withSystem=False", func() {
+			expected := map[string]interface{}{
+				"op":    "in",
+				"field": "host.id",
+				"value": []interface{}{1, 2},
+			}
+			c, err := newNumericEqualsCondition("bk_cmdb.host.id", []interface{}{1, 2})
+			assert.NoError(GinkgoT(), err)
+
+			c1, err := c.Translate(false)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c1)
 

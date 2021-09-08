@@ -297,7 +297,6 @@ var _ = Describe("Expression", func() {
 				}
 				assert.NoError(GinkgoT(), err)
 				assert.EqualValues(GinkgoT(), want, expr)
-
 			})
 
 		})
@@ -342,7 +341,7 @@ var _ = Describe("Expression", func() {
 			conds, err := expressionToConditions(resourceExpression)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), conds, 1)
-			got, err := conds[0].Translate()
+			got, err := conds[0].Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
@@ -370,11 +369,11 @@ var _ = Describe("Expression", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), conds, 2)
 
-			got0, err := conds[0].Translate()
+			got0, err := conds[0].Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want0, got0)
 
-			got1, err := conds[1].Translate()
+			got1, err := conds[1].Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want1, got1)
 		})
@@ -412,7 +411,7 @@ var _ = Describe("Expression", func() {
 			}
 			cond, err := PolicyExpressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			got, err := cond.Translate()
+			got, err := cond.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
@@ -443,7 +442,7 @@ var _ = Describe("Expression", func() {
 
 			cond, err := PolicyExpressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			got, err := cond.Translate()
+			got, err := cond.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
@@ -480,7 +479,7 @@ var _ = Describe("Expression", func() {
 
 			want := ExprCell{
 				"op":    "eq",
-				"field": "bk_cmdb.biz.id",
+				"field": "biz.id",
 				"value": "2",
 			}
 			got, err := PolicyExpressionTranslate(resourceExpression)
@@ -504,10 +503,10 @@ var _ = Describe("Expression", func() {
 				"op": "AND",
 				"content": []map[string]interface{}{
 					{
-						"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{},
+						"field": "common_flow.id", "op": "any", "value": []interface{}{},
 					},
 					{
-						"field": "bk_sops.project.id", "op": "any", "value": []interface{}{},
+						"field": "project.id", "op": "any", "value": []interface{}{},
 					},
 				},
 			}

@@ -38,9 +38,14 @@ func (c *StringEqualsCondition) Eval(ctx types.AttributeGetter) bool {
 		return a == b
 	})
 }
-func (c *StringEqualsCondition) Translate() (map[string]interface{}, error) {
+func (c *StringEqualsCondition) Translate(withSystem bool) (map[string]interface{}, error) {
+	key := c.Key
+	if !withSystem {
+		key = removeSystemFromKey(key)
+	}
+
 	exprCell := map[string]interface{}{
-		"field": c.Key,
+		"field": key,
 	}
 
 	switch len(c.Value) {

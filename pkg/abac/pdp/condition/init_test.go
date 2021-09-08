@@ -105,4 +105,27 @@ var _ = Describe("Condition", func() {
 
 	})
 
+	Describe("removeSystemFromKey", func() {
+		It("empty", func() {
+			a := removeSystemFromKey("")
+			assert.Equal(GinkgoT(), "", a)
+		})
+
+		It("no dot", func() {
+			a := removeSystemFromKey("abc")
+			assert.Equal(GinkgoT(), "abc", a)
+		})
+
+		It("ok", func() {
+			a := removeSystemFromKey("bk_cmdb.host.id")
+			assert.Equal(GinkgoT(), "host.id", a)
+		})
+
+		It("ok", func() {
+			a := removeSystemFromKey("host.id")
+			assert.Equal(GinkgoT(), "host.id", a)
+		})
+
+	})
+
 })

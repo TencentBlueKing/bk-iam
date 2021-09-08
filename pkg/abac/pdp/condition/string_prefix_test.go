@@ -87,7 +87,7 @@ var _ = Describe("StringPrefix", func() {
 		It("fail, empty value", func() {
 			c, err := newStringPrefixCondition("key", []interface{}{})
 			assert.NoError(GinkgoT(), err)
-			_, err = c.Translate()
+			_, err = c.Translate(true)
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), errMustNotEmpty, err)
 		})
@@ -100,7 +100,7 @@ var _ = Describe("StringPrefix", func() {
 			}
 			c, err := newStringPrefixCondition("key", []interface{}{"/biz,1/set,1/"})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})
@@ -111,20 +111,44 @@ var _ = Describe("StringPrefix", func() {
 				"content": []map[string]interface{}{
 					{
 						"op":    "starts_with",
-						"field": "key",
+						"field": "bk_cmdb.host.path",
 						"value": "/biz,1/set,1/",
 					},
 					{
 						"op":    "starts_with",
-						"field": "key",
+						"field": "bk_cmdb.host.path",
 						"value": "/biz,2/set,2/",
 					},
 				},
 			}
 
-			c, err := newStringPrefixCondition("key", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			c, err := newStringPrefixCondition("bk_cmdb.host.path", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
 			assert.NoError(GinkgoT(), err)
-			ec, err := c.Translate()
+			ec, err := c.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), expected, ec)
+		})
+
+		It("ok, multiple or, withSystem=False", func() {
+			expected := map[string]interface{}{
+				"op": "OR",
+				"content": []map[string]interface{}{
+					{
+						"op":    "starts_with",
+						"field": "host.path",
+						"value": "/biz,1/set,1/",
+					},
+					{
+						"op":    "starts_with",
+						"field": "host.path",
+						"value": "/biz,2/set,2/",
+					},
+				},
+			}
+
+			c, err := newStringPrefixCondition("bk_cmdb.host.path", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			assert.NoError(GinkgoT(), err)
+			ec, err := c.Translate(false)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})
