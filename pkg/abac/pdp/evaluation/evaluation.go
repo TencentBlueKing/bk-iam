@@ -71,7 +71,10 @@ func evalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 }
 
 // PartialEvalPolicies 筛选check pass的policies
-func PartialEvalPolicies(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]condition.Condition, []int64, error) {
+func PartialEvalPolicies(
+	ctx *pdptypes.ExprContext,
+	policies []types.AuthPolicy,
+) ([]condition.Condition, []int64, error) {
 	passConditions := make([]condition.Condition, 0, len(policies))
 
 	passedPolicyIDs := make([]int64, 0, len(policies))

@@ -11,7 +11,6 @@
 package translate
 
 import (
-	"errors"
 	"fmt"
 
 	jsoniter "github.com/json-iterator/go"
@@ -48,8 +47,6 @@ ObjectSet:
 const Translate = "Translate"
 
 const defaultWithSystem = false
-
-var errMustNotEmpty = errors.New("value must not be empty")
 
 // ExprCell 表达式基本单元
 type ExprCell map[string]interface{}
