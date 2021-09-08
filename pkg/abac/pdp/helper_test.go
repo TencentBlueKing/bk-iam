@@ -93,6 +93,7 @@ var _ = Describe("Helper", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		var req *request.Request
+		var entry *debug.Entry
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 			req = &request.Request{
@@ -101,6 +102,13 @@ var _ = Describe("Helper", func() {
 				Resources: []types.Resource{{
 					System: "test",
 				}},
+			}
+			entry = &debug.Entry{
+				// Default is three fields, plus one optional.  Give a little extra room.
+				Context:   make(debug.Fields, 6),
+				Steps:     make([]debug.Step, 0, 5),
+				SubDebugs: make([]*debug.Entry, 0, 5),
+				Evals:     make(map[int64]string, 3),
 			}
 
 			patches = gomonkey.NewPatches()
@@ -251,7 +259,7 @@ var _ = Describe("Helper", func() {
 				}, []int64{1}, nil
 			})
 
-			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, entry, true, false)
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})

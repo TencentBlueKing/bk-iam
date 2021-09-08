@@ -90,8 +90,6 @@ func (c *AndCondition) Translate(withSystem bool) (map[string]interface{}, error
 func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 	// NOTE: If allowed=False, condition should be nil
 	// once got False=> return
-
-	// TODO: get from sync.Pool
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
 		if condition.GetName() == "AND" || condition.GetName() == "OR" {

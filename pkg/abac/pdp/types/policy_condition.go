@@ -52,11 +52,6 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 	//			]
 	//		}
 	//	}
-
-	// TODO: unittest
-	// TODO: performance
-	// NOTE: 这个对象被cache起来了, 所以理论上, 处理过一次之后, 不需要反复处理
-
 	keyPrefix := system + "." + _type + "."
 	pc := make(PolicyCondition, len(p))
 	for op, c := range p {

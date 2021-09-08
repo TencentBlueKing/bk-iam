@@ -28,7 +28,6 @@ type ExprContext struct {
 
 // NewExprContext new context
 func NewExprContext(req *request.Request) *ExprContext {
-	// TODO: get from sync.Pool
 	objSet := NewObjectSet()
 
 	for _, r := range req.Resources {
