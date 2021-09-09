@@ -72,7 +72,11 @@ func (c *MemoryBackend) Delete(key string) error {
 }
 
 // NewMemoryBackend ...
-func NewMemoryBackend(name string, expiration time.Duration, randomDurationFunc RandomExpirationDurationFunc) *MemoryBackend {
+func NewMemoryBackend(
+	name string,
+	expiration time.Duration,
+	randomDurationFunc RandomExpirationDurationFunc,
+) *MemoryBackend {
 	cleanupInterval := expiration + (5 * time.Minute)
 
 	return &MemoryBackend{
