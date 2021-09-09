@@ -38,8 +38,8 @@ type MemoryBackend struct {
 	name  string
 	cache *gocache.Cache
 
-	defaultExpiration time.Duration
-	randDurationFunc  RandomExpirationDurationFunc
+	defaultExpiration  time.Duration
+	randomDurationFunc RandomExpirationDurationFunc
 }
 
 // Set ...
@@ -48,8 +48,8 @@ func (c *MemoryBackend) Set(key string, value interface{}, duration time.Duratio
 		duration = c.defaultExpiration
 	}
 
-	if c.randDurationFunc != nil {
-		duration += c.randDurationFunc()
+	if c.randomDurationFunc != nil {
+		duration += c.randomDurationFunc()
 	}
 
 	c.cache.Set(key, value, duration)
@@ -76,9 +76,9 @@ func NewMemoryBackend(name string, expiration time.Duration, randomDurationFunc 
 	cleanupInterval := expiration + (5 * time.Minute)
 
 	return &MemoryBackend{
-		name:              name,
-		cache:             newTTLCache(expiration, cleanupInterval),
-		defaultExpiration: expiration,
-		randDurationFunc:  randomDurationFunc,
+		name:               name,
+		cache:              newTTLCache(expiration, cleanupInterval),
+		defaultExpiration:  expiration,
+		randomDurationFunc: randomDurationFunc,
 	}
 }
