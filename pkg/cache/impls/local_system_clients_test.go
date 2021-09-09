@@ -31,7 +31,7 @@ func TestGetSystemClients(t *testing.T) {
 		return []string{"a", "b", "c"}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSystemClientsCache = mockCache
 
 	cs, err := GetSystemClients("x")
@@ -46,7 +46,7 @@ func TestGetSystemClients(t *testing.T) {
 		return []string{}, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSystemClientsCache = mockCache
 
 	_, err = GetSystemClients("x")

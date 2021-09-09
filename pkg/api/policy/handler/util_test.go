@@ -323,7 +323,7 @@ func Test_validateSystemMatchClient(t *testing.T) {
 		return []string{"test"}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	impls.LocalSystemClientsCache = mockCache
 
 	type args struct {
