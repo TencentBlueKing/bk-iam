@@ -43,7 +43,7 @@ func TestListRemoteResources(t *testing.T) {
 		return []map[string]interface{}{}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalRemoteResourceListCache = mockCache
 
 	_, err := ListRemoteResources("test", "app", []string{"1", "2"}, []string{"id", "name"})
@@ -54,7 +54,7 @@ func TestListRemoteResources(t *testing.T) {
 		return false, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalRemoteResourceListCache = mockCache
 
 	_, err = ListRemoteResources("test", "app", []string{"1", "2"}, []string{"id", "name"})

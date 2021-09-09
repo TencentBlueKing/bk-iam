@@ -12,14 +12,15 @@ package impls
 
 import (
 	"errors"
+	"math/rand"
 	"time"
 
 	gocache "github.com/patrickmn/go-cache"
-
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache/cleaner"
 	"iam/pkg/cache/memory"
+	"iam/pkg/cache/memory/backend"
 	"iam/pkg/cache/redis"
 )
 
@@ -63,6 +64,12 @@ var (
 // ErrNotExceptedTypeFromCache ...
 var ErrNotExceptedTypeFromCache = errors.New("not expected type from cache")
 
+func newRandomDuration(seconds int) backend.RandomExpirationDurationFunc {
+	return func() time.Duration {
+		return time.Duration(rand.Intn(seconds*1000)) * time.Millisecond
+	}
+}
+
 // Cache should only know about get/retrieve data
 // ! DO NOT CARE ABOUT WHAT THE DATA WILL BE USED FOR
 func InitCaches(disabled bool) {
@@ -71,62 +78,87 @@ func InitCaches(disabled bool) {
 		disabled,
 		retrieveAppCodeAppSecret,
 		12*time.Hour,
+		nil,
 	)
+
+	// 影响: engine增量同步
 
 	LocalSubjectCache = memory.NewCache(
 		"local_subject",
 		disabled,
 		retrieveSubject,
 		1*time.Minute,
+		newRandomDuration(30),
 	)
 
-	LocalSubjectRoleCache = memory.NewCache(
-		"local_subject_role",
-		disabled,
-		retrieveSubjectRole,
-		1*time.Minute,
-	)
+	// 影响: job查询cmdb的资源进行鉴权
 
 	LocalRemoteResourceListCache = memory.NewCache(
 		"local_remote_resource_list",
 		disabled,
 		retrieveRemoteResourceList,
 		30*time.Second,
+		newRandomDuration(10),
 	)
+
+	// 影响: 每次鉴权
 
 	LocalSubjectPKCache = memory.NewCache(
 		"local_subject_pk",
 		disabled,
 		retrieveSubjectPK,
 		1*time.Minute,
+		newRandomDuration(30),
 	)
+
+	// 影响: 每次鉴权
+
+	LocalSubjectRoleCache = memory.NewCache(
+		"local_subject_role",
+		disabled,
+		retrieveSubjectRole,
+		1*time.Minute,
+		newRandomDuration(30),
+	)
+
+	// 影响: 每次鉴权 => system_id比较集中, singleflight可以防止大的并发落db
 
 	LocalSystemClientsCache = memory.NewCache(
 		"local_system_clients",
 		disabled,
 		retrieveSystemClients,
 		1*time.Minute,
+		newRandomDuration(30),
 	)
 
-	LocalAPIGatewayJWTClientIDCache = memory.NewCache(
-		"local_apigw_jwt_client_id",
-		disabled,
-		retrieveAPIGatewayJWTClientID,
-		30*time.Second,
-	)
+	// 影响: engine接口/policy查询接口
 
 	LocalActionCache = memory.NewCache(
 		"local_action",
 		disabled,
 		retrieveAction,
 		30*time.Minute,
+		newRandomDuration(30),
 	)
+
+	// 无影响, 重算而已不查db
+
+	LocalAPIGatewayJWTClientIDCache = memory.NewCache(
+		"local_apigw_jwt_client_id",
+		disabled,
+		retrieveAPIGatewayJWTClientID,
+		30*time.Second,
+		nil,
+	)
+
+	// 无影响, 重算而已不查db
 
 	LocalUnmarshaledExpressionCache = memory.NewCache(
 		"local_unmarshaled_expression",
 		disabled,
 		UnmarshalExpression,
 		30*time.Minute,
+		nil,
 	)
 
 	//  ==========================

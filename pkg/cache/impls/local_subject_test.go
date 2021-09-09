@@ -32,7 +32,7 @@ func TestGetSubjectByPK(t *testing.T) {
 		return svctypes.Subject{}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSubjectCache = mockCache
 
 	_, err := GetSubjectByPK(1)
@@ -43,7 +43,7 @@ func TestGetSubjectByPK(t *testing.T) {
 		return false, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSubjectCache = mockCache
 
 	_, err = GetSubjectByPK(1)

@@ -26,7 +26,7 @@ func TestNewTTLCache(t *testing.T) {
 }
 
 func TestMemoryBackend(t *testing.T) {
-	be := NewMemoryBackend("test", 5*time.Second)
+	be := NewMemoryBackend("test", 5*time.Second, nil)
 	assert.NotNil(t, be)
 
 	_, found := be.Get("not_exists")

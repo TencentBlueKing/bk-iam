@@ -21,6 +21,8 @@ const (
 	DefaultCleanupInterval = 5 * time.Minute
 )
 
+type RandomExpirationDurationFunc func() time.Duration
+
 // NewTTLCache create cache with expiration and cleanup interval,
 // if cleanupInterval is 0, will use DefaultCleanupInterval
 func newTTLCache(expiration time.Duration, cleanupInterval time.Duration) *gocache.Cache {
@@ -36,13 +38,18 @@ type MemoryBackend struct {
 	name  string
 	cache *gocache.Cache
 
-	defaultExpiration time.Duration
+	defaultExpiration  time.Duration
+	randomDurationFunc RandomExpirationDurationFunc
 }
 
 // Set ...
 func (c *MemoryBackend) Set(key string, value interface{}, duration time.Duration) {
 	if duration == time.Duration(0) {
 		duration = c.defaultExpiration
+	}
+
+	if c.randomDurationFunc != nil {
+		duration += c.randomDurationFunc()
 	}
 
 	c.cache.Set(key, value, duration)
@@ -65,12 +72,17 @@ func (c *MemoryBackend) Delete(key string) error {
 }
 
 // NewMemoryBackend ...
-func NewMemoryBackend(name string, expiration time.Duration) *MemoryBackend {
+func NewMemoryBackend(
+	name string,
+	expiration time.Duration,
+	randomDurationFunc RandomExpirationDurationFunc,
+) *MemoryBackend {
 	cleanupInterval := expiration + (5 * time.Minute)
 
 	return &MemoryBackend{
-		name:              name,
-		cache:             newTTLCache(expiration, cleanupInterval),
-		defaultExpiration: expiration,
+		name:               name,
+		cache:              newTTLCache(expiration, cleanupInterval),
+		defaultExpiration:  expiration,
+		randomDurationFunc: randomDurationFunc,
 	}
 }

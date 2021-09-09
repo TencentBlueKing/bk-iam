@@ -37,7 +37,7 @@ func TestGetAction(t *testing.T) {
 		return svctypes.ThinAction{}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalActionCache = mockCache
 
 	_, err := GetAction(1)
@@ -48,7 +48,7 @@ func TestGetAction(t *testing.T) {
 		return false, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalActionCache = mockCache
 
 	_, err = GetAction(1)

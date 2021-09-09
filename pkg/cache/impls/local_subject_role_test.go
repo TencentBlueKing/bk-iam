@@ -39,7 +39,7 @@ func TestSubjectListSubjectRoleSystemID(t *testing.T) {
 		return []string{"bk_cmdb", "bk_job"}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSubjectRoleCache = mockCache
 
 	systemIDs, err := ListSubjectRoleSystemID("user", "admin")
@@ -51,7 +51,7 @@ func TestSubjectListSubjectRoleSystemID(t *testing.T) {
 		return []string{}, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSubjectRoleCache = mockCache
 
 	_, err = ListSubjectRoleSystemID("user", "admin")
