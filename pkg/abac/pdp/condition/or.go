@@ -91,22 +91,25 @@ func (c *OrCondition) Translate(withSystem bool) (map[string]interface{}, error)
 
 }
 
+// PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
 func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 	// NOTE: If allowed=False, condition should be nil
 	// once got True => return
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
 		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
-			// 这里有个问题, true的时候, 可能还有剩余的表达式
+			// NOTE: true的时候, 可能还有剩余的表达式
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			if ok {
+				// if true and remain condition is ANY, return True
 				if ci.GetName() == operator.ANY {
 					return true, NewAnyCondition()
 				} else {
 					remainContent = append(remainContent, ci)
 				}
 			}
-			// if false, do nothing!
+
+			// a OR b, if a false, do nothing!
 
 		} else {
 			key := condition.GetKeys()[0]
@@ -118,12 +121,13 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 			_type := key[:dotIdx]
 
 			if ctx.HasResource(_type) {
-				// resource exists and eval fail, no remain content
+				// a OR b, if a true, return True
 				if condition.Eval(ctx) {
 					return true, NewAnyCondition()
 				}
 				// if hasKey = true and eval fail, do nothing!
 			} else {
+				// request has no resource, so append to remain
 				remainContent = append(remainContent, condition)
 			}
 		}
@@ -131,7 +135,7 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 
 	switch len(remainContent) {
 	case 0:
-		// Note: host.id = 1 or biz.id =2  此时传入host.type=3; biz.id=4; 全部命中但是全部false, 导致remainContent空
+		// all false, return False
 		return false, nil
 	case 1:
 		return true, remainContent[0]

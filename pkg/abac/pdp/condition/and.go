@@ -88,13 +88,16 @@ func (c *AndCondition) Translate(withSystem bool) (map[string]interface{}, error
 
 }
 
+// PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
 func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 	// NOTE: If allowed=False, condition should be nil
 	// once got False=> return
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
+		// if AND/OR, do PartialEval recursive
 		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
+			// a AND b, if a false, return false
 			if !ok {
 				return false, nil
 			}
@@ -113,11 +116,12 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 			_type := key[:dotIdx]
 
 			if ctx.HasResource(_type) {
-				// resource exists and eval fail, no remain content
+				// a AND b, if a false, return false
 				if !condition.Eval(ctx) {
 					return false, nil
 				}
 			} else {
+				// request has no resource, so append to remain
 				remainContent = append(remainContent, condition)
 			}
 		}
@@ -126,10 +130,12 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 	// all eval success, 全部执行成功, 理论上只剩any
 	switch len(remainContent) {
 	case 0:
+		// all true, return any
 		return true, NewAnyCondition()
 	case 1:
 		return true, remainContent[0]
 	default:
+		// more than one left, combine them all
 		return true, NewAndCondition(remainContent)
 	}
 }
