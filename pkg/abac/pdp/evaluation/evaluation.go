@@ -110,6 +110,7 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 			policy.ID, policy.Expression, err)
 		return false, nil, err
 	}
+
 	// if no resource passed
 	if !ctx.HasResources() {
 		return true, cond, nil
@@ -125,8 +126,10 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 		key := cond.GetKeys()[0]
 		dotIdx := strings.LastIndexByte(key, '.')
 		if dotIdx == -1 {
-			// TODO: return error
-			panic("should contains dot in key")
+			log.Errorf("policy condition key should contains dot! policy=`%+v`, condition=`%+v`, key=`%s`",
+				policy, cond, key)
+			// wrong policy expression, return ture with remained condition!!!!
+			return true, cond, nil
 		}
 		_type := key[:dotIdx]
 		if ctx.HasResource(_type) {
@@ -136,8 +139,8 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 				return false, nil, nil
 			}
 		} else {
-			// TODO: 这里该怎么处理, 如果传进来一个不相干的resource
-			return false, cond, nil
+			// has not required resources, return ture with remained condition!!!!
+			return true, cond, nil
 		}
 	}
 }
