@@ -10,7 +10,10 @@
 
 package condition
 
-import "iam/pkg/abac/pdp/types"
+import (
+	"iam/pkg/abac/pdp/condition/operator"
+	"iam/pkg/abac/pdp/types"
+)
 
 // NumericEqualsCondition Number相等
 type NumericEqualsCondition struct {
@@ -29,7 +32,7 @@ func newNumericEqualsCondition(key string, values []interface{}) (Condition, err
 
 // GetName 名称
 func (c *NumericEqualsCondition) GetName() string {
-	return "NumericEquals"
+	return operator.NumericEquals
 }
 
 // Eval 求值

@@ -12,6 +12,8 @@ package types
 
 import (
 	"fmt"
+
+	"iam/pkg/abac/pdp/condition/operator"
 )
 
 /*
@@ -56,7 +58,7 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 	pc := make(PolicyCondition, len(p))
 	for op, c := range p {
 		switch op {
-		case "AND", "OR":
+		case operator.AND, operator.OR:
 			content := c["content"]
 			newContent := make([]interface{}, 0, len(c["content"]))
 			for _, i := range content {

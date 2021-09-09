@@ -13,6 +13,7 @@ package condition
 import (
 	"fmt"
 
+	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -42,7 +43,7 @@ func NewBoolCondition(key string, value bool) Condition {
 
 // GetName 名称
 func (c *BoolCondition) GetName() string {
-	return "Bool"
+	return operator.Bool
 }
 
 // Eval 求值

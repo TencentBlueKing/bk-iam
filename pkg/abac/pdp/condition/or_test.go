@@ -13,6 +13,8 @@ package condition
 import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/abac/pdp/condition/operator"
 )
 
 var _ = Describe("Or", func() {
@@ -49,7 +51,7 @@ var _ = Describe("Or", func() {
 		It("New ok", func() {
 			c := NewOrCondition([]Condition{})
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), "OR", c.GetName())
+			assert.Equal(GinkgoT(), operator.OR, c.GetName())
 		})
 
 		It("wrong key", func() {
@@ -79,7 +81,7 @@ var _ = Describe("Or", func() {
 	})
 
 	It("GetName", func() {
-		assert.Equal(GinkgoT(), "OR", c.GetName())
+		assert.Equal(GinkgoT(), operator.OR, c.GetName())
 	})
 
 	It("Eval", func() {

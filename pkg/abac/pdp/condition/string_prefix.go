@@ -13,6 +13,7 @@ package condition
 import (
 	"strings"
 
+	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -32,7 +33,7 @@ func newStringPrefixCondition(key string, values []interface{}) (Condition, erro
 
 // GetName 名称
 func (c *StringPrefixCondition) GetName() string {
-	return "StringPrefix"
+	return operator.StringPrefix
 }
 
 // Eval 求值

@@ -10,7 +10,10 @@
 
 package condition
 
-import "iam/pkg/abac/pdp/types"
+import (
+	"iam/pkg/abac/pdp/condition/operator"
+	"iam/pkg/abac/pdp/types"
+)
 
 // StringEqualsCondition 字符串相等
 type StringEqualsCondition struct {
@@ -29,7 +32,7 @@ func newStringEqualsCondition(key string, values []interface{}) (Condition, erro
 
 // GetName 名称
 func (c *StringEqualsCondition) GetName() string {
-	return "StringEquals"
+	return operator.StringEquals
 }
 
 // Eval 求值

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"strings"
 
+	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -51,7 +52,7 @@ func newOrCondition(key string, values []interface{}) (Condition, error) {
 
 // GetName 名称
 func (c *OrCondition) GetName() string {
-	return "OR"
+	return operator.OR
 }
 
 // GetKeys 返回嵌套条件中所有包含的属性key
@@ -95,11 +96,11 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 	// once got True => return
 	remainContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
-		if condition.GetName() == "AND" || condition.GetName() == "OR" {
+		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
 			// 这里有个问题, true的时候, 可能还有剩余的表达式
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			if ok {
-				if ci.GetName() == "Any" {
+				if ci.GetName() == operator.ANY {
 					return true, NewAnyCondition()
 				} else {
 					remainContent = append(remainContent, ci)

@@ -13,6 +13,8 @@ package condition
 import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/abac/pdp/condition/operator"
 )
 
 var _ = Describe("And", func() {
@@ -49,7 +51,7 @@ var _ = Describe("And", func() {
 		It("ok", func() {
 			c := NewAndCondition([]Condition{})
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), "AND", c.GetName())
+			assert.Equal(GinkgoT(), operator.AND, c.GetName())
 		})
 	})
 
@@ -81,7 +83,7 @@ var _ = Describe("And", func() {
 	})
 
 	It("GetName", func() {
-		assert.Equal(GinkgoT(), "AND", c.GetName())
+		assert.Equal(GinkgoT(), operator.AND, c.GetName())
 	})
 
 	It("GetKeys", func() {

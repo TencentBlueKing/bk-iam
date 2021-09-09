@@ -10,7 +10,10 @@
 
 package condition
 
-import "iam/pkg/abac/pdp/types"
+import (
+	"iam/pkg/abac/pdp/condition/operator"
+	"iam/pkg/abac/pdp/types"
+)
 
 // AnyCondition 任意条件
 type AnyCondition struct {
@@ -38,7 +41,7 @@ func NewAnyCondition() Condition {
 
 // GetName 名称
 func (c *AnyCondition) GetName() string {
-	return "Any"
+	return operator.ANY
 }
 
 // GetKeys 属性key

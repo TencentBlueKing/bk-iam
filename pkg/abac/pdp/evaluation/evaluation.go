@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/condition/operator"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/cache/impls"
@@ -117,10 +118,10 @@ func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool
 	}
 
 	switch cond.GetName() {
-	case "AND", "OR":
+	case operator.AND, operator.OR:
 		ok, c := cond.(condition.LogicalCondition).PartialEval(ctx)
 		return ok, c, nil
-	case "Any":
+	case operator.ANY:
 		return true, condition.NewAnyCondition(), nil
 	default:
 		key := cond.GetKeys()[0]
