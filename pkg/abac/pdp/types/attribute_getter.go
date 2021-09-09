@@ -10,8 +10,8 @@
 
 package types
 
-// AttributeGetter 属性获取接口
-type AttributeGetter interface {
+// EvalContextor 属性获取接口
+type EvalContextor interface {
 	// GetAttr get the attr like id / type / name, currently only support resource
 	GetAttr(name string) (interface{}, error)
 

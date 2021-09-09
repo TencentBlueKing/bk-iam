@@ -25,7 +25,7 @@ import (
 
 var _ = Describe("Evaluation", func() {
 
-	var c *pdptypes.ExprContext
+	var c *pdptypes.EvalContext
 	var policy types.AuthPolicy
 	willPassPolicy := types.AuthPolicy{
 		ID: 1,
@@ -123,7 +123,7 @@ var _ = Describe("Evaluation", func() {
 				Type:   "job",
 			},
 		})
-		c = pdptypes.NewExprContext(request)
+		c = pdptypes.NewEvalContext(request)
 		policy = types.AuthPolicy{
 			Expression: "",
 		}

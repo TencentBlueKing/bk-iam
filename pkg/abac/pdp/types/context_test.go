@@ -21,7 +21,7 @@ import (
 var _ = Describe("Context", func() {
 
 	var req *request.Request
-	var c *ExprContext
+	var c *EvalContext
 	BeforeEach(func() {
 		req = &request.Request{
 			System: "iam",
@@ -42,18 +42,18 @@ var _ = Describe("Context", func() {
 				},
 			},
 		}
-		c = NewExprContext(req)
+		c = NewEvalContext(req)
 	})
 
-	Describe("NewExprContext", func() {
+	Describe("NewEvalContext", func() {
 		It("no resources", func() {
 			req := &request.Request{}
-			ec := NewExprContext(req)
+			ec := NewEvalContext(req)
 			assert.NotNil(GinkgoT(), ec)
 		})
 
 		It("ok, has resource", func() {
-			ec := NewExprContext(req)
+			ec := NewEvalContext(req)
 			assert.NotNil(GinkgoT(), ec)
 		})
 
@@ -66,7 +66,7 @@ var _ = Describe("Context", func() {
 					},
 				},
 			}
-			ec := NewExprContext(req)
+			ec := NewEvalContext(req)
 			assert.NotNil(GinkgoT(), ec)
 		})
 

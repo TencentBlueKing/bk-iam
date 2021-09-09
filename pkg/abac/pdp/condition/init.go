@@ -50,13 +50,13 @@ type Condition interface {
 	GetName() string
 	GetKeys() []string // 返回条件中包含的所有属性key
 
-	Eval(ctx types.AttributeGetter) bool
+	Eval(ctx types.EvalContextor) bool
 	Translate(withSystem bool) (map[string]interface{}, error)
 }
 
 type LogicalCondition interface {
 	Condition
-	PartialEval(ctx types.AttributeGetter) (bool, Condition)
+	PartialEval(ctx types.EvalContextor) (bool, Condition)
 }
 
 func newConditionFromInterface(value interface{}) (Condition, error) {

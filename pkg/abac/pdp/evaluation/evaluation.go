@@ -30,7 +30,7 @@ import (
 */
 
 // EvalPolicies 计算是否满足
-func EvalPolicies(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
+func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
 	for _, policy := range policies {
 		isPass, err = evalPolicy(ctx, policy)
 		if err != nil {
@@ -47,7 +47,7 @@ func EvalPolicies(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) (isPas
 }
 
 // evalPolicy 计算单个policy是否满足
-func evalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error) {
+func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -73,10 +73,10 @@ func evalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, error
 
 // PartialEvalPolicies 筛选check pass的policies
 func PartialEvalPolicies(
-	ctx *pdptypes.ExprContext,
+	ctx *pdptypes.EvalContext,
 	policies []types.AuthPolicy,
 ) ([]condition.Condition, []int64, error) {
-	passConditions := make([]condition.Condition, 0, len(policies))
+	remainedConditions := make([]condition.Condition, 0, len(policies))
 
 	passedPolicyIDs := make([]int64, 0, len(policies))
 	for _, policy := range policies {
@@ -90,15 +90,15 @@ func PartialEvalPolicies(
 			passedPolicyIDs = append(passedPolicyIDs, policy.ID)
 
 			if condition != nil {
-				passConditions = append(passConditions, condition)
+				remainedConditions = append(remainedConditions, condition)
 			}
 		}
 	}
 
-	return passConditions, passedPolicyIDs, nil
+	return remainedConditions, passedPolicyIDs, nil
 }
 
-func partialEvalPolicy(ctx *pdptypes.ExprContext, policy types.AuthPolicy) (bool, condition.Condition, error) {
+func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, condition.Condition, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)

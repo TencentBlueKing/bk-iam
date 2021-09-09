@@ -37,7 +37,7 @@ func (c *StringPrefixCondition) GetName() string {
 }
 
 // Eval 求值
-func (c *StringPrefixCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 	return c.forOr(ctx, func(a, b interface{}) bool {
 		aStr, ok := a.(string)
 		if !ok {

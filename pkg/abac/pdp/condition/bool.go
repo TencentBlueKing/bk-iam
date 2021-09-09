@@ -47,7 +47,7 @@ func (c *BoolCondition) GetName() string {
 }
 
 // Eval 求值
-func (c *BoolCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *BoolCondition) Eval(ctx types.EvalContextor) bool {
 	attrValue, err := ctx.GetAttr(c.Key)
 	if err != nil {
 		return false

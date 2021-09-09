@@ -72,8 +72,10 @@ var _ = Describe("Expression", func() {
 					},
 				}
 				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), "OR", expr["op"])
+				assert.ElementsMatch(GinkgoT(), want["content"], expr["content"])
 				//assert.Equal(GinkgoT(), want, expr)
-				assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, expr))
+				//assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, expr))
 
 			})
 

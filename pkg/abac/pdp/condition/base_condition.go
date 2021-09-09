@@ -31,7 +31,7 @@ func (c *baseCondition) GetValues() []interface{} {
 
 // forOr value之间or关系遍历
 // ? 需要注意 对slice的操作都是OR的关系, 如果需要其它的关系, 使用forOR
-func (c *baseCondition) forOr(ctx types.AttributeGetter, fn func(interface{}, interface{}) bool) bool {
+func (c *baseCondition) forOr(ctx types.EvalContextor, fn func(interface{}, interface{}) bool) bool {
 	attrValue, err := ctx.GetAttr(c.Key)
 	if err != nil {
 		return false

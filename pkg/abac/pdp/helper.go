@@ -155,7 +155,7 @@ func queryAndPartialEvalConditions(
 	}
 
 	// 执行完后, 只返回 执行后的残留的 conditions
-	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(pdptypes.NewExprContext(r), policies)
+	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(pdptypes.NewEvalContext(r), policies)
 	if len(conditions) == 0 {
 		debug.WithNoPassEvalPolicies(entry, policies)
 	}

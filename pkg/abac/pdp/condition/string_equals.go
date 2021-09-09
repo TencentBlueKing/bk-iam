@@ -36,7 +36,7 @@ func (c *StringEqualsCondition) GetName() string {
 }
 
 // Eval 求值
-func (c *StringEqualsCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *StringEqualsCondition) Eval(ctx types.EvalContextor) bool {
 	return c.forOr(ctx, func(a, b interface{}) bool {
 		return a == b
 	})

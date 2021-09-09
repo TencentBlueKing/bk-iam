@@ -27,9 +27,9 @@ func NewOrCondition(content []Condition) Condition {
 	return &OrCondition{content: content}
 }
 
-func newOrCondition(key string, values []interface{}) (Condition, error) {
-	if key != "content" {
-		return nil, fmt.Errorf("or condition not support key %s", key)
+func newOrCondition(field string, values []interface{}) (Condition, error) {
+	if field != "content" {
+		return nil, fmt.Errorf("or condition not support field %s", field)
 	}
 
 	conditions := make([]Condition, 0, len(values))
@@ -65,7 +65,7 @@ func (c *OrCondition) GetKeys() []string {
 }
 
 // Eval 求值
-func (c *OrCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *OrCondition) Eval(ctx types.EvalContextor) bool {
 	for _, condition := range c.content {
 		if condition.Eval(ctx) {
 			return true
@@ -92,10 +92,10 @@ func (c *OrCondition) Translate(withSystem bool) (map[string]interface{}, error)
 }
 
 // PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
-func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
+func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// NOTE: If allowed=False, condition should be nil
 	// once got True => return
-	remainContent := make([]Condition, 0, len(c.content))
+	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
 		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
 			// NOTE: true的时候, 可能还有剩余的表达式
@@ -105,7 +105,7 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 				if ci.GetName() == operator.ANY {
 					return true, NewAnyCondition()
 				} else {
-					remainContent = append(remainContent, ci)
+					remainedContent = append(remainedContent, ci)
 				}
 			}
 
@@ -128,18 +128,18 @@ func (c *OrCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
 				// if hasKey = true and eval fail, do nothing!
 			} else {
 				// request has no resource, so append to remain
-				remainContent = append(remainContent, condition)
+				remainedContent = append(remainedContent, condition)
 			}
 		}
 	}
 
-	switch len(remainContent) {
+	switch len(remainedContent) {
 	case 0:
 		// all false, return False
 		return false, nil
 	case 1:
-		return true, remainContent[0]
+		return true, remainedContent[0]
 	default:
-		return true, NewOrCondition(remainContent)
+		return true, NewOrCondition(remainedContent)
 	}
 }

@@ -27,9 +27,9 @@ func NewAndCondition(content []Condition) Condition {
 	return &AndCondition{content: content}
 }
 
-func newAndCondition(key string, values []interface{}) (Condition, error) {
-	if key != "content" {
-		return nil, fmt.Errorf("and condition not support key %s", key)
+func newAndCondition(field string, values []interface{}) (Condition, error) {
+	if field != "content" {
+		return nil, fmt.Errorf("and condition not support field %s", field)
 	}
 
 	conditions := make([]Condition, 0, len(values))
@@ -61,7 +61,7 @@ func (c *AndCondition) GetKeys() []string {
 }
 
 // Eval 求值
-func (c *AndCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *AndCondition) Eval(ctx types.EvalContextor) bool {
 	for _, condition := range c.content {
 		if !condition.Eval(ctx) {
 			return false
@@ -89,10 +89,10 @@ func (c *AndCondition) Translate(withSystem bool) (map[string]interface{}, error
 }
 
 // PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
-func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) {
+func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// NOTE: If allowed=False, condition should be nil
 	// once got False=> return
-	remainContent := make([]Condition, 0, len(c.content))
+	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
 		// if AND/OR, do PartialEval recursive
 		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
@@ -104,7 +104,7 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 
 			// 如果残留单独一个any, any always=True, 则没有必要append
 			if ci.GetName() != operator.ANY {
-				remainContent = append(remainContent, ci)
+				remainedContent = append(remainedContent, ci)
 			}
 		} else {
 			key := condition.GetKeys()[0]
@@ -122,20 +122,20 @@ func (c *AndCondition) PartialEval(ctx types.AttributeGetter) (bool, Condition) 
 				}
 			} else {
 				// request has no resource, so append to remain
-				remainContent = append(remainContent, condition)
+				remainedContent = append(remainedContent, condition)
 			}
 		}
 	}
 
 	// all eval success, 全部执行成功, 理论上只剩any
-	switch len(remainContent) {
+	switch len(remainedContent) {
 	case 0:
 		// all true, return any
 		return true, NewAnyCondition()
 	case 1:
-		return true, remainContent[0]
+		return true, remainedContent[0]
 	default:
 		// more than one left, combine them all
-		return true, NewAndCondition(remainContent)
+		return true, NewAndCondition(remainedContent)
 	}
 }

@@ -144,7 +144,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return true, 1, nil
 			})
@@ -170,7 +170,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, nil
 			})
@@ -196,7 +196,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, errors.New("eval fail")
 			})
@@ -224,7 +224,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, errors.New("test")
 			})
@@ -250,7 +250,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
+				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return true, 1, nil
 			})

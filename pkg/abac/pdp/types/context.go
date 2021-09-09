@@ -19,15 +19,15 @@ import (
 PDP模块表达式求值
 */
 
-// ExprContext 表达式求值上下文
+// EvalContext 表达式求值上下文
 // 只有一个Resource的信息
-type ExprContext struct {
+type EvalContext struct {
 	*request.Request
 	objSet ObjectSetInterface
 }
 
-// NewExprContext new context
-func NewExprContext(req *request.Request) *ExprContext {
+// NewEvalContext new context
+func NewEvalContext(req *request.Request) *EvalContext {
 	objSet := NewObjectSet()
 
 	for _, r := range req.Resources {
@@ -45,19 +45,19 @@ func NewExprContext(req *request.Request) *ExprContext {
 
 	}
 	// TODO: 需要限制接入系统资源id字段不能配置为attribute; 因为会被覆盖
-	return &ExprContext{
+	return &EvalContext{
 		Request: req,
 		objSet:  objSet,
 	}
 }
 
 // GetAttr 获取资源的属性值
-func (c *ExprContext) GetAttr(name string) (interface{}, error) {
+func (c *EvalContext) GetAttr(name string) (interface{}, error) {
 	// name should be {system}.{resource_type}.{attr_key}
 	return c.objSet.GetAttribute(name), nil
 }
 
-func (c *ExprContext) HasResource(_type string) bool {
+func (c *EvalContext) HasResource(_type string) bool {
 	// has {system}.{resource_type}
 	return c.objSet.Has(_type)
 }

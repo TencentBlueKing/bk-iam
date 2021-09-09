@@ -198,7 +198,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
 				policie []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return nil, nil, errors.New("filter error")
@@ -225,7 +225,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{}, []int64{}, nil
@@ -251,7 +251,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.ExprContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{

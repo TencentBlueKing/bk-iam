@@ -50,7 +50,7 @@ func (c *AnyCondition) GetKeys() []string {
 }
 
 // Eval 求值
-func (c *AnyCondition) Eval(ctx types.AttributeGetter) bool {
+func (c *AnyCondition) Eval(ctx types.EvalContextor) bool {
 	return true
 }
 

@@ -30,30 +30,32 @@ policy 条件举例
 type PolicyCondition map[string]map[string][]interface{}
 
 func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondition, error) {
-	// case 1, binary operator
-	//	{
-	//		"StringEquals": {
-	//			"system": ["linux"]
-	//		}
-	//	},
-	// case 2, any
-	// case 3, AND, OR
-	//	{
-	//		"AND": {
-	//			"content": [
-	//				{
-	//					"StringEquals": {
-	//						"system": ["linux"]
-	//					}
-	//				},
-	//				{
-	//					"StringPrefix": {
-	//						"path": ["/biz,1/"]
-	//					}
-	//				}
-	//			]
-	//		}
-	//	}
+	/*
+		case 1, binary operator
+			{
+				"StringEquals": {
+					"system": ["linux"]
+				}
+			},
+		case 2, any
+		case 3, AND, OR
+			{
+				"AND": {
+					"content": [
+						{
+							"StringEquals": {
+								"system": ["linux"]
+							}
+						},
+						{
+							"StringPrefix": {
+								"path": ["/biz,1/"]
+							}
+						}
+					]
+				}
+			}
+	*/
 	keyPrefix := system + "." + _type + "."
 	pc := make(PolicyCondition, len(p))
 	for op, c := range p {
