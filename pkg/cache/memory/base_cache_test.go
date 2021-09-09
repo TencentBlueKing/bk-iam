@@ -48,7 +48,7 @@ func retrieveError(k cache.Key) (interface{}, error) {
 func TestNewBaseCache(t *testing.T) {
 	expiration := 5 * time.Minute
 
-	be := backend.NewMemoryBackend("test", expiration)
+	be := backend.NewMemoryBackend("test", expiration, nil)
 
 	c := NewBaseCache(false, retrieveTest, be)
 

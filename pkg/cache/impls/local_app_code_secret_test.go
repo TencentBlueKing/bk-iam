@@ -39,7 +39,7 @@ func TestVerifyAppCodeAppSecret(t *testing.T) {
 		return true, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalAppCodeAppSecretCache = mockCache
 	assert.True(t, VerifyAppCodeAppSecret("test", "123"))
 
@@ -48,7 +48,7 @@ func TestVerifyAppCodeAppSecret(t *testing.T) {
 		return false, errors.New("error here")
 	}
 	mockCache = memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
+		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalAppCodeAppSecretCache = mockCache
 	assert.False(t, VerifyAppCodeAppSecret("test", "123"))
 }

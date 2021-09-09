@@ -26,6 +26,6 @@ func retrieveOK(k cache.Key) (interface{}, error) {
 func TestNewCache(t *testing.T) {
 	expiration := 5 * time.Minute
 
-	c := NewCache("test", false, retrieveOK, expiration)
+	c := NewCache("test", false, retrieveOK, expiration, nil)
 	assert.NotNil(t, c)
 }

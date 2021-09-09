@@ -1,3 +1,7 @@
+# 1.8.6
+
+- add: local cache expire with a random duration
+
 # 1.8.5
 
 - upgrade: update the expression table structure, delete useless columns

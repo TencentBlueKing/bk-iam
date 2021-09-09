@@ -17,15 +17,18 @@ import (
 )
 
 // NewCache create a memory cache
-func NewCache(name string, disabled bool, retrieveFunc RetrieveFunc,
-	expiration time.Duration) Cache {
-	be := backend.NewMemoryBackend(name, expiration)
+func NewCache(name string, disabled bool,
+	retrieveFunc RetrieveFunc,
+	expiration time.Duration,
+	randomDurationFunc backend.RandomExpirationDurationFunc,
+) Cache {
+	be := backend.NewMemoryBackend(name, expiration, randomDurationFunc)
 	return NewBaseCache(disabled, retrieveFunc, be)
 }
 
 // NewMockCache create a memory cache for mock
 func NewMockCache(retrieveFunc RetrieveFunc) Cache {
-	be := backend.NewMemoryBackend("mockCache", 5*time.Minute)
+	be := backend.NewMemoryBackend("mockCache", 5*time.Minute, nil)
 
 	return NewBaseCache(false, retrieveFunc, be)
 }

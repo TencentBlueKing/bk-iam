@@ -51,7 +51,7 @@ var _ = Describe("LocalApigwJwtClientId", func() {
 				return true, nil
 			}
 			mockCache := memory.NewCache(
-				"mockCache", false, retrieveFunc, expiration)
+				"mockCache", false, retrieveFunc, expiration, nil)
 			LocalAPIGatewayJWTClientIDCache = mockCache
 		})
 
