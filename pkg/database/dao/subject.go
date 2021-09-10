@@ -155,8 +155,8 @@ func (m *subjectManager) selectPK(pk *int64, _type string, id string) error {
 		FROM subject
 		WHERE type=?
 		AND id=?
-		LIMIT ?`
-	return database.SqlxGet(m.DB, pk, query, _type, id, 1)
+		LIMIT 1`
+	return database.SqlxGet(m.DB, pk, query, _type, id)
 }
 
 func (m *subjectManager) selectSubjectsByIDs(subjects *[]Subject, _type string, ids []string) error {

@@ -10,7 +10,15 @@
 
 package impls
 
-import "iam/pkg/errorx"
+import (
+	"iam/pkg/cache"
+	"iam/pkg/errorx"
+)
+
+func retrieveSubjectPKFromRedis(key cache.Key) (interface{}, error) {
+	k := key.(SubjectIDCacheKey)
+	return GetSubjectPK(k.Type, k.ID)
+}
 
 // GetLocalSubjectPK ...
 func GetLocalSubjectPK(_type, id string) (pk int64, err error) {
