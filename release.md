@@ -1,3 +1,8 @@
+# 1.8.7
+
+- bugfix: role group member renew cache clean issue
+- bugfix: model api asynchronous delete action empty issue
+
 # 1.8.6
 
 - add: local cache expire with a random duration
