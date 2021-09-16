@@ -46,18 +46,17 @@ func PoliciesTranslate(
 				policy.ID, policy.Expression, resourceTypeSet)
 			return nil, err
 		}
-		content = append(content, condition)
-	}
-
-	// NOTE: if got an `any`, return `any`!
-	for _, c := range content {
-		if c.Op() == "any" {
+		// NOTE: if got an `any`, return `any`!
+		if condition.Op() == "any" {
 			return ExprCell{
 				"op":    "any",
 				"field": "",
 				"value": []string{},
 			}, nil
 		}
+
+		content = append(content, condition)
+
 	}
 
 	// merge same field `eq` and `in`; to `in`
