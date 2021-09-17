@@ -34,10 +34,12 @@ func batchDeleteMembersFromCache(members []memberSerializer) error {
 	}
 	return impls.BatchDeleteSubjectCache(pks)
 }
+
 func batchDeleteUpdatedMembersFromCache(members []types.SubjectMember) error {
 	pks := make([]int64, 0, len(members))
 	for _, m := range members {
-		pks = append(pks, m.PK)
+		pk, _ := impls.GetSubjectPK(m.Type, m.ID)
+		pks = append(pks, pk)
 	}
 	return impls.BatchDeleteSubjectCache(pks)
 }

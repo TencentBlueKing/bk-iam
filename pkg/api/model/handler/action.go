@@ -316,12 +316,14 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				ModelPK:   actionPK,
 			})
 		}
-		err = eventSvc.BulkCreate(events)
-		if err != nil {
-			err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
-				"eventSvc.BulkCreate events=`%+v` fail", events)
-			util.SystemErrorJSONResponse(c, err)
-			return
+		if len(events) != 0 {
+			err = eventSvc.BulkCreate(events)
+			if err != nil {
+				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
+					"eventSvc.BulkCreate events=`%+v` fail", events)
+				util.SystemErrorJSONResponse(c, err)
+				return
+			}
 		}
 	}
 
