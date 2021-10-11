@@ -207,10 +207,10 @@ func bulkInsertWithTxTimer(f bulkInsertWithTxFunc) bulkInsertWithTxFunc {
 	}
 }
 
-type bulkInsertReturnIDWithTxFunc func(tx *sqlx.Tx, query string, args interface{}) (int64, error)
+type bulkInsertReturnIDWithTxFunc func(tx *sqlx.Tx, query string, args interface{}) ([]int64, error)
 
 func bulkInsertReturnIDWithTxTimer(f bulkInsertReturnIDWithTxFunc) bulkInsertReturnIDWithTxFunc {
-	return func(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
+	return func(tx *sqlx.Tx, query string, args interface{}) ([]int64, error) {
 		start := time.Now()
 		defer logSlowSQL(start, query, args)
 		return f(tx, query, args)
@@ -277,16 +277,34 @@ func sqlxBulkInsertWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 	return err
 }
 
-func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
-	q, arrayArgs, err := bindArray(sqlx.BindType(tx.DriverName()), query, args, tx.Mapper)
+func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) ([]int64, error) {
+	// 预编译
+	stmt, err := tx.PrepareNamed(query)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	res, err := tx.Exec(q, arrayArgs...)
+	defer stmt.Close()
+
+	argSlice, err := util.ToSlice(args)
+	// 转换不成功，说明是非数组，则单个条件
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return res.LastInsertId()
+
+	ids := make([]int64, 0, len(argSlice))
+	// 遍历执行
+	for _, arg := range argSlice {
+		result, err := stmt.Exec(arg)
+		if err != nil {
+			return nil, err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 func sqlxBulkUpdateWithTx(tx *sqlx.Tx, query string, args interface{}) error {
