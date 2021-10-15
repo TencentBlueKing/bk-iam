@@ -278,6 +278,14 @@ func sqlxBulkInsertWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 }
 
 func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) ([]int64, error) {
+	/*
+		批量插入并按顺序返回插入数据的ID
+
+		使用预编译遍历执行, 而不是直接批量执行的原因:
+		1. 使用一条INSERT语句插入多个行, LAST_INSERT_ID() 只返回插入的第一行数据时产生的值
+		2. 如果MySQL配置的auto_increment_increment != 1 会导致除了第一条插入的数据, 后续的数据id无法预期
+		3. 基于以上原因, 使用预编译循环插入, 每次拿到的LAST_INSERT_ID一定是上一次插入的id值, 能规避以上错误
+	*/
 	// 预编译
 	stmt, err := tx.PrepareNamed(query)
 	if err != nil {
