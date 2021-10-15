@@ -207,10 +207,10 @@ func bulkInsertWithTxTimer(f bulkInsertWithTxFunc) bulkInsertWithTxFunc {
 	}
 }
 
-type bulkInsertReturnIDWithTxFunc func(tx *sqlx.Tx, query string, args interface{}) (int64, error)
+type bulkInsertReturnIDWithTxFunc func(tx *sqlx.Tx, query string, args interface{}) ([]int64, error)
 
 func bulkInsertReturnIDWithTxTimer(f bulkInsertReturnIDWithTxFunc) bulkInsertReturnIDWithTxFunc {
-	return func(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
+	return func(tx *sqlx.Tx, query string, args interface{}) ([]int64, error) {
 		start := time.Now()
 		defer logSlowSQL(start, query, args)
 		return f(tx, query, args)
@@ -277,16 +277,42 @@ func sqlxBulkInsertWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 	return err
 }
 
-func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
-	q, arrayArgs, err := bindArray(sqlx.BindType(tx.DriverName()), query, args, tx.Mapper)
+func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) ([]int64, error) {
+	/*
+		批量插入并按顺序返回插入数据的ID
+
+		使用预编译遍历执行, 而不是直接批量执行的原因:
+		1. 使用一条INSERT语句插入多个行, LAST_INSERT_ID() 只返回插入的第一行数据时产生的值
+		2. 如果MySQL配置的auto_increment_increment != 1 会导致除了第一条插入的数据, 后续的数据id无法预期
+		3. 基于以上原因, 使用预编译循环插入, 每次拿到的LAST_INSERT_ID一定是上一次插入的id值, 能规避以上错误
+	*/
+	// 预编译
+	stmt, err := tx.PrepareNamed(query)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	res, err := tx.Exec(q, arrayArgs...)
+	defer stmt.Close()
+
+	argSlice, err := util.ToSlice(args)
+	// 转换不成功，说明是非数组，则单个条件
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return res.LastInsertId()
+
+	ids := make([]int64, 0, len(argSlice))
+	// 遍历执行
+	for _, arg := range argSlice {
+		result, err := stmt.Exec(arg)
+		if err != nil {
+			return nil, err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 func sqlxBulkUpdateWithTx(tx *sqlx.Tx, query string, args interface{}) error {

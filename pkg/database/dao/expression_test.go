@@ -51,6 +51,7 @@ func Test_expressionManager_ListAuthByPKs(t *testing.T) {
 func Test_expressionManager_BulkCreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
+		mock.ExpectPrepare(`INSERT INTO expression`)
 		mock.ExpectExec(`INSERT INTO expression`).WithArgs(
 			int64(1), "expression", "test",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -66,12 +67,12 @@ func Test_expressionManager_BulkCreateWithTx(t *testing.T) {
 		}
 
 		manager := &expressionManager{DB: db}
-		id, err := manager.BulkCreateWithTx(tx, []Expression{expr})
+		ids, err := manager.BulkCreateWithTx(tx, []Expression{expr})
 
 		tx.Commit()
 
 		assert.NoError(t, err)
-		assert.Equal(t, id, int64(1))
+		assert.Equal(t, ids, []int64{1})
 	})
 }
 

@@ -106,12 +106,12 @@ func InitCaches(disabled bool) {
 	LocalSubjectPKCache = memory.NewCache(
 		"local_subject_pk",
 		disabled,
-		retrieveSubjectPK,
+		retrieveSubjectPKFromRedis,
 		1*time.Minute,
-		newRandomDuration(30),
+		nil,
 	)
 
-	// 影响: 每次鉴权
+	// 影响: 每次鉴权 => 理论上, 也可以改成两级cache
 
 	LocalSubjectRoleCache = memory.NewCache(
 		"local_subject_role",

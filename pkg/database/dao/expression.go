@@ -46,7 +46,7 @@ type ExpressionManager interface {
 
 	ListDistinctBySignaturesType(signatures []string, _type int64) ([]Expression, error)
 
-	BulkCreateWithTx(tx *sqlx.Tx, expressions []Expression) (int64, error) // 返回批量创建的last id
+	BulkCreateWithTx(tx *sqlx.Tx, expressions []Expression) ([]int64, error) // 返回批量创建的last id
 	BulkUpdateWithTx(tx *sqlx.Tx, expressions []Expression) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int64, error)
 }
@@ -89,9 +89,9 @@ func (m *expressionManager) ListDistinctBySignaturesType(
 }
 
 // BulkCreateWithTx ...
-func (m *expressionManager) BulkCreateWithTx(tx *sqlx.Tx, expressions []Expression) (int64, error) {
+func (m *expressionManager) BulkCreateWithTx(tx *sqlx.Tx, expressions []Expression) ([]int64, error) {
 	if len(expressions) == 0 {
-		return 0, nil
+		return []int64{}, nil
 	}
 	return m.bulkInsertWithTx(tx, expressions)
 }
@@ -140,7 +140,7 @@ func (m *expressionManager) selectBySignaturesType(expressions *[]Expression, si
 	return database.SqlxSelect(m.DB, expressions, query, signatures, _type)
 }
 
-func (m *expressionManager) bulkInsertWithTx(tx *sqlx.Tx, expressions []Expression) (int64, error) {
+func (m *expressionManager) bulkInsertWithTx(tx *sqlx.Tx, expressions []Expression) ([]int64, error) {
 	sql := `INSERT INTO expression (
 		type,
 		expression,

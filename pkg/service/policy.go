@@ -311,15 +311,14 @@ func (s *policyService) AlterCustomPolicies(
 		return
 	}
 
-	expressionPK, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
+	expressionPKs, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
 	if err != nil {
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
 		return
 	}
 	for i := range daoCreatePolicies {
 		if daoCreatePolicies[i].ExpressionPK == 0 {
-			daoCreatePolicies[i].ExpressionPK = expressionPK
-			expressionPK++
+			daoCreatePolicies[i].ExpressionPK = expressionPKs[i]
 		}
 	}
 
@@ -591,14 +590,14 @@ func (s *policyService) generateSignatureExpressionPKMap(
 
 	// 创建引用不到的expression
 	if len(daoExpressions) != 0 {
-		var expressionPK int64
-		expressionPK, err = s.expressionManger.BulkCreateWithTx(tx, daoExpressions)
+		var expressionPKs []int64
+		expressionPKs, err = s.expressionManger.BulkCreateWithTx(tx, daoExpressions)
 		if err != nil {
 			err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoExpressions)
 			return
 		}
 		for i, e := range daoExpressions {
-			signatureExpressionPKMap[e.Signature] = expressionPK + int64(i)
+			signatureExpressionPKMap[e.Signature] = expressionPKs[i]
 		}
 	}
 
