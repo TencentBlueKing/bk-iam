@@ -351,7 +351,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "test",
 					Signature:  "098f6bcd4621d373cade4e832627b4f6",
 				},
-			}).Return(int64(1), nil)
+			}).Return([]int64{1, 2}, nil)
 
 			mockPolicyManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Policy{
 				{
@@ -632,7 +632,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "expression",
 					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
 				},
-			}).Return(int64(2), nil)
+			}).Return([]int64{2}, nil)
 
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
 			mockPolicyManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Policy{
@@ -726,7 +726,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "expression",
 					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
 				},
-			}).Return(int64(2), nil)
+			}).Return([]int64{2}, nil)
 
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListBySubjectPKAndPKs(int64(1), []int64{1, 2}).Return(

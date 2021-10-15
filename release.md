@@ -1,3 +1,7 @@
+# 1.8.8
+
+- bugfix: modify sqlxBulkInsertReturnIDWithTx return id in batches
+
 # 1.8.7
 
 - bugfix: role group member renew cache clean issue
