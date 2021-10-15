@@ -1,5 +1,6 @@
 # 1.8.8
 
+- upgrade: change local subject pk get from redis first, instead of db first
 - bugfix: modify sqlxBulkInsertReturnIDWithTx return id in batches
 
 # 1.8.7
