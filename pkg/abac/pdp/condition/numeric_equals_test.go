@@ -40,6 +40,10 @@ var _ = Describe("NumericEquals", func() {
 		It("true", func() {
 			assert.True(GinkgoT(), c.Eval(intCtx(1)))
 			assert.True(GinkgoT(), c.Eval(intCtx(2)))
+
+			// TODO: should be equal!
+			//assert.True(GinkgoT(), c.Eval(int64Ctx(1)))
+			//assert.True(GinkgoT(), c.Eval(int64Ctx(2)))
 		})
 
 		It("false", func() {

@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"strings"
 
+	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -42,6 +43,10 @@ func init() {
 		new(StringPrefixCondition).GetName():  newStringPrefixCondition,
 		new(NumericEqualsCondition).GetName(): newNumericEqualsCondition,
 		new(BoolCondition).GetName():          newBoolCondition,
+		operator.NumericGreaterThan:           newNumericGreaterThanCondition,
+		operator.NumericGreaterThanEquals:     newNumericGreaterThanEqualsCondition,
+		operator.NumericLessThan:              newNumericLessThanCondition,
+		operator.NumericLessThanEquals:        newNumericLessThanEqualsCondition,
 	}
 }
 

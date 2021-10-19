@@ -182,7 +182,6 @@ var _ = Describe("Remote", func() {
 			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
-
 				})
 
 			patches.ApplyFunc(getConditionAttrKeys,
@@ -195,7 +194,15 @@ var _ = Describe("Remote", func() {
 					return map[string]interface{}{"hello": "world"}, nil
 				})
 
-			attrs, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			attrs, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{
+				{
+					Version:             "1",
+					ID:                  1,
+					Expression:          "",
+					ExpressionSignature: "",
+					ExpiredAt:           0,
+				},
+			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[string]interface{}{"hello": "world"}, attrs)
 		})

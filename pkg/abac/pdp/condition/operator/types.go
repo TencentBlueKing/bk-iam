@@ -8,4 +8,11 @@ const (
 	StringPrefix  = "StringPrefix"
 	StringEquals  = "StringEquals"
 	NumericEquals = "NumericEquals"
+
+	// TODO: change to lt/lte/gt/gte?
+
+	NumericLessThan          = "NumericLessThan"
+	NumericLessThanEquals    = "NumericLessThanEquals"
+	NumericGreaterThan       = "NumericGreaterThan"
+	NumericGreaterThanEquals = "NumericGreaterThanEquals"
 )
