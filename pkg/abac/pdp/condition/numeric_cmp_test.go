@@ -62,28 +62,28 @@ var _ = Describe("NumericCompare", func() {
 			c, err := newNumericGreaterThanCondition(key, values)
 			assert.NoError(GinkgoT(), err)
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), operator.NumericGreaterThan, c.GetName())
+			assert.Equal(GinkgoT(), operator.NumericGt, c.GetName())
 		})
 
 		It("gte", func() {
 			c, err := newNumericGreaterThanEqualsCondition(key, values)
 			assert.NoError(GinkgoT(), err)
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), operator.NumericGreaterThanEquals, c.GetName())
+			assert.Equal(GinkgoT(), operator.NumericGte, c.GetName())
 		})
 
 		It("lt", func() {
 			c, err := newNumericLessThanCondition(key, values)
 			assert.NoError(GinkgoT(), err)
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), operator.NumericLessThan, c.GetName())
+			assert.Equal(GinkgoT(), operator.NumericLt, c.GetName())
 		})
 
 		It("lte", func() {
 			c, err := newNumericLessThanEqualsCondition(key, values)
 			assert.NoError(GinkgoT(), err)
 			assert.NotNil(GinkgoT(), c)
-			assert.Equal(GinkgoT(), operator.NumericLessThanEquals, c.GetName())
+			assert.Equal(GinkgoT(), operator.NumericLte, c.GetName())
 		})
 	})
 

@@ -43,11 +43,11 @@ func init() {
 		new(StringPrefixCondition).GetName(): newStringPrefixCondition,
 		new(BoolCondition).GetName():         newBoolCondition,
 
-		operator.NumericEquals:            newNumericEqualsCondition,
-		operator.NumericGreaterThan:       newNumericGreaterThanCondition,
-		operator.NumericGreaterThanEquals: newNumericGreaterThanEqualsCondition,
-		operator.NumericLessThan:          newNumericLessThanCondition,
-		operator.NumericLessThanEquals:    newNumericLessThanEqualsCondition,
+		operator.NumericEquals: newNumericEqualsCondition,
+		operator.NumericGt:     newNumericGreaterThanCondition,
+		operator.NumericGte:    newNumericGreaterThanEqualsCondition,
+		operator.NumericLt:     newNumericLessThanCondition,
+		operator.NumericLte:    newNumericLessThanEqualsCondition,
 	}
 }
 

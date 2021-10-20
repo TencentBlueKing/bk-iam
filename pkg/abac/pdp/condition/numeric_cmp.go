@@ -29,8 +29,14 @@ type NumericCompareCondition struct {
 }
 
 //nolint:unparam
-func newNumericCompareCondition(key string, values []interface{},
-	name string, translateOperator string, translateBulkOperator string, compareFunc numericCompareFunc) (Condition, error) {
+func newNumericCompareCondition(
+	key string,
+	values []interface{},
+	name string,
+	translateOperator string,
+	translateBulkOperator string,
+	compareFunc numericCompareFunc,
+) (Condition, error) {
 	return &NumericCompareCondition{
 		baseCondition: baseCondition{
 			Key:   key,
@@ -52,22 +58,22 @@ func newNumericEqualsCondition(key string, values []interface{}) (Condition, err
 
 func newNumericGreaterThanCondition(key string, values []interface{}) (Condition, error) {
 	return newNumericCompareCondition(key, values,
-		operator.NumericGreaterThan, "gt", "gt", eval.Greater)
+		operator.NumericGt, "gt", "gt", eval.Greater)
 }
 
 func newNumericGreaterThanEqualsCondition(key string, values []interface{}) (Condition, error) {
 	return newNumericCompareCondition(key, values,
-		operator.NumericGreaterThanEquals, "gte", "gte", eval.GreaterOrEqual)
+		operator.NumericGte, "gte", "gte", eval.GreaterOrEqual)
 }
 
 func newNumericLessThanCondition(key string, values []interface{}) (Condition, error) {
 	return newNumericCompareCondition(key, values,
-		operator.NumericLessThan, "lt", "lt", eval.Less)
+		operator.NumericLt, "lt", "lt", eval.Less)
 }
 
 func newNumericLessThanEqualsCondition(key string, values []interface{}) (Condition, error) {
 	return newNumericCompareCondition(key, values,
-		operator.NumericLessThanEquals, "lte", "lte", eval.LessOrEqual)
+		operator.NumericLte, "lte", "lte", eval.LessOrEqual)
 }
 
 // GetName 名称

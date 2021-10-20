@@ -1,5 +1,7 @@
 package operator
 
+// NOTE: we should use `short` text as operator! Short and meaningful
+
 const (
 	AND          = "AND"
 	OR           = "OR"
@@ -8,11 +10,9 @@ const (
 	StringPrefix = "StringPrefix"
 	StringEquals = "StringEquals"
 
-	// TODO: change to lt/lte/gt/gte?
-
-	NumericEquals            = "NumericEquals"
-	NumericLessThan          = "NumericLessThan"
-	NumericLessThanEquals    = "NumericLessThanEquals"
-	NumericGreaterThan       = "NumericGreaterThan"
-	NumericGreaterThanEquals = "NumericGreaterThanEquals"
+	NumericEquals = "NumericEquals"
+	NumericGt     = "NumericGt"
+	NumericGte    = "NumericGte"
+	NumericLt     = "NumericLt"
+	NumericLte    = "NumericLte"
 )
