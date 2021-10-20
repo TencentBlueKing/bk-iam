@@ -89,7 +89,7 @@ var _ = Describe("And", func() {
 	It("GetKeys", func() {
 		oc := AndCondition{
 			content: []Condition{
-				&NumericEqualsCondition{
+				&StringEqualsCondition{
 					baseCondition{
 						Key: "hello",
 					},

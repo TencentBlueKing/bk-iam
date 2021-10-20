@@ -96,7 +96,7 @@ var _ = Describe("Or", func() {
 	It("GetKeys", func() {
 		oc := OrCondition{
 			content: []Condition{
-				&NumericEqualsCondition{
+				&StringEqualsCondition{
 					baseCondition{
 						Key: "hello",
 					},

@@ -36,17 +36,18 @@ var conditionFactories map[string]conditionFunc
 
 func init() {
 	conditionFactories = map[string]conditionFunc{
-		new(AndCondition).GetName():           newAndCondition,
-		new(OrCondition).GetName():            newOrCondition,
-		new(AnyCondition).GetName():           newAnyCondition,
-		new(StringEqualsCondition).GetName():  newStringEqualsCondition,
-		new(StringPrefixCondition).GetName():  newStringPrefixCondition,
-		new(NumericEqualsCondition).GetName(): newNumericEqualsCondition,
-		new(BoolCondition).GetName():          newBoolCondition,
-		operator.NumericGreaterThan:           newNumericGreaterThanCondition,
-		operator.NumericGreaterThanEquals:     newNumericGreaterThanEqualsCondition,
-		operator.NumericLessThan:              newNumericLessThanCondition,
-		operator.NumericLessThanEquals:        newNumericLessThanEqualsCondition,
+		new(AndCondition).GetName():          newAndCondition,
+		new(OrCondition).GetName():           newOrCondition,
+		new(AnyCondition).GetName():          newAnyCondition,
+		new(StringEqualsCondition).GetName(): newStringEqualsCondition,
+		new(StringPrefixCondition).GetName(): newStringPrefixCondition,
+		new(BoolCondition).GetName():         newBoolCondition,
+
+		operator.NumericEquals:            newNumericEqualsCondition,
+		operator.NumericGreaterThan:       newNumericGreaterThanCondition,
+		operator.NumericGreaterThanEquals: newNumericGreaterThanEqualsCondition,
+		operator.NumericLessThan:          newNumericLessThanCondition,
+		operator.NumericLessThanEquals:    newNumericLessThanEqualsCondition,
 	}
 }
 
