@@ -12,11 +12,12 @@ package impls
 
 import (
 	"errors"
-	"fmt"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/sirupsen/logrus"
 
-	"iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/translate"
+	"iam/pkg/abac/types"
 	"iam/pkg/cache"
 )
 
@@ -35,22 +36,14 @@ func (k ResourceExpressionCacheKey) Key() string {
 func UnmarshalExpression(key cache.Key) (interface{}, error) {
 	k := key.(ResourceExpressionCacheKey)
 
-	expressions := []types.ResourceExpression{}
-	err := jsoniter.UnmarshalFromString(k.expression, &expressions)
-	// 无效的policy条件表达式, 容错
-	if err != nil {
-		err = fmt.Errorf("cache UnmarshalExpression unmarshal %s error: %w",
-			k.expression, err)
-		return nil, err
-	}
-	return expressions, nil
+	return translate.PolicyExpressionToCondition(k.expression)
 }
 
 // GetUnmarshalledResourceExpression ...
 func GetUnmarshalledResourceExpression(
 	expression string,
 	signature string,
-) (expressions []types.ResourceExpression, err error) {
+) (c condition.Condition, err error) {
 	key := ResourceExpressionCacheKey{
 		expression: expression,
 		signature:  signature,
@@ -63,11 +56,27 @@ func GetUnmarshalledResourceExpression(
 	}
 
 	var ok bool
-	expressions, ok = value.([]types.ResourceExpression)
+	c, ok = value.(condition.Condition)
 	if !ok {
-		err = errors.New("not []types.ResourceExpression in cache")
+		err = errors.New("not condition.Condition in cache")
 		return
 	}
 
 	return
+}
+
+func PoliciesTranslate(policies []types.AuthPolicy) (map[string]interface{}, error) {
+	conditions := make([]condition.Condition, 0, len(policies))
+	for _, policy := range policies {
+
+		cond, err := GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		if err != nil {
+			logrus.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",
+				policy.ID, policy.Expression, err)
+			return nil, err
+		}
+		conditions = append(conditions, cond)
+	}
+
+	return translate.ConditionsTranslate(conditions)
 }

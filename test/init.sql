@@ -188,43 +188,43 @@ INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) 
 
 
 -- expression, not the signature should be not be the same
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (1,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (1,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"Any\":{\"id\":[]}}}]','57479006515B301E80954B21E259B7BE');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (2,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (2,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (3,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (3,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (4,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (4,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (5,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (5,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (6,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (6,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (7,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (7,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (8,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (8,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (9,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (9,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (10,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (10,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (11,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (11,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (12,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (12,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (13,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (13,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (14,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (14,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (15,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (15,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (16,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (16,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (17,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (17,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (18,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (18,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-INSERT INTO `expression` (`pk`, `action_pk`, `expression`, `signature`) VALUES (19,2,
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (19,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
 
 

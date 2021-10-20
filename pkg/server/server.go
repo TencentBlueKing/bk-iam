@@ -42,6 +42,8 @@ type Server struct {
 func NewServer(cfg *config.Config) *Server {
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 
+	log.Infof("the server addr: %s", addr)
+
 	// parse the timeouts
 	readTimeout := defaultReadTimeout
 	if cfg.Server.ReadTimeout > 0 {

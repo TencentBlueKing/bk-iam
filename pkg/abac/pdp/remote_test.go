@@ -13,6 +13,11 @@ package pdp
 import (
 	"errors"
 
+	"iam/pkg/cache/impls"
+
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pip"
+
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -36,37 +41,6 @@ var _ = Describe("Remote", func() {
 					System: "test",
 				}},
 			}
-
-			//// path all func success
-			//patches = gomonkey.ApplyMethod(reflect.TypeOf(req), "fillActionDetail",
-			//	func(_ *request.Request) error {
-			//		return nil
-			//	})
-			//patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
-			//	func(_ *request.Request) bool {
-			//		return true
-			//	})
-			//patches.ApplyMethod(reflect.TypeOf(req), "fillSubjectDetail",
-			//	func(_ *request.Request) error {
-			//		return nil
-			//	})
-			//patches.ApplyMethod(reflect.TypeOf(req), "HasSingleLocalResource",
-			//	func(_ *request.Request) bool {
-			//		return true
-			//	})
-			//patches.ApplyFunc(queryPolicies, func(system string,
-			//	subject types.Subject,
-			//	action types.Action,
-			//	withoutCache bool,
-			//	entry *debug.Entry,
-			//) (policies []types.AuthPolicy, err error) {
-			//	return []types.AuthPolicy{}, nil
-			//})
-			//patches.ApplyFunc(evaluation.EvalPolicies, func(
-			//	ctx *pdptypes.ExprContext, policies []types.AuthPolicy,
-			//) (isPass bool, policyID int64, err error) {
-			//	return true, 1, nil
-			//})
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -127,10 +101,208 @@ var _ = Describe("Remote", func() {
 	})
 
 	Describe("queryRemoteResourceAttrs", func() {
+		var resource *types.Resource
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			resource = &types.Resource{
+				System:    "bk_cmdb",
+				Type:      "host",
+				ID:        "1",
+				Attribute: nil,
+			}
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			if patches != nil {
+				patches.Reset()
+			}
+		})
+
+		It("empty", func() {
+			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("error, impls.GetUnmarshalledResourceExpression fail", func() {
+			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+				func(expression, signature string) (condition.Condition, error) {
+					return nil, errors.New("the error")
+
+				})
+
+			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{
+				{
+					Version:             "1",
+					ID:                  1,
+					Expression:          "",
+					ExpressionSignature: "",
+					ExpiredAt:           0,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "the error", err.Error())
+		})
+
+		It("error, getConditionAttrKeys fail", func() {
+			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return nil, errors.New("the error2")
+				})
+
+			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "the error2")
+		})
+
+		It("error, pip.QueryRemoteResourceAttribute fail", func() {
+			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+				func(expression, signature string) (condition.Condition, error) {
+					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
+
+				})
+
+			patches.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return []string{"isUp"}, nil
+				})
+
+			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
+				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+					return nil, errors.New("the error3")
+				})
+
+			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "the error3")
+		})
+
+		It("ok", func() {
+			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+				func(expression, signature string) (condition.Condition, error) {
+					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
+
+				})
+
+			patches.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return []string{"isUp"}, nil
+				})
+
+			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
+				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+					return map[string]interface{}{"hello": "world"}, nil
+				})
+
+			attrs, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), map[string]interface{}{"hello": "world"}, attrs)
+		})
 
 	})
 
 	Describe("queryExtResourceAttrs", func() {
+		var resource *types.ExtResource
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			resource = &types.ExtResource{
+				System: "bk_cmdb",
+				Type:   "host",
+				IDs:    []string{"1", "2"},
+			}
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			if patches != nil {
+				patches.Reset()
+			}
+		})
+
+		It("getConditionAttrKeys fail", func() {
+			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return nil, errors.New("the error")
+				})
+
+			_, err := queryExtResourceAttrs(resource, []condition.Condition{})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "the error")
+		})
+
+		It("pip.BatchQueryRemoteResourcesAttribute fail", func() {
+			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return []string{"id"}, nil
+				})
+
+			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
+				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+					return nil, errors.New("the error2")
+				})
+
+			_, err := queryExtResourceAttrs(resource, []condition.Condition{})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "the error2")
+		})
+
+		It("ok", func() {
+			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+					return []string{"id"}, nil
+				})
+
+			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
+				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+					return []map[string]interface{}{{"hello": "world"}}, nil
+				})
+
+			resources, err := queryExtResourceAttrs(resource, []condition.Condition{})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []map[string]interface{}{{"hello": "world"}}, resources)
+
+		})
 
 	})
+
+	Describe("getConditionAttrKeys", func() {
+		var resource *types.Resource
+		BeforeEach(func() {
+			resource = &types.Resource{
+				System:    "bk_cmdb",
+				Type:      "host",
+				ID:        "1",
+				Attribute: nil,
+			}
+		})
+		It("empty", func() {
+			keys, err := getConditionAttrKeys(resource, []condition.Condition{})
+			assert.NoError(GinkgoT(), err)
+			assert.Empty(GinkgoT(), keys)
+		})
+
+		It("one condition", func() {
+			keys, err := getConditionAttrKeys(resource, []condition.Condition{
+				condition.NewBoolCondition("bk_cmdb.host.isUp", true),
+			})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), keys, 1)
+			assert.Equal(GinkgoT(), "isUp", keys[0])
+		})
+
+		It("two condition", func() {
+			keys, err := getConditionAttrKeys(resource, []condition.Condition{
+				condition.NewBoolCondition("bk_cmdb.host.isUp", true),
+				condition.NewBoolCondition("bk_cmdb.host.isDown", false),
+				condition.NewBoolCondition("bk_cmdb.module.isOk", false),
+			})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), keys, 2)
+			assert.ElementsMatch(GinkgoT(), []string{"isUp", "isDown"}, keys)
+		})
+
+	})
+
 })

@@ -8,13 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package evaluation_test
+package evaluation
 
 import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/pdp/evaluation"
+	"iam/pkg/abac/pdp/condition"
+
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
@@ -24,9 +25,10 @@ import (
 
 var _ = Describe("Evaluation", func() {
 
-	var c *pdptypes.ExprContext
+	var c *pdptypes.EvalContext
 	var policy types.AuthPolicy
 	willPassPolicy := types.AuthPolicy{
+		ID: 1,
 		Expression: `[
 						{
 							"system": "iam",
@@ -77,6 +79,20 @@ var _ = Describe("Evaluation", func() {
 		ExpressionSignature: "7dc6d19025f790d4509e6b732ed624a9",
 		ExpiredAt:           0,
 	}
+	willErrorPolicy := types.AuthPolicy{
+		Expression: `[
+						{
+							"system": "iam",
+							"type": "job",
+							"expression": {
+								"NotExists": {
+								}
+							}
+						}
+					]`,
+		ExpressionSignature: "7dc6d19025f790d4509e6b732ed624a9",
+		ExpiredAt:           0,
+	}
 
 	BeforeEach(func() {
 		request := &request.Request{
@@ -89,6 +105,17 @@ var _ = Describe("Evaluation", func() {
 				ID:        "execute_job",
 				Attribute: types.NewActionAttribute(),
 			},
+			Resources: []types.Resource{
+				{
+					System: "iam",
+					Type:   "job",
+					ID:     "job1",
+					Attribute: map[string]interface{}{
+						"system": "linux",
+						"path":   []interface{}{"/biz,1/set,2/", "/biz,1/set,3/"},
+					},
+				},
+			},
 		}
 		request.Action.Attribute.SetResourceTypes([]types.ActionResourceType{
 			{
@@ -96,27 +123,19 @@ var _ = Describe("Evaluation", func() {
 				Type:   "job",
 			},
 		})
-		resource := &types.Resource{
-			System: "iam",
-			Type:   "job",
-			ID:     "job1",
-			Attribute: map[string]interface{}{
-				"system": "linux",
-				"path":   []interface{}{"/biz,1/set,2/", "/biz,1/set,3/"},
-			},
-		}
-		c = pdptypes.NewExprContext(request, resource)
+		c = pdptypes.NewEvalContext(request)
 		policy = types.AuthPolicy{
 			Expression: "",
 		}
 
 		impls.LocalUnmarshaledExpressionCache = memory.NewMockCache(impls.UnmarshalExpression)
 	})
+
 	Describe("EvalPolicies", func() {
 		It("no policies", func() {
-			allowed, id, err := evaluation.EvalPolicies(c, []types.AuthPolicy{})
+			allowed, policyID, err := EvalPolicies(c, []types.AuthPolicy{})
 			assert.False(GinkgoT(), allowed)
-			assert.Equal(GinkgoT(), int64(-1), id)
+			assert.Equal(GinkgoT(), int64(-1), policyID)
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -125,9 +144,10 @@ var _ = Describe("Evaluation", func() {
 				willPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, policyID, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), int64(1), policyID)
 		})
 
 		It("ok, one policy not pass", func() {
@@ -135,8 +155,9 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, policyID, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(-1), policyID)
 			assert.False(GinkgoT(), allowed)
 		})
 
@@ -146,9 +167,10 @@ var _ = Describe("Evaluation", func() {
 				willNotPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, policyID, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), int64(1), policyID)
 		})
 
 		It("ok, one fail, one pass", func() {
@@ -157,88 +179,45 @@ var _ = Describe("Evaluation", func() {
 				willPassPolicy,
 			}
 
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
+			allowed, policyID, err := EvalPolicies(c, policies)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), int64(1), policyID)
 		})
 
-		It("fail, EvalPolicy err", func() {
+		It("fail, evalPolicy err", func() {
 			policies := []types.AuthPolicy{
-				willPassPolicy,
+				willErrorPolicy,
 			}
-			c.Resource = nil
-			allowed, _, err := evaluation.EvalPolicies(c, policies)
-			assert.Error(GinkgoT(), err)
+			allowed, _, err := EvalPolicies(c, policies)
+			// will skip the policy, only log.debug
+			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
 
 	})
 
-	Describe("FilterPolicies", func() {
-		It("ok, one policy pass", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-			}
-
-			ps, err := evaluation.FilterPolicies(c, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), ps, 1)
-		})
-
-		It("ok, one policy not pass", func() {
-			policies := []types.AuthPolicy{
-				willNotPassPolicy,
-			}
-
-			ps, err := evaluation.FilterPolicies(c, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Empty(GinkgoT(), ps)
-		})
-
-		It("ok, one pass, one fail", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-				willNotPassPolicy,
-			}
-
-			ps, err := evaluation.FilterPolicies(c, policies)
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), ps, 1)
-		})
-
-		It("fail, EvalPolicy err", func() {
-			policies := []types.AuthPolicy{
-				willPassPolicy,
-			}
-			c.Resource = nil
-			ps, err := evaluation.FilterPolicies(c, policies)
-			assert.Error(GinkgoT(), err)
-			assert.Empty(GinkgoT(), ps)
-		})
-	})
-
-	Describe("EvalPolicy", func() {
-
+	Describe("evalPolicy", func() {
 		It("ctx.Action.WithoutResourceType", func() {
 			c.Action.FillAttributes(1, []types.ActionResourceType{})
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
 
-		It("ctx.Resource == nil", func() {
-			c.Resource = nil
-			allowed, err := evaluation.EvalPolicy(c, policy)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "get resource nil")
+		It("has no resources", func() {
+			c.Resources = []types.Resource{}
+			allowed, err := evalPolicy(c, policy)
 			assert.False(GinkgoT(), allowed)
+			assert.Contains(GinkgoT(), err.Error(), "get not resource in request")
+
 		})
 
-		It("ParseResourceConditionFromExpression fail", func() {
+		It("impls.GetUnmarshalledResourceExpression fail", func() {
 			policy = types.AuthPolicy{
 				Expression: "123",
 			}
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.Error(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
@@ -270,7 +249,7 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "33268b97074629d05fda196e2f7e59d2",
 			}
 
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
@@ -302,10 +281,170 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "cfeeb810bf45de623f8007d25d25293a",
 			}
 
-			allowed, err := evaluation.EvalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy)
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
 
 	})
+
+	Describe("PartialEvalPolicies", func() {
+		It("ok, one policy pass", func() {
+			policies := []types.AuthPolicy{
+				willPassPolicy,
+			}
+
+			ps, policyIDs, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+			assert.Len(GinkgoT(), policyIDs, 1)
+		})
+
+		It("ok, one policy not pass", func() {
+			policies := []types.AuthPolicy{
+				willNotPassPolicy,
+			}
+
+			ps, policyIDs, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Empty(GinkgoT(), ps)
+			assert.Empty(GinkgoT(), policyIDs)
+		})
+
+		It("ok, one pass, one fail", func() {
+			policies := []types.AuthPolicy{
+				willPassPolicy,
+				willNotPassPolicy,
+			}
+
+			ps, policyIDs, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+			assert.Len(GinkgoT(), policyIDs, 1)
+		})
+
+		It("ok, one pass, one fail", func() {
+			policies := []types.AuthPolicy{
+				willNotPassPolicy,
+				willPassPolicy,
+			}
+
+			ps, policyIDs, err := PartialEvalPolicies(c, policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), ps, 1)
+			assert.Len(GinkgoT(), policyIDs, 1)
+		})
+
+		It("fail, evalPolicy err", func() {
+			policies := []types.AuthPolicy{
+				willErrorPolicy,
+			}
+			ps, policyIDs, err := PartialEvalPolicies(c, policies)
+			// will skip the error
+			assert.NoError(GinkgoT(), err)
+			assert.Empty(GinkgoT(), ps)
+			assert.Empty(GinkgoT(), policyIDs)
+		})
+	})
+
+	// TODO: partialEvalPolicy
+	Describe("partialEvalPolicy", func() {
+		It("ctx.Action.WithoutResourceType", func() {
+			c.Action.FillAttributes(1, []types.ActionResourceType{})
+			allowed, cond, err := partialEvalPolicy(c, policy)
+			assert.NoError(GinkgoT(), err)
+			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
+		})
+
+		It("has no resources in ctx", func() {
+			c.Resources = []types.Resource{}
+			allowed, cond, err := partialEvalPolicy(c, policy)
+			assert.NoError(GinkgoT(), err)
+			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
+		})
+
+		It("ok, any", func() {
+			allowed, cond, err := partialEvalPolicy(c, policy)
+			assert.NoError(GinkgoT(), err)
+			assert.True(GinkgoT(), allowed)
+			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
+		})
+
+		Describe("single condition", func() {
+
+			It("true", func() {
+				policy := types.AuthPolicy{
+					ID: 100,
+					Expression: `[
+						{
+							"system": "iam",
+							"type": "job",
+							"expression": {
+								"StringEquals": {
+									"system": ["linux"]
+								}
+							}
+						}
+					]`,
+					ExpressionSignature: "7c1af23ce3f3664789c5d698f8c3f0d5",
+				}
+
+				allowed, cond, err := partialEvalPolicy(c, policy)
+				assert.NoError(GinkgoT(), err)
+				assert.True(GinkgoT(), allowed)
+				assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
+			})
+
+			It("false", func() {
+				policy := types.AuthPolicy{
+					ID: 100,
+					Expression: `[
+						{
+							"system": "iam",
+							"type": "job",
+							"expression": {
+								"StringEquals": {
+									"system": ["windows"]
+								}
+							}
+						}
+					]`,
+					ExpressionSignature: "7c1af23ce3f3664789c5d698f8c3f0d5",
+				}
+
+				allowed, cond, err := partialEvalPolicy(c, policy)
+				assert.NoError(GinkgoT(), err)
+				assert.False(GinkgoT(), allowed)
+				assert.Nil(GinkgoT(), cond)
+			})
+
+			It("resource not match", func() {
+				policy := types.AuthPolicy{
+					ID: 100,
+					Expression: `[
+						{
+							"system": "iam",
+							"type": "host",
+							"expression": {
+								"StringEquals": {
+									"region": ["sh"]
+								}
+							}
+						}
+					]`,
+					ExpressionSignature: "609d10bfe269ee71bb708209696572f9",
+				}
+
+				allowed, cond, err := partialEvalPolicy(c, policy)
+				assert.NoError(GinkgoT(), err)
+				assert.True(GinkgoT(), allowed)
+				assert.NotNil(GinkgoT(), cond)
+			})
+
+		})
+
+	})
+
 })

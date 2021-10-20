@@ -20,19 +20,10 @@ import (
 
 var _ = Describe("Context", func() {
 
-	Describe("NewExprContext", func() {
-		It("ok", func() {
-			ctx := &request.Request{}
-			resource := &types.Resource{}
-			ec := NewExprContext(ctx, resource)
-			assert.NotNil(GinkgoT(), ec)
-		})
-
-	})
-
-	var c *ExprContext
+	var req *request.Request
+	var c *EvalContext
 	BeforeEach(func() {
-		request := &request.Request{
+		req = &request.Request{
 			System: "iam",
 			Subject: types.Subject{
 				Type: "user",
@@ -41,113 +32,70 @@ var _ = Describe("Context", func() {
 			Action: types.Action{
 				ID: "execute_job",
 			},
+			Resources: []types.Resource{
+				{
+
+					System:    "iam",
+					Type:      "job",
+					ID:        "job1",
+					Attribute: map[string]interface{}{"key": "value1"},
+				},
+			},
 		}
-		resource := &types.Resource{
-			System:    "iam",
-			Type:      "job",
-			ID:        "job1",
-			Attribute: map[string]interface{}{"key": "value1"},
-		}
-		c = NewExprContext(request, resource)
+		c = NewEvalContext(req)
+	})
+
+	Describe("NewEvalContext", func() {
+		It("no resources", func() {
+			req := &request.Request{}
+			ec := NewEvalContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
+		It("ok, has resource", func() {
+			ec := NewEvalContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
+		It("ok, has resource, attribute nil", func() {
+			req := &request.Request{
+				Resources: []types.Resource{
+					{
+						ID:        "test",
+						Attribute: nil,
+					},
+				},
+			}
+			ec := NewEvalContext(req)
+			assert.NotNil(GinkgoT(), ec)
+		})
+
 	})
 
 	Describe("GetAttr", func() {
 		It("ok", func() {
-			a, err := c.GetAttr("id")
+			a, err := c.GetAttr("iam.job.id")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "job1", a)
 		})
 
+		It("miss", func() {
+			a, err := c.GetAttr("bk_cmdb.job.id")
+			assert.NoError(GinkgoT(), err)
+			assert.Nil(GinkgoT(), a)
+		})
 	})
 
-	Describe("getResourceAttr", func() {
-		It("ok id", func() {
-			a, err := c.getResourceAttr("id")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "job1", a)
-		})
-		It("ok type", func() {
-			a, err := c.getResourceAttr("type")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), nil, a)
-		})
-		It("ok others", func() {
-			a, err := c.getResourceAttr("key")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "value1", a)
+	Describe("HasResource", func() {
+		It("ok", func() {
+			assert.True(GinkgoT(), c.HasResource("iam.job"))
 		})
 
-		It("fail not exists", func() {
-			a, err := c.getResourceAttr("notExists")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), nil, a)
+		It("miss", func() {
+			assert.False(GinkgoT(), c.HasResource("bk_cmdb.job"))
+
 		})
 
 	})
 
-	//Describe("GetFullNameAttr", func() {
-	//
-	//	It("invalid name", func() {
-	//		_, err := c.GetFullNameAttr("a")
-	//		assert.Error(GinkgoT(), err)
-	//	})
-	//
-	//	It("name not support", func() {
-	//		_, err := c.GetFullNameAttr("environment.a")
-	//		assert.Error(GinkgoT(), err)
-	//		assert.Contains(GinkgoT(), err.Error(), "name not support")
-	//	})
-	//
-	//	It("ok resource attr", func() {
-	//		a, err := c.GetFullNameAttr("resource.id")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "job1", a)
-	//	})
-	//
-	//	It("ok action attr", func() {
-	//		a, err := c.GetFullNameAttr("action.id")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "execute_job", a)
-	//	})
-	//
-	//	It("ok subject attr", func() {
-	//		a, err := c.GetFullNameAttr("subject.id")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "admin", a)
-	//	})
-	//
-	//})
-
-	//Describe("getActionAttr", func() {
-	//	It("ok id", func() {
-	//		a, err := c.getActionAttr("id")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "execute_job", a)
-	//	})
-	//	It("fail not support", func() {
-	//		a, err := c.getActionAttr("notExists")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), nil, a)
-	//	})
-	//
-	//})
-	//Describe("getSubjectAttr", func() {
-	//	It("ok id", func() {
-	//		a, err := c.getSubjectAttr("id")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "admin", a)
-	//	})
-	//	It("ok type", func() {
-	//		a, err := c.getSubjectAttr("type")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), "user", a)
-	//	})
-	//
-	//	It("fail not exists", func() {
-	//		a, err := c.getSubjectAttr("notExists")
-	//		assert.NoError(GinkgoT(), err)
-	//		assert.Equal(GinkgoT(), nil, a)
-	//	})
-	//
-	//})
 })
