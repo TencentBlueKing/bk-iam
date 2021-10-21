@@ -12,6 +12,7 @@ package translate
 
 import (
 	"fmt"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -100,19 +101,14 @@ func ConditionsTranslate(
 	}
 }
 
-func expressionToCondition(expr string) (condition.Condition, error) {
+func oldExprToCondition(expr string) (condition.Condition, error) {
 	expressions := []pdptypes.ResourceExpression{}
-
-	// NOTE: if expression == "" or expression == "[]", all return any
-	// if action without resource_types, the expression is ""
-	if expr != "" {
-		err := jsoniter.UnmarshalFromString(expr, &expressions)
-		// 无效的policy条件表达式, 容错
-		if err != nil {
-			err = fmt.Errorf("unmarshalFromString fail expr: %s error: %w",
-				expr, err)
-			return nil, err
-		}
+	err := jsoniter.UnmarshalFromString(expr, &expressions)
+	// 无效的policy条件表达式, 容错
+	if err != nil {
+		err = fmt.Errorf("unmarshalFromString old expr fail! expr: %s error: %w",
+			expr, err)
+		return nil, err
 	}
 
 	content := make([]condition.Condition, 0, len(expressions))
@@ -126,7 +122,7 @@ func expressionToCondition(expr string) (condition.Condition, error) {
 		c, err2 := condition.NewConditionFromPolicyCondition(pc)
 		// 表达式解析出错, 容错
 		if err2 != nil {
-			return nil, fmt.Errorf("newConditionFromPolicyCondition error: %w", err2)
+			return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
 		}
 		content = append(content, c)
 	}
@@ -140,6 +136,40 @@ func expressionToCondition(expr string) (condition.Condition, error) {
 	} else {
 		return condition.NewAndCondition(content), nil
 	}
+}
+
+func newExprToCondition(expr string) (condition.Condition, error) {
+	pc := pdptypes.PolicyCondition{}
+	err := jsoniter.UnmarshalFromString(expr, &pc)
+	// 无效的policy条件表达式, 容错
+	if err != nil {
+		err = fmt.Errorf("unmarshalFromString new expr fail! expr: %s error: %w",
+			expr, err)
+		return nil, err
+	}
+
+	cond, err2 := condition.NewConditionFromPolicyCondition(pc)
+	// 表达式解析出错, 容错
+	if err2 != nil {
+		return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
+	}
+	return cond, nil
+
+}
+
+func expressionToCondition(expr string) (condition.Condition, error) {
+	// NOTE: if expression == "" or expression == "[]", all return any
+	// if action without resource_types, the expression is ""
+	if expr == "" || expr == "[]" {
+		return condition.NewAnyCondition(), nil
+	}
+
+	// 需要兼容, 从 "{}" 转成一个condition
+	if strings.IndexByte(expr, '{') == 0 {
+		return newExprToCondition(expr)
+	}
+
+	return oldExprToCondition(expr)
 }
 
 func PolicyExpressionTranslate(expr string) (ExprCell, error) {

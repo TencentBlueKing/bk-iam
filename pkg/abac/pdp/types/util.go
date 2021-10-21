@@ -56,6 +56,7 @@ map[string]map[string][]interface{}{
 	}
 }
 
+注意, 新版完备表达式, 其field格式 {system}.{type}.id
 */
 
 var ErrTypeAssertFail = errors.New("type assert fail")
