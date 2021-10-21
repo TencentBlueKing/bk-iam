@@ -13,10 +13,10 @@ package translate
 import (
 	"testing"
 
-	"iam/pkg/abac/pdp/condition"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/abac/pdp/condition"
 )
 
 var _ = Describe("Expression", func() {
@@ -83,29 +83,27 @@ var _ = Describe("Expression", func() {
 
 	})
 
-	Describe("expressionToConditions", func() {
-		var anyConditions []condition.Condition
+	Describe("expressionToCondition", func() {
+		var anyCondition condition.Condition
 
 		BeforeEach(func() {
-			anyConditions = []condition.Condition{
-				condition.NewAnyCondition(),
-			}
+			anyCondition = condition.NewAnyCondition()
 		})
 
 		It("ok, any, expression=``", func() {
-			conds, err := expressionToConditions("")
+			cond, err := expressionToCondition("")
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), anyConditions, conds)
+			assert.Equal(GinkgoT(), anyCondition, cond)
 		})
 
 		It("ok, any, expression=`[]`", func() {
-			conds, err := expressionToConditions("[]")
+			cond, err := expressionToCondition("[]")
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), anyConditions, conds)
+			assert.Equal(GinkgoT(), anyCondition, cond)
 		})
 
 		It("fail, wrong expression", func() {
-			_, err := expressionToConditions("123")
+			_, err := expressionToCondition("123")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString fail expr")
 		})
@@ -118,10 +116,9 @@ var _ = Describe("Expression", func() {
 				"field": "bk_cmdb.biz.id",
 				"value": "2",
 			}
-			conds, err := expressionToConditions(resourceExpression)
+			cond, err := expressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), conds, 1)
-			got, err := conds[0].Translate(true)
+			got, err := cond.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
@@ -129,7 +126,7 @@ var _ = Describe("Expression", func() {
 		It("fail, singleTranslate fail", func() {
 			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
 
-			_, err := expressionToConditions(resourceExpression)
+			_, err := expressionToCondition(resourceExpression)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "newConditionFromPolicyCondition error: can not support operator NotExist")
 		})
@@ -138,24 +135,20 @@ var _ = Describe("Expression", func() {
 			resourceExpression := `[{"system":"bk_sops","type":"common_flow","expression":{"Any":{"id":[]}}},
 		{"system":"bk_sops","type":"project","expression":{"Any":{"id":[]}}}]`
 
-			want0 := ExprCell{
-				"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{},
+			want := map[string]interface{}{
+				"op": "AND",
+				"content": []map[string]interface{}{
+					{"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{}},
+					{"field": "bk_sops.project.id", "op": "any", "value": []interface{}{}},
+				},
 			}
-			want1 := ExprCell{
-				"field": "bk_sops.project.id", "op": "any", "value": []interface{}{},
-			}
 
-			conds, err := expressionToConditions(resourceExpression)
+			cond, err := expressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), conds, 2)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
 
-			got0, err := conds[0].Translate(true)
-			assert.NoError(GinkgoT(), err)
-			assert.EqualValues(GinkgoT(), want0, got0)
-
-			got1, err := conds[1].Translate(true)
-			assert.NoError(GinkgoT(), err)
-			assert.EqualValues(GinkgoT(), want1, got1)
 		})
 
 	})

@@ -100,7 +100,7 @@ func ConditionsTranslate(
 	}
 }
 
-func expressionToConditions(expr string) ([]condition.Condition, error) {
+func expressionToCondition(expr string) (condition.Condition, error) {
 	expressions := []pdptypes.ResourceExpression{}
 
 	// NOTE: if expression == "" or expression == "[]", all return any
@@ -135,34 +135,28 @@ func expressionToConditions(expr string) ([]condition.Condition, error) {
 		content = append(content, condition.NewAnyCondition())
 	}
 
-	return content, nil
-
-}
-
-func PolicyExpressionTranslate(expr string) (ExprCell, error) {
-	content, err := expressionToConditions(expr)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(content) == 1 {
-		return content[0].Translate(defaultWithSystem)
-	} else {
-		return condition.NewAndCondition(content).Translate(defaultWithSystem)
-	}
-}
-
-func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
-	content, err := expressionToConditions(expr)
-	if err != nil {
-		return nil, err
-	}
-
 	if len(content) == 1 {
 		return content[0], nil
 	} else {
 		return condition.NewAndCondition(content), nil
 	}
+}
+
+func PolicyExpressionTranslate(expr string) (ExprCell, error) {
+	condition, err := expressionToCondition(expr)
+	if err != nil {
+		return nil, err
+	}
+	return condition.Translate(defaultWithSystem)
+}
+
+func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
+	condition, err := expressionToCondition(expr)
+	if err != nil {
+		return nil, err
+	}
+
+	return condition, nil
 }
 
 func mergeContentField(content []ExprCell) []ExprCell {
