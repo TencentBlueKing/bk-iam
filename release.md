@@ -1,6 +1,6 @@
 # 1.8.9
 
-- bugfix: AlterCustomPolicies create batch policy with action without resource return 500
+- bugfix: AlterCustomPolicies create batch policies with action without resource return 500
 
 # 1.8.8
 

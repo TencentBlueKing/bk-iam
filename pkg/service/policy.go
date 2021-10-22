@@ -239,6 +239,13 @@ func (s *policyService) AlterCustomPolicies(
 
 	daoCreateExpressions := make([]dao.Expression, 0, len(createPolicies))
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
+
+	// 记录需要创建的policy与expression的索引关系
+	type policyExpressionIndex struct {
+		policyIndex     int
+		expressionIndex int
+	}
+	policyExpressionIndexes := make([]policyExpressionIndex, 0, len(createPolicies))
 	for _, p := range createPolicies {
 		// 操作有关联资源类型
 		if actionPKWithResourceTypeSet.Has(p.ActionPK) {
@@ -252,6 +259,11 @@ func (s *policyService) AlterCustomPolicies(
 				SubjectPK: p.SubjectPK,
 				ActionPK:  p.ActionPK,
 				ExpiredAt: p.ExpiredAt,
+			})
+
+			policyExpressionIndexes = append(policyExpressionIndexes, policyExpressionIndex{
+				policyIndex:     len(daoCreatePolicies) - 1,
+				expressionIndex: len(daoCreateExpressions) - 1,
 			})
 		} else {
 			// 无关联资源的自定义权限, expression 为 -1, 不创建expression对象
@@ -316,17 +328,9 @@ func (s *policyService) AlterCustomPolicies(
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
 		return
 	}
-	/*
-		NOTE: 虽然daoCreatePolicies与daoCreateExpressions的长度不同
-		但是基于daoCreatePolicies与daoCreateExpressions的顺序是一致的, daoCreatePolicies中间可能会间隔ExpressionPK == -1的策略
-		只要依次取ExpressionPK == 0不同的下一个expressionPK的索引, 就可以获取到正确的expressionPK
-	*/
-	var expressionPKIndex int = 0
-	for i := range daoCreatePolicies {
-		if daoCreatePolicies[i].ExpressionPK == 0 {
-			daoCreatePolicies[i].ExpressionPK = expressionPKs[expressionPKIndex]
-			expressionPKIndex++
-		}
+	// 根据已记录的索引关系填充policy的expressionPK
+	for _, index := range policyExpressionIndexes {
+		daoCreatePolicies[index.policyIndex].ExpressionPK = expressionPKs[index.expressionIndex]
 	}
 
 	err = s.manager.BulkCreateWithTx(tx, daoCreatePolicies)
