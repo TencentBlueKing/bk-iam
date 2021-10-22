@@ -316,9 +316,16 @@ func (s *policyService) AlterCustomPolicies(
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
 		return
 	}
+	/*
+		NOTE: 虽然daoCreatePolicies与daoCreateExpressions的长度不同
+		但是基于daoCreatePolicies与daoCreateExpressions的顺序是一致的, daoCreatePolicies中间可能会间隔ExpressionPK == -1的策略
+		只要依次取ExpressionPK == 0不同的下一个expressionPK的索引, 就可以获取到正确的expressionPK
+	*/
+	var expressionPKIndex int
 	for i := range daoCreatePolicies {
 		if daoCreatePolicies[i].ExpressionPK == 0 {
-			daoCreatePolicies[i].ExpressionPK = expressionPKs[i]
+			daoCreatePolicies[i].ExpressionPK = expressionPKs[expressionPKIndex]
+			expressionPKIndex++
 		}
 	}
 
