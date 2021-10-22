@@ -1,3 +1,7 @@
+# 1.8.9
+
+- bugfix: AlterCustomPolicies create batch policies with action without resource return 500
+
 # 1.8.8
 
 - upgrade: change local subject pk get from redis first, instead of db first
