@@ -83,9 +83,37 @@ func (c *NumericCompareCondition) GetName() string {
 
 // Eval 求值
 func (c *NumericCompareCondition) Eval(ctx types.EvalContextor) bool {
-	return c.forOr(ctx, func(a, b interface{}) bool {
-		return c.compareFunc(a, b)
-	})
+	if c.name == operator.NumericEquals {
+		return c.forOr(ctx, func(a, b interface{}) bool {
+			return c.compareFunc(a, b)
+		})
+	}
+
+	// NOTE: >/>=/</<=的表达式value只允许配置一个
+	exprValues := c.GetValues()
+	if len(exprValues) != 1 {
+		return false
+	}
+	exprValue := exprValues[0]
+
+	attrValue, err := ctx.GetAttr(c.Key)
+	if err != nil {
+		return false
+	}
+
+	switch vs := attrValue.(type) {
+	case []interface{}: // 处理属性为array的情况
+		for _, av := range vs {
+			if c.compareFunc(av, exprValue) {
+				return true
+			}
+		}
+	default:
+		if c.compareFunc(attrValue, exprValue) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *NumericCompareCondition) Translate(withSystem bool) (map[string]interface{}, error) {

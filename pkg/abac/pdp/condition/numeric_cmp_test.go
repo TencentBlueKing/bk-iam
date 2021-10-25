@@ -32,10 +32,12 @@ var _ = Describe("NumericCompare", func() {
 		key = "ok"
 		values = []interface{}{1, 2}
 		eqCondition, _ = newNumericEqualsCondition(key, values)
-		gtCondition, _ = newNumericGreaterThanCondition(key, values)
-		gteCondition, _ = newNumericGreaterThanEqualsCondition(key, values)
-		ltCondition, _ = newNumericLessThanCondition(key, values)
-		lteCondition, _ = newNumericLessThanEqualsCondition(key, values)
+
+		singleValues := []interface{}{2}
+		gtCondition, _ = newNumericGreaterThanCondition(key, singleValues)
+		gteCondition, _ = newNumericGreaterThanEqualsCondition(key, singleValues)
+		ltCondition, _ = newNumericLessThanCondition(key, singleValues)
+		lteCondition, _ = newNumericLessThanEqualsCondition(key, singleValues)
 	})
 
 	It("newNumericCompareCondition", func() {
@@ -95,18 +97,16 @@ var _ = Describe("NumericCompare", func() {
 			assert.True(GinkgoT(), gtCondition.Eval(intCtx(3)))
 			assert.True(GinkgoT(), gtCondition.Eval(intCtx(4)))
 
-			assert.True(GinkgoT(), gteCondition.Eval(intCtx(1)))
 			assert.True(GinkgoT(), gteCondition.Eval(intCtx(2)))
 			assert.True(GinkgoT(), gteCondition.Eval(intCtx(3)))
 			assert.True(GinkgoT(), gteCondition.Eval(intCtx(4)))
 
 			assert.True(GinkgoT(), ltCondition.Eval(intCtx(0)))
-			assert.True(GinkgoT(), ltCondition.Eval(intCtx(-1)))
+			assert.True(GinkgoT(), ltCondition.Eval(intCtx(1)))
 
+			assert.True(GinkgoT(), lteCondition.Eval(intCtx(0)))
 			assert.True(GinkgoT(), lteCondition.Eval(intCtx(1)))
 			assert.True(GinkgoT(), lteCondition.Eval(intCtx(2)))
-			assert.True(GinkgoT(), lteCondition.Eval(intCtx(0)))
-			assert.True(GinkgoT(), lteCondition.Eval(intCtx(-1)))
 		})
 
 		It("false", func() {
@@ -114,15 +114,13 @@ var _ = Describe("NumericCompare", func() {
 
 			assert.False(GinkgoT(), gtCondition.Eval(intCtx(0)))
 			assert.False(GinkgoT(), gtCondition.Eval(intCtx(1)))
-			// one true, return true
-			//assert.False(GinkgoT(), gtCondition.Eval(intCtx(2)))
+			assert.False(GinkgoT(), gtCondition.Eval(intCtx(2)))
 
 			assert.False(GinkgoT(), gteCondition.Eval(intCtx(0)))
+			assert.False(GinkgoT(), gteCondition.Eval(intCtx(1)))
 
-			assert.False(GinkgoT(), ltCondition.Eval(intCtx(3)))
-			// one true, return true
-			//assert.False(GinkgoT(), ltCondition.Eval(intCtx(1)))
 			assert.False(GinkgoT(), ltCondition.Eval(intCtx(2)))
+			assert.False(GinkgoT(), ltCondition.Eval(intCtx(3)))
 
 			assert.False(GinkgoT(), lteCondition.Eval(intCtx(3)))
 		})
@@ -146,16 +144,16 @@ var _ = Describe("NumericCompare", func() {
 			assert.False(GinkgoT(), gtCondition.Eval(listCtx{0, 1}))
 
 			// gte
-			assert.True(GinkgoT(), gteCondition.Eval(listCtx{1, 2}))
+			assert.True(GinkgoT(), gteCondition.Eval(listCtx{3, 4}))
 			//  - one true, all true
-			assert.True(GinkgoT(), gteCondition.Eval(listCtx{1, 0}))
+			assert.True(GinkgoT(), gteCondition.Eval(listCtx{1, 2}))
 			//  - should all false
 			assert.False(GinkgoT(), gteCondition.Eval(listCtx{0, -1}))
 
 			// lt
 			assert.True(GinkgoT(), ltCondition.Eval(listCtx{0, -1}))
 			// - one true, all true
-			assert.True(GinkgoT(), ltCondition.Eval(listCtx{0, 1}))
+			assert.True(GinkgoT(), ltCondition.Eval(listCtx{0, 2}))
 			// - should all false
 			assert.False(GinkgoT(), ltCondition.Eval(listCtx{2, 3}))
 
@@ -165,7 +163,6 @@ var _ = Describe("NumericCompare", func() {
 			assert.True(GinkgoT(), ltCondition.Eval(listCtx{-1, 3}))
 			// - should all false
 			assert.False(GinkgoT(), ltCondition.Eval(listCtx{3, 4}))
-
 		})
 
 	})
