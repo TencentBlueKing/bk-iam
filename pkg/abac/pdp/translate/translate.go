@@ -181,12 +181,7 @@ func PolicyExpressionTranslate(expr string) (ExprCell, error) {
 }
 
 func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
-	condition, err := expressionToCondition(expr)
-	if err != nil {
-		return nil, err
-	}
-
-	return condition, nil
+	return expressionToCondition(expr)
 }
 
 func mergeContentField(content []ExprCell) []ExprCell {
