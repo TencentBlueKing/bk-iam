@@ -151,7 +151,7 @@ func (c *Cache) GetInto(key iamcache.Key, obj interface{}, retrieveFunc Retrieve
 	// 2.3 do retrieve fail, make guard and return
 	if err != nil {
 		// if retrieve fail, should wait for few seconds for the missing-retrieve
-		//c.makeGuard(key)
+		// c.makeGuard(key)
 		return
 	}
 

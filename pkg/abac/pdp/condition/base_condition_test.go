@@ -28,6 +28,16 @@ func (c intCtx) HasResource(_type string) bool {
 	return false
 }
 
+type int64Ctx int64
+
+func (c int64Ctx) GetAttr(key string) (interface{}, error) {
+	return int64(c), nil
+}
+
+func (c int64Ctx) HasResource(_type string) bool {
+	return false
+}
+
 type strCtx string
 
 func (c strCtx) GetAttr(key string) (interface{}, error) {
