@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "30ff41c7-83a0-4b7f-8cdf-d23cf3d226bc",
+		"_postman_id": "de597774-a23c-4ee6-85b4-e0e190ce4a80",
 		"name": "iam",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -7801,6 +7801,63 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n\t\"subject\": {\n\t\t\"type\": \"user\",\n\t\t\"id\": \"admin\"\n\t},\n\t\"create_policies\": [\n\t\t{\n\t\t\t\"action_id\": \"develop_app\",\n\t\t\t\"resource_expression\": \"[{\\\"system\\\": \\\"demo\\\", \\\"type\\\": \\\"app\\\", \\\"expression\\\": {\\\"OR\\\": {\\\"content\\\": [{\\\"Any\\\": {\\\"id\\\": []}}]}}}]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t}\n\t],\n\t\"update_policies\": [\n\t\t{\n\t\t\t\"id\": 2,\n\t\t\t\"action_id\": \"develop_app\",\n\t\t\t\"resource_expression\": \"[{\\\"system\\\": \\\"demo\\\", \\\"type\\\": \\\"app\\\", \\\"expression\\\": {\\\"OR\\\": {\\\"content\\\": [{\\\"Any\\\": {\\\"id\\\": []}}]}}}]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t}\n\t],\n\t\"delete_policy_ids\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/web/systems/demo/policies",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"web",
+								"systems",
+								"demo",
+								"policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "alter_policies_create_batch",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"create_subject\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"ok\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"type": "text",
+								"value": "{{app_code}}"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"type": "text",
+								"value": "{{app_secret}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"subject\": {\n\t\t\"type\": \"user\",\n\t\t\"id\": \"user100\"\n\t},\n\t\"create_policies\": [\n\t\t{\n\t\t\t\"action_id\": \"access_developer_center\",\n\t\t\t\"resource_expression\": \"[]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t},\n        {\n\t\t\t\"action_id\": \"develop_app\",\n\t\t\t\"resource_expression\": \"[{\\\"system\\\": \\\"demo\\\", \\\"type\\\": \\\"app\\\", \\\"expression\\\": {\\\"OR\\\": {\\\"content\\\": [{\\\"Any\\\": {\\\"id\\\": []}}]}}}]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t}\n\t],\n\t\"update_policies\": [\n\t],\n\t\"delete_policy_ids\": []\n}",
 							"options": {
 								"raw": {
 									"language": "json"
