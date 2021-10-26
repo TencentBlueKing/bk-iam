@@ -20,7 +20,6 @@ import (
 
 	"iam/pkg/config"
 	"iam/pkg/logging"
-	"iam/pkg/util"
 )
 
 func TestAuditLogger(t *testing.T) {
@@ -30,9 +29,12 @@ func TestAuditLogger(t *testing.T) {
 
 	r := gin.Default()
 	r.Use(Audit())
-	util.NewTestRouter(r)
+	//util.NewTestRouter(r)
+	r.PUT("/ping", func(c *gin.Context) {
+		c.String(200, "pong")
+	})
 
-	req, _ := http.NewRequest("GET", "/ping", nil)
+	req, _ := http.NewRequest("PUT", "/ping", nil)
 	w := httptest.NewRecorder()
 
 	r.ServeHTTP(w, req)

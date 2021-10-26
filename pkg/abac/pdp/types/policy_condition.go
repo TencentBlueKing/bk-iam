@@ -17,18 +17,22 @@ import (
 )
 
 /*
-policy 条件举例
+policyCondition 条件举例
 
 {
 	"StringEqual": {
-		"id": ["1", "2"]
+		"bk_iam.obj.id": ["1", "2"]
 	}
 }
+
+注意, 新版完备表达式, 其field格式 {system}.{type}.id
 */
 
 // PolicyCondition condition struct of policy single resource
 type PolicyCondition map[string]map[string][]interface{}
 
+// ToNewPolicyCondition parse old raw policyCondition (without system.type. prefix in each field) to new.
+// will be removed later, DO NOT USE IT IN ANY NEW CODES
 func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondition, error) {
 	/*
 		case 1, binary operator
@@ -79,7 +83,7 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 			pc[op] = map[string][]interface{}{
 				"content": newContent,
 			}
-		// NOTE: any is the same as other operatos
+		// NOTE: any is the same as other operators
 		//case "Any":
 		//	pc[op] = c
 		default:
@@ -102,8 +106,9 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 // ResourceExpression keep the expression with fields:system/type
 // will be removed later, DO NOT USE IT IN ANY NEW CODES
 type ResourceExpression struct {
-	System     string          `json:"system"`
-	Type       string          `json:"type"`
+	System string `json:"system"`
+	Type   string `json:"type"`
+	// this is the old raw PolicyCondition, without system.type. prefix in each fields
 	Expression PolicyCondition `json:"expression"`
 }
 
