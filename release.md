@@ -1,3 +1,9 @@
+# 1.9.0
+
+- refactor: pdp 模块重构, 完备的表达式, 支持两阶段计算
+- add: 支持新老版本表达式unmarshal
+- add: 支持gt/gte/lt/lte操作符
+
 # 1.8.9
 
 - bugfix: AlterCustomPolicies create batch policies with action without resource return 500
