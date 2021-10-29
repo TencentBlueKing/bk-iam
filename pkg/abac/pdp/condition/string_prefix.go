@@ -58,12 +58,17 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 		return strings.HasPrefix(aStr, bStr)
 	})
 }
+
 func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface{}, error) {
 	key := c.Key
 	if !withSystem {
 		key = removeSystemFromKey(key)
 	}
 
+	// NOTE: starts_with/ends_with/not_starts_with/not_ends_with should be
+	// 1. single value like: a starts_with x
+	// 2. multiple value like: a starts_with x OR a starts_with y
+	// NEVER BE `a starts_with [x, y]`
 	content := make([]map[string]interface{}, 0, len(c.Value))
 	for _, v := range c.Value {
 		content = append(content, map[string]interface{}{
