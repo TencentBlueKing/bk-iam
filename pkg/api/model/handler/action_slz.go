@@ -32,6 +32,13 @@ type relatedResourceType struct {
 	RelatedInstanceSelections []referenceInstanceSelection `json:"related_instance_selections" binding:"omitempty"`
 }
 
+// relatedEnvironment, currently only support `current_timestamp`.
+// if we support more types, should add a `validate` method, each type has different operators.
+type relatedEnvironment struct {
+	Type     string `json:"type" binding:"oneof=current_timestamp" example:"current_timestamp"`
+	Operator string `json:"operator" binding:"oneof=lte gte between" example:"lte"`
+}
+
 type actionSerializer struct {
 	ID     string `json:"id" binding:"required,max=32" example:"biz_create"`
 	Name   string `json:"name" binding:"required" example:"biz_create"`
@@ -44,6 +51,7 @@ type actionSerializer struct {
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
+	RelatedEnvironments  []relatedEnvironment  `json:"related_environments" binding:"omitempty"`
 
 	Version int64 `json:"version" binding:"omitempty,gte=1" example:"1"`
 }
@@ -58,7 +66,9 @@ type actionUpdateSerializer struct {
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
-	Version              int64                 `json:"version" binding:"omitempty,gte=1" example:"1"`
+	RelatedEnvironments  []relatedEnvironment  `json:"related_environments" binding:"omitempty"`
+
+	Version int64 `json:"version" binding:"omitempty,gte=1" example:"1"`
 }
 
 func (a *actionUpdateSerializer) validate(keys map[string]interface{}) (bool, string) {

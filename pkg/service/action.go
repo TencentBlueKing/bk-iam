@@ -133,6 +133,14 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 		Type:    dbAction.Type,
 		Version: dbAction.Version,
 	}
+
+	if dbAction.RelatedEnvironments != "" {
+		err = jsoniter.UnmarshalFromString(dbAction.RelatedEnvironments, &action.RelatedEnvironments)
+		if err != nil {
+			return action, errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", dbAction.RelatedEnvironments)
+		}
+	}
+
 	relatedResourceTypes := []types.ActionResourceType{}
 
 	for idx := range dbActionResourceTypes {
@@ -201,6 +209,12 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			err = jsoniter.UnmarshalFromString(ac.RelatedActions, &action.RelatedActions)
 			if err != nil {
 				return nil, errorWrapf(err, "unmarshal action.RelatedActions=`%+v` fail", ac.RelatedActions)
+			}
+		}
+		if ac.RelatedEnvironments != "" {
+			err = jsoniter.UnmarshalFromString(ac.RelatedEnvironments, &action.RelatedEnvironments)
+			if err != nil {
+				return nil, errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", ac.RelatedEnvironments)
 			}
 		}
 
@@ -294,17 +308,22 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 		if err1 != nil {
 			return errorWrapf(err1, "marshal action.RelatedActions=`%+v` fail", ac.RelatedActions)
 		}
+		relatedEnvironments, err2 := jsoniter.MarshalToString(ac.RelatedEnvironments)
+		if err2 != nil {
+			return errorWrapf(err1, "marshal action.RelatedEnvironments=`%+v` fail", ac.RelatedEnvironments)
+		}
 
 		dbSaaSActions = append(dbSaaSActions, sdao.SaaSAction{
-			System:         system,
-			ID:             ac.ID,
-			Name:           ac.Name,
-			NameEn:         ac.NameEn,
-			Description:    ac.Description,
-			DescriptionEn:  ac.DescriptionEn,
-			RelatedActions: relatedActions,
-			Type:           ac.Type,
-			Version:        ac.Version,
+			System:              system,
+			ID:                  ac.ID,
+			Name:                ac.Name,
+			NameEn:              ac.NameEn,
+			Description:         ac.Description,
+			DescriptionEn:       ac.DescriptionEn,
+			RelatedActions:      relatedActions,
+			RelatedEnvironments: relatedEnvironments,
+			Type:                ac.Type,
+			Version:             ac.Version,
 		})
 
 		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(system, ac)
@@ -416,16 +435,27 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 			return errorWrapf(err, "unmarshal action.RelatedActions=`%+v` fail", action.RelatedActions)
 		}
 	}
+	var relatedEnvironments string
+	if action.AllowEmptyFields.HasKey("RelatedEnvironments") {
+		allowBlank.AddKey("RelatedEnvironments")
+
+		var err1 error
+		relatedEnvironments, err1 = jsoniter.MarshalToString(action.RelatedEnvironments)
+		if err1 != nil {
+			return errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", action.RelatedEnvironments)
+		}
+	}
 
 	// 4. update saas action
 	data := sdao.SaaSAction{
-		Name:           action.Name,
-		NameEn:         action.NameEn,
-		Description:    action.Description,
-		DescriptionEn:  action.DescriptionEn,
-		Type:           action.Type,
-		Version:        action.Version,
-		RelatedActions: relatedActions,
+		Name:                action.Name,
+		NameEn:              action.NameEn,
+		Description:         action.Description,
+		DescriptionEn:       action.DescriptionEn,
+		Type:                action.Type,
+		Version:             action.Version,
+		RelatedActions:      relatedActions,
+		RelatedEnvironments: relatedEnvironments,
 
 		AllowBlankFields: allowBlank,
 	}

@@ -50,3 +50,14 @@ func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.Action
 	}
 	return arts
 }
+
+func convertToRelatedEnvironments(res []relatedEnvironment) []svctypes.ActionEnvironment {
+	aes := make([]svctypes.ActionEnvironment, 0, len(res))
+	for _, re := range res {
+		aes = append(aes, svctypes.ActionEnvironment{
+			Type:     re.Type,
+			Operator: re.Operator,
+		})
+	}
+	return aes
+}
