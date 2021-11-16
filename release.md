@@ -4,6 +4,10 @@
 - add: 支持新老版本表达式unmarshal
 - add: 支持gt/gte/lt/lte操作符
 
+# 1.8.10
+
+- upgrade: config template update cmdb resource limit
+
 # 1.8.9
 
 - bugfix: AlterCustomPolicies create batch policies with action without resource return 500
