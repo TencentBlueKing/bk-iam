@@ -105,6 +105,13 @@ func (a *actionUpdateSerializer) validate(keys map[string]interface{}) (bool, st
 		}
 	}
 
+	if len(a.RelatedEnvironments) > 0 {
+		valid, message := validateRelatedEnvironments(a.RelatedEnvironments, "")
+		if !valid {
+			return false, message
+		}
+	}
+
 	return true, "valid"
 }
 
@@ -120,33 +127,54 @@ func validateRelatedInstanceSelections(data []referenceInstanceSelection, action
 	return true, "valid"
 }
 
+func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bool, string) {
+	typeID := util.NewStringSet()
+	for index, d := range data {
+		if err := binding.Validator.ValidateStruct(d); err != nil {
+			message := fmt.Sprintf("data of action_id=%s related_environments[%d], %s",
+				actionID, index, util.ValidationErrorMessage(err))
+			return false, message
+		}
+
+		// 校验 data.ID 没有重复
+		if typeID.Has(d.Type) {
+			message := fmt.Sprintf("data of action_id=%s related_environments[%d] id should not repeat",
+				actionID, index)
+			return false, message
+		}
+
+		typeID.Add(d.Type)
+	}
+	return true, "valid"
+}
+
 func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (bool, string) {
 	resourceTypeID := util.NewStringSet()
-	for index, data := range data {
-		if err := binding.Validator.ValidateStruct(data); err != nil {
+	for index, d := range data {
+		if err := binding.Validator.ValidateStruct(d); err != nil {
 			message := fmt.Sprintf("data of action_id=%s related_resource_types[%d], %s",
 				actionID, index, util.ValidationErrorMessage(err))
 			return false, message
 		}
 
 		// 校验 data.ID 没有重复
-		if resourceTypeID.Has(data.ID) {
+		if resourceTypeID.Has(d.ID) {
 			message := fmt.Sprintf("data of action_id=%s related_resource_types[%d] id"+
 				" should not repeat",
 				actionID, index)
 			return false, message
 		}
 
-		resourceTypeID.Add(data.ID)
+		resourceTypeID.Add(d.ID)
 
-		relatedResourceTypeID := fmt.Sprintf("system_id=%s,id=%s", data.SystemID, data.ID)
+		relatedResourceTypeID := fmt.Sprintf("system_id=%s,id=%s", d.SystemID, d.ID)
 
 		// selection_mode = attribute的时候, related_instance_selections 可以为空,
 		// 其他情况: instance OR all, 不能为空
-		if data.SelectionMode != SelectionModeAttribute {
-			if len(data.RelatedInstanceSelections) > 0 {
+		if d.SelectionMode != SelectionModeAttribute {
+			if len(d.RelatedInstanceSelections) > 0 {
 				// validate if not empty
-				valid, message := validateRelatedInstanceSelections(data.RelatedInstanceSelections, actionID, relatedResourceTypeID)
+				valid, message := validateRelatedInstanceSelections(d.RelatedInstanceSelections, actionID, relatedResourceTypeID)
 				if !valid {
 					return false, message
 				}
@@ -177,6 +205,13 @@ func validateAction(body []actionSerializer) (bool, string) {
 		// related_resource_types, validate if not empty
 		if len(data.RelatedResourceTypes) > 0 {
 			valid, message := validateRelatedResourceTypes(data.RelatedResourceTypes, data.ID)
+			if !valid {
+				return false, message
+			}
+		}
+
+		if len(data.RelatedEnvironments) > 0 {
+			valid, message := validateRelatedEnvironments(data.RelatedEnvironments, data.ID)
 			if !valid {
 				return false, message
 			}
