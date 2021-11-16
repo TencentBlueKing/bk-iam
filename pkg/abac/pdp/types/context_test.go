@@ -11,6 +11,8 @@
 package types
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
@@ -50,6 +52,7 @@ var _ = Describe("Context", func() {
 			req := &request.Request{}
 			ec := NewEvalContext(req)
 			assert.NotNil(GinkgoT(), ec)
+
 		})
 
 		It("ok, has resource", func() {
@@ -95,7 +98,25 @@ var _ = Describe("Context", func() {
 			assert.False(GinkgoT(), c.HasResource("bk_cmdb.job"))
 
 		})
+	})
 
+	Describe("Environment", func() {
+		It("ok, has env", func() {
+			assert.NotNil(GinkgoT(), c)
+
+			// iam._bk_iam_env_:map[ts:1637044328]
+			assert.True(GinkgoT(), c.HasResource(req.System+iamEnvSuffix))
+
+			v, err := c.GetAttr(req.System + iamEnvSuffix + "." + envTimestamp)
+			assert.Nil(GinkgoT(), err)
+			assert.LessOrEqual(GinkgoT(), v.(int64), time.Now().Unix())
+		})
+
+		It("GetEnv", func() {
+			env := c.GetEnv()
+			assert.NotNil(GinkgoT(), env)
+			assert.Contains(GinkgoT(), env, envTimestamp)
+		})
 	})
 
 })

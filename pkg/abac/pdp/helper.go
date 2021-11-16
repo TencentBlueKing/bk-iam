@@ -116,7 +116,7 @@ func queryAndPartialEvalConditions(
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
-			//return []types.AuthPolicy{}, nil
+			debug.WithValue(entry, "subject_not_exists", true)
 			return []condition.Condition{}, nil
 		}
 
@@ -130,6 +130,7 @@ func queryAndPartialEvalConditions(
 	policies, err := queryPolicies(r.System, r.Subject, r.Action, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
+			debug.WithValue(entry, "policies", policies)
 			return nil, nil
 		}
 
@@ -155,7 +156,9 @@ func queryAndPartialEvalConditions(
 	}
 
 	// 执行完后, 只返回 执行后的残留的 conditions
-	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(pdptypes.NewEvalContext(r), policies)
+	evalContext := pdptypes.NewEvalContext(r)
+	debug.WithValue(entry, "env", evalContext.GetEnv())
+	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(evalContext, policies)
 	if len(conditions) == 0 {
 		debug.WithNoPassEvalPolicies(entry, policies)
 	}

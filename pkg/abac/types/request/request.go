@@ -25,6 +25,7 @@ type Request struct {
 	Subject   types.Subject
 	Action    types.Action
 	Resources []types.Resource
+	// TODO: in the future, here we will add `Environment types.Environment`
 }
 
 // NewRequest new request

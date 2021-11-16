@@ -11,6 +11,8 @@
 package types
 
 import (
+	"time"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 )
@@ -18,6 +20,12 @@ import (
 /*
 PDP模块表达式求值
 */
+
+const (
+	iamEnv       = "_bk_iam_env_"
+	iamEnvSuffix = "." + iamEnv
+	envTimestamp = "ts"
+)
 
 // EvalContext 表达式求值上下文
 // 只有一个Resource的信息
@@ -31,7 +39,6 @@ func NewEvalContext(req *request.Request) *EvalContext {
 	objSet := NewObjectSet()
 
 	for _, r := range req.Resources {
-
 		// maybe nil here
 		if r.Attribute == nil {
 			r.Attribute = types.Attribute{}
@@ -42,9 +49,16 @@ func NewEvalContext(req *request.Request) *EvalContext {
 		// bk_job.script => attributes
 		_type := r.System + "." + r.Type
 		objSet.Set(_type, r.Attribute)
-
 	}
-	// TODO: 需要限制接入系统资源id字段不能配置为attribute; 因为会被覆盖
+
+	// set the environment. e.g. bk_cmdb.host => {ts: 1637035590}
+	// TODO: add req.Environment into this obj
+	envType := req.System + iamEnvSuffix
+	objSet.Set(envType, types.Attribute{
+		envTimestamp: time.Now().Unix(),
+	})
+
+	// NOTE: 需要限制接入系统资源id字段不能配置为attribute; 因为会被覆盖
 	return &EvalContext{
 		Request: req,
 		objSet:  objSet,
@@ -60,4 +74,9 @@ func (c *EvalContext) GetAttr(name string) (interface{}, error) {
 func (c *EvalContext) HasResource(_type string) bool {
 	// has {system}.{resource_type}
 	return c.objSet.Has(_type)
+}
+
+func (c *EvalContext) GetEnv() map[string]interface{} {
+	attrs, _ := c.objSet.Get(c.System + iamEnvSuffix)
+	return attrs
 }

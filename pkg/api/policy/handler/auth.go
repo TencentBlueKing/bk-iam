@@ -294,7 +294,9 @@ func BatchAuthByResources(c *gin.Context) {
 		}
 
 		// do eval
-		isAllowed, _, err := evaluation.EvalPolicies(pdptypes.NewEvalContext(r), policies)
+		evalContext := pdptypes.NewEvalContext(r)
+		debug.WithValue(entry, "env", evalContext.GetEnv())
+		isAllowed, _, err := evaluation.EvalPolicies(evalContext, policies)
 		if err != nil {
 			err = errorWrapf(err, " pdp.EvalPolicies req=`%+v`, policies=`%+v` fail", r, policies)
 			util.SystemErrorJSONResponseWithDebug(c, err, entry)

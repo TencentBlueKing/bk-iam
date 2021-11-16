@@ -138,7 +138,9 @@ func Eval(
 
 	debug.AddStep(entry, "Eval")
 	var passPolicyID int64
-	isPass, passPolicyID, err = evaluation.EvalPolicies(pdptypes.NewEvalContext(r), policies)
+	evalContext := pdptypes.NewEvalContext(r)
+	debug.WithValue(entry, "env", evalContext.GetEnv())
+	isPass, passPolicyID, err = evaluation.EvalPolicies(evalContext, policies)
 	if err != nil {
 		err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, request=`%+v` fail",
 			policies, *r)
