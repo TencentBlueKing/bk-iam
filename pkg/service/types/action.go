@@ -26,8 +26,8 @@ type ActionResourceType struct {
 }
 
 type ActionEnvironment struct {
-	Type     string `json:"type" structs:"type"`
-	Operator string `json:"operator" structs:"operator"`
+	Type      string   `json:"type" structs:"type"`
+	Operators []string `json:"operators" structs:"operators"`
 }
 
 // ReferenceInstanceSelection ...

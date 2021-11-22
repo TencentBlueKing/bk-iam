@@ -19,6 +19,8 @@ import (
 	"iam/pkg/util"
 )
 
+var relatedEnvironmentCurrentTimestampValidOperators = util.NewStringSetWithValues([]string{"lte", "gte", "between"})
+
 type relatedResourceType struct {
 	SystemID string `json:"system_id" binding:"required" example:"bk_cmdb"`
 	ID       string `json:"id" binding:"required,max=32" example:"host"`
@@ -35,8 +37,8 @@ type relatedResourceType struct {
 // relatedEnvironment, currently only support `current_timestamp`.
 // if we support more types, should add a `validate` method, each type has different operators.
 type relatedEnvironment struct {
-	Type     string `json:"type" binding:"oneof=current_timestamp" example:"current_timestamp"`
-	Operator string `json:"operator" binding:"oneof=lte gte between" example:"lte"`
+	Type      string   `json:"type" binding:"oneof=current_timestamp" example:"current_timestamp"`
+	Operators []string `json:"operators" binding:"omitempty,unique"`
 }
 
 type actionSerializer struct {
@@ -144,6 +146,23 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 		}
 
 		typeID.Add(d.Type)
+
+		// the operators, should check every `type`
+		if d.Type == "current_timestamp" {
+			if len(d.Operators) == 0 {
+				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should not be emptry",
+					actionID, index)
+				return false, message
+			}
+			for _, op := range d.Operators {
+				if !relatedEnvironmentCurrentTimestampValidOperators.Has(op) {
+					message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be one of %v",
+						actionID, index, relatedEnvironmentCurrentTimestampValidOperators.ToSlice())
+					return false, message
+				}
+			}
+		}
+
 	}
 	return true, "valid"
 }

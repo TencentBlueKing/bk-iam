@@ -55,8 +55,8 @@ func convertToRelatedEnvironments(res []relatedEnvironment) []svctypes.ActionEnv
 	aes := make([]svctypes.ActionEnvironment, 0, len(res))
 	for _, re := range res {
 		aes = append(aes, svctypes.ActionEnvironment{
-			Type:     re.Type,
-			Operator: re.Operator,
+			Type:      re.Type,
+			Operators: re.Operators,
 		})
 	}
 	return aes
