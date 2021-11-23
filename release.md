@@ -1,3 +1,7 @@
+# 1.8.11
+
+- upgrade: metrics name add prefix bkiam
+
 # 1.8.10
 
 - upgrade: config template update cmdb resource limit
