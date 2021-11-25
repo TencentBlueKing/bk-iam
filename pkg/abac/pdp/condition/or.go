@@ -110,7 +110,9 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			}
 
 			// a OR b, if a false, do nothing!
-
+		} else if condition.GetName() == operator.ANY {
+			// if any, it's always true, return true
+			return true, NewAnyCondition()
 		} else {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')

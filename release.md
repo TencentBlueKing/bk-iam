@@ -1,3 +1,7 @@
+# 1.9.1
+
+- bugfix: partialEval out of index while the any condition key is empty
+
 # 1.9.0
 
 - refactor: pdp 模块重构, 完备的表达式, 支持两阶段计算

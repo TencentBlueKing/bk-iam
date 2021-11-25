@@ -45,9 +45,9 @@ func (c *AnyCondition) GetName() string {
 }
 
 // GetKeys 属性key
-func (c *AnyCondition) GetKeys() []string {
-	return []string{}
-}
+// func (c *AnyCondition) GetKeys() []string {
+// 	return []string{}
+// }
 
 // Eval 求值
 func (c *AnyCondition) Eval(ctx types.EvalContextor) bool {

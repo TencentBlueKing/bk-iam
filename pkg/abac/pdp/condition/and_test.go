@@ -217,6 +217,16 @@ var _ = Describe("And", func() {
 					assert.True(GinkgoT(), allowed)
 					assert.Equal(GinkgoT(), NewAnyCondition(), nc)
 				})
+
+				It("any", func() {
+					c = NewAndCondition([]Condition{
+						NewAnyCondition(),
+					})
+					allowed, nc := c.(LogicalCondition).PartialEval(HitStrCtx("linux"))
+					assert.True(GinkgoT(), allowed)
+					assert.Equal(GinkgoT(), NewAnyCondition(), nc)
+				})
+
 				//
 				It("remain", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MissStrCtx("linux"))
