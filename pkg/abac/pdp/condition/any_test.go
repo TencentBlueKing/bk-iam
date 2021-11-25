@@ -35,7 +35,7 @@ var _ = Describe("Any", func() {
 	It("New", func() {
 		c := NewAnyCondition()
 		assert.Equal(GinkgoT(), "Any", c.GetName())
-		assert.Equal(GinkgoT(), []string{}, c.GetKeys())
+		assert.Equal(GinkgoT(), []string{""}, c.GetKeys())
 	})
 
 	It("GetName", func() {
@@ -43,7 +43,9 @@ var _ = Describe("Any", func() {
 	})
 
 	It("GetKeys", func() {
-		assert.Empty(GinkgoT(), c.GetKeys())
+		keys := c.GetKeys()
+		assert.Len(GinkgoT(), keys, 1)
+		assert.Equal(GinkgoT(), "bk_cmdb.host.id", keys[0])
 	})
 
 	It("Eval", func() {

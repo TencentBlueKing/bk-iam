@@ -106,11 +106,14 @@ func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			if ci.GetName() != operator.ANY {
 				remainedContent = append(remainedContent, ci)
 			}
+		} else if condition.GetName() == operator.ANY {
+			// if any, it's always true, just continue
+			continue
 		} else {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
-				//panic("should contain dot in key")
+				// panic("should contain dot in key")
 				return false, nil
 			}
 			_type := key[:dotIdx]
