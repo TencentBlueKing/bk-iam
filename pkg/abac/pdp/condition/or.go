@@ -97,7 +97,8 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// once got True => return
 	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
-		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
+		switch condition.GetName() {
+		case operator.AND, operator.OR:
 			// NOTE: true的时候, 可能还有剩余的表达式
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			if ok {
@@ -110,10 +111,10 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			}
 
 			// a OR b, if a false, do nothing!
-		} else if condition.GetName() == operator.ANY {
+		case operator.ANY:
 			// if any, it's always true, return true
 			return true, NewAnyCondition()
-		} else {
+		default:
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {

@@ -94,8 +94,10 @@ func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// once got False=> return
 	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
-		// if AND/OR, do PartialEval recursive
-		if condition.GetName() == operator.AND || condition.GetName() == operator.OR {
+
+		switch condition.GetName() {
+		case operator.AND, operator.OR:
+			// if AND/OR, do PartialEval recursive
 			ok, ci := condition.(LogicalCondition).PartialEval(ctx)
 			// a AND b, if a false, return false
 			if !ok {
@@ -106,10 +108,10 @@ func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			if ci.GetName() != operator.ANY {
 				remainedContent = append(remainedContent, ci)
 			}
-		} else if condition.GetName() == operator.ANY {
+		case operator.ANY:
 			// if any, it's always true, just continue
 			continue
-		} else {
+		default:
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
