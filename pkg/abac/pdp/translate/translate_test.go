@@ -11,393 +11,575 @@
 package translate
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/condition"
 )
 
-var _ = Describe("Translate", func() {
-	Describe("ExprCell.Op", func() {
-		It("ok", func() {
-			cell := ExprCell{
-				"op": "AND",
-			}
-			assert.Equal(GinkgoT(), cell.Op(), "AND")
-		})
-	})
+var _ = Describe("Expression", func() {
 
-	Describe("singleTranslate", func() {
-		It("fail, empty", func() {
-			_, err := singleTranslate(types.PolicyCondition{}, "host")
-			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), errMustNotEmpty, err)
-		})
+	Describe("ConditionsTranslate", func() {
+		anyExpr := map[string]interface{}{
+			"op":    "any",
+			"field": "",
+			"value": []interface{}{},
+		}
 
-		It("ok, not OR/AND", func() {
-			expected := ExprCell{
-				"op":    "in",
-				"field": "host.os",
-				"value": []interface{}{"linux", "windows"},
-			}
-			expression := types.PolicyCondition{
-				"StringEquals": {
-					"os": []interface{}{"linux", "windows"},
-				},
-			}
-			ec, err := singleTranslate(expression, "host")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
-		})
-
-		It("ok, AND", func() {
-			expected := ExprCell{
-				"op": "AND",
-				"content": []interface{}{
-					ExprCell{
-						"op":    "eq",
-						"field": "host.number",
-						"value": 1,
-					},
-					ExprCell{
-						"op":    "in",
-						"field": "host.os",
-						"value": []interface{}{"linux", "windows"},
-					},
-					ExprCell{
-						"op":    "eq",
-						"field": "host.owner",
-						"value": "admin",
-					},
-				},
-			}
-			expression := types.PolicyCondition{
-				"AND": {
-					"content": []interface{}{
-						map[string]interface{}{
-							"NumericEquals": map[string]interface{}{
-								"number": []interface{}{1},
-							},
-						},
-						map[string]interface{}{
-							"StringEquals": map[string]interface{}{
-								"os": []interface{}{"linux", "windows"},
-							},
-						},
-						map[string]interface{}{
-							"StringEquals": map[string]interface{}{
-								"owner": []interface{}{"admin"},
-							},
-						},
-					},
-				},
-			}
-			ec, err := singleTranslate(expression, "host")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
-		})
-
-		It("fail, wrong operation", func() {
-			expression := types.PolicyCondition{
-				"NotExists": {},
-			}
-			_, err := singleTranslate(expression, "host")
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "can not support operator")
-		})
-
-	})
-
-	Describe("andTranslate", func() {
-		It("ok, empty", func() {
-			want := ExprCell{
-				"op":      "AND",
-				"content": []interface{}{},
-			}
-			ec, err := andTranslate("host", []interface{}{})
-
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), want, ec)
-		})
-
-		It("fail, wrong value", func() {
-			_, err := andTranslate("host", []interface{}{123})
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("fail, singleTranslate error", func() {
-			_, err := andTranslate("host", []interface{}{
-				map[string]interface{}{
-					"NoSupportOP": "",
-				},
+		Describe("single condition", func() {
+			It("any", func() {
+				expr, err := ConditionsTranslate([]condition.Condition{
+					condition.NewAnyCondition(),
+				})
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, expr)
 			})
-			assert.Error(GinkgoT(), err)
-		})
 
-		It("ok", func() {
-			want := ExprCell{
-				"op": "AND",
-				"content": []interface{}{
-					ExprCell(map[string]interface{}{
-						"op":    "eq",
-						"field": "host.number",
-						"value": 1,
-					}),
-					ExprCell(map[string]interface{}{
-						"op":    "in",
-						"field": "host.os",
-						"value": []interface{}{"linux", "windows"},
-					}),
-				},
-			}
-			value := []interface{}{
-				map[string]interface{}{
-					"NumericEquals": map[string]interface{}{
-						"number": []interface{}{1},
-					},
-				},
-				map[string]interface{}{
-					"StringEquals": map[string]interface{}{
-						"os": []interface{}{"linux", "windows"},
-					},
-				},
-			}
-			ec, err := andTranslate("host", value)
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), want, ec)
-		})
+			It("not any", func() {
+				expr, err := ConditionsTranslate([]condition.Condition{
+					condition.NewBoolCondition("test", false),
+				})
+				want := map[string]interface{}{"field": "test", "op": "eq", "value": false}
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), want, expr)
 
-		It("fail, singleTranslate fail", func() {
-			value := []interface{}{
-				map[string]interface{}{
-					"NumericEquals": map[string]interface{}{
-						"number": []interface{}{1},
-					},
-				},
-				map[string]interface{}{
-					"NotExists": map[string]interface{}{
-						"os": []interface{}{"linux", "windows"},
-					},
-				},
-			}
-			_, err := andTranslate("host", value)
-			assert.Error(GinkgoT(), err)
-		})
-
-	})
-
-	Describe("orTranslate", func() {
-		It("ok, empty", func() {
-			want := ExprCell{
-				"op":      "OR",
-				"content": []interface{}{},
-			}
-			ec, err := orTranslate("host", []interface{}{})
-
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), want, ec)
-		})
-
-		It("fail, wrong value", func() {
-			_, err := orTranslate("host", []interface{}{123})
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("fail, singleTranslate error", func() {
-			_, err := orTranslate("host", []interface{}{
-				map[string]interface{}{
-					"NoSupportOP": "",
-				},
 			})
-			assert.Error(GinkgoT(), err)
+
 		})
 
-		It("ok", func() {
+		Describe("two condition", func() {
+			It("one any", func() {
+				expr, err := ConditionsTranslate([]condition.Condition{
+					condition.NewBoolCondition("test", false),
+					condition.NewAnyCondition(),
+				})
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), anyExpr, expr)
+			})
+
+			It("no any", func() {
+				expr, err := ConditionsTranslate([]condition.Condition{
+					condition.NewBoolCondition("test", false),
+					condition.NewBoolCondition("test2", true),
+				})
+				want := map[string]interface{}{
+					"op": "OR",
+					"content": []ExprCell{
+						{"field": "test", "op": "eq", "value": false},
+						{"field": "test2", "op": "eq", "value": true},
+					},
+				}
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), "OR", expr["op"])
+				assert.ElementsMatch(GinkgoT(), want["content"], expr["content"])
+				//assert.Equal(GinkgoT(), want, expr)
+				//assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, expr))
+
+			})
+
+		})
+
+	})
+
+	Describe("oldExprToCondition", func() {
+		It("ok, single", func() {
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"StringEquals":{"id":["2"]}}}]`
+
 			want := ExprCell{
-				"op": "OR",
-				"content": []interface{}{
-					ExprCell(map[string]interface{}{
-						"op":    "eq",
-						"field": "host.number",
-						"value": 1,
-					}),
-					ExprCell(map[string]interface{}{
-						"op":    "in",
-						"field": "host.os",
-						"value": []interface{}{"linux", "windows"},
-					}),
-				},
-			}
-			value := []interface{}{
-				map[string]interface{}{
-					"NumericEquals": map[string]interface{}{
-						"number": []interface{}{1},
-					},
-				},
-				map[string]interface{}{
-					"StringEquals": map[string]interface{}{
-						"os": []interface{}{"linux", "windows"},
-					},
-				},
-			}
-			ec, err := orTranslate("host", value)
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), want, ec)
-		})
-
-		It("fail, singleTranslate fail", func() {
-			value := []interface{}{
-				map[string]interface{}{
-					"NumericEquals": map[string]interface{}{
-						"number": []interface{}{1},
-					},
-				},
-				map[string]interface{}{
-					"NotExists": map[string]interface{}{
-						"os": []interface{}{"linux", "windows"},
-					},
-				},
-			}
-			_, err := orTranslate("host", value)
-			assert.Error(GinkgoT(), err)
-		})
-
-	})
-
-	Describe("anyTranslate", func() {
-		It("ok", func() {
-			expected := ExprCell{
-				"op":    "any",
-				"field": "key",
-				"value": []interface{}{"a"},
-			}
-			ec, err := anyTranslate("key", []interface{}{"a"})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
-		})
-	})
-
-	Describe("stringEqualsTranslate", func() {
-		It("fail, empty value", func() {
-			_, err := stringEqualsTranslate("key", []interface{}{})
-			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), errMustNotEmpty, err)
-		})
-
-		It("ok, single eq", func() {
-			expected := ExprCell{
 				"op":    "eq",
-				"field": "key",
-				"value": "a",
+				"field": "bk_cmdb.biz.id",
+				"value": "2",
 			}
-			ec, err := stringEqualsTranslate("key", []interface{}{"a"})
+			cond, err := oldExprToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
-
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
 		})
 
-		It("ok, multiple in", func() {
-			expected := ExprCell{
-				"op":    "in",
-				"field": "key",
-				"value": []interface{}{"a", "b"},
+		It("fail, singleTranslate fail", func() {
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
+
+			_, err := oldExprToCondition(resourceExpression)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "can not support operator NotExist")
+		})
+
+		It("ok, two expression", func() {
+			resourceExpression := `[{"system":"bk_sops","type":"common_flow","expression":{"Any":{"id":[]}}},
+		{"system":"bk_sops","type":"project","expression":{"Any":{"id":[]}}}]`
+
+			want := map[string]interface{}{
+				"op": "AND",
+				"content": []map[string]interface{}{
+					{"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{}},
+					{"field": "bk_sops.project.id", "op": "any", "value": []interface{}{}},
+				},
 			}
-			ec, err := stringEqualsTranslate("key", []interface{}{"a", "b"})
+
+			cond, err := oldExprToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
 
 		})
 	})
 
-	Describe("stringPrefixTranslate", func() {
-		It("fail, empty value", func() {
-			_, err := stringPrefixTranslate("key", []interface{}{})
+	Describe("newExprToCondition", func() {
+		It("ok, single", func() {
+			resourceExpression := `{"StringEquals":{"bk_cmdb.biz.id":["2"]}}`
+
+			want := ExprCell{
+				"op":    "eq",
+				"field": "bk_cmdb.biz.id",
+				"value": "2",
+			}
+			cond, err := newExprToCondition(resourceExpression)
+			assert.NoError(GinkgoT(), err)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
+		})
+
+		It("fail, singleTranslate fail", func() {
+			resourceExpression := `{"NotExists":{"bk_cmdb.biz.id":["2"]}}`
+
+			_, err := newExprToCondition(resourceExpression)
 			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+			assert.Contains(GinkgoT(), err.Error(), "can not support operator NotExist")
+		})
+
+		It("ok, two expression", func() {
+			resourceExpression := `{
+		    "AND": {
+				"content": [
+					{"Any":{"bk_sops.common_flow.id":[]}}, 
+					{"Any":{"bk_sops.project.id":[]}}
+				]
+            }}`
+
+			want := map[string]interface{}{
+				"op": "AND",
+				"content": []map[string]interface{}{
+					{"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{}},
+					{"field": "bk_sops.project.id", "op": "any", "value": []interface{}{}},
+				},
+			}
+
+			cond, err := newExprToCondition(resourceExpression)
+			assert.NoError(GinkgoT(), err)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
+		})
+
+	})
+
+	Describe("expressionToCondition", func() {
+		var anyCondition condition.Condition
+
+		BeforeEach(func() {
+			anyCondition = condition.NewAnyCondition()
+		})
+
+		It("ok, any, expression=``", func() {
+			cond, err := expressionToCondition("")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyCondition, cond)
+		})
+
+		It("ok, any, expression=`[]`", func() {
+			cond, err := expressionToCondition("[]")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyCondition, cond)
+		})
+
+		It("fail, wrong new expression", func() {
+			expr := `{123}`
+			_, err := expressionToCondition(expr)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString new expr fail")
+		})
+
+		It("fail, wrong old expression", func() {
+			_, err := expressionToCondition("123")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString old expr fail")
+		})
+	})
+
+	Describe("PolicyExpressionToCondition", func() {
+		anyCondition := condition.NewAnyCondition()
+
+		It("ok, any, expression=``", func() {
+			cond, err := PolicyExpressionToCondition("")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyCondition, cond)
+		})
+
+		It("ok, any, expression=`[]`", func() {
+			cond, err := PolicyExpressionToCondition("[]")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyCondition, cond)
+		})
+
+		It("fail, wrong expression", func() {
+			_, err := PolicyExpressionToCondition("123")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString old expr fail")
 		})
 
 		It("ok, single", func() {
-			expected := ExprCell{
-				"op":    "starts_with",
-				"field": "key",
-				"value": "/biz,1/set,1/",
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"StringEquals":{"id":["2"]}}}]`
+
+			want := ExprCell{
+				"op":    "eq",
+				"field": "bk_cmdb.biz.id",
+				"value": "2",
 			}
-			ec, err := stringPrefixTranslate("key", []interface{}{"/biz,1/set,1/"})
+			cond, err := PolicyExpressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
 		})
 
-		It("ok, multiple or", func() {
-			expected := ExprCell{
-				"op": "OR",
+		It("fail, singleTranslate fail", func() {
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
+
+			_, err := PolicyExpressionToCondition(resourceExpression)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "can not support operator NotExist")
+		})
+
+		It("ok, two expression", func() {
+			resourceExpression := `[{"system":"bk_sops","type":"common_flow","expression":{"Any":{"id":[]}}},
+		{"system":"bk_sops","type":"project","expression":{"Any":{"id":[]}}}]`
+
+			want := ExprCell{
+				"op": "AND",
 				"content": []map[string]interface{}{
 					{
-						"op":    "starts_with",
-						"field": "key",
-						"value": "/biz,1/set,1/",
+						"field": "bk_sops.common_flow.id", "op": "any", "value": []interface{}{},
 					},
 					{
-						"op":    "starts_with",
-						"field": "key",
-						"value": "/biz,2/set,2/",
+						"field": "bk_sops.project.id", "op": "any", "value": []interface{}{},
 					},
 				},
 			}
 
-			ec, err := stringPrefixTranslate("key", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			cond, err := PolicyExpressionToCondition(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, ec)
+			got, err := cond.Translate(true)
+			assert.NoError(GinkgoT(), err)
+			assert.EqualValues(GinkgoT(), want, got)
 		})
+
 	})
 
-	Describe("numericEqualsTranslate", func() {
-		It("fail, empty value", func() {
-			_, err := numericEqualsTranslate("key", []interface{}{})
+	Describe("PolicyExpressionTranslate", func() {
+		anyExpr := ExprCell{
+			"op":    "any",
+			"field": "",
+			"value": []interface{}{},
+		}
+
+		It("ok, any, expression=``", func() {
+			expr, err := PolicyExpressionTranslate("")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyExpr, expr)
+		})
+
+		It("ok, any, expression=`[]`", func() {
+			expr, err := PolicyExpressionTranslate("[]")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), anyExpr, expr)
+		})
+
+		It("fail, wrong expression", func() {
+			_, err := PolicyExpressionTranslate("123")
 			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), errMustNotEmpty, err)
+			assert.Contains(GinkgoT(), err.Error(), "unmarshalFromString old expr fail")
 		})
 
-		It("ok, eq", func() {
-			expected := ExprCell{
+		It("ok, single", func() {
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"StringEquals":{"id":["2"]}}}]`
+
+			want := ExprCell{
 				"op":    "eq",
-				"field": "key",
-				"value": 1,
+				"field": "biz.id",
+				"value": "2",
 			}
-			c, err := numericEqualsTranslate("key", []interface{}{1})
+			got, err := PolicyExpressionTranslate(resourceExpression)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, c)
-
+			assert.EqualValues(GinkgoT(), want, got)
 		})
 
-		It("ok, in", func() {
-			expected := ExprCell{
-				"op":    "in",
-				"field": "key",
-				"value": []interface{}{1, 2},
-			}
-			c, err := numericEqualsTranslate("key", []interface{}{1, 2})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, c)
+		It("fail, singleTranslate fail", func() {
+			resourceExpression := `[{"system":"bk_cmdb","type":"biz","expression":{"NotExists":{"id":["2"]}}}]`
 
+			_, err := PolicyExpressionTranslate(resourceExpression)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "can not support operator NotExist")
 		})
+
+		It("ok, two expression", func() {
+			resourceExpression := `[{"system":"bk_sops","type":"common_flow","expression":{"Any":{"id":[]}}},
+		{"system":"bk_sops","type":"project","expression":{"Any":{"id":[]}}}]`
+
+			want := ExprCell{
+				"op": "AND",
+				"content": []map[string]interface{}{
+					{
+						"field": "common_flow.id", "op": "any", "value": []interface{}{},
+					},
+					{
+						"field": "project.id", "op": "any", "value": []interface{}{},
+					},
+				},
+			}
+
+			expr, err := PolicyExpressionTranslate(resourceExpression)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), want, expr)
+		})
+
 	})
 
-	Describe("boolTranslate", func() {
-		It("not support multi value", func() {
-			_, err := boolTranslate("key", []interface{}{true, false})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "bool not support multi value")
+	Describe("mergeContentField", func() {
+		It("ok, empty content", func() {
+			content := []ExprCell{}
+			newC := mergeContentField(content)
+			assert.Empty(GinkgoT(), newC)
 		})
 
-		It("ok", func() {
-			expected := ExprCell{
-				"op":    "eq",
-				"field": "key",
-				"value": true,
+		It("ok, not in/eq", func() {
+			content := []ExprCell{
+				{
+					"op":    "starts_with",
+					"field": "host.os",
+					"value": "abc",
+				},
+				{
+					"op":    "gte",
+					"field": "host.id",
+					"value": 23,
+				},
 			}
-			c, err := boolTranslate("key", []interface{}{true})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, c)
+			content = mergeContentField(content)
+			assert.Len(GinkgoT(), content, 2)
 		})
+
+		It("ok, not eq or in", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+			}
+			content = mergeContentField(content)
+			assert.Len(GinkgoT(), content, 2)
+		})
+
+		It("ok, single in", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+			}
+			content = mergeContentField(content)
+			want := content
+			assert.Len(GinkgoT(), content, 1)
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
+		It("ok, single eq", func() {
+			content := []ExprCell{
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "abc",
+				},
+			}
+			content = mergeContentField(content)
+			want := content
+			assert.Len(GinkgoT(), content, 1)
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
+		It("ok, in/eq, not same field", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.os",
+					"value": []interface{}{"abc", "def"},
+				},
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "abc",
+				},
+			}
+			content = mergeContentField(content)
+			assert.Len(GinkgoT(), content, 2)
+		})
+
+		It("ok, merge", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"a", "b"},
+				},
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "c",
+				},
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"d", "f"},
+				},
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "g",
+				},
+			}
+			content = mergeContentField(content)
+
+			want := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"a", "b", "c", "d", "f", "g"},
+				},
+			}
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
+		It("ok, merge part", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "abc",
+				},
+			}
+			content = mergeContentField(content)
+
+			want := []ExprCell{
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def", "abc"},
+				},
+			}
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+		It("ok, merge part 2", func() {
+			content := []ExprCell{
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def"},
+				},
+				{
+					"op":    "eq",
+					"field": "host.id",
+					"value": "abc",
+				},
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+			}
+			content = mergeContentField(content)
+
+			want := []ExprCell{
+				{
+					"op":      "AND",
+					"content": []interface{}{},
+				},
+				{
+					"op":    "in",
+					"field": "host.id",
+					"value": []interface{}{"abc", "def", "abc"},
+				},
+			}
+			assert.EqualValues(GinkgoT(), want, content)
+		})
+
 	})
 })
+
+func BenchmarkMergeContentFieldNotMerge(b *testing.B) {
+	content := []ExprCell{
+		{
+			"op":    "in",
+			"field": "host.id",
+			"value": []interface{}{"abc", "def"},
+		},
+		{
+			"op":    "eq",
+			"field": "host.os",
+			"value": "abc",
+		},
+		{
+			"op":      "AND",
+			"content": []interface{}{},
+		},
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		mergeContentField(content)
+	}
+}
+
+func BenchmarkMergeContentFieldMerge(b *testing.B) {
+	content := []ExprCell{
+		{
+			"op":    "in",
+			"field": "host.id",
+			"value": []interface{}{"abc", "def"},
+		},
+		{
+			"op":    "eq",
+			"field": "host.id",
+			"value": "abc",
+		},
+		{
+			"op":    "eq",
+			"field": "host.id",
+			"value": "ghi",
+		},
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		mergeContentField(content)
+	}
+}

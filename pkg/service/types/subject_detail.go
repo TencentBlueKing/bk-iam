@@ -30,7 +30,7 @@ type SubjectDetail struct {
 	SubjectGroups []ThinSubjectGroup `json:"subject_groups" msgpack:"sg"`
 }
 
-//custom the msgpack marshal/unmarshal, for better performance
+// custom the msgpack marshal/unmarshal, for better performance
 var _ msgpack.Marshaler = (*SubjectDetail)(nil)
 
 // MarshalMsgpack to   1,2,3,4|pk1:12,pk2:34,pk3:45

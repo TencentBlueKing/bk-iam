@@ -72,6 +72,19 @@ func WithPassEvalPolicy(e *Entry, policyID int64) {
 	e.WithPassEval(policyID)
 }
 
+func WithPassEvalPolicyIDs(e *Entry, policyIDs []int64) {
+	if e == nil {
+		return
+	}
+	if len(policyIDs) == 0 {
+		return
+	}
+
+	for _, pid := range policyIDs {
+		e.WithPassEval(pid)
+	}
+}
+
 // WithNoPassEvalPolicy ...
 func WithNoPassEvalPolicy(e *Entry, policyID int64) {
 	if e == nil {

@@ -131,7 +131,6 @@ func newZapJSONLogger(cfg *config.LogConfig) *zap.Logger {
 	if err != nil {
 		panic(err)
 	}
-	//w := zapcore.AddSync(writer)
 	w := &zapcore.BufferedWriteSyncer{
 		WS:            zapcore.AddSync(writer),
 		Size:          256 * 1024, // 256 kB

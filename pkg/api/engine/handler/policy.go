@@ -19,7 +19,6 @@ import (
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
-	"iam/pkg/api/common"
 	"iam/pkg/cache/impls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
@@ -251,17 +250,9 @@ func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy engin
 		return
 	}
 
-	resourceTypeSet, err := common.GetActionResourceTypeSet(action.System, action.ID)
+	translatedExpr, err := translate.PolicyExpressionTranslate(expr)
 	if err != nil {
-		err = errorWrapf(err, "common.GetActionResourceTypeSet systemID=`%s`, actionID=`%s` fail",
-			action.System, action.ID)
-		return
-	}
-
-	translatedExpr, err := translate.PolicyTranslate(expr, resourceTypeSet)
-	if err != nil {
-		err = errorWrapf(err, "translate.PolicyTranslate expr=`%s`, resourceTypeSet=`%+v` fail",
-			resourceTypeSet, expr)
+		err = errorWrapf(err, "translate.PolicyExpressionTranslate expr=`%s` fail", expr)
 		return
 	}
 

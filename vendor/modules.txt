@@ -7,6 +7,9 @@ github.com/KyleBanks/depth
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
+# github.com/TencentBlueKing/iam-go-sdk v0.0.5
+## explicit
+github.com/TencentBlueKing/iam-go-sdk/expression/eval
 # github.com/agiledragon/gomonkey v2.0.2+incompatible
 ## explicit
 github.com/agiledragon/gomonkey
@@ -32,8 +35,6 @@ github.com/dgryski/go-rendezvous
 # github.com/dlmiddlecote/sqlstats v1.0.2
 ## explicit
 github.com/dlmiddlecote/sqlstats
-# github.com/elazarl/goproxy v0.0.0-20200710112657-153946a5f232
-## explicit
 # github.com/fatih/structs v1.1.0
 ## explicit
 github.com/fatih/structs
@@ -191,7 +192,7 @@ github.com/onsi/ginkgo/reporters/stenographer
 github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
 github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
 github.com/onsi/ginkgo/types
-# github.com/onsi/gomega v1.13.0
+# github.com/onsi/gomega v1.14.0
 ## explicit
 github.com/onsi/gomega
 github.com/onsi/gomega/format

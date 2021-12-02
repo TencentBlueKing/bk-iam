@@ -55,6 +55,21 @@ var _ = Describe("Conv", func() {
 		)
 	})
 
+	Describe("StringToInt64", func() {
+
+		It("ok", func() {
+			i, err := util.StringToInt64("123")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(123), i)
+		})
+
+		It("fail", func() {
+			_, err := util.StringToInt64("abc")
+			assert.Error(GinkgoT(), err)
+		})
+
+	})
+
 	Describe("StringToInt64Slice", func() {
 		DescribeTable("StringToInt64Slice cases", func(expected []int64, willError bool, input string, sep string) {
 			data, err := util.StringToInt64Slice(input, sep)

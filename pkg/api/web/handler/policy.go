@@ -13,8 +13,6 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/abac/pdp/translate"
-	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
 	"iam/pkg/errorx"
@@ -209,32 +207,7 @@ func GetCustomPolicy(c *gin.Context) {
 		return
 	}
 
-	if policy.Expression == "" {
-		util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID, "expression": map[string]interface{}{
-			"op":    "any",
-			"field": "",
-			"value": []interface{}{},
-		}})
-		return
-	}
-
-	_, actionResourceTypes, err := pip.GetActionDetail(systemID, query.ActionID)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	expr, err := translate.PoliciesTranslate([]types.AuthPolicy{policy}, actionResourceTypes)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID, "expression": expr})
+	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID})
 }
 
 // ListPolicy godoc
