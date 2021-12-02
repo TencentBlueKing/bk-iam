@@ -19,6 +19,11 @@ import (
 	"iam/pkg/util"
 )
 
+const (
+	relatedEnvironmentTypePeriodDaily      = "period_daily"
+	relatedEnvironmentTypeCurrentTimestamp = "current_timestamp"
+)
+
 var relatedEnvironmentCurrentTimestampValidOperators = util.NewStringSetWithValues([]string{"lte", "gte", "between"})
 
 type relatedResourceType struct {
@@ -37,7 +42,8 @@ type relatedResourceType struct {
 // relatedEnvironment, currently only support `current_timestamp`.
 // if we support more types, should add a `validate` method, each type has different operators.
 type relatedEnvironment struct {
-	Type      string   `json:"type" binding:"oneof=current_timestamp" example:"current_timestamp"`
+	// NOTE: currently only support period_daily, will support current_timestamp later
+	Type      string   `json:"type" binding:"oneof=period_daily" example:"period_daily"`
 	Operators []string `json:"operators" binding:"omitempty,unique"`
 }
 
@@ -147,10 +153,18 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 
 		typeID.Add(d.Type)
 
-		// the operators, should check every `type`
-		if d.Type == "current_timestamp" {
+		switch d.Type {
+		case relatedEnvironmentTypePeriodDaily:
+			// don't need an operator
+			if len(d.Operators) != 0 {
+				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be empty/null",
+					actionID, index)
+				return false, message
+			}
+		case relatedEnvironmentTypeCurrentTimestamp:
+			// the operators, should check every `type`
 			if len(d.Operators) == 0 {
-				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should not be emptry",
+				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should not be empty",
 					actionID, index)
 				return false, message
 			}
@@ -162,7 +176,6 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 				}
 			}
 		}
-
 	}
 	return true, "valid"
 }
