@@ -23,11 +23,9 @@ import (
 	"iam/pkg/cache/impls"
 )
 
-/*
-求值逻辑, 包括:
-
-对Policy的condition求值
-*/
+// NOTE: 目前所有的 query/eval都在这个文件中, 两个主要入口:
+// - eval:  EvalPolicies
+// - query: PartialEvalPolicies
 
 // EvalPolicies 计算是否满足
 func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
@@ -65,6 +63,23 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error
 			policy.ID, policy.Expression, err)
 
 		return false, err
+	}
+
+	if cond.HasEnv() {
+		tz, ok := cond.GetEnvTz()
+		if !ok {
+			return false, fmt.Errorf("policy got env, but missing the required key: tz")
+		}
+
+		envs, err := pdptypes.GenEnvs(tz)
+		if err != nil {
+			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
+				policy.ID, policy.Expression, err)
+			return false, err
+		}
+		ctx.SetEnv(envs)
+	} else {
+		ctx.UnsetEnv()
 	}
 
 	isPass := cond.Eval(ctx)
@@ -110,6 +125,24 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
 		return false, nil, err
+	}
+
+	// TODO: cond => generate ctx?
+	if cond.HasEnv() {
+		tz, ok := cond.GetEnvTz()
+		if !ok {
+			return false, nil, fmt.Errorf("policy got env, but missing the required key: tz")
+		}
+
+		envs, err := pdptypes.GenEnvs(tz)
+		if err != nil {
+			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
+				policy.ID, policy.Expression, err)
+			return false, nil, err
+		}
+		ctx.SetEnv(envs)
+	} else {
+		ctx.UnsetEnv()
 	}
 
 	// if no resource passed

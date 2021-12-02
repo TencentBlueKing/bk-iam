@@ -12,6 +12,8 @@ package types
 
 import (
 	"errors"
+	"fmt"
+	"time"
 )
 
 /*
@@ -94,4 +96,23 @@ func InterfaceToPolicyCondition(value interface{}) (PolicyCondition, error) {
 		conditionMap[operator] = attributeMap
 	}
 	return conditionMap, nil
+}
+
+func GenEnvs(tz string) (map[string]interface{}, error) {
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		return nil, fmt.Errorf("pdp load policy timezone location fail, %w", err)
+	}
+
+	t := time.Now().In(loc)
+
+	// transfer 08:30:20 to 83020
+	hms := int64(10000*t.Hour() + 100*t.Minute() + t.Second())
+
+	envs := map[string]interface{}{
+		"tz":  tz,
+		"hms": hms,
+		"ts":  t.Unix(),
+	}
+	return envs, nil
 }

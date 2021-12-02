@@ -15,6 +15,11 @@ import (
 	"iam/pkg/abac/types/request"
 )
 
+const (
+	iamEnv       = "_bk_iam_env_"
+	iamEnvSuffix = "." + iamEnv
+)
+
 /*
 PDP模块表达式求值
 */
@@ -49,6 +54,14 @@ func NewEvalContext(req *request.Request) *EvalContext {
 		Request: req,
 		objSet:  objSet,
 	}
+}
+
+func (c *EvalContext) SetEnv(envs map[string]interface{}) {
+	c.objSet.Set(c.System+iamEnvSuffix, envs)
+}
+
+func (c *EvalContext) UnsetEnv() {
+	c.objSet.Del(c.System + iamEnvSuffix)
 }
 
 // GetAttr 获取资源的属性值

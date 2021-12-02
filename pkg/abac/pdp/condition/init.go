@@ -25,7 +25,11 @@ import (
 1. 条件之间没有隐含的关系 每个条件都是 {"operator": {"filed": values}}
 */
 
-const iamPath = "_bk_iam_path_"
+const (
+	iamPath      = "_bk_iam_path_"
+	iamEnv       = "_bk_iam_env_"
+	iamEnvSuffix = "." + iamEnv
+)
 
 var errMustNotEmpty = errors.New("value must not be empty")
 
@@ -54,6 +58,10 @@ func init() {
 type Condition interface {
 	GetName() string
 	GetKeys() []string // 返回条件中包含的所有属性key
+
+	// HasEnv return true if got any  _bk_iam_env_.x in keys
+	HasEnv() bool
+	GetEnvTz() (string, bool)
 
 	Eval(ctx types.EvalContextor) bool
 	Translate(withSystem bool) (map[string]interface{}, error)

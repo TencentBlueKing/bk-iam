@@ -11,6 +11,8 @@
 package condition
 
 import (
+	"strings"
+
 	"iam/pkg/abac/pdp/types"
 )
 
@@ -22,6 +24,22 @@ type baseCondition struct {
 // GetKeys 返回条件中属性key值
 func (c *baseCondition) GetKeys() []string {
 	return []string{c.Key}
+}
+
+func (c *baseCondition) HasEnv() bool {
+	return strings.Index(c.Key, iamEnvSuffix) != -1
+}
+
+func (c *baseCondition) GetEnvTz() (tz string, ok bool) {
+	if strings.HasSuffix(c.Key, iamEnvSuffix+".tz") {
+		if len(c.Value) != 1 {
+			return
+		}
+
+		tz, ok = c.Value[0].(string)
+		return
+	}
+	return
 }
 
 // GetValues 如果Value中有参数, 获取参数的值

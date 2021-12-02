@@ -60,6 +60,25 @@ func (c *AndCondition) GetKeys() []string {
 	return keys
 }
 
+func (c *AndCondition) HasEnv() bool {
+	for _, condition := range c.content {
+		if condition.HasEnv() {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *AndCondition) GetEnvTz() (string, bool) {
+	for _, condition := range c.content {
+		// got the first one
+		if tz, ok := condition.GetEnvTz(); ok {
+			return tz, ok
+		}
+	}
+	return "", false
+}
+
 // Eval 求值
 func (c *AndCondition) Eval(ctx types.EvalContextor) bool {
 	for _, condition := range c.content {
