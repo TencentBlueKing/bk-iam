@@ -19,8 +19,6 @@ import (
 	"iam/pkg/util"
 )
 
-// var relatedEnvironmentCurrentTimestampValidOperators = util.NewStringSetWithValues([]string{"lte", "gte", "between"})
-
 type relatedResourceType struct {
 	SystemID string `json:"system_id" binding:"required" example:"bk_cmdb"`
 	ID       string `json:"id" binding:"required,max=32" example:"host"`
