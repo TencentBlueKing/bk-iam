@@ -8,6 +8,11 @@
 - add: 支持新老版本表达式unmarshal
 - add: 支持gt/gte/lt/lte操作符
 
+# 1.8.11
+
+- upgrade: metrics name add prefix bkiam
+
+
 # 1.8.10
 
 - upgrade: config template update cmdb resource limit
