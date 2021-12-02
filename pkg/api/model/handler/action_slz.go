@@ -19,12 +19,7 @@ import (
 	"iam/pkg/util"
 )
 
-const (
-	relatedEnvironmentTypePeriodDaily      = "period_daily"
-	relatedEnvironmentTypeCurrentTimestamp = "current_timestamp"
-)
-
-var relatedEnvironmentCurrentTimestampValidOperators = util.NewStringSetWithValues([]string{"lte", "gte", "between"})
+// var relatedEnvironmentCurrentTimestampValidOperators = util.NewStringSetWithValues([]string{"lte", "gte", "between"})
 
 type relatedResourceType struct {
 	SystemID string `json:"system_id" binding:"required" example:"bk_cmdb"`
@@ -43,8 +38,9 @@ type relatedResourceType struct {
 // if we support more types, should add a `validate` method, each type has different operators.
 type relatedEnvironment struct {
 	// NOTE: currently only support period_daily, will support current_timestamp later
-	Type      string   `json:"type" binding:"oneof=period_daily" example:"period_daily"`
-	Operators []string `json:"operators" binding:"omitempty,unique"`
+	//       and no operators now!
+	Type string `json:"type" binding:"oneof=period_daily" example:"period_daily"`
+	// Operators []string `json:"operators" binding:"omitempty,unique"`
 }
 
 type actionSerializer struct {
@@ -153,29 +149,30 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 
 		typeID.Add(d.Type)
 
-		switch d.Type {
-		case relatedEnvironmentTypePeriodDaily:
-			// don't need an operator
-			if len(d.Operators) != 0 {
-				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be empty/null",
-					actionID, index)
-				return false, message
-			}
-		case relatedEnvironmentTypeCurrentTimestamp:
-			// the operators, should check every `type`
-			if len(d.Operators) == 0 {
-				message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should not be empty",
-					actionID, index)
-				return false, message
-			}
-			for _, op := range d.Operators {
-				if !relatedEnvironmentCurrentTimestampValidOperators.Has(op) {
-					message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be one of %v",
-						actionID, index, relatedEnvironmentCurrentTimestampValidOperators.ToSlice())
-					return false, message
-				}
-			}
-		}
+		// NOTE: not support operators now!
+		// switch d.Type {
+		// case RelatedEnvironmentTypePeriodDaily:
+		// 	// don't need an operator
+		// 	if len(d.Operators) != 0 {
+		// 		message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be empty/null",
+		// 			actionID, index)
+		// 		return false, message
+		// 	}
+		// case RelatedEnvironmentTypeCurrentTimestamp:
+		// 	// the operators, should check every `type`
+		// 	if len(d.Operators) == 0 {
+		// 		message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should not be empty",
+		// 			actionID, index)
+		// 		return false, message
+		// 	}
+		// 	for _, op := range d.Operators {
+		// 		if !relatedEnvironmentCurrentTimestampValidOperators.Has(op) {
+		// 			message := fmt.Sprintf("data of action_id=%s related_environments[%d] operators should be one of %v",
+		// 				actionID, index, relatedEnvironmentCurrentTimestampValidOperators.ToSlice())
+		// 			return false, message
+		// 		}
+		// 	}
+		// }
 	}
 	return true, "valid"
 }

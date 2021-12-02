@@ -21,6 +21,9 @@ const (
 	SelectionModeAll       = "all"
 	SelectionModeInstance  = "instance"
 	SelectionModeAttribute = "attribute"
+
+	// RelatedEnvironmentTypePeriodDaily      = "period_daily"
+	// RelatedEnvironmentTypeCurrentTimestamp = "current_timestamp"
 )
 
 func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.ActionResourceType {
@@ -54,9 +57,14 @@ func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.Action
 func convertToRelatedEnvironments(res []relatedEnvironment) []svctypes.ActionEnvironment {
 	aes := make([]svctypes.ActionEnvironment, 0, len(res))
 	for _, re := range res {
+		// // set the default value
+		// if re.Type == RelatedEnvironmentTypePeriodDaily {
+		// 	re.Operators = []string{"between"}
+		// }
+
 		aes = append(aes, svctypes.ActionEnvironment{
-			Type:      re.Type,
-			Operators: re.Operators,
+			Type: re.Type,
+			// Operators: re.Operators,
 		})
 	}
 	return aes
