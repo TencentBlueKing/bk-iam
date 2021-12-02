@@ -218,7 +218,7 @@ func translateExpressions(
 		// TODO: 如何优化这里的性能?
 		// TODO: 理论上, signature一样的只需要转一次
 		// e.Signature
-		translatedExpr, err1 := translate.PolicyTranslate(expr, resourceTypeSet)
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
 		if err1 != nil {
 			err = errorWrapf(err1, "translate fail", "")
 			return

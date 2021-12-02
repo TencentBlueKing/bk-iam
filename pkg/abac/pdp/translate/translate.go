@@ -11,22 +11,43 @@
 package translate
 
 import (
-	"errors"
 	"fmt"
+	"strings"
 
-	"iam/pkg/abac/pdp/types"
-	"iam/pkg/abac/pdp/util"
+	jsoniter "github.com/json-iterator/go"
+
+	"iam/pkg/abac/pdp/condition"
+	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/errorx"
 )
 
 /*
-表达式转换
+request 中:
+```
+ObjectSet:
+    {system}.{type}   => {attr: abc}
+
+```
+
+表达式中:
+
+```
+{system}.{type}.{attr} eq abc
+```
+
+转换给到接入系统的表达式(translate)
+
+1. 当前policy版本v1:  `{type}.{attr} eq abc`
+2. 未来policy版本v2:  `{system}.{type}.{attr} eq abc`
 */
 
-// 1. 解析policy表达式到对外的条件表达式
-// 2. 对操作符需要有一个映射关系
-// 3. 遍历实现
+// NOTE: currently, policy v1 should remove system from field, withSystem=False
+// TODO: when we upgrade policy to v2, we should support withSystem=True
 
-var errMustNotEmpty = errors.New("value must not be empty")
+// Translate ...
+const Translate = "Translate"
+
+const defaultWithSystem = false
 
 // ExprCell 表达式基本单元
 type ExprCell map[string]interface{}
@@ -36,163 +57,176 @@ func (c ExprCell) Op() string {
 	return c["op"].(string)
 }
 
-type translateFunc func(field string, value []interface{}) (ExprCell, error)
+// ConditionsTranslate 策略列表转换为QL表达式
+func ConditionsTranslate(
+	conditions []condition.Condition,
+) (map[string]interface{}, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(Translate, "ConditionsTranslate")
 
-var translateFactories map[string]translateFunc
-
-func init() {
-	translateFactories = map[string]translateFunc{
-		"AND":           andTranslate,
-		"OR":            orTranslate,
-		"Any":           anyTranslate,
-		"StringEquals":  stringEqualsTranslate,
-		"StringPrefix":  stringPrefixTranslate,
-		"NumericEquals": numericEqualsTranslate,
-		"Bool":          boolTranslate,
-	}
-}
-
-func singleTranslate(expression types.PolicyCondition, _type string) (ExprCell, error) {
-	for operator, option := range expression {
-		tf, ok := translateFactories[operator]
-		if !ok {
-			return nil, fmt.Errorf("can not support operator %s", operator)
-		}
-
-		for field, value := range option {
-			switch operator {
-			case "OR", "AND":
-				return tf(_type, value)
-			default:
-				//typeField := fmt.Sprintf("%s.%s", _type, field)
-				typeField := _type + "." + field
-				return tf(typeField, value)
-			}
-		}
-	}
-	return nil, errMustNotEmpty
-}
-
-func andTranslate(_type string, value []interface{}) (ExprCell, error) {
-	content := make([]interface{}, 0, len(value))
-
-	for _, v := range value {
-		m, err := util.InterfaceToPolicyCondition(v)
+	content := make([]ExprCell, 0, len(conditions))
+	for _, c := range conditions {
+		condition, err := c.Translate(defaultWithSystem)
 		if err != nil {
+			err = errorWrapf(err, "conditionTranslate condition=`%+v` fail", c)
 			return nil, err
 		}
-		condition, err2 := singleTranslate(m, _type)
-		if err2 != nil {
-			return nil, err2
+
+		// NOTE: if got an `any`, return `any`!
+		if condition["op"].(string) == "any" {
+			return condition, nil
+			//return ExprCell{
+			//	"op":    "any",
+			//	"field": "",
+			//	"value": []interface{}{},
+			//}, nil
 		}
 
 		content = append(content, condition)
 	}
 
-	return map[string]interface{}{
-		"op":      "AND",
-		"content": content,
-	}, nil
-}
-
-func orTranslate(_type string, value []interface{}) (ExprCell, error) {
-	content := make([]interface{}, 0, len(value))
-
-	for _, v := range value {
-		m, err := util.InterfaceToPolicyCondition(v)
-		if err != nil {
-			return nil, err
-		}
-		condition, err2 := singleTranslate(m, _type)
-		if err2 != nil {
-			return nil, err2
-		}
-
-		content = append(content, condition)
-	}
-
-	return map[string]interface{}{
-		"op":      "OR",
-		"content": content,
-	}, nil
-}
-
-//nolint:unparam
-func anyTranslate(field string, value []interface{}) (ExprCell, error) {
-	return map[string]interface{}{
-		"op":    "any",
-		"field": field,
-		"value": value,
-	}, nil
-}
-
-func stringEqualsTranslate(field string, value []interface{}) (ExprCell, error) {
-	exprCell := map[string]interface{}{
-		"field": field,
-	}
-
-	switch len(value) {
-	case 0:
-		return nil, errMustNotEmpty
-	case 1:
-		exprCell["op"] = "eq"
-		exprCell["value"] = value[0]
-	default:
-		exprCell["op"] = "in"
-		exprCell["value"] = value
-	}
-	return exprCell, nil
-}
-
-func stringPrefixTranslate(field string, value []interface{}) (ExprCell, error) {
-	content := make([]map[string]interface{}, 0, len(value))
-	for _, v := range value {
-		content = append(content, map[string]interface{}{
-			"op":    "starts_with",
-			"field": field,
-			"value": v,
-		})
+	// merge same field `eq` and `in`; to `in`
+	if len(content) > 1 {
+		// 合并条件中field相同, op为eq, in的条件
+		content = mergeContentField(content)
 	}
 
 	switch len(content) {
-	case 0:
-		return nil, errMustNotEmpty
 	case 1:
 		return content[0], nil
 	default:
-		return map[string]interface{}{
+		return ExprCell{
 			"op":      "OR",
 			"content": content,
 		}, nil
 	}
 }
 
-func numericEqualsTranslate(field string, value []interface{}) (ExprCell, error) {
-	exprCell := map[string]interface{}{
-		"field": field,
+func oldExprToCondition(expr string) (condition.Condition, error) {
+	expressions := []pdptypes.ResourceExpression{}
+	err := jsoniter.UnmarshalFromString(expr, &expressions)
+	// 无效的policy条件表达式, 容错
+	if err != nil {
+		err = fmt.Errorf("unmarshalFromString old expr fail! expr: %s error: %w",
+			expr, err)
+		return nil, err
 	}
 
-	switch len(value) {
-	case 0:
-		return nil, errMustNotEmpty
-	case 1:
-		exprCell["op"] = "eq"
-		exprCell["value"] = value[0]
-	default:
-		exprCell["op"] = "in"
-		exprCell["value"] = value
+	content := make([]condition.Condition, 0, len(expressions))
+	for _, expression := range expressions {
+		// NOTE: change the expr
+		pc, err1 := expression.ToNewPolicyCondition()
+		if err1 != nil {
+			return nil, fmt.Errorf("toNewPolicyCondition error: %w", err1)
+		}
+
+		c, err2 := condition.NewConditionFromPolicyCondition(pc)
+		// 表达式解析出错, 容错
+		if err2 != nil {
+			return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
+		}
+		content = append(content, c)
 	}
-	return exprCell, nil
+
+	if len(content) == 0 {
+		content = append(content, condition.NewAnyCondition())
+	}
+
+	if len(content) == 1 {
+		return content[0], nil
+	} else {
+		return condition.NewAndCondition(content), nil
+	}
 }
 
-func boolTranslate(field string, value []interface{}) (ExprCell, error) {
-	if len(value) != 1 {
-		return nil, fmt.Errorf("bool not support multi value %+v", value)
+func newExprToCondition(expr string) (condition.Condition, error) {
+	pc := pdptypes.PolicyCondition{}
+	err := jsoniter.UnmarshalFromString(expr, &pc)
+	// 无效的policy条件表达式, 容错
+	if err != nil {
+		err = fmt.Errorf("unmarshalFromString new expr fail! expr: %s error: %w",
+			expr, err)
+		return nil, err
 	}
 
-	return map[string]interface{}{
-		"op":    "eq",
-		"field": field,
-		"value": value[0],
-	}, nil
+	cond, err2 := condition.NewConditionFromPolicyCondition(pc)
+	// 表达式解析出错, 容错
+	if err2 != nil {
+		return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
+	}
+	return cond, nil
+
+}
+
+func expressionToCondition(expr string) (condition.Condition, error) {
+	// NOTE: if expression == "" or expression == "[]", all return any
+	// if action without resource_types, the expression is ""
+	if expr == "" || expr == "[]" {
+		return condition.NewAnyCondition(), nil
+	}
+
+	// 需要兼容, 从 "{}" 转成一个condition
+	if strings.IndexByte(expr, '{') == 0 {
+		return newExprToCondition(expr)
+	}
+
+	return oldExprToCondition(expr)
+}
+
+func PolicyExpressionTranslate(expr string) (ExprCell, error) {
+	condition, err := expressionToCondition(expr)
+	if err != nil {
+		return nil, err
+	}
+	return condition.Translate(defaultWithSystem)
+}
+
+func PolicyExpressionToCondition(expr string) (condition.Condition, error) {
+	return expressionToCondition(expr)
+}
+
+func mergeContentField(content []ExprCell) []ExprCell {
+	mergeableExprs := map[string][]ExprCell{}
+	newContent := make([]ExprCell, 0, len(content))
+
+	for _, expr := range content {
+		switch expr.Op() {
+		case "eq", "in":
+			field := expr["field"].(string)
+			exprs, ok := mergeableExprs[field]
+			if ok {
+				exprs = append(exprs, expr)
+				mergeableExprs[field] = exprs
+			} else {
+				mergeableExprs[field] = []ExprCell{expr}
+			}
+		default:
+			newContent = append(newContent, expr)
+		}
+	}
+
+	for field, exprs := range mergeableExprs {
+		if len(exprs) == 1 {
+			newContent = append(newContent, exprs[0])
+		} else {
+			values := make([]interface{}, 0, len(exprs))
+
+			// 合并
+			for _, expr := range exprs {
+				switch expr.Op() {
+				case "eq":
+					values = append(values, expr["value"])
+				case "in":
+					values = append(values, expr["value"].([]interface{})...)
+				}
+			}
+
+			newContent = append(newContent, ExprCell{
+				"op":    "in",
+				"field": field,
+				"value": values,
+			})
+		}
+	}
+
+	return newContent
 }
