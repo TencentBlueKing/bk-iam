@@ -30,7 +30,7 @@ import (
 	_ "iam/pkg/logging/debug"
 
 	// init the pdp
-	_ "iam/pkg/abac/pdp/types"
+	_ "iam/pkg/abac/pdp/evalctx"
 
 	"iam/pkg/server"
 )

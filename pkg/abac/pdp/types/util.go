@@ -12,9 +12,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
-	"time"
 )
 
 /*
@@ -97,45 +94,4 @@ func InterfaceToPolicyCondition(value interface{}) (PolicyCondition, error) {
 		conditionMap[operator] = attributeMap
 	}
 	return conditionMap, nil
-}
-
-func genTimeEnvs(tz string, currentTime time.Time) (map[string]interface{}, error) {
-	loc, err := time.LoadLocation(tz)
-	if err != nil {
-		return nil, fmt.Errorf("pdp load policy timezone location fail, %w", err)
-	}
-
-	t := currentTime.In(loc)
-
-	// transfer 08:30:20 to 83020
-	hms := int64(10000*t.Hour() + 100*t.Minute() + t.Second())
-
-	envs := map[string]interface{}{
-		"tz":  tz,
-		"hms": hms,
-		// "ts":  t.Unix(),
-	}
-	return envs, nil
-}
-
-// GenTimeEnvsFromCache will return the same time-related envs if the tz and timestamp are same!
-// NOTE: cache only if the envs is same for every request
-//       if you will change the envs later(e.g. set some value from request, do not cache it!)
-//       at that time, you should remove this func, use a new collection like sync.Pool
-func GenTimeEnvsFromCache(tz string, currentTime time.Time) (map[string]interface{}, error) {
-	key := tz + strconv.FormatInt(currentTime.Unix(), 10)
-
-	cachedEnvs, ok := localTimeEnvsCache.Get(key)
-	// hit
-	if ok {
-		return cachedEnvs.(map[string]interface{}), nil
-	}
-	// miss
-	envs, err := genTimeEnvs(tz, currentTime)
-	if err != nil {
-		return nil, err
-	}
-
-	localTimeEnvsCache.SetDefault(key, envs)
-	return envs, nil
 }

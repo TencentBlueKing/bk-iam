@@ -19,7 +19,7 @@ import (
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/condition/operator"
-	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/types"
 	"iam/pkg/cache/impls"
 )
@@ -29,7 +29,7 @@ import (
 // - query: PartialEvalPolicies
 
 // EvalPolicies 计算是否满足
-func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
+func EvalPolicies(ctx *evalctx.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
 	currentTime := time.Now()
 
 	for _, policy := range policies {
@@ -48,7 +48,7 @@ func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPas
 }
 
 // evalPolicy 计算单个policy是否满足
-func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, error) {
+func evalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -68,35 +68,20 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime 
 		return false, err
 	}
 
-	initEnvironments(cond, ctx, currentTime)
+	err = ctx.InitEnvironments(cond, currentTime)
+	if err != nil {
+		log.Errorf("pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
+			policy.ID, policy.Expression, currentTime, err)
+		return false, err
+	}
 
 	isPass := cond.Eval(ctx)
 	return isPass, err
 }
 
-func initEnvironments(cond condition.Condition, ctx *pdptypes.EvalContext, currentTime time.Time) error {
-	// build envs
-	ctx.UnsetEnv()
-	if cond.HasEnv() {
-		// NOTE: 开启环境属性, 不一定会有tz, 而是 有配置时间相关环境属性, 一定会配置tz
-		if tz, ok := cond.GetEnvTz(); ok {
-			envs, err := pdptypes.GenTimeEnvsFromCache(tz, currentTime)
-			if err != nil {
-				// log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
-				// 	policy.ID, policy.Expression, err)
-				// return false, err
-				return fmt.Errorf("pdp gen envs fail")
-			}
-			ctx.SetEnv(envs)
-		}
-		// NOTE: if got more envs, build it here before set
-	}
-	return nil
-}
-
 // PartialEvalPolicies 筛选check pass的policies
 func PartialEvalPolicies(
-	ctx *pdptypes.EvalContext,
+	ctx *evalctx.EvalContext,
 	policies []types.AuthPolicy,
 ) ([]condition.Condition, []int64, error) {
 	currentTime := time.Now()
@@ -123,7 +108,7 @@ func PartialEvalPolicies(
 	return remainedConditions, passedPolicyIDs, nil
 }
 
-func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, condition.Condition, error) {
+func partialEvalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, condition.Condition, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -137,7 +122,13 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, curre
 		return false, nil, err
 	}
 
-	initEnvironments(cond, ctx, currentTime)
+	// TODO: 2. performance, HasEnv every time?
+	err = ctx.InitEnvironments(cond, currentTime)
+	if err != nil {
+		log.Errorf("pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
+			policy.ID, policy.Expression, currentTime, err)
+		return false, nil, err
+	}
 
 	// if no resource passed
 	if !ctx.HasResources() {

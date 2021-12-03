@@ -15,8 +15,8 @@ import (
 	"errors"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
@@ -155,7 +155,7 @@ func queryAndPartialEvalConditions(
 	}
 
 	// 执行完后, 只返回 执行后的残留的 conditions
-	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(pdptypes.NewEvalContext(r), policies)
+	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(evalctx.NewEvalContext(r), policies)
 	if len(conditions) == 0 {
 		debug.WithNoPassEvalPolicies(entry, policies)
 	}

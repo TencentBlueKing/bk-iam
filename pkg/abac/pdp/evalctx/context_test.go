@@ -8,10 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package types
+package evalctx
 
 import (
+	"strconv"
+	"testing"
+	"time"
+
 	. "github.com/onsi/ginkgo"
+	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
@@ -99,3 +104,36 @@ var _ = Describe("Context", func() {
 	})
 
 })
+
+func BenchmarkGenEnvsInReal(b *testing.B) {
+	tz := "Asia/Shanghai"
+	currentTime := time.Now()
+
+	for i := 0; i < b.N; i++ {
+		genTimeEnvs(tz, currentTime)
+	}
+}
+func BenchmarkGenEnvsFromSyncMap(b *testing.B) {
+	tz := "Asia/Shanghai"
+	currentTime := time.Now()
+
+	m := gocache.New(10*time.Second, 20*time.Second)
+	// m := sync.Map{}
+	// for _, x := range a {
+	// 	m.Store(x, strconv.FormatInt(x, 10))
+	// }
+
+	for i := 0; i < b.N; i++ {
+		key := tz + strconv.FormatInt(currentTime.Unix(), 10)
+		// key := fmt.Sprintf("%s%d", tz, currentTime.Unix())
+
+		_, ok := m.Get(key)
+		if !ok {
+			envs, err := genTimeEnvs(tz, currentTime)
+			if err == nil {
+				m.Set(key, envs, 0)
+				// m.Store(key, envs)
+			}
+		}
+	}
+}

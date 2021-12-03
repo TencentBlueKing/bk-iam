@@ -17,8 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
-
-	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cache/impls"
@@ -27,7 +26,7 @@ import (
 
 var _ = Describe("Evaluation", func() {
 
-	var c *pdptypes.EvalContext
+	var c *evalctx.EvalContext
 	var policy types.AuthPolicy
 	willPassPolicy := types.AuthPolicy{
 		ID: 1,
@@ -125,7 +124,7 @@ var _ = Describe("Evaluation", func() {
 				Type:   "job",
 			},
 		})
-		c = pdptypes.NewEvalContext(request)
+		c = evalctx.NewEvalContext(request)
 		policy = types.AuthPolicy{
 			Expression: "",
 		}

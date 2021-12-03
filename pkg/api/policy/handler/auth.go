@@ -16,8 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cache/impls"
@@ -294,7 +294,7 @@ func BatchAuthByResources(c *gin.Context) {
 		}
 
 		// do eval
-		isAllowed, _, err := evaluation.EvalPolicies(pdptypes.NewEvalContext(r), policies)
+		isAllowed, _, err := evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 		if err != nil {
 			err = errorWrapf(err, " pdp.EvalPolicies req=`%+v`, policies=`%+v` fail", r, policies)
 			util.SystemErrorJSONResponseWithDebug(c, err, entry)

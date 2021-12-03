@@ -30,6 +30,8 @@ var errMustNotEmpty = errors.New("value must not be empty")
 // conditionFunc define the func which keyword match to func be called
 type conditionFunc func(key string, values []interface{}) (Condition, error)
 
+type keyMatchFunc func(key string) bool
+
 var conditionFactories map[string]conditionFunc
 
 func init() {
@@ -53,10 +55,10 @@ type Condition interface {
 	GetName() string
 	GetKeys() []string // 返回条件中包含的所有属性key
 
-	// HasEnv return true if got any  _bk_iam_env_.x in keys
-	HasEnv() bool
-	// GetEnvTz retrieve _bk_iam_env_.tz from condition
-	GetEnvTz() (string, bool)
+	// HasKey return true if match key
+	HasKey(f keyMatchFunc) bool
+	// GetKeyValues retrieve the match key's values from condition
+	GetKeyValues(f keyMatchFunc) ([]interface{}, bool)
 
 	Eval(ctx types.EvalContextor) bool
 	Translate(withSystem bool) (map[string]interface{}, error)

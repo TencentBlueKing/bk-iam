@@ -11,10 +11,7 @@
 package condition
 
 import (
-	"strings"
-
 	"iam/pkg/abac/pdp/types"
-	abacTypes "iam/pkg/abac/types"
 )
 
 type baseCondition struct {
@@ -27,20 +24,15 @@ func (c *baseCondition) GetKeys() []string {
 	return []string{c.Key}
 }
 
-func (c *baseCondition) HasEnv() bool {
-	return strings.Contains(c.Key, abacTypes.IamEnvSuffix)
+func (c *baseCondition) HasKey(f keyMatchFunc) bool {
+	return f(c.Key)
 }
 
-func (c *baseCondition) GetEnvTz() (tz string, ok bool) {
-	if strings.HasSuffix(c.Key, abacTypes.IamEnvTzSuffix) {
-		if len(c.Value) != 1 {
-			return
-		}
-
-		tz, ok = c.Value[0].(string)
-		return
+func (c *baseCondition) GetKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+	if f(c.Key) {
+		return c.Value, true
 	}
-	return
+	return nil, false
 }
 
 // GetValues 如果Value中有参数, 获取参数的值

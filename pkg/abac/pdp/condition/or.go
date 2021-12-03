@@ -64,23 +64,23 @@ func (c *OrCondition) GetKeys() []string {
 	return keys
 }
 
-func (c *OrCondition) HasEnv() bool {
+func (c *OrCondition) HasKey(f keyMatchFunc) bool {
 	for _, condition := range c.content {
-		if condition.HasEnv() {
+		if condition.HasKey(f) {
 			return true
 		}
 	}
 	return false
 }
 
-func (c *OrCondition) GetEnvTz() (string, bool) {
+func (c *OrCondition) GetKeyValues(f keyMatchFunc) ([]interface{}, bool) {
 	for _, condition := range c.content {
 		// got the first one
-		if tz, ok := condition.GetEnvTz(); ok {
-			return tz, ok
+		if values, ok := condition.GetKeyValues(f); ok {
+			return values, ok
 		}
 	}
-	return "", false
+	return nil, false
 }
 
 // Eval 求值
