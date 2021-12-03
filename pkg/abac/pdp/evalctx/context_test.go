@@ -11,9 +11,13 @@
 package evalctx
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
+
+	"iam/pkg/abac/pdp/condition"
+	pdptypes "iam/pkg/abac/pdp/types"
 
 	. "github.com/onsi/ginkgo"
 	gocache "github.com/patrickmn/go-cache"
@@ -98,6 +102,207 @@ var _ = Describe("Context", func() {
 
 		It("miss", func() {
 			assert.False(GinkgoT(), c.HasResource("bk_cmdb.job"))
+
+		})
+	})
+
+	Describe("SetEnv", func() {
+		It("ok", func() {
+			c.SetEnv(map[string]interface{}{"ts": 123})
+
+			ts, err := c.GetAttr("iam._bk_iam_env_.ts")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), 123, ts)
+		})
+	})
+
+	Describe("UnsetEnv", func() {
+		It("ok", func() {
+			c.SetEnv(map[string]interface{}{"ts": 123})
+
+			ts, err := c.GetAttr("iam._bk_iam_env_.ts")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), 123, ts)
+
+			c.UnsetEnv()
+
+			assert.False(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
+		})
+
+	})
+
+	Describe("InitEnvironments", func() {
+
+		var noEnvCond condition.Condition
+		var notEnvTimeCond condition.Condition
+		var envTimeCond condition.Condition
+		BeforeEach(func() {
+			// init the cache
+			localTimeEnvsCache = gocache.New(10*time.Second, 30*time.Second)
+
+			c1 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.system": []interface{}{"linux"}}},
+						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.path": []interface{}{"/biz,1/"}}},
+					},
+				},
+			}
+			noEnvCond, _ = condition.NewConditionFromPolicyCondition(c1)
+
+			c2 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}}},
+						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.system": []interface{}{"iam"}}},
+					},
+				},
+			}
+			notEnvTimeCond, _ = condition.NewConditionFromPolicyCondition(c2)
+
+			c3 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}}},
+						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai"}}},
+						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+					},
+				},
+			}
+			envTimeCond, _ = condition.NewConditionFromPolicyCondition(c3)
+		})
+		AfterEach(func() {
+			c.UnsetEnv()
+		})
+
+		It("has no envs", func() {
+			err := c.InitEnvironments(noEnvCond, time.Now())
+			assert.NoError(GinkgoT(), err)
+
+			assert.False(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
+		})
+
+		It("has env, not time-related", func() {
+			err := c.InitEnvironments(notEnvTimeCond, time.Now())
+			assert.NoError(GinkgoT(), err)
+
+			assert.False(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
+		})
+
+		It("has time-related env, ok", func() {
+			tz := "Asia/Shanghai"
+
+			loc, _ := time.LoadLocation(tz)
+			t, _ := time.ParseInLocation("2006-01-02 15:04:05 Z0700 MST", "2021-12-03 15:54:06 +0800 CST", loc)
+			hms := int64(155406)
+
+			fmt.Println("print the c, is nil? ", c, c == nil)
+
+			err := c.InitEnvironments(envTimeCond, t)
+			assert.NoError(GinkgoT(), err)
+
+			assert.True(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
+
+			tzA, err := c.GetAttr("iam._bk_iam_env_.tz")
+			assert.Equal(GinkgoT(), "Asia/Shanghai", tzA)
+			hmsA, err := c.GetAttr("iam._bk_iam_env_.hms")
+			assert.Equal(GinkgoT(), hms, hmsA)
+		})
+
+		It("has time-related env, 2 tz", func() {
+			c3 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai", "America/New_York"}}},
+						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+					},
+				},
+			}
+			cond, _ := condition.NewConditionFromPolicyCondition(c3)
+			err := c.InitEnvironments(cond, time.Now())
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("has time-related env, tz wrong type", func() {
+			c3 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{123}}},
+						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+					},
+				},
+			}
+			cond, _ := condition.NewConditionFromPolicyCondition(c3)
+			err := c.InitEnvironments(cond, time.Now())
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("has time-related env, tz wrong", func() {
+			c3 := pdptypes.PolicyCondition{
+				"AND": map[string][]interface{}{
+					"content": {
+						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"wrong"}}},
+						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+					},
+				},
+			}
+			cond, _ := condition.NewConditionFromPolicyCondition(c3)
+			err := c.InitEnvironments(cond, time.Now())
+			assert.Error(GinkgoT(), err)
+		})
+	})
+
+	Describe("envs time", func() {
+
+		var tz string
+		var t time.Time
+		var hms int64
+		BeforeEach(func() {
+			tz = "Asia/Shanghai"
+
+			loc, _ := time.LoadLocation(tz)
+			t, _ = time.ParseInLocation("2006-01-02 15:04:05 Z0700 MST", "2021-12-03 15:54:06 +0800 CST", loc)
+			hms = int64(155406)
+		})
+
+		Describe("GenTimeEnvsFromCache", func() {
+			It("ok", func() {
+				envs, err := GenTimeEnvsFromCache(tz, t)
+				assert.NoError(GinkgoT(), err)
+
+				assert.Len(GinkgoT(), envs, 2)
+				assert.Equal(GinkgoT(), tz, envs["tz"])
+				assert.Equal(GinkgoT(), hms, envs["hms"])
+
+				envs2, err := GenTimeEnvsFromCache(tz, t)
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), envs, envs2)
+			})
+
+			It("fail", func() {
+				tz := "Wrong"
+				_, err := GenTimeEnvsFromCache(tz, time.Now())
+				assert.Error(GinkgoT(), err)
+			})
+		})
+
+		Describe("genTimeEnvs", func() {
+			It("ok", func() {
+				envs, err := genTimeEnvs(tz, t)
+				assert.NoError(GinkgoT(), err)
+
+				assert.Len(GinkgoT(), envs, 2)
+				assert.Equal(GinkgoT(), tz, envs["tz"])
+				assert.Equal(GinkgoT(), hms, envs["hms"])
+			})
+
+			It("fail", func() {
+				tz := "Wrong"
+				_, err := genTimeEnvs(tz, time.Now())
+				assert.Error(GinkgoT(), err)
+			})
 
 		})
 

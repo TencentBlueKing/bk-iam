@@ -108,7 +108,11 @@ func PartialEvalPolicies(
 	return remainedConditions, passedPolicyIDs, nil
 }
 
-func partialEvalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, condition.Condition, error) {
+func partialEvalPolicy(
+	ctx *evalctx.EvalContext,
+	policy types.AuthPolicy,
+	currentTime time.Time,
+) (bool, condition.Condition, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -125,7 +129,8 @@ func partialEvalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, curren
 	// TODO: 2. performance, HasEnv every time?
 	err = ctx.InitEnvironments(cond, currentTime)
 	if err != nil {
-		log.Errorf("pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
+		log.Errorf(
+			"pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
 			policy.ID, policy.Expression, currentTime, err)
 		return false, nil, err
 	}

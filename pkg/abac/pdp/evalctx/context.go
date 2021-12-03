@@ -58,14 +58,6 @@ func NewEvalContext(req *request.Request) *EvalContext {
 	}
 }
 
-func (c *EvalContext) SetEnv(envs map[string]interface{}) {
-	c.objSet.Set(c.System+types.IamEnvSuffix, envs)
-}
-
-func (c *EvalContext) UnsetEnv() {
-	c.objSet.Del(c.System + types.IamEnvSuffix)
-}
-
 // GetAttr 获取资源的属性值
 func (c *EvalContext) GetAttr(name string) (interface{}, error) {
 	// name should be {system}.{resource_type}.{attr_key}
@@ -75,6 +67,14 @@ func (c *EvalContext) GetAttr(name string) (interface{}, error) {
 func (c *EvalContext) HasResource(_type string) bool {
 	// has {system}.{resource_type}
 	return c.objSet.Has(_type)
+}
+
+func (c *EvalContext) SetEnv(envs map[string]interface{}) {
+	c.objSet.Set(c.System+types.IamEnvSuffix, envs)
+}
+
+func (c *EvalContext) UnsetEnv() {
+	c.objSet.Del(c.System + types.IamEnvSuffix)
 }
 
 func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime time.Time) error {
