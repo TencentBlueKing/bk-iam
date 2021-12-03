@@ -12,6 +12,7 @@ package handler
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -276,6 +277,12 @@ func BatchAuthByResources(c *gin.Context) {
 		err = errorWrapf(err, "systemID=`%s`, body=`%+v`", systemID, body)
 		util.SystemErrorJSONResponseWithDebug(c, err, entry)
 		return
+	}
+
+	// TODO: move to pdp/entrance.go
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache("Asia/Shanghai", time.Now())
+		debug.WithValue(entry, "env", envs)
 	}
 
 	// do eval for each resource

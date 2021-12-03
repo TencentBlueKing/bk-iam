@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
@@ -43,7 +44,11 @@ PDP 模块鉴权入口结构与鉴权函数定义
 */
 
 // PDP ...
-const PDP = "PDP"
+const (
+	PDP = "PDP"
+
+	DefaultTz = "Asia/Shanghai"
+)
 
 // EmptyPolicies ...
 var (
@@ -137,6 +142,10 @@ func Eval(
 	}
 
 	debug.AddStep(entry, "Eval")
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
 	var passPolicyID int64
 	isPass, passPolicyID, err = evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 	if err != nil {

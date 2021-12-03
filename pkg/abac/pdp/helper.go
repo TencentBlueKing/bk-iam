@@ -13,6 +13,7 @@ package pdp
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/evalctx"
@@ -116,7 +117,7 @@ func queryAndPartialEvalConditions(
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
-			//return []types.AuthPolicy{}, nil
+			// return []types.AuthPolicy{}, nil
 			return []condition.Condition{}, nil
 		}
 
@@ -155,6 +156,10 @@ func queryAndPartialEvalConditions(
 	}
 
 	// 执行完后, 只返回 执行后的残留的 conditions
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
 	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(evalctx.NewEvalContext(r), policies)
 	if len(conditions) == 0 {
 		debug.WithNoPassEvalPolicies(entry, policies)
