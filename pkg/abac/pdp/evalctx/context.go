@@ -106,7 +106,23 @@ func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime tim
 			}
 			c.SetEnv(envs)
 		}
+
 		// NOTE: if got more envs, build it here before set
+
+		// e.g.
+		/*
+				{
+					// basic, should all have tz field
+					"tz": "Asia/Shanghai",
+					// now
+					"hms": 172910,
+					// later:
+					"ts": 1638523704,
+					"weekday": 3,
+					"monthday": 29,
+			        "month": 12,
+				}
+		*/
 	}
 	return nil
 }

@@ -126,7 +126,6 @@ func partialEvalPolicy(
 		return false, nil, err
 	}
 
-	// TODO: 2. performance, HasEnv every time?
 	err = ctx.InitEnvironments(cond, currentTime)
 	if err != nil {
 		log.Errorf(
