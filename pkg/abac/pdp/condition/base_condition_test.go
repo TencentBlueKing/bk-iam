@@ -127,6 +127,51 @@ var _ = Describe("BaseCondition", func() {
 		})
 	})
 
+	Describe("HasKey", func() {
+		It("ok", func() {
+			expectedKey := "test"
+
+			c := baseCondition{
+				Key:   expectedKey,
+				Value: nil,
+			}
+
+			assert.True(GinkgoT(), c.HasKey(func(key string) bool {
+				return key == expectedKey
+			}))
+		})
+	})
+
+	Describe("GetKeyValues", func() {
+		It("ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			v, ok := c.GetKeyValues(func(key string) bool {
+				return key == "test"
+			})
+			assert.True(GinkgoT(), ok)
+
+			assert.Equal(GinkgoT(), expectedValues, v)
+		})
+
+		It("ont ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			_, ok := c.GetKeyValues(func(key string) bool {
+				return key == "abc"
+			})
+			assert.False(GinkgoT(), ok)
+		})
+	})
+
 	Describe("GetValues", func() {
 		It("ok", func() {
 			expectedValues := []interface{}{1, "ab", 3}

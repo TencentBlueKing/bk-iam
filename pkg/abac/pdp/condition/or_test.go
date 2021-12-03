@@ -109,6 +109,40 @@ var _ = Describe("Or", func() {
 		assert.Equal(GinkgoT(), "hello", keys[0])
 	})
 
+	Describe("HasKey", func() {
+		It("ok", func() {
+			ok1 := c.HasKey(func(key string) bool {
+				return key == "k1"
+			})
+			assert.True(GinkgoT(), ok1)
+		})
+
+		It("not ok", func() {
+			ok2 := c.HasKey(func(key string) bool {
+				return key == "k3"
+			})
+			assert.False(GinkgoT(), ok2)
+		})
+	})
+
+	Describe("GetKeyValues", func() {
+		It("ok", func() {
+			v, ok := c.GetKeyValues(func(key string) bool {
+				return key == "k1"
+			})
+			assert.True(GinkgoT(), ok)
+			assert.Equal(GinkgoT(), []interface{}{"a", "b"}, v)
+		})
+
+		It("not ok", func() {
+			_, ok := c.GetKeyValues(func(key string) bool {
+				return key == "k3"
+			})
+			assert.False(GinkgoT(), ok)
+		})
+
+	})
+
 	Describe("Translate", func() {
 		It("ok, empty", func() {
 			want := map[string]interface{}{
