@@ -27,7 +27,7 @@ func (c *baseCondition) GetKeys() []string {
 }
 
 func (c *baseCondition) HasEnv() bool {
-	return strings.Index(c.Key, iamEnvSuffix) != -1
+	return strings.Contains(c.Key, iamEnvSuffix)
 }
 
 func (c *baseCondition) GetEnvTz() (tz string, ok bool) {

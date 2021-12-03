@@ -13,6 +13,7 @@ package evaluation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -29,8 +30,10 @@ import (
 
 // EvalPolicies 计算是否满足
 func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
+	currentTime := time.Now()
+
 	for _, policy := range policies {
-		isPass, err = evalPolicy(ctx, policy)
+		isPass, err = evalPolicy(ctx, policy, currentTime)
 		if err != nil {
 			log.Debugf("pdp evalPolicy: ctx=`%+v`, policy=`%+v`, error=`%s`", ctx, policy, err)
 		}
@@ -45,7 +48,7 @@ func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPas
 }
 
 // evalPolicy 计算单个policy是否满足
-func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error) {
+func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -71,7 +74,7 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error
 			return false, fmt.Errorf("policy got env, but missing the required key: tz")
 		}
 
-		envs, err := pdptypes.GenEnvs(tz)
+		envs, err := pdptypes.GenEnvsFromCache(tz, currentTime)
 		if err != nil {
 			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
 				policy.ID, policy.Expression, err)
@@ -91,11 +94,13 @@ func PartialEvalPolicies(
 	ctx *pdptypes.EvalContext,
 	policies []types.AuthPolicy,
 ) ([]condition.Condition, []int64, error) {
+	currentTime := time.Now()
+
 	remainedConditions := make([]condition.Condition, 0, len(policies))
 
 	passedPolicyIDs := make([]int64, 0, len(policies))
 	for _, policy := range policies {
-		isPass, condition, err := partialEvalPolicy(ctx, policy)
+		isPass, condition, err := partialEvalPolicy(ctx, policy, currentTime)
 		if err != nil {
 			// TODO: 一条报错怎么处理?????
 			log.Debugf("pdp PartialEvalPoliciesy policy: %+v ctx: %+v error: %s", policy, ctx, err)
@@ -113,7 +118,7 @@ func PartialEvalPolicies(
 	return remainedConditions, passedPolicyIDs, nil
 }
 
-func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, condition.Condition, error) {
+func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, condition.Condition, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -134,7 +139,7 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool
 			return false, nil, fmt.Errorf("policy got env, but missing the required key: tz")
 		}
 
-		envs, err := pdptypes.GenEnvs(tz)
+		envs, err := pdptypes.GenEnvsFromCache(tz, currentTime)
 		if err != nil {
 			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
 				policy.ID, policy.Expression, err)

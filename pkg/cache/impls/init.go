@@ -55,6 +55,8 @@ var (
 	LocalExpressionCache *gocache.Cache
 	ChangeListCache      *redis.Cache
 
+	LocalEnvsCache *gocache.Cache
+
 	ActionCacheCleaner       *cleaner.CacheCleaner
 	ResourceTypeCacheCleaner *cleaner.CacheCleaner
 	SubjectCacheCleaner      *cleaner.CacheCleaner
@@ -220,6 +222,8 @@ func InitCaches(disabled bool) {
 	LocalPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	LocalExpressionCache = gocache.New(5*time.Minute, 5*time.Minute)
 	ChangeListCache = redis.NewCache("cl", 5*time.Minute)
+
+	LocalEnvsCache = gocache.New(10*time.Second, 30*time.Second)
 
 	PolicyCache = redis.NewCache(
 		"pl",
