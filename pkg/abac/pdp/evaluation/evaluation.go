@@ -68,25 +68,30 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, currentTime 
 		return false, err
 	}
 
-	if cond.HasEnv() {
-		tz, ok := cond.GetEnvTz()
-		if !ok {
-			return false, fmt.Errorf("policy got env, but missing the required key: tz")
-		}
-
-		envs, err := pdptypes.GenEnvsFromCache(tz, currentTime)
-		if err != nil {
-			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
-				policy.ID, policy.Expression, err)
-			return false, err
-		}
-		ctx.SetEnv(envs)
-	} else {
-		ctx.UnsetEnv()
-	}
+	initEnvironments(cond, ctx, currentTime)
 
 	isPass := cond.Eval(ctx)
 	return isPass, err
+}
+
+func initEnvironments(cond condition.Condition, ctx *pdptypes.EvalContext, currentTime time.Time) error {
+	// build envs
+	ctx.UnsetEnv()
+	if cond.HasEnv() {
+		// NOTE: 开启环境属性, 不一定会有tz, 而是 有配置时间相关环境属性, 一定会配置tz
+		if tz, ok := cond.GetEnvTz(); ok {
+			envs, err := pdptypes.GenTimeEnvsFromCache(tz, currentTime)
+			if err != nil {
+				// log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
+				// 	policy.ID, policy.Expression, err)
+				// return false, err
+				return fmt.Errorf("pdp gen envs fail")
+			}
+			ctx.SetEnv(envs)
+		}
+		// NOTE: if got more envs, build it here before set
+	}
+	return nil
 }
 
 // PartialEvalPolicies 筛选check pass的policies
@@ -132,23 +137,7 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy, curre
 		return false, nil, err
 	}
 
-	// TODO: cond => generate ctx?
-	if cond.HasEnv() {
-		tz, ok := cond.GetEnvTz()
-		if !ok {
-			return false, nil, fmt.Errorf("policy got env, but missing the required key: tz")
-		}
-
-		envs, err := pdptypes.GenEnvsFromCache(tz, currentTime)
-		if err != nil {
-			log.Errorf("pdp gen envs fail. id: %d expression: %s, error: %v",
-				policy.ID, policy.Expression, err)
-			return false, nil, err
-		}
-		ctx.SetEnv(envs)
-	} else {
-		ctx.UnsetEnv()
-	}
+	initEnvironments(cond, ctx, currentTime)
 
 	// if no resource passed
 	if !ctx.HasResources() {

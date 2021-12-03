@@ -72,7 +72,7 @@ func BenchmarkGenEnvsInReal(b *testing.B) {
 	currentTime := time.Now()
 
 	for i := 0; i < b.N; i++ {
-		genEnvs(tz, currentTime)
+		genTimeEnvs(tz, currentTime)
 	}
 }
 func BenchmarkGenEnvsFromSyncMap(b *testing.B) {
@@ -91,7 +91,7 @@ func BenchmarkGenEnvsFromSyncMap(b *testing.B) {
 
 		_, ok := m.Get(key)
 		if !ok {
-			envs, err := genEnvs(tz, currentTime)
+			envs, err := genTimeEnvs(tz, currentTime)
 			if err == nil {
 				m.Set(key, envs, 0)
 				// m.Store(key, envs)

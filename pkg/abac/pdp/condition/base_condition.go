@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"iam/pkg/abac/pdp/types"
+	abacTypes "iam/pkg/abac/types"
 )
 
 type baseCondition struct {
@@ -27,11 +28,11 @@ func (c *baseCondition) GetKeys() []string {
 }
 
 func (c *baseCondition) HasEnv() bool {
-	return strings.Contains(c.Key, iamEnvSuffix)
+	return strings.Contains(c.Key, abacTypes.IamEnvSuffix)
 }
 
 func (c *baseCondition) GetEnvTz() (tz string, ok bool) {
-	if strings.HasSuffix(c.Key, iamEnvSuffix+".tz") {
+	if strings.HasSuffix(c.Key, abacTypes.IamEnvTzSuffix) {
 		if len(c.Value) != 1 {
 			return
 		}

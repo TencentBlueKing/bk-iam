@@ -29,6 +29,9 @@ import (
 	// init debug entry pool
 	_ "iam/pkg/logging/debug"
 
+	// init the pdp
+	_ "iam/pkg/abac/pdp/types"
+
 	"iam/pkg/server"
 )
 

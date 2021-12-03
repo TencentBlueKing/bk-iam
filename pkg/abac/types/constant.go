@@ -17,4 +17,10 @@ const (
 	PKAttrName    = "pk"
 	GroupAttrName = "group"
 	DeptAttrName  = "department"
+
+	IamPath = "_bk_iam_path_"
+
+	IamEnv         = "_bk_iam_env_"
+	IamEnvSuffix   = "." + IamEnv
+	IamEnvTzSuffix = IamEnvSuffix + ".tz"
 )

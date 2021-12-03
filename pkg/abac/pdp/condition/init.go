@@ -25,12 +25,6 @@ import (
 1. 条件之间没有隐含的关系 每个条件都是 {"operator": {"filed": values}}
 */
 
-const (
-	iamPath      = "_bk_iam_path_"
-	iamEnv       = "_bk_iam_env_"
-	iamEnvSuffix = "." + iamEnv
-)
-
 var errMustNotEmpty = errors.New("value must not be empty")
 
 // conditionFunc define the func which keyword match to func be called
@@ -61,6 +55,7 @@ type Condition interface {
 
 	// HasEnv return true if got any  _bk_iam_env_.x in keys
 	HasEnv() bool
+	// GetEnvTz retrieve _bk_iam_env_.tz from condition
 	GetEnvTz() (string, bool)
 
 	Eval(ctx types.EvalContextor) bool
