@@ -281,7 +281,7 @@ func BatchAuthByResources(c *gin.Context) {
 
 	// TODO: move to pdp/entrance.go
 	if entry != nil {
-		envs, _ := evalctx.GenTimeEnvsFromCache("Asia/Shanghai", time.Now())
+		envs, _ := evalctx.GenTimeEnvsFromCache(pdp.DefaultTz, time.Now())
 		debug.WithValue(entry, "env", envs)
 	}
 

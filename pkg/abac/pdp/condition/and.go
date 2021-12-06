@@ -20,11 +20,14 @@ import (
 
 // AndCondition 逻辑AND
 type AndCondition struct {
-	content []Condition
+	baseLogicalCondition
 }
 
 func NewAndCondition(content []Condition) Condition {
-	return &AndCondition{content: content}
+	return &AndCondition{
+		baseLogicalCondition{
+			content: content,
+		}}
 }
 
 func newAndCondition(field string, values []interface{}) (Condition, error) {
@@ -43,40 +46,12 @@ func newAndCondition(field string, values []interface{}) (Condition, error) {
 		conditions = append(conditions, condition)
 	}
 
-	return &AndCondition{content: conditions}, nil
+	return &AndCondition{baseLogicalCondition{content: conditions}}, nil
 }
 
 // GetName 名称
 func (c *AndCondition) GetName() string {
 	return operator.AND
-}
-
-// GetKeys 返回嵌套条件中所有包含的属性key
-func (c *AndCondition) GetKeys() []string {
-	keys := make([]string, 0, len(c.content))
-	for _, condition := range c.content {
-		keys = append(keys, condition.GetKeys()...)
-	}
-	return keys
-}
-
-func (c *AndCondition) HasKey(f keyMatchFunc) bool {
-	for _, condition := range c.content {
-		if condition.HasKey(f) {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *AndCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
-	for _, condition := range c.content {
-		// got the first one
-		if values, ok := condition.GetFirstMatchKeyValues(f); ok {
-			return values, ok
-		}
-	}
-	return nil, false
 }
 
 // Eval 求值

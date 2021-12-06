@@ -20,11 +20,15 @@ import (
 
 // OrCondition 逻辑OR
 type OrCondition struct {
-	content []Condition
+	baseLogicalCondition
 }
 
 func NewOrCondition(content []Condition) Condition {
-	return &OrCondition{content: content}
+	return &OrCondition{
+		baseLogicalCondition{
+			content: content,
+		},
+	}
 }
 
 func newOrCondition(field string, values []interface{}) (Condition, error) {
@@ -47,40 +51,12 @@ func newOrCondition(field string, values []interface{}) (Condition, error) {
 		conditions = append(conditions, condition)
 	}
 
-	return &OrCondition{content: conditions}, nil
+	return &OrCondition{baseLogicalCondition{content: conditions}}, nil
 }
 
 // GetName 名称
 func (c *OrCondition) GetName() string {
 	return operator.OR
-}
-
-// GetKeys 返回嵌套条件中所有包含的属性key
-func (c *OrCondition) GetKeys() []string {
-	keys := make([]string, 0, len(c.content))
-	for _, condition := range c.content {
-		keys = append(keys, condition.GetKeys()...)
-	}
-	return keys
-}
-
-func (c *OrCondition) HasKey(f keyMatchFunc) bool {
-	for _, condition := range c.content {
-		if condition.HasKey(f) {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *OrCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
-	for _, condition := range c.content {
-		// got the first one
-		if values, ok := condition.GetFirstMatchKeyValues(f); ok {
-			return values, ok
-		}
-	}
-	return nil, false
 }
 
 // Eval 求值

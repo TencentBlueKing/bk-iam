@@ -19,17 +19,19 @@ import (
 
 var _ = Describe("Or", func() {
 	wantOrCondition := &OrCondition{
-		content: []Condition{
-			&StringEqualsCondition{
-				baseCondition: baseCondition{
-					Key:   "system",
-					Value: []interface{}{"linux"},
+		baseLogicalCondition{
+			content: []Condition{
+				&StringEqualsCondition{
+					baseCondition: baseCondition{
+						Key:   "system",
+						Value: []interface{}{"linux"},
+					},
 				},
-			},
-			&StringPrefixCondition{
-				baseCondition: baseCondition{
-					Key:   "path",
-					Value: []interface{}{"/biz,1/"},
+				&StringPrefixCondition{
+					baseCondition: baseCondition{
+						Key:   "path",
+						Value: []interface{}{"/biz,1/"},
+					},
 				},
 			},
 		},
@@ -40,9 +42,11 @@ var _ = Describe("Or", func() {
 		c1, _ := newStringEqualsCondition("k1", []interface{}{"a", "b"})
 		c2, _ := newNumericEqualsCondition("k2", []interface{}{123})
 		c = &OrCondition{
-			[]Condition{
-				c1,
-				c2,
+			baseLogicalCondition{
+				[]Condition{
+					c1,
+					c2,
+				},
 			},
 		}
 	})
@@ -91,56 +95,6 @@ var _ = Describe("Or", func() {
 
 		assert.False(GinkgoT(), c.Eval(strCtx("c")))
 		assert.False(GinkgoT(), c.Eval(intCtx(456)))
-	})
-
-	It("GetKeys", func() {
-		oc := OrCondition{
-			content: []Condition{
-				&StringEqualsCondition{
-					baseCondition{
-						Key: "hello",
-					},
-				},
-			},
-		}
-
-		keys := oc.GetKeys()
-		assert.Len(GinkgoT(), keys, 1)
-		assert.Equal(GinkgoT(), "hello", keys[0])
-	})
-
-	Describe("HasKey", func() {
-		It("ok", func() {
-			ok1 := c.HasKey(func(key string) bool {
-				return key == "k1"
-			})
-			assert.True(GinkgoT(), ok1)
-		})
-
-		It("not ok", func() {
-			ok2 := c.HasKey(func(key string) bool {
-				return key == "k3"
-			})
-			assert.False(GinkgoT(), ok2)
-		})
-	})
-
-	Describe("GetFirstMatchKeyValues", func() {
-		It("ok", func() {
-			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
-				return key == "k1"
-			})
-			assert.True(GinkgoT(), ok)
-			assert.Equal(GinkgoT(), []interface{}{"a", "b"}, v)
-		})
-
-		It("not ok", func() {
-			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
-				return key == "k3"
-			})
-			assert.False(GinkgoT(), ok)
-		})
-
 	})
 
 	Describe("Translate", func() {

@@ -55,7 +55,7 @@ type Condition interface {
 	GetName() string
 	GetKeys() []string // 返回条件中包含的所有属性key
 
-	// HasKey return true if match key
+	// HasKey return true if match key, use a keyMatchFunc to verify if matched
 	HasKey(f keyMatchFunc) bool
 	// GetFirstMatchKeyValues retrieve the first match key's values from condition
 	GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool)
