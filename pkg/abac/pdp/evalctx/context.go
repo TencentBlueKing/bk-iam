@@ -84,6 +84,7 @@ func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime tim
 	hasEnvFunc := func(key string) bool {
 		return strings.Contains(key, types.IamEnvSuffix)
 	}
+	// 限制: 一条策略, 有多个环境属性, 但是只能有一个tz(逻辑计算无法在同一个表达式中支持多个时区)
 	hasEnvTzFunc := func(key string) bool {
 		return strings.HasSuffix(key, types.IamEnvTzSuffix)
 	}
