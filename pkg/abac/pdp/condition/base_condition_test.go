@@ -142,7 +142,7 @@ var _ = Describe("BaseCondition", func() {
 		})
 	})
 
-	Describe("GetKeyValues", func() {
+	Describe("GetFirstMatchKeyValues", func() {
 		It("ok", func() {
 			expectedValues := []interface{}{1, "ab", 3}
 			c := baseCondition{
@@ -150,7 +150,7 @@ var _ = Describe("BaseCondition", func() {
 				Value: expectedValues,
 			}
 
-			v, ok := c.GetKeyValues(func(key string) bool {
+			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "test"
 			})
 			assert.True(GinkgoT(), ok)
@@ -165,7 +165,7 @@ var _ = Describe("BaseCondition", func() {
 				Value: expectedValues,
 			}
 
-			_, ok := c.GetKeyValues(func(key string) bool {
+			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "abc"
 			})
 			assert.False(GinkgoT(), ok)

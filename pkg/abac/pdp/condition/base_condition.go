@@ -28,7 +28,7 @@ func (c *baseCondition) HasKey(f keyMatchFunc) bool {
 	return f(c.Key)
 }
 
-func (c *baseCondition) GetKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+func (c *baseCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
 	if f(c.Key) {
 		return c.Value, true
 	}

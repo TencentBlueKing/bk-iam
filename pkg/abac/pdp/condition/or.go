@@ -73,10 +73,10 @@ func (c *OrCondition) HasKey(f keyMatchFunc) bool {
 	return false
 }
 
-func (c *OrCondition) GetKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+func (c *OrCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
 	for _, condition := range c.content {
 		// got the first one
-		if values, ok := condition.GetKeyValues(f); ok {
+		if values, ok := condition.GetFirstMatchKeyValues(f); ok {
 			return values, ok
 		}
 	}
@@ -137,7 +137,7 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
-				//panic("should contain dot in key")
+				// panic("should contain dot in key")
 				return false, nil
 			}
 			_type := key[:dotIdx]

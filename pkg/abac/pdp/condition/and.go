@@ -69,10 +69,10 @@ func (c *AndCondition) HasKey(f keyMatchFunc) bool {
 	return false
 }
 
-func (c *AndCondition) GetKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+func (c *AndCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
 	for _, condition := range c.content {
 		// got the first one
-		if values, ok := condition.GetKeyValues(f); ok {
+		if values, ok := condition.GetFirstMatchKeyValues(f); ok {
 			return values, ok
 		}
 	}

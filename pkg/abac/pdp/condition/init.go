@@ -57,8 +57,8 @@ type Condition interface {
 
 	// HasKey return true if match key
 	HasKey(f keyMatchFunc) bool
-	// GetKeyValues retrieve the match key's values from condition
-	GetKeyValues(f keyMatchFunc) ([]interface{}, bool)
+	// GetFirstMatchKeyValues retrieve the first match key's values from condition
+	GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool)
 
 	Eval(ctx types.EvalContextor) bool
 	Translate(withSystem bool) (map[string]interface{}, error)

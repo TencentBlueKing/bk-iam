@@ -125,9 +125,9 @@ var _ = Describe("Or", func() {
 		})
 	})
 
-	Describe("GetKeyValues", func() {
+	Describe("GetFirstMatchKeyValues", func() {
 		It("ok", func() {
-			v, ok := c.GetKeyValues(func(key string) bool {
+			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "k1"
 			})
 			assert.True(GinkgoT(), ok)
@@ -135,7 +135,7 @@ var _ = Describe("Or", func() {
 		})
 
 		It("not ok", func() {
-			_, ok := c.GetKeyValues(func(key string) bool {
+			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "k3"
 			})
 			assert.False(GinkgoT(), ok)
@@ -268,7 +268,7 @@ var _ = Describe("Or", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(HitStrCtx("windows"))
 					assert.False(GinkgoT(), allowed)
 					assert.Nil(GinkgoT(), nc)
-					//assert.Equal(GinkgoT(), NewAnyCondition(), nc)
+					// assert.Equal(GinkgoT(), NewAnyCondition(), nc)
 				})
 
 				It("true", func() {
@@ -444,7 +444,7 @@ var _ = Describe("Or", func() {
 					"host.system": "windows",
 				})
 				assert.True(GinkgoT(), allowed)
-				//assert.Nil(GinkgoT(), nc)
+				// assert.Nil(GinkgoT(), nc)
 				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}

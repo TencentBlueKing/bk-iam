@@ -118,9 +118,9 @@ var _ = Describe("And", func() {
 		})
 	})
 
-	Describe("GetKeyValues", func() {
+	Describe("GetFirstMatchKeyValues", func() {
 		It("ok", func() {
-			v, ok := c.GetKeyValues(func(key string) bool {
+			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "k1"
 			})
 			assert.True(GinkgoT(), ok)
@@ -128,7 +128,7 @@ var _ = Describe("And", func() {
 		})
 
 		It("not ok", func() {
-			_, ok := c.GetKeyValues(func(key string) bool {
+			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
 				return key == "k3"
 			})
 			assert.False(GinkgoT(), ok)
@@ -209,9 +209,9 @@ var _ = Describe("And", func() {
 	Describe("PartialEval", func() {
 		Describe("no nested AND/OR", func() {
 
-			//It("no content", func() {
+			// It("no content", func() {
 			//
-			//})
+			// })
 
 			Describe("single", func() {
 				var c Condition

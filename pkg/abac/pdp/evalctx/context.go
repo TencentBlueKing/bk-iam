@@ -90,7 +90,7 @@ func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime tim
 
 	if cond.HasKey(hasEnvFunc) {
 		// NOTE: 开启环境属性, 不一定会有tz, 而是 有配置时间相关环境属性, 一定会配置tz
-		if tzValues, exists := cond.GetKeyValues(hasEnvTzFunc); exists {
+		if tzValues, exists := cond.GetFirstMatchKeyValues(hasEnvTzFunc); exists {
 			if len(tzValues) != 1 {
 				return fmt.Errorf("pdp ctx initEnvironments got not tz in condition")
 			}
@@ -157,7 +157,7 @@ func genTimeEnvs(tz string, currentTime time.Time) (map[string]interface{}, erro
 
 	t := currentTime.In(loc)
 
-	// transfer 08:30:20 to 83020
+	// hms means hour-minute-second, transfer 08:30:20 to 83020; 10:41:21 to 104121
 	hms := int64(10000*t.Hour() + 100*t.Minute() + t.Second())
 
 	envs := map[string]interface{}{
