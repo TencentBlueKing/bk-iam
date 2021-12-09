@@ -1,3 +1,7 @@
+# 1.9.2
+
+- bugfix: remove redundant policy index
+
 # 1.9.1
 
 - bugfix: partialEval out of index while the any condition key is empty
