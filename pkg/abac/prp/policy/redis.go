@@ -47,8 +47,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
@@ -109,7 +109,7 @@ func (r *redisRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []int
 	noPoliciesSubjectPKs := make([]int64, 0, len(subjectPKs))
 	for subjectPK, policiesStr := range hitPolicies {
 		var ps []types.AuthPolicy
-		err = impls.PolicyCache.Unmarshal(util.StringToBytes(policiesStr), &ps)
+		err = cacheimpls.PolicyCache.Unmarshal(util.StringToBytes(policiesStr), &ps)
 		if err != nil {
 			log.WithError(err).Errorf("[%s] parse string to expression fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`",
 				RedisLayer, r.system, r.actionPK, subjectPKs)
@@ -186,7 +186,7 @@ func (r *redisRetriever) batchGet(subjectPKs []int64) (
 	}
 
 	// HGet in pipeline
-	hitValues, err := impls.PolicyCache.BatchHGet(hashKeyFields)
+	hitValues, err := cacheimpls.PolicyCache.BatchHGet(hashKeyFields)
 	if err != nil {
 		return
 	}
@@ -225,7 +225,7 @@ func (r *redisRetriever) batchSet(subjectPKPolicies map[int64][]types.AuthPolicy
 	for subjectPK, policies := range subjectPKPolicies {
 		key := r.genKey(subjectPK)
 		field := strconv.FormatInt(r.actionPK, 10)
-		policiesBytes, err := impls.PolicyCache.Marshal(policies)
+		policiesBytes, err := cacheimpls.PolicyCache.Marshal(policies)
 		if err != nil {
 			return err
 		}
@@ -244,22 +244,22 @@ func (r *redisRetriever) batchSet(subjectPKPolicies map[int64][]types.AuthPolicy
 	}
 
 	// HSet, in a pipeline, with tx
-	err := impls.PolicyCache.BatchHSetWithTx(hashes)
+	err := cacheimpls.PolicyCache.BatchHSetWithTx(hashes)
 	if err != nil {
 		log.WithError(err).Errorf(
-			"[%s] impls.PolicyCache.BatchHSetWithTx fail system=`%s`, actionPK=`%d`, keys=`%+v`",
+			"[%s] cacheimpls.PolicyCache.BatchHSetWithTx fail system=`%s`, actionPK=`%d`, keys=`%+v`",
 			RedisLayer, r.system, r.actionPK, keys)
 		return err
 	}
 
 	// keep policy cache for 7 days
-	err = impls.PolicyCache.BatchExpireWithTx(
+	err = cacheimpls.PolicyCache.BatchExpireWithTx(
 		keys,
-		impls.PolicyCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
+		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
 	)
 	if err != nil {
 		log.WithError(err).Errorf(
-			"[%s] impls.PolicyCache.BatchExpireWithTx fail system=`%s`, actionPK=`%d`, keys=`%+v`",
+			"[%s] cacheimpls.PolicyCache.BatchExpireWithTx fail system=`%s`, actionPK=`%d`, keys=`%+v`",
 			RedisLayer, r.system, r.actionPK, keys)
 		return err
 	}
@@ -273,10 +273,10 @@ func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
 		keys = append(keys, r.genKey(subjectPK))
 	}
 
-	err := impls.PolicyCache.BatchDelete(keys)
+	err := cacheimpls.PolicyCache.BatchDelete(keys)
 	if err != nil {
 		log.WithError(err).Errorf(
-			"[%s] impls.PolicyCache.BatchDelete fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`, keys=`%+v`",
+			"[%s] cacheimpls.PolicyCache.BatchDelete fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`, keys=`%+v`",
 			RedisLayer, r.system, r.actionPK, subjectPKs, keys)
 
 		// report to sentry
@@ -314,9 +314,9 @@ func batchDeleteSystemSubjectPKsFromRedis(systems []string, subjectPKs []int64) 
 		return nil
 	}
 
-	err := impls.PolicyCache.BatchDelete(keys)
+	err := cacheimpls.PolicyCache.BatchDelete(keys)
 	if err != nil {
-		log.WithError(err).Errorf("impls.PolicyCache.BatchDelete fail systems=`%+v`, subjectPKs=`%+v`, keys=`%+v`",
+		log.WithError(err).Errorf("cacheimpls.PolicyCache.BatchDelete fail systems=`%+v`, subjectPKs=`%+v`, keys=`%+v`",
 			systems, subjectPKs, keys)
 		return err
 	}

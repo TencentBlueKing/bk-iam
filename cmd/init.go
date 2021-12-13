@@ -18,8 +18,8 @@ import (
 	"github.com/spf13/viper"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/component"
 	"iam/pkg/config"
 	"iam/pkg/database"
@@ -122,11 +122,11 @@ func initLogger() {
 }
 
 func initCaches() {
-	impls.InitCaches(false)
+	cacheimpls.InitCaches(false)
 }
 
 func initPolicyCacheSettings() {
-	impls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
+	cacheimpls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
 }
 
 func initSuperAppCode() {

@@ -20,7 +20,7 @@ import (
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -307,7 +307,7 @@ func BatchAuthByResources(c *gin.Context) {
 	// NOTE: debug mode, do translate, for understanding easier
 	if entry != nil && len(body.ResourcesList) > 0 {
 		debug.WithValue(entry, "expression", "set fail")
-		expr, err1 := impls.PoliciesTranslate(policies)
+		expr, err1 := cacheimpls.PoliciesTranslate(policies)
 		if err1 == nil {
 			debug.WithValue(entry, "expression", expr)
 		}

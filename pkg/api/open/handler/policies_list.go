@@ -21,7 +21,7 @@ import (
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
@@ -62,7 +62,7 @@ func List(c *gin.Context) {
 
 	// 2. action exists
 	actionID := query.ActionID
-	actionPK, err := impls.GetActionPK(systemID, actionID)
+	actionPK, err := cacheimpls.GetActionPK(systemID, actionID)
 	if err != nil {
 		// 在本系统内找不到这个action, 返回404
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,7 +70,7 @@ func List(c *gin.Context) {
 			return
 		}
 
-		err = fmt.Errorf("impls.GetActionPK system=`%s`, action=`%s` fail. err=%w", systemID, actionID, err)
+		err = fmt.Errorf("cacheimpls.GetActionPK system=`%s`, action=`%s` fail. err=%w", systemID, actionID, err)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -153,7 +153,7 @@ func convertQueryPoliciesToThinPolicies(
 
 	// loop policies to build thinPolicies
 	for _, p := range policies {
-		subj, err1 := impls.GetSubjectByPK(p.SubjectPK)
+		subj, err1 := cacheimpls.GetSubjectByPK(p.SubjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
 			log.Info(errorWrapf(err1,

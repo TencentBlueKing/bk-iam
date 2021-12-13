@@ -20,7 +20,7 @@ import (
 
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	svctypes "iam/pkg/service/types"
 )
 
@@ -38,7 +38,7 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("GetSubjectPK fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
 				return -1, errors.New("get subject_pk fail")
 			})
 
@@ -48,7 +48,7 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(impls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
 				return 123, nil
 			})
 
@@ -71,7 +71,7 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("GetSubjectDetail fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
 				return svctypes.SubjectDetail{}, errors.New("get GetSubjectDetail fail")
 			})
 
@@ -95,7 +95,7 @@ var _ = Describe("Subject", func() {
 				},
 			}
 
-			patches = gomonkey.ApplyFunc(impls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
 				return svctypes.SubjectDetail{
 					DepartmentPKs: []int64{1, 2, 3},
 					SubjectGroups: returned,

@@ -18,7 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -59,7 +59,7 @@ func Get(c *gin.Context) {
 	}
 
 	// 2. query systemAction from cache
-	systemAction, err := impls.GetAction(queryPolicy.ActionPK)
+	systemAction, err := cacheimpls.GetAction(queryPolicy.ActionPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -73,7 +73,7 @@ func Get(c *gin.Context) {
 	}
 
 	// 4. query subj from cache
-	subj, err := impls.GetSubjectByPK(queryPolicy.SubjectPK)
+	subj, err := cacheimpls.GetSubjectByPK(queryPolicy.SubjectPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

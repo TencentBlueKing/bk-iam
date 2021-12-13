@@ -13,7 +13,7 @@ package handler
 import (
 	"fmt"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
@@ -259,7 +259,7 @@ func batchDeleteInstanceSelections(c *gin.Context, systemID string, ids []string
 		for _, id := range ids {
 			// NOTE: 只检查本系统的action是否关联了对应的实例视图
 			if ais.ActionSystem == systemID && ais.InstanceSelectionSystem == systemID && ais.InstanceSelectionID == id {
-				actionPK, err1 := impls.GetActionPK(systemID, ais.ActionID)
+				actionPK, err1 := cacheimpls.GetActionPK(systemID, ais.ActionID)
 				if err1 != nil {
 					util.BadRequestErrorJSONResponse(c,
 						fmt.Sprintf("query action pk fail, systemID=%s, id=%s", systemID, ais.ActionID))

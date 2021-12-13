@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pip"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -37,7 +37,7 @@ var _ = Describe("Action", func() {
 		})
 
 		It("GetActionPK fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
 				return types.ActionDetail{}, errors.New("get GetActionDetail fail")
 			})
 
@@ -47,7 +47,7 @@ var _ = Describe("Action", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(impls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
 				return types.ActionDetail{PK: 123, ResourceTypes: []types.ThinActionResourceType{
 					{
 						System: "test",

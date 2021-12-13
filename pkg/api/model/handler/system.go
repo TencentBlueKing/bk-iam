@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 
 	"github.com/fatih/structs"
@@ -18,7 +19,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
@@ -193,7 +193,7 @@ func UpdateSystem(c *gin.Context) {
 	}
 
 	// delete the cache
-	impls.DeleteSystemCache(systemID)
+	cacheimpls.DeleteSystemCache(systemID)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
