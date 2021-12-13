@@ -53,7 +53,7 @@ func newNumericCompareCondition(
 
 func newNumericEqualsCondition(key string, values []interface{}) (Condition, error) {
 	return newNumericCompareCondition(key, values,
-		operator.NumericEquals, "eq", "in", eval.Equal)
+		operator.NumericEquals, "eq", "in", eval.ValueEqual)
 }
 
 func newNumericGreaterThanCondition(key string, values []interface{}) (Condition, error) {
