@@ -109,6 +109,25 @@ var _ = Describe("NumericCompare", func() {
 			assert.True(GinkgoT(), lteCondition.Eval(intCtx(2)))
 		})
 
+		It("true, different type", func() {
+			assert.True(GinkgoT(), eqCondition.Eval(int64Ctx(1)))
+			assert.True(GinkgoT(), eqCondition.Eval(int64Ctx(2)))
+
+			assert.True(GinkgoT(), gtCondition.Eval(int64Ctx(3)))
+			assert.True(GinkgoT(), gtCondition.Eval(int64Ctx(4)))
+
+			assert.True(GinkgoT(), gteCondition.Eval(int64Ctx(2)))
+			assert.True(GinkgoT(), gteCondition.Eval(int64Ctx(3)))
+			assert.True(GinkgoT(), gteCondition.Eval(int64Ctx(4)))
+
+			assert.True(GinkgoT(), ltCondition.Eval(int64Ctx(0)))
+			assert.True(GinkgoT(), ltCondition.Eval(int64Ctx(1)))
+
+			assert.True(GinkgoT(), lteCondition.Eval(int64Ctx(0)))
+			assert.True(GinkgoT(), lteCondition.Eval(int64Ctx(1)))
+			assert.True(GinkgoT(), lteCondition.Eval(int64Ctx(2)))
+		})
+
 		It("false", func() {
 			assert.False(GinkgoT(), eqCondition.Eval(intCtx(3)))
 
