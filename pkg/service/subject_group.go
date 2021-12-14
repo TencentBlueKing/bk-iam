@@ -56,10 +56,11 @@ func (l *subjectService) GetEffectThinSubjectGroups(pk int64) (thinSubjectGroup 
 	return thinSubjectGroup, err
 }
 
-// ListSubjectEffectGroups 批量获取 subject 有效的 groups(未过期的)
-func (l *subjectService) ListSubjectEffectGroups(pks []int64) (
-	subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListSubjectEffectGroups")
+// ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
+func (l *subjectService) ListEffectThinSubjectGroups(
+	pks []int64,
+) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListEffectThinSubjectGroups")
 
 	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
 

@@ -43,7 +43,7 @@ var _ = Describe("SubjectGroups", func() {
 		defer ctl.Finish()
 
 		mockService := mock.NewMockSubjectService(ctl)
-		mockService.EXPECT().GetThinSubjectGroups(int64(1)).Return([]types.ThinSubjectGroup{
+		mockService.EXPECT().GetEffectThinSubjectGroups(int64(1)).Return([]types.ThinSubjectGroup{
 			{
 				PK:              int64(1),
 				PolicyExpiredAt: int64(100000),
@@ -125,7 +125,7 @@ var _ = Describe("SubjectGroups", func() {
 
 			It("has no cached, get from database fail", func() {
 				mockService := mock.NewMockSubjectService(ctl)
-				mockService.EXPECT().ListSubjectEffectGroups([]int64{1}).Return(
+				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					nil, errors.New("error")).AnyTimes()
 
 				patches.ApplyFunc(service.NewSubjectService,
@@ -136,11 +136,11 @@ var _ = Describe("SubjectGroups", func() {
 				// call
 				_, err := ListSubjectEffectGroups([]int64{1, 2, 3})
 				assert.Error(GinkgoT(), err)
-				assert.Contains(GinkgoT(), err.Error(), "SubjectService.ListSubjectEffectGroups")
+				assert.Contains(GinkgoT(), err.Error(), "SubjectService.ListEffectThinSubjectGroups")
 			})
 			It("has no cached, get from database success", func() {
 				mockService := mock.NewMockSubjectService(ctl)
-				mockService.EXPECT().ListSubjectEffectGroups([]int64{1}).Return(
+				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					map[int64][]types.ThinSubjectGroup{
 						int64(1): {
 							{
@@ -163,7 +163,7 @@ var _ = Describe("SubjectGroups", func() {
 
 			It("has no cached, get from database success, has empty cached", func() {
 				mockService := mock.NewMockSubjectService(ctl)
-				mockService.EXPECT().ListSubjectEffectGroups([]int64{1}).Return(
+				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					map[int64][]types.ThinSubjectGroup{}, nil).AnyTimes()
 
 				patches.ApplyFunc(service.NewSubjectService,
