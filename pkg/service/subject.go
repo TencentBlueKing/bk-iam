@@ -39,7 +39,7 @@ type SubjectService interface {
 
 	// in subject_group.go
 
-	GetThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)
+	GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)
 	ListSubjectEffectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error)
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]types.SubjectGroup, error)
 

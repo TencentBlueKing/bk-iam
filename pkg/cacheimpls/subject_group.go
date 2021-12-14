@@ -24,7 +24,7 @@ func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
 	svc := service.NewSubjectService()
-	return svc.GetThinSubjectGroups(k.PK)
+	return svc.GetEffectThinSubjectGroups(k.PK)
 }
 
 // TODO: remove this cache? => if we can know a department add or remove from a group?
