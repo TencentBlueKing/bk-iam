@@ -32,4 +32,11 @@ func Register(r *gin.RouterGroup) {
 		// GET /api/v1/systems/:system/policies/-/subjects?ids=1,2,3,4
 		policies.GET("/:policy_id/subjects", handler.Subjects)
 	}
+
+	subjects := r.Group("/:system_id/subjects")
+	subjects.Use(common.SystemExistsAndClientValid())
+	{
+		subjects.GET("/:subject_type/:subject_id/groups", handler.SubjectGroups)
+	}
+
 }
