@@ -17,7 +17,7 @@ import (
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/util"
 )
@@ -48,7 +48,7 @@ func queryRemoteResourceAttrs(
 	// 查询policies相关的属性key
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
-		condition, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		condition, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 		if err != nil {
 			return nil, err
 		}

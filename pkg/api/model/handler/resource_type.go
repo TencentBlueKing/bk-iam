@@ -18,7 +18,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
@@ -196,7 +196,7 @@ func UpdateResourceType(c *gin.Context) {
 	}
 
 	// delete the cache
-	impls.BatchDeleteResourceTypeCache(systemID, []string{resourceTypeID})
+	cacheimpls.BatchDeleteResourceTypeCache(systemID, []string{resourceTypeID})
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -275,7 +275,7 @@ func batchDeleteResourceTypes(c *gin.Context, systemID string, ids []string) {
 		for _, id := range ids {
 			// NOTE: 只检查自己系统是否存在action关联了该resource type, 第三方系统依赖不影响本系统的删除
 			if art.ActionSystem == systemID && art.ResourceTypeID == id {
-				actionPK, err1 := impls.GetActionPK(systemID, art.ActionID)
+				actionPK, err1 := cacheimpls.GetActionPK(systemID, art.ActionID)
 				if err1 != nil {
 					util.BadRequestErrorJSONResponse(c,
 						fmt.Sprintf("query action pk fail, systemID=%s, id=%s", systemID, art.ActionID))
@@ -314,7 +314,7 @@ func batchDeleteResourceTypes(c *gin.Context, systemID string, ids []string) {
 	}
 
 	// delete the cache
-	impls.BatchDeleteResourceTypeCache(systemID, ids)
+	cacheimpls.BatchDeleteResourceTypeCache(systemID, ids)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }

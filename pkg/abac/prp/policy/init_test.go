@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/prp/policy"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
@@ -32,9 +32,9 @@ var _ = Describe("Init", func() {
 	var ctl *gomock.Controller
 	var patches *gomonkey.Patches
 	BeforeEach(func() {
-		impls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
-		impls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
-		impls.PolicyCache = redis.NewMockCache("policy", 1*time.Minute)
+		cacheimpls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
+		cacheimpls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
+		cacheimpls.PolicyCache = redis.NewMockCache("policy", 1*time.Minute)
 
 		ctl = gomock.NewController(GinkgoT())
 		patches = gomonkey.NewPatches()

@@ -16,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -67,7 +67,7 @@ func Subjects(c *gin.Context) {
 
 	data := policySubjectsResponse{}
 	for _, policy := range policies {
-		sa, err := impls.GetAction(policy.ActionPK)
+		sa, err := cacheimpls.GetAction(policy.ActionPK)
 		if err != nil {
 			log.Info(errorWrapf(err,
 				"policy_list.GetSystemAction action_pk=`%d` fail",
@@ -79,7 +79,7 @@ func Subjects(c *gin.Context) {
 			continue
 		}
 
-		subj, err1 := impls.GetSubjectByPK(policy.SubjectPK)
+		subj, err1 := cacheimpls.GetSubjectByPK(policy.SubjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
 			log.Info(errorWrapf(err1,

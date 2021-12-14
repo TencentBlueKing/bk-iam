@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/util"
 )
@@ -24,7 +24,7 @@ NOTE:
  - 当前部门不会直接配置权限, 只能通过加入用户组的方式配置; 所以 dept PKs 不加入最终生效的pks
 
 TODO:
- - 当前  impls.ListSubjectEffectGroups pipeline获取的性能有问题, 需要考虑走cache?
+ - 当前  cacheimpls.ListSubjectEffectGroups pipeline获取的性能有问题, 需要考虑走cache?
 
 */
 
@@ -54,7 +54,7 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 	now := time.Now().Unix()
 	inheritGroupPKSet := util.NewInt64Set()
 	if len(deptPKs) > 0 {
-		subjectGroups, newErr := impls.ListSubjectEffectGroups(deptPKs)
+		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			return nil, newErr

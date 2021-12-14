@@ -19,7 +19,7 @@ import (
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
@@ -244,9 +244,9 @@ func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]stri
 func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy enginePolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.constructEnginePolicy")
 
-	action, err := impls.GetAction(p.ActionPK)
+	action, err := cacheimpls.GetAction(p.ActionPK)
 	if err != nil {
-		err = errorWrapf(err, "impls.GetAction actionPK=`%d` fail", p.ActionPK)
+		err = errorWrapf(err, "cacheimpls.GetAction actionPK=`%d` fail", p.ActionPK)
 		return
 	}
 
@@ -257,9 +257,9 @@ func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy engin
 	}
 
 	// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
-	subj, err := impls.GetSubjectByPK(p.SubjectPK)
+	subj, err := cacheimpls.GetSubjectByPK(p.SubjectPK)
 	if err != nil {
-		err = errorWrapf(err, "impls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
+		err = errorWrapf(err, "cacheimpls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
 		log.Info(err)
 		return policy, errSubjectNotExist
 	}

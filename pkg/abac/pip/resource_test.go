@@ -18,9 +18,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache/impls"
-
 	"iam/pkg/abac/pip"
+	"iam/pkg/cacheimpls"
 )
 
 var _ = Describe("Resource", func() {
@@ -57,7 +56,7 @@ var _ = Describe("Resource", func() {
 		})
 
 		It("GetRemoteResource fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetRemoteResource,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetRemoteResource,
 				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return nil, errors.New("get remote resource fail")
 				})
@@ -72,7 +71,7 @@ var _ = Describe("Resource", func() {
 			want := map[string]interface{}{
 				"hello": 1,
 			}
-			patches = gomonkey.ApplyFunc(impls.GetRemoteResource,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetRemoteResource,
 				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return want, nil
 				})
@@ -124,7 +123,7 @@ var _ = Describe("Resource", func() {
 		})
 
 		It("ListRemoteResources fail", func() {
-			patches = gomonkey.ApplyFunc(impls.ListRemoteResources,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListRemoteResources,
 				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return nil, errors.New("list remote resource fail")
 				})
@@ -144,7 +143,7 @@ var _ = Describe("Resource", func() {
 					"hello": 2,
 				},
 			}
-			patches = gomonkey.ApplyFunc(impls.ListRemoteResources,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListRemoteResources,
 				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return want, nil
 				})

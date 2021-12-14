@@ -13,7 +13,7 @@ package pdp
 import (
 	"errors"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pip"
@@ -95,7 +95,7 @@ var _ = Describe("Remote", func() {
 			w, e := req.Resources[0].Attribute.GetString("hello")
 			assert.NoError(GinkgoT(), e)
 			assert.Equal(GinkgoT(), "world", w)
-			//assert.Equal(GinkgoT(), want, req.Resources[0].Attribute.(map[string]interface{}))
+			// assert.Equal(GinkgoT(), want, req.Resources[0].Attribute.(map[string]interface{}))
 		})
 
 	})
@@ -125,8 +125,8 @@ var _ = Describe("Remote", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 
-		It("error, impls.GetUnmarshalledResourceExpression fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+		It("error, cacheimpls.GetUnmarshalledResourceExpression fail", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return nil, errors.New("the error")
 
@@ -157,7 +157,7 @@ var _ = Describe("Remote", func() {
 		})
 
 		It("error, pip.QueryRemoteResourceAttribute fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
 
@@ -179,7 +179,7 @@ var _ = Describe("Remote", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
 				})

@@ -15,7 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/util"
 )
@@ -40,7 +40,7 @@ func GetToken(c *gin.Context) {
 	// get info via system_id
 	// svc := service.NewSystemService()
 	// system, err := svc.Get(systemID)
-	system, err := impls.GetSystem(systemID)
+	system, err := cacheimpls.GetSystem(systemID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "GetToken",
 			"svc.Get system_id=`%s` fail", systemID)

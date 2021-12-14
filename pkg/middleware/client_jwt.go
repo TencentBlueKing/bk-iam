@@ -16,7 +16,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 )
 
 var (
@@ -37,7 +37,7 @@ var (
 
 func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clientID string, err error) {
 	// check if in cache
-	clientID, err = impls.GetJWTTokenClientID(jwtToken)
+	clientID, err = cacheimpls.GetJWTTokenClientID(jwtToken)
 	if err == nil {
 		return
 	}
@@ -48,7 +48,7 @@ func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clien
 		return "", err
 	}
 	// set into cache
-	impls.SetJWTTokenClientID(jwtToken, clientID)
+	cacheimpls.SetJWTTokenClientID(jwtToken, clientID)
 	return
 }
 

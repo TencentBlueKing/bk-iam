@@ -17,8 +17,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
@@ -51,7 +51,7 @@ func (r *redisRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64,
 	emptyExpressionPKs := make([]int64, 0, len(pks))
 	for exprPK, exprStr := range hitExpressions {
 		var expression types.AuthExpression
-		err = impls.ExpressionCache.Unmarshal(util.StringToBytes(exprStr), &expression)
+		err = cacheimpls.ExpressionCache.Unmarshal(util.StringToBytes(exprStr), &expression)
 		if err != nil {
 			log.WithError(err).Errorf("[%s] parse string to expression fail expressionPKs=`%+v`",
 				RedisLayer, pks)
@@ -110,7 +110,7 @@ func (r *redisRetriever) batchGet(expressionPKs []int64) (
 		keys = append(keys, cache.NewInt64Key(i))
 	}
 
-	hitStrings, err := impls.ExpressionCache.BatchGet(keys)
+	hitStrings, err := cacheimpls.ExpressionCache.BatchGet(keys)
 	if err != nil {
 		return
 	}
@@ -133,7 +133,7 @@ func (r *redisRetriever) batchSet(authExpressions map[int64]types.AuthExpression
 	for pk, expression := range authExpressions {
 		key := cache.NewInt64Key(pk)
 
-		exprBytes, err := impls.ExpressionCache.Marshal(expression)
+		exprBytes, err := cacheimpls.ExpressionCache.Marshal(expression)
 		if err != nil {
 			return err
 		}
@@ -145,12 +145,12 @@ func (r *redisRetriever) batchSet(authExpressions map[int64]types.AuthExpression
 	}
 
 	// keep cache for 7 days
-	err := impls.ExpressionCache.BatchSetWithTx(
+	err := cacheimpls.ExpressionCache.BatchSetWithTx(
 		kvs,
-		impls.PolicyCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
+		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
 	)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] impls.ExpressionCache.BatchSetWithTx fail kvs=`%+v`", RedisLayer, kvs)
+		log.WithError(err).Errorf("[%s] cacheimpls.ExpressionCache.BatchSetWithTx fail kvs=`%+v`", RedisLayer, kvs)
 		return err
 	}
 
@@ -167,9 +167,9 @@ func (r *redisRetriever) batchDelete(expressionPKs []int64) error {
 		keys = append(keys, cache.NewInt64Key(pk))
 	}
 
-	err := impls.ExpressionCache.BatchDelete(keys)
+	err := cacheimpls.ExpressionCache.BatchDelete(keys)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] impls.ExpressionCache.BatchDelete fail keys=`%+v`", RedisLayer, keys)
+		log.WithError(err).Errorf("[%s] cacheimpls.ExpressionCache.BatchDelete fail keys=`%+v`", RedisLayer, keys)
 
 		// report to sentry
 		util.ReportToSentry("redis cache: expression cache delete fail",

@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
@@ -209,7 +209,7 @@ func UpdateAction(c *gin.Context) {
 	}
 
 	// delete from cache
-	impls.BatchDeleteActionCache(systemID, []string{actionID})
+	cacheimpls.BatchDeleteActionCache(systemID, []string{actionID})
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -289,7 +289,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		eventSvc := service.NewModelChangeService()
 		events := make([]svctypes.ModelChangeEvent, 0, len(needAsyncDeletedActionIDs))
 		for _, id := range needAsyncDeletedActionIDs {
-			actionPK, err1 := impls.GetActionPK(systemID, id)
+			actionPK, err1 := cacheimpls.GetActionPK(systemID, id)
 			if err1 != nil {
 				err1 = errorx.Wrapf(err1, "Handler", "batchDeleteActions",
 					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
@@ -346,7 +346,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		}
 
 		// delete from cache
-		impls.BatchDeleteActionCache(systemID, newIDs)
+		cacheimpls.BatchDeleteActionCache(systemID, newIDs)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)
