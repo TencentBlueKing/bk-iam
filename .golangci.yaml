@@ -28,6 +28,14 @@ linters:
     - bodyclose
     - gocritic
     - gocyclo
+    - misspell
+    - prealloc
+    - unparam
+    - wastedassign
+    - whitespace
+
+    # - nlreturn
+    # - ifshort
     # - nestif
     # - gofumpt
     # - godox

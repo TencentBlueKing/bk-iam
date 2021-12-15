@@ -89,5 +89,4 @@ func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface
 			"content": content,
 		}, nil
 	}
-
 }

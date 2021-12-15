@@ -154,7 +154,6 @@ func newExprToCondition(expr string) (condition.Condition, error) {
 		return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
 	}
 	return cond, nil
-
 }
 
 func expressionToCondition(expr string) (condition.Condition, error) {

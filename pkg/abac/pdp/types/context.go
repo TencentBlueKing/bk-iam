@@ -41,7 +41,6 @@ func NewEvalContext(req *request.Request) *EvalContext {
 		// bk_job.script => attributes
 		_type := r.System + "." + r.Type
 		objSet.Set(_type, r.Attribute)
-
 	}
 	// TODO: 需要限制接入系统资源id字段不能配置为attribute; 因为会被覆盖
 	return &EvalContext{
