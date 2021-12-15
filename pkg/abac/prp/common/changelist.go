@@ -13,12 +13,11 @@ package common
 import (
 	"time"
 
-	"iam/pkg/cacheimpls"
-
 	rds "github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/util"
 )
 
