@@ -31,7 +31,6 @@ func NewEvalContext(req *request.Request) *EvalContext {
 	objSet := NewObjectSet()
 
 	for _, r := range req.Resources {
-
 		// maybe nil here
 		if r.Attribute == nil {
 			r.Attribute = types.Attribute{}

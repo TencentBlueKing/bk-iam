@@ -21,11 +21,11 @@ import (
 )
 
 // GinkgoT() not support testing.TB yet https://github.com/onsi/ginkgo/issues/582
-func TestPong(t *testing.T) {
+func TestPing(t *testing.T) {
 	t.Parallel()
 
 	r := util.SetupRouter()
-	r.GET("/ping", Pong)
+	r.GET("/ping", Ping)
 
 	apitest.New().
 		Handler(r).

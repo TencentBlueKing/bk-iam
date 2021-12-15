@@ -40,7 +40,7 @@ type SubjectManager interface {
 	GetCount(_type string) (int64, error)
 
 	BulkCreate(subjects []Subject) error
-	//Delete(subject Subject) error
+	// Delete(subject Subject) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
 	BulkUpdate(subjects []Subject) error
 }
@@ -117,9 +117,9 @@ func (m *subjectManager) BulkCreate(subjects []Subject) error {
 	return m.bulkInsert(subjects)
 }
 
-//func (m *subjectManager) Delete(subject Subject) error {
+// func (m *subjectManager) Delete(subject Subject) error {
 //	return m.delete(subject)
-//}
+// }
 
 // BulkDeleteByPKsWithTx ...
 func (m *subjectManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {

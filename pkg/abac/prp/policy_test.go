@@ -15,10 +15,8 @@ import (
 )
 
 var _ = Describe("Policy", func() {
-
-	//It("NewPolicyManager", func() {
+	// It("NewPolicyManager", func() {
 	//	p := prp.NewPolicyManager()
 	//	assert.NotNil(GinkgoT(), p)
-	//})
-
+	// })
 })

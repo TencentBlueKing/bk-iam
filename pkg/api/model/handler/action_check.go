@@ -21,6 +21,7 @@ import (
 )
 
 // 需要db操作的校验, 统一叫 checkXXXX
+
 type AllActions struct {
 	AllBaseInfo
 

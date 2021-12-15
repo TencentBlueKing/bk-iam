@@ -11,11 +11,11 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListResourceType 查询系统所有资源类型
@@ -49,7 +49,7 @@ func ListResourceType(c *gin.Context) {
 
 		types := make([]map[string]interface{}, 0, len(resourceTypes))
 		for _, r := range resourceTypes {
-			//types = append(types, filterFields(fieldsSet, r))
+			// types = append(types, filterFields(fieldsSet, r))
 			rf, err := filterFields(fieldsSet, r)
 			if err != nil {
 				err = errorWrapf(err, "filterFields set=`%+v`, system=`%s`", fieldsSet, system)

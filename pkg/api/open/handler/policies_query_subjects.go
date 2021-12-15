@@ -72,6 +72,7 @@ func Subjects(c *gin.Context) {
 			log.Info(errorWrapf(err,
 				"policy_list.GetSystemAction action_pk=`%d` fail",
 				policy.ActionPK))
+
 			continue
 		}
 		// 不是本系统的策略, 过滤掉. not my system policy, continue
@@ -85,6 +86,7 @@ func Subjects(c *gin.Context) {
 			log.Info(errorWrapf(err1,
 				"policy_list.Subjects GetSubjectByPK subject_pk=`%d` fail",
 				policy.SubjectPK))
+
 			continue
 		}
 

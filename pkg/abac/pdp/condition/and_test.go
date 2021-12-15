@@ -175,9 +175,9 @@ var _ = Describe("And", func() {
 	Describe("PartialEval", func() {
 		Describe("no nested AND/OR", func() {
 
-			//It("no content", func() {
+			// It("no content", func() {
 			//
-			//})
+			// })
 
 			Describe("single", func() {
 				var c Condition

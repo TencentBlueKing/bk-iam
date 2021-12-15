@@ -38,8 +38,6 @@ func GetToken(c *gin.Context) {
 	systemID := c.Param("system_id")
 
 	// get info via system_id
-	// svc := service.NewSystemService()
-	// system, err := svc.Get(systemID)
 	system, err := cacheimpls.GetSystem(systemID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "GetToken",

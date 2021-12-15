@@ -87,8 +87,8 @@ func (m *saasSystemConfigManager) Update(systemConfig SaaSSystemConfig) error {
 	sql := "UPDATE saas_system_config SET " + expr + " WHERE system_id=:system_id AND name=:name"
 
 	// 3. add the where data
-	//data["system_id"] = system
-	//data["name"] = name
+	// data["system_id"] = system
+	// data["name"] = name
 
 	return m.update(sql, data)
 }

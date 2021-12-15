@@ -139,7 +139,7 @@ func (c *Cache) GetInto(key iamcache.Key, obj interface{}, retrieveFunc Retrieve
 	// 1. get from cache, hit, return
 	err = c.Get(key, obj)
 	if err == nil {
-		return
+		return nil
 	}
 
 	// 2. if missing

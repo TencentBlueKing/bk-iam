@@ -116,12 +116,14 @@ func (r *redisRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []int
 
 			// NOTE: 一条解析失败, 重新查/重新设置缓存
 			missSubjectPKs = append(missSubjectPKs, subjectPK)
+
 			continue
 		}
 
 		// empty policies
 		if len(ps) == 0 {
 			noPoliciesSubjectPKs = append(noPoliciesSubjectPKs, subjectPK)
+
 			continue
 		}
 

@@ -212,6 +212,7 @@ func batchDeleteSystemSubjectPKsFromMemory(systems []string, subjectPKs []int64)
 				"[%s] list system actions fail system=`%s`, subjectPKs=`%v` the changelist will not add these subjectPKs",
 				MemoryLayer, system, subjectPKs,
 			)
+
 			continue
 		}
 

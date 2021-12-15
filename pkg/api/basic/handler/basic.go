@@ -29,7 +29,7 @@ import (
 // @Success 200 {object} gin.H
 // @Header 200 {string} X-Request-Id "the request id"
 // @Router /ping [get]
-func Pong(c *gin.Context) {
+func Ping(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "pong",
 	})

@@ -74,11 +74,11 @@ func ConditionsTranslate(
 		// NOTE: if got an `any`, return `any`!
 		if condition["op"].(string) == "any" {
 			return condition, nil
-			//return ExprCell{
+			// return ExprCell{
 			//	"op":    "any",
 			//	"field": "",
 			//	"value": []interface{}{},
-			//}, nil
+			// }, nil
 		}
 
 		content = append(content, condition)

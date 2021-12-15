@@ -84,8 +84,8 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 				"content": newContent,
 			}
 		// NOTE: any is the same as other operators
-		//case "Any":
-		//	pc[op] = c
+		// case "Any":
+		//	 pc[op] = c
 		default:
 			pc[op] = make(map[string][]interface{}, len(c))
 			for k, v := range c {

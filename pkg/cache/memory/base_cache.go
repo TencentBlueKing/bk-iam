@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/sync/singleflight"
+
 	"iam/pkg/cache"
 	"iam/pkg/cache/memory/backend"
-
-	"golang.org/x/sync/singleflight"
 )
 
 // EmptyCacheExpiration ...

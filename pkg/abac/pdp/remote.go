@@ -44,7 +44,6 @@ func queryRemoteResourceAttrs(
 ) (attrs map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
-	// TODO: unittest
 	// 查询policies相关的属性key
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
@@ -61,7 +60,7 @@ func queryRemoteResourceAttrs(
 		err = errorWrapf(err,
 			"getConditionAttrKeys resource=`%+v`, conditions=`%+v` fail",
 			resource, conditions)
-		return
+		return nil, err
 	}
 
 	// 6. PIP查询依赖resource相关keys的属性
@@ -70,9 +69,9 @@ func queryRemoteResourceAttrs(
 		err = errorWrapf(err,
 			"pip.QueryRemoteResourceAttribute system=`%s`, resourceType=`%s`, resourceID=`%s`, keys=`%+v` fail",
 			resource.System, resource.Type, resource.ID, keys)
-		return
+		return nil, err
 	}
-	return
+	return attrs, nil
 }
 
 func queryExtResourceAttrs(
@@ -108,7 +107,6 @@ func getConditionAttrKeys(
 	resource *types.Resource,
 	conditions []condition.Condition,
 ) ([]string, error) {
-	// TODO: unittest
 	keyPrefix := resource.System + "." + resource.Type + "."
 
 	keySet := util.NewFixedLengthStringSet(len(conditions))

@@ -94,7 +94,6 @@ func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// once got False=> return
 	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
-
 		switch condition.GetName() {
 		case operator.AND, operator.OR:
 			// if AND/OR, do PartialEval recursive
