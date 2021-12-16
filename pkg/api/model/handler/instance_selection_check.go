@@ -49,16 +49,16 @@ func NewAllInstanceSelections(instanceSelections []svctypes.InstanceSelection) *
 
 func checkAllInstanceSelectionsQuotaAndUnique(
 	systemID string,
-	inInstanceSelections []instanceSelectionSerializer,
+	instanceSelections []instanceSelectionSerializer,
 ) error {
 	svc := service.NewInstanceSelectionService()
-	instanceSelections, err := svc.ListBySystem(systemID)
+	existingInstanceSelections, err := svc.ListBySystem(systemID)
 	if err != nil {
 		return errors.New("query all instance selection fail")
 	}
 
-	allInstanceSelections := NewAllInstanceSelections(instanceSelections)
-	for _, rt := range inInstanceSelections {
+	allInstanceSelections := NewAllInstanceSelections(existingInstanceSelections)
+	for _, rt := range instanceSelections {
 		if allInstanceSelections.ContainsID(rt.ID) {
 			return fmt.Errorf("instance selection id[%s] already exists", rt.ID)
 		}
@@ -71,9 +71,9 @@ func checkAllInstanceSelectionsQuotaAndUnique(
 	}
 
 	// quota
-	if len(instanceSelections)+len(instanceSelections) > common.GetMaxInstanceSelectionsLimit(systemID) {
+	if len(existingInstanceSelections)+len(instanceSelections) > common.GetMaxInstanceSelectionsLimit(systemID) {
 		return fmt.Errorf("quota error: system %s can only have %d instance selections. [current %d, want to create %d]",
-			systemID, common.GetMaxInstanceSelectionsLimit(systemID), len(instanceSelections), len(instanceSelections))
+			systemID, common.GetMaxInstanceSelectionsLimit(systemID), len(existingInstanceSelections), len(existingInstanceSelections))
 	}
 
 	return nil
