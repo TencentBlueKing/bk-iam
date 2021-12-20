@@ -96,7 +96,6 @@ func (p PolicyCondition) ToNewPolicyCondition(system, _type string) (PolicyCondi
 					// Any, field is empty
 					pc[op][k] = v
 				}
-
 			}
 		}
 	}

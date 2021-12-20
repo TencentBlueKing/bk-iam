@@ -28,6 +28,7 @@ linters:
     - bodyclose
     - gocritic
     - gocyclo
+    - whitespace
     # - nestif
     # - gofumpt
     # - godox
