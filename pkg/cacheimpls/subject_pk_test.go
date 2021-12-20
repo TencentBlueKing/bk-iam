@@ -18,7 +18,7 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

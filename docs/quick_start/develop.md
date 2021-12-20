@@ -1,13 +1,13 @@
 # 本地开发环境搭建
 
 
-## 1. 安装 go1.16 或更高的版本
+## 1. 安装 go1.17 或更高的版本
 
 [Go: Download and install](https://golang.org/doc/install)
 
 ```shell
 $ go version
-go version go1.16.3 darwin/amd64
+go version go1.17.5 darwin/amd64
 ```
 
 ## 2. 初始化表结构

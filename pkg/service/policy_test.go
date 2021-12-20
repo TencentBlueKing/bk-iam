@@ -13,7 +13,7 @@ package service
 import (
 	"errors"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
@@ -438,7 +438,7 @@ var _ = Describe("PolicyService", func() {
 			_, err := svc.AlterCustomPolicies(1, createPolicies, updatePolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -694,7 +694,7 @@ var _ = Describe("PolicyService", func() {
 			err := svc.CreateAndDeleteTemplatePolicies(1, 1, createPolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -810,7 +810,7 @@ var _ = Describe("PolicyService", func() {
 			err := svc.UpdateTemplatePolicies(1, updatePolicies, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alicebob/miniredis"
+	"github.com/alicebob/miniredis/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	jsoniter "github.com/json-iterator/go"
@@ -88,9 +88,9 @@ func SetupRouter() *gin.Engine {
 	r := gin.New()
 	gin.SetMode(gin.ReleaseMode)
 	r.Use(gin.Recovery())
-	//r.GET("/ping", func(c *gin.Context) {
+	// r.GET("/ping", func(c *gin.Context) {
 	//	c.String(200, "pong")
-	//})
+	// })
 	return r
 }
 
@@ -127,7 +127,7 @@ func CreateTesting500Server() *httptest.Server {
 // JSONAssertFunc ...
 type JSONAssertFunc func(map[string]interface{}) error
 
-//type JSONAssertFunc func(Response) error
+// type JSONAssertFunc func(Response) error
 
 // NewJSONAssertFunc ...
 func NewJSONAssertFunc(t *testing.T, assertFunc JSONAssertFunc) func(res *http.Response, req *http.Request) error {
@@ -138,7 +138,7 @@ func NewJSONAssertFunc(t *testing.T, assertFunc JSONAssertFunc) func(res *http.R
 		defer res.Body.Close()
 
 		var data map[string]interface{}
-		//var data Response
+		// var data Response
 
 		err = json.Unmarshal(body, &data)
 		assert.NoError(t, err, "unmarshal string to json fail")

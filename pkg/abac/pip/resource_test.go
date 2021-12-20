@@ -13,7 +13,7 @@ package pip_test
 import (
 	"errors"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
