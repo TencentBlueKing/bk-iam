@@ -126,8 +126,9 @@ func (m *subjectRelationManager) ListRelationBySubjectPK(subjectPK int64) (relat
 }
 
 // ListThinRelationBySubjectPK ...
-func (m *subjectRelationManager) ListThinRelationBySubjectPK(subjectPK int64) (
-	relations []ThinSubjectRelation, err error) {
+func (m *subjectRelationManager) ListThinRelationBySubjectPK(
+	subjectPK int64,
+) (relations []ThinSubjectRelation, err error) {
 	err = m.selectThinRelationBySubjectPK(&relations, subjectPK)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
