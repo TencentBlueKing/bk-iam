@@ -24,7 +24,7 @@ func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
 	svc := service.NewSubjectService()
-	return svc.GetThinSubjectGroups(k.PK)
+	return svc.GetEffectThinSubjectGroups(k.PK)
 }
 
 // TODO: remove this cache? => if we can know a department add or remove from a group?
@@ -62,9 +62,9 @@ func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
 	// 3. ids of no cache, retrieve multiple
 	svc := service.NewSubjectService()
 	// 按照时间过滤, 不应该查已过期的回来
-	notCachedSubjectGroups, err := svc.ListSubjectEffectGroups(notExistCachePKs)
+	notCachedSubjectGroups, err := svc.ListEffectThinSubjectGroups(notExistCachePKs)
 	if err != nil {
-		err = errorWrapf(err, "SubjectService.ListSubjectEffectGroups pks=`%v` fail", notExistCachePKs)
+		err = errorWrapf(err, "SubjectService.ListEffectThinSubjectGroups pks=`%v` fail", notExistCachePKs)
 		return nil, err
 	}
 	setMissing(notCachedSubjectGroups, notExistCachePKs)
