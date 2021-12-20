@@ -15,10 +15,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // SystemActionGroups ...

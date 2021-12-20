@@ -190,6 +190,7 @@ func convertEngineQueryPoliciesToEnginePolicies(
 		if !ok {
 			log.Errorf("policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
 				p.ExpressionPK)
+
 			continue
 		}
 
@@ -209,20 +210,20 @@ func convertEngineQueryPoliciesToEnginePolicies(
 	return enginePolicies, nil
 }
 
-// AnyExpresionPK is the pk for expression=any
-const AnyExpresionPK = -1
+// AnyExpressionPK is the pk for expression=any
+const AnyExpressionPK = -1
 
 func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]string, error) {
 	expressionPKs := make([]int64, 0, len(policies))
 	for _, p := range policies {
-		if p.ExpressionPK != AnyExpresionPK {
+		if p.ExpressionPK != AnyExpressionPK {
 			expressionPKs = append(expressionPKs, p.ExpressionPK)
 		}
 	}
 
 	pkExpressionStrMap := map[int64]string{
 		// NOTE: -1 for the `any`
-		AnyExpresionPK: "",
+		AnyExpressionPK: "",
 	}
 	if len(expressionPKs) > 0 {
 		manager := prp.NewPolicyManager()

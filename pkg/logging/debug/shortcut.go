@@ -76,6 +76,7 @@ func WithPassEvalPolicyIDs(e *Entry, policyIDs []int64) {
 	if e == nil {
 		return
 	}
+
 	if len(policyIDs) == 0 {
 		return
 	}
@@ -108,6 +109,7 @@ func AddSubDebug(e *Entry, subEntry *Entry) {
 	if e == nil || subEntry == nil {
 		return
 	}
+
 	e.AddSubDebug(subEntry)
 }
 

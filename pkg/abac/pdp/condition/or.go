@@ -88,7 +88,6 @@ func (c *OrCondition) Translate(withSystem bool) (map[string]interface{}, error)
 		"op":      "OR",
 		"content": content,
 	}, nil
-
 }
 
 // PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
@@ -118,7 +117,7 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			key := condition.GetKeys()[0]
 			dotIdx := strings.LastIndexByte(key, '.')
 			if dotIdx == -1 {
-				//panic("should contain dot in key")
+				// panic("should contain dot in key")
 				return false, nil
 			}
 			_type := key[:dotIdx]

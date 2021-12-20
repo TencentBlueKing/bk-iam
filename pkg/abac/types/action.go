@@ -39,6 +39,7 @@ func (a *Action) WithoutResourceType() bool {
 	if err != nil || len(actionResourceTypes) == 0 {
 		return true
 	}
+
 	return false
 }
 

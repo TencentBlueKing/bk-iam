@@ -17,10 +17,10 @@ import (
 	"strings"
 	"testing"
 
-	"iam/pkg/util"
-
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/util"
 )
 
 func TestSystemExists(t *testing.T) {

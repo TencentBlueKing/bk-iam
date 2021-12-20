@@ -11,11 +11,11 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListInstanceSelection 查询系统的所有实例视图

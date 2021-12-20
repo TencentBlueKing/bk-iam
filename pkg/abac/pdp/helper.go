@@ -116,7 +116,7 @@ func queryAndPartialEvalConditions(
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
-			//return []types.AuthPolicy{}, nil
+			// return []types.AuthPolicy{}, nil
 			return []condition.Condition{}, nil
 		}
 

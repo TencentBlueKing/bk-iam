@@ -39,7 +39,7 @@ func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clien
 	// check if in cache
 	clientID, err = cacheimpls.GetJWTTokenClientID(jwtToken)
 	if err == nil {
-		return
+		return clientID, nil
 	}
 
 	// parse in time
@@ -49,7 +49,7 @@ func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clien
 	}
 	// set into cache
 	cacheimpls.SetJWTTokenClientID(jwtToken, clientID)
-	return
+	return clientID, nil
 }
 
 func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error) {

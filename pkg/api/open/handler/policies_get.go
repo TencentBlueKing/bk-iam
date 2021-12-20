@@ -17,7 +17,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -80,12 +79,7 @@ func Get(c *gin.Context) {
 	}
 
 	// 5. get expression
-	resourceTypeSet, err := common.GetActionResourceTypeSet(systemAction.System, systemAction.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-	pkExpressionMap, err := translateExpressions(resourceTypeSet, []int64{queryPolicy.ExpressionPK})
+	pkExpressionMap, err := translateExpressions([]int64{queryPolicy.ExpressionPK})
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

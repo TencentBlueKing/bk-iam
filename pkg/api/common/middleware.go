@@ -13,10 +13,10 @@ package common
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/cacheimpls"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // SystemExists via system_id in path

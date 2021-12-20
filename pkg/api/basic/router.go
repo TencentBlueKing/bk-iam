@@ -27,7 +27,7 @@ import (
 // Register ...
 func Register(cfg *config.Config, router *gin.Engine) {
 	// basic
-	router.GET("/ping", handler.Pong)
+	router.GET("/ping", handler.Ping)
 	router.GET("/healthz", handler.NewHealthzHandleFunc(cfg))
 	router.GET("/version", handler.Version)
 
@@ -80,4 +80,4 @@ func pprofHandler(h http.HandlerFunc) gin.HandlerFunc {
 // @Success 200 {string} string metrics_text
 // @Header 200 {string} X-Request-Id "the request id"
 // @Router /metrics [get]
-func metrics() {} //nolint
+func metrics() {} // nolint

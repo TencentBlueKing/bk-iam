@@ -58,12 +58,14 @@ func (r *redisRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64,
 
 			// NOTE: 一条解析失败, 重新查/重新设置缓存
 			missExpressionPKs = append(missExpressionPKs, exprPK)
+
 			continue
 		}
 
 		// check here
 		if expression.IsEmpty() {
 			emptyExpressionPKs = append(emptyExpressionPKs, exprPK)
+
 			continue
 		}
 		expressions = append(expressions, expression)
