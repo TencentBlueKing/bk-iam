@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache"
@@ -51,7 +52,7 @@ func (r *redisRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64,
 	emptyExpressionPKs := make([]int64, 0, len(pks))
 	for exprPK, exprStr := range hitExpressions {
 		var expression types.AuthExpression
-		err = cacheimpls.ExpressionCache.Unmarshal(util.StringToBytes(exprStr), &expression)
+		err = cacheimpls.ExpressionCache.Unmarshal(conv.StringToBytes(exprStr), &expression)
 		if err != nil {
 			log.WithError(err).Errorf("[%s] parse string to expression fail expressionPKs=`%+v`",
 				RedisLayer, pks)
@@ -142,7 +143,7 @@ func (r *redisRetriever) batchSet(authExpressions map[int64]types.AuthExpression
 
 		kvs = append(kvs, redis.KV{
 			Key:   key.Key(),
-			Value: util.BytesToString(exprBytes),
+			Value: conv.BytesToString(exprBytes),
 		})
 	}
 

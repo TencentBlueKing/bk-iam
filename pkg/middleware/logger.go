@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
@@ -79,7 +80,7 @@ func logContextFields(c *gin.Context) []zap.Field {
 		e = ""
 	}
 
-	params := util.TruncateString(c.Request.URL.RawQuery, 1024)
+	params := stringx.Truncate(c.Request.URL.RawQuery, 1024)
 	fields := []zap.Field{
 		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
@@ -96,7 +97,7 @@ func logContextFields(c *gin.Context) []zap.Field {
 	if hasError {
 		fields = append(fields, zap.String("response_body", newWriter.body.String()))
 	} else {
-		fields = append(fields, zap.String("response_body", util.TruncateString(newWriter.body.String(), 1024)))
+		fields = append(fields, zap.String("response_body", stringx.Truncate(newWriter.body.String(), 1024)))
 	}
 
 	if hasError && e != nil {

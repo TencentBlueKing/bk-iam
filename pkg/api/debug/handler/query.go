@@ -13,6 +13,7 @@ package handler
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
@@ -34,7 +35,7 @@ func QueryModel(c *gin.Context) {
 
 	fields := "base_info,resource_types,actions,action_groups,instance_selections,resource_creator_actions," +
 		"common_actions,feature_shield_rules"
-	fieldSet := util.SplitStringToSet(fields, ",")
+	fieldSet := set.SplitStringToSet(fields, ",")
 	modelHandler.BuildSystemInfoQueryResponse(c, systemID, fieldSet)
 }
 

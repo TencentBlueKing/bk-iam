@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -28,7 +29,7 @@ func defaultValidClients(c *gin.Context, originClients string) string {
 	clients := originClients
 
 	clientID := util.GetClientID(c)
-	bodyClients := util.SplitStringToSet(clients, ",")
+	bodyClients := set.SplitStringToSet(clients, ",")
 	if !bodyClients.Has(clientID) {
 		bodyClients.Add(clientID)
 		clients = bodyClients.ToString(",")
@@ -268,7 +269,7 @@ func GetSystemClients(c *gin.Context) {
 
 	// NOTE: v1版本的api, clients是string, 原因是为了保持和 get system返回结构体中字段一致
 
-	// TODO: v2版, 两个接口都需要升级到 array => Clients: util.SplitStringToSet(system.Clients, ",").ToSlice(),
+	// TODO: v2版, 两个接口都需要升级到 array => Clients: set.SplitStringToSet(system.Clients, ",").ToSlice(),
 
 	util.SuccessJSONResponse(c, "ok", systemClientsResponse{
 		Clients: system.Clients,

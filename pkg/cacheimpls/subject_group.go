@@ -11,13 +11,14 @@
 package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/conv"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
@@ -97,7 +98,7 @@ func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup,
 		if data, ok := hitCacheResults[key]; ok {
 			// do unmarshal
 			var sg []types.ThinSubjectGroup
-			err = SubjectGroupCache.Unmarshal(util.StringToBytes(data), &sg)
+			err = SubjectGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
 			if err != nil {
 				err = errorWrapf(err, "unmarshal text in cache into SubjectGroup fail", "")
 				return
@@ -112,7 +113,7 @@ func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup,
 }
 
 func setMissing(notCachedSubjectGroups map[int64][]types.ThinSubjectGroup, missingPKs []int64) {
-	hasGroupPKs := util.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
+	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
 	for pk, sgs := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)

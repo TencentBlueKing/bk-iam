@@ -19,8 +19,8 @@ import (
 	"iam/pkg/component"
 	"iam/pkg/component/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +33,7 @@ func TestRemoteResourceCacheKey_Key(t *testing.T) {
 		Fields: "id;name",
 	}
 
-	assert.Equal(t, util.GetMD5Hash("test:host:1:id;name"), k.Key())
+	assert.Equal(t, stringx.MD5Hash("test:host:1:id;name"), k.Key())
 }
 
 func TestGetCMDBResource(t *testing.T) {

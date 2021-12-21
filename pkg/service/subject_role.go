@@ -11,10 +11,11 @@
 package service
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/database/dao"
 	"iam/pkg/errorx"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 // ListSubjectPKByRole ...
@@ -49,7 +50,7 @@ func (l *subjectService) BulkCreateSubjectRoles(roleType, system string, subject
 	}
 
 	// 对比出需要创建subjectPK
-	oldPKs := util.NewInt64SetWithValues(oldSubjectPKs)
+	oldPKs := set.NewInt64SetWithValues(oldSubjectPKs)
 
 	roles := make([]dao.SubjectRole, 0, len(subjectPKs))
 

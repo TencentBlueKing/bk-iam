@@ -13,6 +13,7 @@ package prp
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/prp/expression"
@@ -168,7 +169,7 @@ func (m *policyManager) ListBySubjectAction(
 
 	// 4. expressionPK 去重
 	expressionPKs := make([]int64, 0, len(effectPolicies))
-	expressionPKSet := util.NewFixedLengthInt64Set(len(effectPolicies))
+	expressionPKSet := set.NewFixedLengthInt64Set(len(effectPolicies))
 	for _, p := range effectPolicies {
 		if !expressionPKSet.Has(p.ExpressionPK) {
 			expressionPKSet.Add(p.ExpressionPK)
@@ -206,7 +207,7 @@ func (m *policyManager) ListBySubjectAction(
 	}
 
 	// NOTE: any 排在前面的逻辑去掉, 应该在计算或转换的时候处理合并 remove policy with `Any` first
-	signatureSet := util.NewFixedLengthStringSet(len(effectPolicies))
+	signatureSet := set.NewFixedLengthStringSet(len(effectPolicies))
 	for _, p := range effectPolicies {
 		expression := expressionMap[p.ExpressionPK]
 		if !signatureSet.Has(expression.Signature) {

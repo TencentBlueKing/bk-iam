@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -25,7 +26,6 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 var _ = Describe("SubjectGroups", func() {
@@ -246,7 +246,7 @@ var _ = Describe("SubjectGroups", func() {
 						})
 
 						return map[cache.Key]string{
-							SubjectPKCacheKey{PK: 2}: util.BytesToString(bs),
+							SubjectPKCacheKey{PK: 2}: conv.BytesToString(bs),
 						}, nil
 					})
 				defer patches.Reset()

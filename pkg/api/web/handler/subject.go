@@ -13,6 +13,7 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	log "github.com/sirupsen/logrus"
@@ -368,7 +369,7 @@ func BatchAddSubjectMembers(c *gin.Context) {
 		types.DepartmentType: 0,
 	}
 
-	bodyMembers := util.NewStringSet() // 用于去重
+	bodyMembers := set.NewStringSet() // 用于去重
 
 	for _, m := range body.Members {
 		key := fmt.Sprintf("%s:%s", m.Type, m.ID)

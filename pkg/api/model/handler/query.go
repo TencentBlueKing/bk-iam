@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/errorx"
@@ -58,14 +59,14 @@ func SystemInfoQuery(c *gin.Context) {
 		fields = "base_info,resource_types,actions,action_groups,instance_selections,resource_creator_actions," +
 			"common_actions,feature_shield_rules"
 	}
-	fieldSet := util.SplitStringToSet(fields, ",")
+	fieldSet := set.SplitStringToSet(fields, ",")
 
 	BuildSystemInfoQueryResponse(c, systemID, fieldSet)
 }
 
 //nolint:gocognit
 // BuildSystemInfoQueryResponse will only the data requested
-func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *util.StringSet) {
+func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet) {
 	// make the return data
 	data := gin.H{}
 

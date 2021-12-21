@@ -11,8 +11,9 @@
 package request
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/abac/types"
-	"iam/pkg/util"
 )
 
 /*
@@ -83,8 +84,8 @@ func (r *Request) ValidateActionRemoteResource() bool {
 	// 检查remote资源全覆盖, local资源部分覆盖
 	resourceTypes, _ := r.Action.Attribute.GetResourceTypes()
 
-	remoteTypeSet := util.NewStringSet()
-	localTypeSet := util.NewStringSet()
+	remoteTypeSet := set.NewStringSet()
+	localTypeSet := set.NewStringSet()
 	for _, rt := range resourceTypes {
 		if rt.System == r.System {
 			localTypeSet.Add(rt.Type)
@@ -111,9 +112,9 @@ func (r *Request) ValidateActionRemoteResource() bool {
 	return remoteTypeSet.Size() == remoteCount
 }
 
-func (r *Request) getActionResourceTypeIDSet() *util.StringSet {
+func (r *Request) getActionResourceTypeIDSet() *set.StringSet {
 	resourceTypes, _ := r.Action.Attribute.GetResourceTypes()
-	typeSet := util.NewStringSet()
+	typeSet := set.NewStringSet()
 	for _, rt := range resourceTypes {
 		key := r.genResourceTypeKey(rt.System, rt.Type)
 		typeSet.Add(key)

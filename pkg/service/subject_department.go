@@ -13,6 +13,8 @@ package service
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/database/dao"
 	"iam/pkg/errorx"
 	"iam/pkg/service/types"
@@ -178,7 +180,7 @@ func (l *subjectService) convertSubjectDepartments(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "convertSubjectDepartments")
 
 	subjectIDs := make([]string, 0, len(subjectDepartments))
-	departmentIDSet := util.NewStringSet()
+	departmentIDSet := set.NewStringSet()
 	for _, sd := range subjectDepartments {
 		subjectIDs = append(subjectIDs, sd.SubjectID)
 		for _, did := range sd.DepartmentIDs {

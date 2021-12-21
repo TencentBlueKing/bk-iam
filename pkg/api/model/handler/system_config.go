@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/errorx"
@@ -50,7 +51,7 @@ func CreateOrUpdateConfigDispatch(c *gin.Context) {
 	systemID := c.Param("system_id")
 
 	name := c.Param("name")
-	set := util.SplitStringToSet(AllowConfigNames, ",")
+	set := set.SplitStringToSet(AllowConfigNames, ",")
 	if !set.Has(name) {
 		util.BadRequestErrorJSONResponse(c, fmt.Sprintf("config `%s` is not supported yet", name))
 		return
@@ -94,7 +95,7 @@ func actionGroupHandler(systemID string, c *gin.Context) {
 
 	// 一个操作只能属于一个组(挂载到某个位置), 不允许挂载到多个位置, 即 全局uniq
 	actionIDs := getAllFromActionGroupsActionIDs(body)
-	uniqActionIDs := util.NewStringSetWithValues(actionIDs)
+	uniqActionIDs := set.NewStringSetWithValues(actionIDs)
 
 	if len(actionIDs) > uniqActionIDs.Size() {
 		util.BadRequestErrorJSONResponse(c, "one action can only belong to one group")

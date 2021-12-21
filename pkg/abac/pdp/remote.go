@@ -13,13 +13,14 @@ package pdp
 import (
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
-	"iam/pkg/util"
 )
 
 func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (err error) {
@@ -96,7 +97,7 @@ func getConditionAttrKeys(
 ) []string {
 	keyPrefix := resource.System + "." + resource.Type + "."
 
-	keySet := util.NewFixedLengthStringSet(len(conditions))
+	keySet := set.NewFixedLengthStringSet(len(conditions))
 	for _, condition := range conditions {
 		for _, key := range condition.GetKeys() {
 			// NOTE: here remove all the prefix: {system}.{type}.
