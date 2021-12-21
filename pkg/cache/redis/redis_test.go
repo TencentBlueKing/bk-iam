@@ -15,11 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
-
-	"iam/pkg/cache"
 )
 
 func TestCache_genKey(t *testing.T) {

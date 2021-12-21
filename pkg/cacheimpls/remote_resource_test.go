@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"iam/pkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/stringx"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
 	"iam/pkg/cache/redis"
 	"iam/pkg/component"
 	"iam/pkg/component/mock"
 	"iam/pkg/service/types"
-
-	"github.com/TencentBlueKing/gopkg/stringx"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRemoteResourceCacheKey_Key(t *testing.T) {

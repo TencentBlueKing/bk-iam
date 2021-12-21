@@ -14,9 +14,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/stringx"
 
-	"iam/pkg/cache"
 	"iam/pkg/errorx"
 )
 

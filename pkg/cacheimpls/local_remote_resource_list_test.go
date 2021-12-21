@@ -15,11 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
 )
 
 func TestRemoteResourceListCacheKey_Key(t *testing.T) {

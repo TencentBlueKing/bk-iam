@@ -59,8 +59,8 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdko
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/TencentBlueKing/gopkg v1.0.4 h1:zWG4U1ZHLb/F+pVlshHPAyprJaRn2YGDY4Csr/d6sKA=
-github.com/TencentBlueKing/gopkg v1.0.4/go.mod h1:oopRfRIMuG0IeZfNR99olKNx7976tYrRM1E1CY2y31M=
+github.com/TencentBlueKing/gopkg v1.0.7 h1:Kp/Qt8UtVb1LTr6ZSPXWTGS8KlHhWMqH4JZh7Jguu9E=
+github.com/TencentBlueKing/gopkg v1.0.7/go.mod h1:oopRfRIMuG0IeZfNR99olKNx7976tYrRM1E1CY2y31M=
 github.com/TencentBlueKing/iam-go-sdk v0.0.5 h1:hliT6K1cwOFJNkzlGb5uBeAnUkxyBWzof6eD3UQVm0I=
 github.com/TencentBlueKing/iam-go-sdk v0.0.5/go.mod h1:5Z5YMclIZBokfgT9dTJFUcywygZXY9nhloX8rj+zFEc=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=

@@ -13,9 +13,9 @@ package cleaner
 import (
 	"context"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache"
 	"iam/pkg/util"
 )
 

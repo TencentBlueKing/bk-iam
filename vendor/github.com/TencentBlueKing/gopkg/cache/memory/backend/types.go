@@ -1,5 +1,6 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云-gopkg available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -8,24 +9,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package memory
+package backend
 
-import (
-	"testing"
-	"time"
+import "time"
 
-	"iam/pkg/cache"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func retrieveOK(k cache.Key) (interface{}, error) {
-	return "ok", nil
-}
-
-func TestNewCache(t *testing.T) {
-	expiration := 5 * time.Minute
-
-	c := NewCache("test", false, retrieveOK, expiration, nil)
-	assert.NotNil(t, c)
+// Backend is the interface that wraps the basic cache backend operations.
+type Backend interface {
+	Set(key string, value interface{}, duration time.Duration)
+	Get(key string) (interface{}, bool)
+	Delete(key string) error
 }

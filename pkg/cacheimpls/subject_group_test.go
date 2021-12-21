@@ -15,13 +15,13 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache"
 	"iam/pkg/cache/redis"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"

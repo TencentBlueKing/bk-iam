@@ -13,9 +13,8 @@ package cacheimpls
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/stringx"
-
-	"iam/pkg/cache"
 )
 
 // APIGatewayJWTClientIDCacheKey cache key for JWTToken

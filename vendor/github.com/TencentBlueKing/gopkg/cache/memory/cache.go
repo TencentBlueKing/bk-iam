@@ -1,5 +1,6 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云-gopkg available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -13,16 +14,23 @@ package memory
 import (
 	"time"
 
-	"iam/pkg/cache/memory/backend"
+	"github.com/TencentBlueKing/gopkg/cache/memory/backend"
 )
 
-// NewCache create a memory cache
-func NewCache(name string, disabled bool,
+// NewCache creates a new cache object.
+// - name: the cache name.
+// - disabled: whether the cache is disabled.
+// - retrieveFunc: the function to retrieve the real data.
+// - expiration: the expiration time.
+// - randomExtraExpirationFunc: the function to generate a random duration, used to add extra expiration for each key.
+func NewCache(
+	name string,
+	disabled bool,
 	retrieveFunc RetrieveFunc,
 	expiration time.Duration,
-	randomDurationFunc backend.RandomExpirationDurationFunc,
+	randomExtraExpirationFunc backend.RandomExtraExpirationDurationFunc,
 ) Cache {
-	be := backend.NewMemoryBackend(name, expiration, randomDurationFunc)
+	be := backend.NewMemoryBackend(name, expiration, randomExtraExpirationFunc)
 	return NewBaseCache(disabled, retrieveFunc, be)
 }
 
