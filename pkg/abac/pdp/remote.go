@@ -54,14 +54,7 @@ func queryRemoteResourceAttrs(
 		conditions = append(conditions, condition)
 	}
 
-	var keys []string
-	keys, err = getConditionAttrKeys(resource, conditions)
-	if err != nil {
-		err = errorWrapf(err,
-			"getConditionAttrKeys resource=`%+v`, conditions=`%+v` fail",
-			resource, conditions)
-		return nil, err
-	}
+	keys := getConditionAttrKeys(resource, conditions)
 
 	// 6. PIP查询依赖resource相关keys的属性
 	attrs, err = pip.QueryRemoteResourceAttribute(resource.System, resource.Type, resource.ID, keys)
@@ -80,17 +73,11 @@ func queryExtResourceAttrs(
 ) (resources []map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryExtResourceAttrs")
 
-	keys, err := getConditionAttrKeys(&types.Resource{
+	keys := getConditionAttrKeys(&types.Resource{
 		System: resource.System,
 		Type:   resource.Type,
 		ID:     resource.IDs[0],
 	}, policies)
-	if err != nil {
-		err = errorWrapf(err,
-			"getConditionAttrKeys policies=`%+v`, resource=`%+v` fail",
-			policies, resource)
-		return
-	}
 
 	// 6. PIP查询依赖resource相关keys的属性
 	resources, err = pip.BatchQueryRemoteResourcesAttribute(resource.System, resource.Type, resource.IDs, keys)
@@ -106,7 +93,7 @@ func queryExtResourceAttrs(
 func getConditionAttrKeys(
 	resource *types.Resource,
 	conditions []condition.Condition,
-) ([]string, error) {
+) []string {
 	keyPrefix := resource.System + "." + resource.Type + "."
 
 	keySet := util.NewFixedLengthStringSet(len(conditions))
@@ -119,5 +106,5 @@ func getConditionAttrKeys(
 		}
 	}
 
-	return keySet.ToSlice(), nil
+	return keySet.ToSlice()
 }

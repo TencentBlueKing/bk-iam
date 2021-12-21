@@ -41,12 +41,13 @@ func convertEffectiveRelationToThinSubjectGroup(effectRelation dao.EffectSubject
 	}
 }
 
-// GetThinSubjectGroups 获取授权对象的用户组(只返回groupPK/policyExpiredAt)
-func (l *subjectService) GetThinSubjectGroups(pk int64) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "GetThinSubjectGroups")
-	relations, err := l.relationManager.ListThinRelationBySubjectPK(pk)
+// GetEffectThinSubjectGroups 获取授权对象的用户组(只返回groupPK/policyExpiredAt)
+func (l *subjectService) GetEffectThinSubjectGroups(pk int64) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "GetEffectThinSubjectGroups")
+
+	relations, err := l.relationManager.ListEffectThinRelationBySubjectPK(pk)
 	if err != nil {
-		return thinSubjectGroup, errorWrapf(err, "ListRelationByPK pk=`%d` fail", pk)
+		return thinSubjectGroup, errorWrapf(err, "ListEffectThinRelationBySubjectPK pk=`%d` fail", pk)
 	}
 
 	for _, r := range relations {
@@ -55,10 +56,11 @@ func (l *subjectService) GetThinSubjectGroups(pk int64) (thinSubjectGroup []type
 	return thinSubjectGroup, err
 }
 
-// ListSubjectEffectGroups 批量获取 subject 有效的 groups(未过期的)
-func (l *subjectService) ListSubjectEffectGroups(pks []int64) (
-	subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListSubjectEffectGroups")
+// ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
+func (l *subjectService) ListEffectThinSubjectGroups(
+	pks []int64,
+) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListEffectThinSubjectGroups")
 
 	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
 

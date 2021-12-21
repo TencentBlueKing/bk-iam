@@ -40,6 +40,7 @@ type EmptyCache struct {
 // Exists ...
 func (c *BaseCache) Exists(key cache.Key) bool {
 	k := key.Key()
+
 	_, ok := c.backend.Get(k)
 	return ok
 }
@@ -52,6 +53,7 @@ func (c *BaseCache) Get(key cache.Key) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return value, nil
 	}
 
@@ -64,6 +66,7 @@ func (c *BaseCache) Get(key cache.Key) (interface{}, error) {
 		if emptyCache, isEmptyCache := value.(EmptyCache); isEmptyCache {
 			return nil, emptyCache.err
 		}
+
 		return value, nil
 	}
 

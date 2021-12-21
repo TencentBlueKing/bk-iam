@@ -209,6 +209,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 		if !ok {
 			action.RelatedResourceTypes = relatedResourceTypes
 			actions = append(actions, action)
+
 			continue
 		}
 

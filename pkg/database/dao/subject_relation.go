@@ -61,7 +61,7 @@ type EffectSubjectRelation struct {
 type SubjectRelationManager interface {
 	ListRelation(_type, id string) ([]SubjectRelation, error)
 	ListRelationBySubjectPK(subjectPK int64) ([]SubjectRelation, error)
-	ListThinRelationBySubjectPK(subjectPK int64) ([]ThinSubjectRelation, error)
+	ListEffectThinRelationBySubjectPK(subjectPK int64) ([]ThinSubjectRelation, error)
 	ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]EffectSubjectRelation, error)
 	ListRelationBeforeExpiredAt(_type, id string, expiredAt int64) ([]SubjectRelation, error)
 
@@ -125,11 +125,13 @@ func (m *subjectRelationManager) ListRelationBySubjectPK(subjectPK int64) (relat
 	return
 }
 
-// ListThinRelationBySubjectPK ...
-func (m *subjectRelationManager) ListThinRelationBySubjectPK(
-	subjectPK int64,
-) (relations []ThinSubjectRelation, err error) {
-	err = m.selectThinRelationBySubjectPK(&relations, subjectPK)
+// ListEffectThinRelationBySubjectPK ...
+func (m *subjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int64) (
+	relations []ThinSubjectRelation, err error) {
+	// 过期时间必须大于当前时间
+	now := time.Now().Unix()
+
+	err = m.selectEffectThinRelationBySubjectPK(&relations, subjectPK, now)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -305,13 +307,18 @@ func (m *subjectRelationManager) selectRelationBySubjectPK(relations *[]SubjectR
 	return database.SqlxSelect(m.DB, relations, query, pk)
 }
 
-func (m *subjectRelationManager) selectThinRelationBySubjectPK(relations *[]ThinSubjectRelation, pk int64) error {
+func (m *subjectRelationManager) selectEffectThinRelationBySubjectPK(
+	relations *[]ThinSubjectRelation,
+	pk int64,
+	now int64,
+) error {
 	query := `SELECT
 		parent_pk,
 		policy_expired_at
 		FROM subject_relation
-		WHERE subject_pk = ?`
-	return database.SqlxSelect(m.DB, relations, query, pk)
+		WHERE subject_pk = ?
+		AND policy_expired_at > ?`
+	return database.SqlxSelect(m.DB, relations, query, pk, now)
 }
 
 func (m *subjectRelationManager) selectEffectRelationBySubjectPKs(
