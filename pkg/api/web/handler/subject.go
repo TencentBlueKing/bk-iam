@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	log "github.com/sirupsen/logrus"
@@ -21,7 +22,6 @@ import (
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"

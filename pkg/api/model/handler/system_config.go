@@ -15,9 +15,9 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )

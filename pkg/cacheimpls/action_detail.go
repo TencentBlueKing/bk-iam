@@ -12,8 +12,8 @@ package cacheimpls
 
 import (
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )

@@ -13,12 +13,12 @@ package handler
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )

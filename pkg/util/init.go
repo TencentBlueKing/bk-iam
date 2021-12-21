@@ -8,20 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package errorx
-
-import "github.com/getsentry/sentry-go"
+package util
 
 var sentryOn bool
 
 // InitErrorReport init the sentryEnabled var
 func InitErrorReport(sentryEnabled bool) {
 	sentryOn = sentryEnabled
-}
-
-// ReportEvent will report an event to sentry, if sentry enabled
-func ReportEvent(event *sentry.Event) {
-	if sentryOn {
-		sentry.CaptureEvent(event)
-	}
 }

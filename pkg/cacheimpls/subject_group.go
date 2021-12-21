@@ -14,9 +14,9 @@ import (
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/conv"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )

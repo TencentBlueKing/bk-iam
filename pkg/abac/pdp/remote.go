@@ -14,13 +14,13 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 )
 
 func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (err error) {

@@ -12,13 +12,13 @@ package handler
 
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"

@@ -14,12 +14,12 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"

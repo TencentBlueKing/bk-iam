@@ -14,11 +14,11 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	svctypes "iam/pkg/service/types"
 )
 

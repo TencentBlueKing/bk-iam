@@ -14,11 +14,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
-	"iam/pkg/errorx"
 	svctypes "iam/pkg/service/types"
 )
 

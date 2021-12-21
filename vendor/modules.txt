@@ -14,6 +14,7 @@ github.com/TencentBlueKing/gopkg/cache/memory
 github.com/TencentBlueKing/gopkg/cache/memory/backend
 github.com/TencentBlueKing/gopkg/collection/set
 github.com/TencentBlueKing/gopkg/conv
+github.com/TencentBlueKing/gopkg/errorx
 github.com/TencentBlueKing/gopkg/stringx
 # github.com/TencentBlueKing/iam-go-sdk v0.0.5
 ## explicit

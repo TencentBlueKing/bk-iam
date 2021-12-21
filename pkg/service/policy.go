@@ -15,12 +15,12 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 

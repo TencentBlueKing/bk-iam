@@ -15,8 +15,8 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 )
 

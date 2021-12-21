@@ -1,5 +1,6 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云-gopkg available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -10,69 +11,70 @@
 
 package errorx
 
+/*
+Package `errorx` implements a custom error, wrap/wrapf with detail formatted message
+
+The usage:
+
+1. raw wrap
+
+    import "github.com/TencentBlueKing/gopkg/errorx"
+
+    cnt, err := l.relationManager.GetMemberCount(_type, id)
+    if err != nil {
+        return errorx.Wrapf(err, "ServiceLayer", "GetMemberCount",
+             "relationManager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
+    }
+
+2. in func with multiple returns
+
+    import "github.com/TencentBlueKing/gopkg/errorx"
+
+    // create a func with layer name and function name
+    errorWrapf := errorx.NewLayerFunctionErrorWrapf("ServiceLayer", "BulkDeleteSubjectMember")
+
+    if err != nil {
+        return errorWrapf(err, "relationManager.UpdateExpiredAt relations=`%+v` fail", relations)
+    }
+
+    // ...
+
+    if err != nil {
+        return errorWrapf(err, "relationManager.DoSomething relations=`%+v` fail", relations)
+    }
+*/
+
 import (
 	"errors"
 	"fmt"
 )
 
-// IAMError is a wrapped struct for err
-type IAMError struct {
-	message string
-	err     error
-}
-
-// Error show the error message
-func (e IAMError) Error() string {
-	return e.message
-}
-
-// Is check if the error is target
-func (e IAMError) Is(target error) bool {
-	if target == nil || e.err == nil {
-		return e.err == target
-	}
-
-	return errors.Is(e.err, target)
-}
-
-// Unwrap will unwrap the wrapped error
-func (e *IAMError) Unwrap() error {
-	u, ok := e.err.(interface {
-		Unwrap() error
-	})
-	if !ok {
-		return e.err
-	}
-
-	return u.Unwrap()
-}
-
+// make the message for error wrap
 func makeMessage(err error, layer, function, msg string) string {
 	var message string
-	var e IAMError
+	var e Errorx
 	if errors.As(err, &e) {
 		message = fmt.Sprintf("[%s:%s] %s => %s", layer, function, msg, err.Error())
 	} else {
-		// jsoniter.marshal/unmarshal error not print, others?
 		message = fmt.Sprintf("[%s:%s] %s => [Raw:Error] %v", layer, function, msg, err.Error())
 	}
 
 	return message
 }
 
-// Wrap will wrap the error with layer, function and message
+// Wrap the error with message
 func Wrap(err error, layer string, function string, message string) error {
 	if err == nil {
 		return nil
 	}
 
-	return IAMError{
+	return Errorx{
 		message: makeMessage(err, layer, function, message),
 		err:     err,
 	}
 }
 
-// Wrapf will wrap the error with layer, function, and format the message with args
+// Wrapf the error with formatted message, shortcut for
 func Wrapf(err error, layer string, function string, format string, args ...interface{}) error {
 	if err == nil {
 		return nil
@@ -80,26 +82,26 @@ func Wrapf(err error, layer string, function string, format string, args ...inte
 
 	msg := fmt.Sprintf(format, args...)
 
-	return IAMError{
+	return Errorx{
 		message: makeMessage(err, layer, function, msg),
 		err:     err,
 	}
 }
 
-// WrapFuncWithLayerFunction is a type alias for Wrap func
+// WrapFuncWithLayerFunction define the func of wrapError for partial specific layer name and function name
 type WrapFuncWithLayerFunction func(err error, message string) error
 
-// WrapfFuncWithLayerFunction is a type alias for Wrapf func
+// WrapfFuncWithLayerFunction define the func of wrapfError for partial specific layer name and function name
 type WrapfFuncWithLayerFunction func(err error, format string, args ...interface{}) error
 
-// NewLayerFunctionErrorWrap will create a Wrap func with specific layer and function
+// NewLayerFunctionErrorWrap create the wrapError func with specific layer and func
 func NewLayerFunctionErrorWrap(layer string, function string) WrapFuncWithLayerFunction {
 	return func(err error, message string) error {
 		return Wrap(err, layer, function, message)
 	}
 }
 
-// NewLayerFunctionErrorWrapf will create a Wrapf func with specific layer and function
+// NewLayerFunctionErrorWrapf create the wrapfError func with specific layer and func
 func NewLayerFunctionErrorWrapf(layer string, function string) WrapfFuncWithLayerFunction {
 	return func(err error, format string, args ...interface{}) error {
 		return Wrapf(err, layer, function, format, args...)
