@@ -128,7 +128,6 @@ func (m *subjectRelationManager) ListRelationBySubjectPK(subjectPK int64) (relat
 // ListEffectThinRelationBySubjectPK ...
 func (m *subjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int64) (
 	relations []ThinSubjectRelation, err error) {
-
 	// 过期时间必须大于当前时间
 	now := time.Now().Unix()
 
