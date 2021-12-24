@@ -74,7 +74,7 @@ var _ = Describe("StringPrefix", func() {
 		It("_bk_iam_path_", func() {
 			c = &StringPrefixCondition{
 				baseCondition{
-					Key:   iamPath,
+					Key:   "bk_test" + iamPathSuffix,
 					Value: []interface{}{"/biz,1/set,*/"},
 				},
 			}
