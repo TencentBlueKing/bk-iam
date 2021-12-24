@@ -20,7 +20,6 @@ type AnyCondition struct {
 	baseCondition
 }
 
-//nolint:unparam
 func newAnyCondition(key string, values []interface{}) (Condition, error) {
 	return &AnyCondition{
 		baseCondition: baseCondition{

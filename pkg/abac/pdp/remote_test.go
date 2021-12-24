@@ -13,7 +13,7 @@ package pdp
 import (
 	"errors"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pip"
@@ -95,7 +95,7 @@ var _ = Describe("Remote", func() {
 			w, e := req.Resources[0].Attribute.GetString("hello")
 			assert.NoError(GinkgoT(), e)
 			assert.Equal(GinkgoT(), "world", w)
-			//assert.Equal(GinkgoT(), want, req.Resources[0].Attribute.(map[string]interface{}))
+			// assert.Equal(GinkgoT(), want, req.Resources[0].Attribute.(map[string]interface{}))
 		})
 
 	})
@@ -125,8 +125,8 @@ var _ = Describe("Remote", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 
-		It("error, impls.GetUnmarshalledResourceExpression fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+		It("error, cacheimpls.GetUnmarshalledResourceExpression fail", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return nil, errors.New("the error")
 
@@ -145,27 +145,27 @@ var _ = Describe("Remote", func() {
 			assert.Equal(GinkgoT(), "the error", err.Error())
 		})
 
-		It("error, getConditionAttrKeys fail", func() {
-			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return nil, errors.New("the error2")
-				})
-
-			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "the error2")
-		})
+		// It("error, getConditionAttrKeys fail", func() {
+		// 	patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+		// 		func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+		// 			return nil, errors.New("the error2")
+		// 		})
+		//
+		// 	_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+		// 	assert.Error(GinkgoT(), err)
+		// 	assert.Contains(GinkgoT(), err.Error(), "the error2")
+		// })
 
 		It("error, pip.QueryRemoteResourceAttribute fail", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
 
 				})
 
 			patches.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return []string{"isUp"}, nil
+				func(resource *types.Resource, conditions []condition.Condition) []string {
+					return []string{"isUp"}
 				})
 
 			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
@@ -179,14 +179,14 @@ var _ = Describe("Remote", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(impls.GetUnmarshalledResourceExpression,
+			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
 				func(expression, signature string) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
 				})
 
 			patches.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return []string{"isUp"}, nil
+				func(resource *types.Resource, conditions []condition.Condition) []string {
+					return []string{"isUp"}
 				})
 
 			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
@@ -228,21 +228,21 @@ var _ = Describe("Remote", func() {
 			}
 		})
 
-		It("getConditionAttrKeys fail", func() {
-			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return nil, errors.New("the error")
-				})
-
-			_, err := queryExtResourceAttrs(resource, []condition.Condition{})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "the error")
-		})
+		// It("getConditionAttrKeys fail", func() {
+		// 	patches = gomonkey.ApplyFunc(getConditionAttrKeys,
+		// 		func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
+		// 			return nil, errors.New("the error")
+		// 		})
+		//
+		// 	_, err := queryExtResourceAttrs(resource, []condition.Condition{})
+		// 	assert.Error(GinkgoT(), err)
+		// 	assert.Contains(GinkgoT(), err.Error(), "the error")
+		// })
 
 		It("pip.BatchQueryRemoteResourcesAttribute fail", func() {
 			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return []string{"id"}, nil
+				func(resource *types.Resource, conditions []condition.Condition) []string {
+					return []string{"id"}
 				})
 
 			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
@@ -257,8 +257,8 @@ var _ = Describe("Remote", func() {
 
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(getConditionAttrKeys,
-				func(resource *types.Resource, conditions []condition.Condition) ([]string, error) {
-					return []string{"id"}, nil
+				func(resource *types.Resource, conditions []condition.Condition) []string {
+					return []string{"id"}
 				})
 
 			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
@@ -285,27 +285,24 @@ var _ = Describe("Remote", func() {
 			}
 		})
 		It("empty", func() {
-			keys, err := getConditionAttrKeys(resource, []condition.Condition{})
-			assert.NoError(GinkgoT(), err)
+			keys := getConditionAttrKeys(resource, []condition.Condition{})
 			assert.Empty(GinkgoT(), keys)
 		})
 
 		It("one condition", func() {
-			keys, err := getConditionAttrKeys(resource, []condition.Condition{
+			keys := getConditionAttrKeys(resource, []condition.Condition{
 				condition.NewBoolCondition("bk_cmdb.host.isUp", true),
 			})
-			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), keys, 1)
 			assert.Equal(GinkgoT(), "isUp", keys[0])
 		})
 
 		It("two condition", func() {
-			keys, err := getConditionAttrKeys(resource, []condition.Condition{
+			keys := getConditionAttrKeys(resource, []condition.Condition{
 				condition.NewBoolCondition("bk_cmdb.host.isUp", true),
 				condition.NewBoolCondition("bk_cmdb.host.isDown", false),
 				condition.NewBoolCondition("bk_cmdb.module.isOk", false),
 			})
-			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), keys, 2)
 			assert.ElementsMatch(GinkgoT(), []string{"isUp", "isDown"}, keys)
 		})

@@ -16,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -67,11 +67,12 @@ func Subjects(c *gin.Context) {
 
 	data := policySubjectsResponse{}
 	for _, policy := range policies {
-		sa, err := impls.GetAction(policy.ActionPK)
+		sa, err := cacheimpls.GetAction(policy.ActionPK)
 		if err != nil {
 			log.Info(errorWrapf(err,
 				"policy_list.GetSystemAction action_pk=`%d` fail",
 				policy.ActionPK))
+
 			continue
 		}
 		// 不是本系统的策略, 过滤掉. not my system policy, continue
@@ -79,12 +80,13 @@ func Subjects(c *gin.Context) {
 			continue
 		}
 
-		subj, err1 := impls.GetSubjectByPK(policy.SubjectPK)
+		subj, err1 := cacheimpls.GetSubjectByPK(policy.SubjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
 			log.Info(errorWrapf(err1,
 				"policy_list.Subjects GetSubjectByPK subject_pk=`%d` fail",
 				policy.SubjectPK))
+
 			continue
 		}
 

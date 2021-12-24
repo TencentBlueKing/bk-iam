@@ -137,7 +137,6 @@ func (m *policyManager) ListBySubjectAction(
 			return
 		}
 	} else {
-		//effectPolicies, err = m.getPoliciesFromCache(system, actionPK, effectSubjectPKs, entry)
 		effectPolicies, err = policy.GetPoliciesFromCache(system, actionPK, effectSubjectPKs)
 		if err != nil {
 			err = errorWrapf(err,

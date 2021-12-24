@@ -635,6 +635,10 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 	// 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
 		tx, createPolicies, actionPKWithResourceTypeSet)
+	if err != nil {
+		err = errorWrapf(err, "generateSignatureExpressionPKMap fail")
+		return
+	}
 
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
 	for _, p := range createPolicies {
@@ -716,6 +720,10 @@ func (s *policyService) UpdateTemplatePolicies(
 	// 2. 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
 		tx, policies, actionPKWithResourceTypeSet)
+	if err != nil {
+		err = errorWrapf(err, "generateSignatureExpressionPKMap fail")
+		return
+	}
 
 	// 3. 生成需要更新的policies
 	daoUpdatePolicies := make([]dao.Policy, 0, len(policies))

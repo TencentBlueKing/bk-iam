@@ -15,12 +15,13 @@ import (
 	"fmt"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 )
 
 // 需要db操作的校验, 统一叫 checkXXXX
+
 type AllActions struct {
 	AllBaseInfo
 
@@ -168,7 +169,7 @@ func checkActionIDsHasAnyPolicies(systemID string, ids []string) ([]string, erro
 	// 记录需要异步删除的Action
 	needAsyncDeletedActionIDs := make([]string, 0, len(ids))
 	for _, id := range ids {
-		actionPK, err := impls.GetActionPK(systemID, id)
+		actionPK, err := cacheimpls.GetActionPK(systemID, id)
 		if err != nil {
 			return []string{}, fmt.Errorf("query action pk fail, systemID=%s, id=%s", systemID, id)
 		}

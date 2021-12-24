@@ -11,11 +11,11 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListModelChangeEvent 查询变更事件列表

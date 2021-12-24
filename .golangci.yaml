@@ -16,32 +16,31 @@ run:
     - ".*testing.go"
 
 linters:
-  disable-all: true
+  # enable-all: true
+  # disable-all: true
+  disable:
+    - errcheck
   enable:
-    - deadcode
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - structcheck
-    - typecheck
-    - unused
-    - varcheck
+    - nilerr
+    - nakedret
+    - lll
+    - gofmt
     - bodyclose
     - gocritic
     - gocyclo
-    - gofmt
-    - lll
-    # - errcheck
-    # - funlen
-    # - cyclop
-    # - errorlint
-    # - gochecknoglobals
-    # - gochecknoinits
-    # - goconst
-    # - godox
-    # - goerr113
-    # - gomnd
+    - misspell
+    - prealloc
+    - unparam
+    - wastedassign
+    - whitespace
+
+    # - nlreturn
     # - ifshort
+    # - nestif
+    # - gofumpt
+    # - godox
     # - wsl
+    # - funlen
+    # - golint
+    # - cyclop
   fast: false

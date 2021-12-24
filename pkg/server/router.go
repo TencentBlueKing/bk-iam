@@ -86,7 +86,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	engineRouter := router.Group("/api/v1/engine")
 	engineRouter.Use(middleware.Metrics())
 	// NOTE: disable the log
-	//engineRouter.Use(middleware.WebLogger())
+	// engineRouter.Use(middleware.WebLogger())
 	engineRouter.Use(middleware.NewClientAuthMiddleware(cfg))
 	engineRouter.Use(middleware.SuperClientMiddleware())
 	engine.Register(engineRouter)

@@ -18,7 +18,7 @@ import (
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types/request"
 	modelHandler "iam/pkg/api/model/handler"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -57,7 +57,7 @@ func QueryActions(c *gin.Context) {
 	// get action pks
 	actionPKs := make(map[string]int64, len(actions))
 	for _, ac := range actions {
-		pk, err := impls.GetActionPK(systemID, ac.ID)
+		pk, err := cacheimpls.GetActionPK(systemID, ac.ID)
 		if err == nil {
 			actionPKs[ac.ID] = pk
 		}
@@ -90,7 +90,7 @@ func QuerySubjects(c *gin.Context) {
 		"type": body.Type,
 		"id":   body.ID,
 	}
-	pk, err := impls.GetSubjectPK(body.Type, body.ID)
+	pk, err := cacheimpls.GetSubjectPK(body.Type, body.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -101,7 +101,7 @@ func QuerySubjects(c *gin.Context) {
 	// 3. 查subject所属的组
 	depts := []gin.H{}
 
-	detail, err := impls.GetSubjectDetail(pk)
+	detail, err := cacheimpls.GetSubjectDetail(pk)
 	departments := detail.DepartmentPKs
 	groups := detail.SubjectGroups
 
@@ -110,7 +110,7 @@ func QuerySubjects(c *gin.Context) {
 		errs["GetSubjectGroups"] = err
 	} else {
 		for _, deptPK := range departments {
-			subj, err1 := impls.GetSubjectByPK(deptPK)
+			subj, err1 := cacheimpls.GetSubjectByPK(deptPK)
 			if err1 != nil {
 				depts = append(depts, gin.H{
 					"pk":  deptPK,
@@ -125,7 +125,7 @@ func QuerySubjects(c *gin.Context) {
 				}
 
 				// 查询部门所属的组
-				gs, err2 := impls.GetSubjectGroups(deptPK)
+				gs, err2 := cacheimpls.GetSubjectGroups(deptPK)
 				if err2 != nil {
 					d["groups"] = err2.Error()
 				} else {

@@ -16,13 +16,12 @@ import (
 	"time"
 
 	"github.com/agiledragon/gomonkey"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -69,7 +68,7 @@ var _ = Describe("Redis", func() {
 		BeforeEach(func() {
 			patches = gomonkey.NewPatches()
 
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			r = newRedisRetriever("test", 1, nil)
 
 			retrievedPolicies = []types.AuthPolicy{
@@ -94,25 +93,25 @@ var _ = Describe("Redis", func() {
 				return retrievedPolicies, []int64{}, nil
 			}
 
-			policyStr1, _ = impls.PolicyCache.Marshal([]types.AuthPolicy{
+			policyStr1, _ = cacheimpls.PolicyCache.Marshal([]types.AuthPolicy{
 				{
 					PK:        1,
 					SubjectPK: 123,
 				},
 			})
-			policyStr2, _ = impls.PolicyCache.Marshal([]types.AuthPolicy{
+			policyStr2, _ = cacheimpls.PolicyCache.Marshal([]types.AuthPolicy{
 				{
 					PK:        2,
 					SubjectPK: 456,
 				},
 			})
-			policyStr3, _ = impls.PolicyCache.Marshal([]types.AuthPolicy{
+			policyStr3, _ = cacheimpls.PolicyCache.Marshal([]types.AuthPolicy{
 				{
 					PK:        3,
 					SubjectPK: 789,
 				},
 			})
-			emptyPolicyStr, _ = impls.PolicyCache.Marshal([]types.AuthPolicy{})
+			emptyPolicyStr, _ = cacheimpls.PolicyCache.Marshal([]types.AuthPolicy{})
 			hitPolicies = map[int64]string{
 				123: string(policyStr1),
 				456: string(policyStr2),
@@ -128,7 +127,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("batchGet fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchHGet",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchHGet",
 				func(c *redis.Cache, hashKeyFields []redis.HashKeyField) (map[redis.HashKeyField]string, error) {
 					return nil, errors.New("batchHGet fail")
 				})
@@ -143,7 +142,7 @@ var _ = Describe("Redis", func() {
 		It("all missing", func() {
 			subjectPKs := []int64{123, 456, 789}
 
-			//patches.ApplyFunc(r.batchGet,
+			// patches.ApplyFunc(r.batchGet,
 			//	func(subjectPKs []int64) (
 			//		hitPolicies map[int64]string,
 			//		missSubjectPKs []int64,
@@ -176,14 +175,14 @@ var _ = Describe("Redis", func() {
 			assert.Empty(GinkgoT(), missingPKs)
 
 			// check the cache
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(123)))
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(456)))
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(789)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(123)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(456)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(789)))
 		})
 
 		It("one policy unmarshal fail", func() {
 			r.setMissing(retrievedPolicies, []int64{})
-			impls.PolicyCache.BatchHSetWithTx([]redis.Hash{
+			cacheimpls.PolicyCache.BatchHSetWithTx([]redis.Hash{
 				{
 					HashKeyField: redis.HashKeyField{
 						Key:   r.keyPrefix + "1000",
@@ -205,7 +204,7 @@ var _ = Describe("Redis", func() {
 
 		It("empty policy", func() {
 			r.setMissing(retrievedPolicies, []int64{})
-			impls.PolicyCache.BatchHSetWithTx([]redis.Hash{
+			cacheimpls.PolicyCache.BatchHSetWithTx([]redis.Hash{
 				{
 					HashKeyField: redis.HashKeyField{
 						Key:   r.keyPrefix + "1000",
@@ -243,7 +242,7 @@ var _ = Describe("Redis", func() {
 	Describe("setMissing", func() {
 		var r *redisRetriever
 		BeforeEach(func() {
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			r = newRedisRetriever("test", 1, nil)
 		})
 
@@ -265,9 +264,9 @@ var _ = Describe("Redis", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// all key exists
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(123)))
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(456)))
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(789)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(123)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(456)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(789)))
 		})
 	})
 
@@ -276,7 +275,7 @@ var _ = Describe("Redis", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
 			patches = gomonkey.NewPatches()
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			r = newRedisRetriever("test", 1, nil)
 		})
 		AfterEach(func() {
@@ -284,7 +283,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache BatchHGet fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchHGet",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchHGet",
 				func(c *redis.Cache, hashKeyFields []redis.HashKeyField) (map[redis.HashKeyField]string, error) {
 					return nil, errors.New("batchHget fail")
 				})
@@ -342,7 +341,7 @@ var _ = Describe("Redis", func() {
 		BeforeEach(func() {
 			patches = gomonkey.NewPatches()
 
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			r = newRedisRetriever("test", 1, nil)
 			subjectPKPolicies = map[int64][]types.AuthPolicy{
 				123: {},
@@ -357,12 +356,12 @@ var _ = Describe("Redis", func() {
 			err := r.batchSet(subjectPKPolicies)
 			assert.NoError(GinkgoT(), err)
 
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(123)))
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(r.genKey(456)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(123)))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(r.genKey(456)))
 		})
 
 		It("marshal fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "Marshal",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "Marshal",
 				func(c *redis.Cache, value interface{}) ([]byte, error) {
 					return nil, errors.New("marshal fail")
 				})
@@ -373,7 +372,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache BatchHSetWithTx fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchHSetWithTx",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchHSetWithTx",
 				func(c *redis.Cache, hashes []redis.Hash) error {
 					return errors.New("batchHSetWithTx fail")
 				})
@@ -385,7 +384,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache BatchExpireWithTx fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchExpireWithTx",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchExpireWithTx",
 				func(c *redis.Cache, keys []cache.Key, expiration time.Duration) error {
 					return errors.New("batchExpireWithTx fail")
 				})
@@ -401,7 +400,7 @@ var _ = Describe("Redis", func() {
 		var r *redisRetriever
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			r = newRedisRetriever("test", 1, nil)
 
 			patches = gomonkey.NewPatches()
@@ -418,17 +417,17 @@ var _ = Describe("Redis", func() {
 
 		It("ok", func() {
 			key := cache.NewStringKey("test:123")
-			impls.PolicyCache.Set(key, 1, 0)
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(key))
+			cacheimpls.PolicyCache.Set(key, 1, 0)
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(key))
 
 			err := r.batchDelete([]int64{123})
 			assert.NoError(GinkgoT(), err)
 
-			assert.False(GinkgoT(), impls.PolicyCache.Exists(key))
+			assert.False(GinkgoT(), cacheimpls.PolicyCache.Exists(key))
 		})
 
 		It("batchDelete fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchDelete",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchDelete",
 				func(c *redis.Cache, keys []cache.Key) error {
 					return errors.New("batchDelete fail")
 				})
@@ -442,20 +441,20 @@ var _ = Describe("Redis", func() {
 
 	Describe("deleteSystemSubjectPKsFromRedis", func() {
 		It("ok", func() {
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 
 			r := newRedisRetriever("test", 1, nil)
 
 			key := r.genKey(123)
-			impls.PolicyCache.Set(key, "", 0)
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(cache.NewStringKey("test:123")))
+			cacheimpls.PolicyCache.Set(key, "", 0)
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(cache.NewStringKey("test:123")))
 
 			err := deleteSystemSubjectPKsFromRedis("test", []int64{123, 456})
 			assert.NoError(GinkgoT(), err)
-			assert.False(GinkgoT(), impls.PolicyCache.Exists(cache.NewStringKey("test:123")))
+			assert.False(GinkgoT(), cacheimpls.PolicyCache.Exists(cache.NewStringKey("test:123")))
 		})
 		It("empty pks, but ok", func() {
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 
 			err := deleteSystemSubjectPKsFromRedis("test", []int64{})
 			assert.NoError(GinkgoT(), err)
@@ -466,7 +465,7 @@ var _ = Describe("Redis", func() {
 	Describe("batchDeleteSystemSubjectPKsFromRedis", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			impls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.PolicyCache = redis.NewMockCache("test", 5*time.Minute)
 			patches = gomonkey.NewPatches()
 		})
 
@@ -478,13 +477,13 @@ var _ = Describe("Redis", func() {
 			r := newRedisRetriever("test", 1, nil)
 
 			key := r.genKey(123)
-			impls.PolicyCache.Set(key, "", 0)
+			cacheimpls.PolicyCache.Set(key, "", 0)
 
-			assert.True(GinkgoT(), impls.PolicyCache.Exists(cache.NewStringKey("test:123")))
+			assert.True(GinkgoT(), cacheimpls.PolicyCache.Exists(cache.NewStringKey("test:123")))
 
 			err := batchDeleteSystemSubjectPKsFromRedis([]string{"test1", "test"}, []int64{123, 456})
 			assert.NoError(GinkgoT(), err)
-			assert.False(GinkgoT(), impls.PolicyCache.Exists(cache.NewStringKey("test:123")))
+			assert.False(GinkgoT(), cacheimpls.PolicyCache.Exists(cache.NewStringKey("test:123")))
 		})
 
 		It("empty pks, but ok", func() {
@@ -493,7 +492,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("batchDelete fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.PolicyCache), "BatchDelete",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.PolicyCache), "BatchDelete",
 				func(c *redis.Cache, keys []cache.Key) error {
 					return errors.New("batchDelete fail")
 				})

@@ -250,23 +250,23 @@ func updateWithTxTimer(f updateWithTxFunc) updateWithTxFunc {
 }
 
 // ================== raw execute func with tx ==================
-//func sqlxExecWithTx(tx *sqlx.Tx, query string, args ...interface{}) error {
+// func sqlxExecWithTx(tx *sqlx.Tx, query string, args ...interface{}) error {
 //	_, err := tx.Exec(query, args...)
 //	return err
-//}
+// }
 
 func sqlxInsertWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 	_, err := tx.NamedExec(query, args)
 	return err
 }
 
-//func sqlxInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
+// func sqlxInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) (int64, error) {
 //	res, err := tx.NamedExec(query, args)
 //	if err != nil {
 //		return 0, err
 //	}
 //	return res.LastInsertId()
-//}
+// }
 
 func sqlxBulkInsertWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 	q, arrayArgs, err := bindArray(sqlx.BindType(tx.DriverName()), query, args, tx.Mapper)

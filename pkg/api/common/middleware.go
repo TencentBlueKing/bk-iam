@@ -13,10 +13,10 @@ package common
 import (
 	"fmt"
 
-	"iam/pkg/cache/impls"
-	"iam/pkg/util"
-
 	"github.com/gin-gonic/gin"
+
+	"iam/pkg/cacheimpls"
+	"iam/pkg/util"
 )
 
 // SystemExists via system_id in path
@@ -30,7 +30,7 @@ func SystemExists() gin.HandlerFunc {
 		}
 
 		// use cache here
-		_, err := impls.GetSystem(systemID)
+		_, err := cacheimpls.GetSystem(systemID)
 		if err != nil {
 			util.NotFoundJSONResponse(c, fmt.Sprintf("system(%s) not exists", systemID))
 			c.Abort()
@@ -54,7 +54,7 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 
 		// check system is exists
 		// use cache here
-		system, err := impls.GetSystem(systemID)
+		system, err := cacheimpls.GetSystem(systemID)
 		if err != nil {
 			util.NotFoundJSONResponse(c, fmt.Sprintf("system(%s) not exists", systemID))
 			c.Abort()

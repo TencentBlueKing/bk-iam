@@ -24,8 +24,8 @@ import (
 
 	"iam/pkg/abac/prp/common"
 	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
@@ -58,8 +58,8 @@ var _ = Describe("Memory", func() {
 			patches = gomonkey.NewPatches()
 
 			// init cache
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
-			impls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
 
 			r = newMemoryRetriever("test", 1, nil)
 
@@ -120,12 +120,12 @@ var _ = Describe("Memory", func() {
 
 		})
 		AfterEach(func() {
-			//ctl.Finish()
+			// ctl.Finish()
 			patches.Reset()
 		})
 
 		It("batchFetchSubjectPolicyChangedList fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return nil, errors.New("ZRevRangeByScore fail")
 				})
@@ -152,18 +152,18 @@ var _ = Describe("Memory", func() {
 			assert.Equal(GinkgoT(), int64(1000), missingSubjectPKs[0])
 
 			// check the cache
-			_, ok := impls.LocalPolicyCache.Get("test:1:123")
+			_, ok := cacheimpls.LocalPolicyCache.Get("test:1:123")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("test:1:456")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:456")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("test:1:789")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:789")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("test:1:1000")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:1000")
 			assert.True(GinkgoT(), ok)
 		})
 		It("all hit, no change list", func() {
 			for key, cached := range hitPolicies {
-				impls.LocalPolicyCache.Set(key, cached, 0)
+				cacheimpls.LocalPolicyCache.Set(key, cached, 0)
 			}
 
 			r.missingRetrieveFunc = func(pks []int64) (policies []types.AuthPolicy, missingPKs []int64, err error) {
@@ -177,7 +177,7 @@ var _ = Describe("Memory", func() {
 
 		})
 		It("all hit, has change list", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return []rds.Z{
 						{
@@ -196,7 +196,7 @@ var _ = Describe("Memory", func() {
 				})
 
 			for key, cached := range hitPolicies {
-				impls.LocalPolicyCache.Set(key, cached, 0)
+				cacheimpls.LocalPolicyCache.Set(key, cached, 0)
 			}
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthPolicy, missingPKs []int64, err error) {
@@ -212,9 +212,9 @@ var _ = Describe("Memory", func() {
 		It("one policy cast fail", func() {
 			// all hit
 			for key, cached := range hitPolicies {
-				impls.LocalPolicyCache.Set(key, cached, 0)
+				cacheimpls.LocalPolicyCache.Set(key, cached, 0)
 			}
-			impls.LocalPolicyCache.Set("test:1:456", "abc", 0)
+			cacheimpls.LocalPolicyCache.Set("test:1:456", "abc", 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthPolicy, missingPKs []int64, err error) {
 				return nil, nil, errors.New("should be called")
@@ -229,9 +229,9 @@ var _ = Describe("Memory", func() {
 		It("one policies is empty", func() {
 			// all hit
 			for key, cached := range hitPolicies {
-				impls.LocalPolicyCache.Set(key, cached, 0)
+				cacheimpls.LocalPolicyCache.Set(key, cached, 0)
 			}
-			impls.LocalPolicyCache.Set("test:1:456", &cachedPolicy{
+			cacheimpls.LocalPolicyCache.Set("test:1:456", &cachedPolicy{
 				timestamp: now + 100,
 				policies:  []types.AuthPolicy{},
 			}, 0)
@@ -257,7 +257,7 @@ var _ = Describe("Memory", func() {
 		var r *memoryRetriever
 		BeforeEach(func() {
 			r = newMemoryRetriever("test", 1, nil)
-			impls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
 
 		})
 
@@ -280,13 +280,13 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// check the cache
-			_, ok := impls.LocalPolicyCache.Get("test:1:123")
+			_, ok := cacheimpls.LocalPolicyCache.Get("test:1:123")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("test:1:456")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:456")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("test:1:789")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:789")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalPolicyCache.Get("111")
+			_, ok = cacheimpls.LocalPolicyCache.Get("111")
 			assert.False(GinkgoT(), ok)
 		})
 
@@ -302,8 +302,8 @@ var _ = Describe("Memory", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			impls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
 
 			ctl = gomock.NewController(GinkgoT())
 			patches = gomonkey.NewPatches()
@@ -341,15 +341,15 @@ var _ = Describe("Memory", func() {
 			})
 
 			// init local cache
-			impls.LocalPolicyCache.Set("test:1:123", "abc", 0)
-			_, ok := impls.LocalPolicyCache.Get("test:1:123")
+			cacheimpls.LocalPolicyCache.Set("test:1:123", "abc", 0)
+			_, ok := cacheimpls.LocalPolicyCache.Get("test:1:123")
 			assert.True(GinkgoT(), ok)
 
 			max := time.Now().Unix()
 			min := max - policyLocalCacheTTL
 
 			// init redis cache
-			err := impls.ChangeListCache.BatchZAdd([]redis.ZData{
+			err := cacheimpls.ChangeListCache.BatchZAdd([]redis.ZData{
 				{
 					Key: "policy:test:1",
 					Zs: []*rds.Z{
@@ -376,23 +376,23 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// check the local cache
-			_, ok = impls.LocalPolicyCache.Get("test:1:123")
+			_, ok = cacheimpls.LocalPolicyCache.Get("test:1:123")
 			// NOTE: Can't delete the key from the local cache, while no actionPK
 			//       so here is true
 			assert.True(GinkgoT(), ok)
 
 			// check the change list
-			assert.True(GinkgoT(), impls.ChangeListCache.Exists(cache.NewStringKey("policy:test:1")))
+			assert.True(GinkgoT(), cacheimpls.ChangeListCache.Exists(cache.NewStringKey("policy:test:1")))
 
 			// _type=policy, system=test, actionPK=1
-			zs, err := impls.ChangeListCache.ZRevRangeByScore("policy:test:1", min, max, 0, maxChangeListCount)
+			zs, err := cacheimpls.ChangeListCache.ZRevRangeByScore("policy:test:1", min, max, 0, maxChangeListCount)
 			assert.NoError(GinkgoT(), err)
 			// members: 0000 + 123 + 456  = 3
 			assert.Len(GinkgoT(), zs, 3)
 
 			// _type=policy, system=test2, actionPK=1
-			assert.True(GinkgoT(), impls.ChangeListCache.Exists(cache.NewStringKey("policy:test2:1")))
-			zs, err = impls.ChangeListCache.ZRevRangeByScore("policy:test2:1", min, max, 0, maxChangeListCount)
+			assert.True(GinkgoT(), cacheimpls.ChangeListCache.Exists(cache.NewStringKey("policy:test2:1")))
+			zs, err = cacheimpls.ChangeListCache.ZRevRangeByScore("policy:test2:1", min, max, 0, maxChangeListCount)
 			assert.NoError(GinkgoT(), err)
 			//  members: 1111 + 123 + 456 - 1111 => 123 + 456 = 2
 			assert.Len(GinkgoT(), zs, 2)

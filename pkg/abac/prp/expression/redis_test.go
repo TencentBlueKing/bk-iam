@@ -17,13 +17,12 @@ import (
 
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -46,7 +45,7 @@ var _ = Describe("Redis", func() {
 			ctl = gomock.NewController(GinkgoT())
 			patches = gomonkey.NewPatches()
 
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 
 			retrievedExpressions =
@@ -69,22 +68,22 @@ var _ = Describe("Redis", func() {
 				return retrievedExpressions, []int64{}, nil
 			}
 
-			exprStr1, _ = impls.ExpressionCache.Marshal(types.AuthExpression{
+			exprStr1, _ = cacheimpls.ExpressionCache.Marshal(types.AuthExpression{
 				PK:         123,
 				Expression: "123",
 				Signature:  "202cb962ac59075b964b07152d234b70",
 			})
-			exprStr2, _ = impls.ExpressionCache.Marshal(types.AuthExpression{
+			exprStr2, _ = cacheimpls.ExpressionCache.Marshal(types.AuthExpression{
 				PK:         456,
 				Expression: "456",
 				Signature:  "250cf8b51c773f3f8dc8b4be867a9a02",
 			})
-			exprStr3, _ = impls.ExpressionCache.Marshal(types.AuthExpression{
+			exprStr3, _ = cacheimpls.ExpressionCache.Marshal(types.AuthExpression{
 				PK:         789,
 				Expression: "789",
 				Signature:  "68053af2923e00204c3ca7c6a3150cf7",
 			})
-			emptyExprStr, _ = impls.ExpressionCache.Marshal(types.AuthExpression{})
+			emptyExprStr, _ = cacheimpls.ExpressionCache.Marshal(types.AuthExpression{})
 			hitExpressions = map[int64]string{
 				123: string(exprStr1),
 				456: string(exprStr2),
@@ -100,7 +99,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("batchGet fail", func() {
-			//patches.ApplyMethod(reflect.TypeOf(impls.ExpressionCache), "BatchGet",
+			// patches.ApplyMethod(reflect.TypeOf(cacheimpls.ExpressionCache), "BatchGet",
 			//	func(c *redis.Cache, keys []cache.Key) (map[cache.Key]string, error) {
 			//		return nil, errors.New("batch get fail")
 			//	})
@@ -115,7 +114,7 @@ var _ = Describe("Redis", func() {
 		It("all missing", func() {
 			pks := []int64{123, 456, 789}
 
-			//patches.ApplyFunc(r.batchGet,
+			// patches.ApplyFunc(r.batchGet,
 			//	func(expressionPKs []int64) (
 			//		hitExpressions map[int64]string,
 			//		missExpressionPKs []int64,
@@ -134,16 +133,16 @@ var _ = Describe("Redis", func() {
 			assert.Empty(GinkgoT(), missingPKs)
 
 			// check the cache
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(789)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 		})
 
 		It("all hit", func() {
 			pks := []int64{123, 456, 789}
 
 			for pk, exprStr := range hitExpressions {
-				impls.ExpressionCache.Set(cache.NewInt64Key(pk), exprStr, 0)
+				cacheimpls.ExpressionCache.Set(cache.NewInt64Key(pk), exprStr, 0)
 			}
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
@@ -161,7 +160,7 @@ var _ = Describe("Redis", func() {
 		It("some hit, some missing", func() {
 			pks := []int64{123, 456, 789}
 
-			impls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
+			cacheimpls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return []types.AuthExpression{
@@ -177,16 +176,16 @@ var _ = Describe("Redis", func() {
 			assert.Nil(GinkgoT(), missingPKs)
 
 			// check the cache
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(789)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 
 		})
 
 		It("some hit, some missing, retrieve has missing key", func() {
 			pks := []int64{123, 456, 789}
 
-			impls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
+			cacheimpls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return []types.AuthExpression{
@@ -202,18 +201,18 @@ var _ = Describe("Redis", func() {
 			assert.Equal(GinkgoT(), int64(123), missingPKs[0])
 
 			// check the cache
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(789)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 		})
 
 		It("one expression unmarshal fail", func() {
 			pks := []int64{123, 456, 789}
 
 			for pk, exprStr := range hitExpressions {
-				impls.ExpressionCache.Set(cache.NewInt64Key(pk), exprStr, 0)
+				cacheimpls.ExpressionCache.Set(cache.NewInt64Key(pk), exprStr, 0)
 			}
-			impls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), "not a valid json", 0)
+			cacheimpls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), "not a valid json", 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return nil, nil, errors.New("should do retrieve 456")
@@ -230,8 +229,8 @@ var _ = Describe("Redis", func() {
 		It("one expression is empty", func() {
 			pks := []int64{123, 456, 789}
 
-			impls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
-			impls.ExpressionCache.Set(cache.NewInt64Key(int64(789)), string(emptyExprStr), 0)
+			cacheimpls.ExpressionCache.Set(cache.NewInt64Key(int64(456)), string(exprStr2), 0)
+			cacheimpls.ExpressionCache.Set(cache.NewInt64Key(int64(789)), string(emptyExprStr), 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return []types.AuthExpression{
@@ -247,9 +246,9 @@ var _ = Describe("Redis", func() {
 			assert.Equal(GinkgoT(), int64(789), missingPKs[0])
 
 			// check the cache
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(789)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 
 		})
 
@@ -270,7 +269,7 @@ var _ = Describe("Redis", func() {
 	Describe("setMissing", func() {
 		var r *redisRetriever
 		BeforeEach(func() {
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 		})
 
@@ -281,9 +280,9 @@ var _ = Describe("Redis", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// all key exists
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(789)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 		})
 
 	})
@@ -292,13 +291,13 @@ var _ = Describe("Redis", func() {
 	Describe("batchGet", func() {
 		var r *redisRetriever
 		BeforeEach(func() {
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 		})
 
 		It("cache BatchGet fail", func() {
 			patches := gomonkey.NewPatches()
-			patches.ApplyMethod(reflect.TypeOf(impls.ExpressionCache), "BatchGet",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ExpressionCache), "BatchGet",
 				func(c *redis.Cache, keys []cache.Key) (map[cache.Key]string, error) {
 					return nil, errors.New("batch get fail")
 				})
@@ -317,8 +316,8 @@ var _ = Describe("Redis", func() {
 			err := r.batchSet(expression)
 			assert.NoError(GinkgoT(), err)
 
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
 
 	})
@@ -329,7 +328,7 @@ var _ = Describe("Redis", func() {
 		var noCacheExpressions map[int64]types.AuthExpression
 		BeforeEach(func() {
 			patches = gomonkey.NewPatches()
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 
 			noCacheExpressions = map[int64]types.AuthExpression{
@@ -348,7 +347,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache Marshal fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ExpressionCache), "Marshal",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ExpressionCache), "Marshal",
 				func(c *redis.Cache, value interface{}) ([]byte, error) {
 					return nil, errors.New("marshal fail")
 				})
@@ -359,7 +358,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache BatchSetWithTx fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ExpressionCache), "BatchSetWithTx",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ExpressionCache), "BatchSetWithTx",
 				func(c *redis.Cache, kvs []redis.KV, expiration time.Duration) error {
 					return errors.New("batchSetWithTx fail")
 				})
@@ -377,8 +376,8 @@ var _ = Describe("Redis", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// all key exists
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
 
 	})
@@ -389,7 +388,7 @@ var _ = Describe("Redis", func() {
 		BeforeEach(func() {
 			patches = gomonkey.NewPatches()
 
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 		})
 		AfterEach(func() {
@@ -407,7 +406,7 @@ var _ = Describe("Redis", func() {
 		})
 
 		It("cache BatchSetWithTx fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ExpressionCache), "BatchDelete",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ExpressionCache), "BatchDelete",
 				func(c *redis.Cache, keys []cache.Key) error {
 					return errors.New("batchDelete fail")
 				})
@@ -421,13 +420,13 @@ var _ = Describe("Redis", func() {
 
 		It("ok", func() {
 			key := cache.NewInt64Key(123)
-			impls.ExpressionCache.Set(key, 1, 0)
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(key))
+			cacheimpls.ExpressionCache.Set(key, 1, 0)
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(key))
 
 			err := r.batchDelete([]int64{123})
 			assert.NoError(GinkgoT(), err)
 
-			assert.False(GinkgoT(), impls.ExpressionCache.Exists(key))
+			assert.False(GinkgoT(), cacheimpls.ExpressionCache.Exists(key))
 		})
 
 	})
@@ -435,7 +434,7 @@ var _ = Describe("Redis", func() {
 	Describe("batchDeleteExpressionsFromRedis", func() {
 		var r *redisRetriever
 		BeforeEach(func() {
-			impls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 		})
 
@@ -460,16 +459,16 @@ var _ = Describe("Redis", func() {
 			err := r.batchSet(expression)
 			assert.NoError(GinkgoT(), err)
 
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 
 			// delete
 			err = batchDeleteExpressionsFromRedis(map[int64][]int64{
 				1: {123},
 			})
 			assert.NoError(GinkgoT(), err)
-			assert.False(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(123)))
-			assert.True(GinkgoT(), impls.ExpressionCache.Exists(cache.NewInt64Key(456)))
+			assert.False(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
 
 	})

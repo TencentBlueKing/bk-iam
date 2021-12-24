@@ -19,7 +19,7 @@ import (
 
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
@@ -29,19 +29,19 @@ import (
 func batchDeleteMembersFromCache(members []memberSerializer) error {
 	pks := make([]int64, 0, len(members))
 	for _, m := range members {
-		pk, _ := impls.GetSubjectPK(m.Type, m.ID)
+		pk, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
 		pks = append(pks, pk)
 	}
-	return impls.BatchDeleteSubjectCache(pks)
+	return cacheimpls.BatchDeleteSubjectCache(pks)
 }
 
 func batchDeleteUpdatedMembersFromCache(members []types.SubjectMember) error {
 	pks := make([]int64, 0, len(members))
 	for _, m := range members {
-		pk, _ := impls.GetSubjectPK(m.Type, m.ID)
+		pk, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
 		pks = append(pks, pk)
 	}
-	return impls.BatchDeleteSubjectCache(pks)
+	return cacheimpls.BatchDeleteSubjectCache(pks)
 }
 
 // ListSubject 查询用户/部门/用户组列表
@@ -150,7 +150,7 @@ func BatchDeleteSubjects(c *gin.Context) {
 	groupPKs := make([]int64, 0, len(subjects))
 	for _, s := range svcSubjects {
 		if s.Type == types.GroupType {
-			gPK, err := impls.GetSubjectPK(s.Type, s.ID)
+			gPK, err := cacheimpls.GetSubjectPK(s.Type, s.ID)
 			if err != nil {
 				log.WithError(err).Errorf("BatchDeleteSubjects getSubjectPK fail type=`%s`, id=`%s`", s.Type, s.ID)
 				continue
@@ -168,11 +168,11 @@ func BatchDeleteSubjects(c *gin.Context) {
 	}
 
 	// 清除涉及的所有缓存 [subjectGroup / subjectDetails]
-	impls.BatchDeleteSubjectCache(pks)
+	cacheimpls.BatchDeleteSubjectCache(pks)
 
 	for _, s := range subjects {
-		impls.DeleteSubjectPK(s.Type, s.ID)
-		impls.DeleteLocalSubjectPK(s.Type, s.ID)
+		cacheimpls.DeleteSubjectPK(s.Type, s.ID)
+		cacheimpls.DeleteLocalSubjectPK(s.Type, s.ID)
 	}
 	// Note: 不需要清除subject的成员其对应的SubjectGroup和SubjectDepartment，
 	//       =>  保证拿到的group pk 没有对应的policy cache/回源也查不到
@@ -485,7 +485,7 @@ func BatchDeleteSubjectDepartments(c *gin.Context) {
 	}
 
 	// delete from cache
-	impls.BatchDeleteSubjectCache(pks)
+	cacheimpls.BatchDeleteSubjectCache(pks)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -517,7 +517,7 @@ func BatchUpdateSubjectDepartments(c *gin.Context) {
 	}
 
 	// delete from cache
-	impls.BatchDeleteSubjectCache(pks)
+	cacheimpls.BatchDeleteSubjectCache(pks)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -618,7 +618,7 @@ func CreateSubjectRole(c *gin.Context) {
 
 	// clean cache
 	for _, subject := range svcSubjects {
-		impls.DeleteSubjectRoleSystemID(subject.Type, subject.ID)
+		cacheimpls.DeleteSubjectRoleSystemID(subject.Type, subject.ID)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)
@@ -658,7 +658,7 @@ func DeleteSubjectRole(c *gin.Context) {
 
 	// clean cache
 	for _, subject := range svcSubjects {
-		impls.DeleteSubjectRoleSystemID(subject.Type, subject.ID)
+		cacheimpls.DeleteSubjectRoleSystemID(subject.Type, subject.ID)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)
