@@ -11,16 +11,15 @@
 package evaluation
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
-
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
-	"iam/pkg/cache/memory"
+	"iam/pkg/cacheimpls"
 )
 
 var _ = Describe("Evaluation", func() {
@@ -128,7 +127,7 @@ var _ = Describe("Evaluation", func() {
 			Expression: "",
 		}
 
-		impls.LocalUnmarshaledExpressionCache = memory.NewMockCache(impls.UnmarshalExpression)
+		cacheimpls.LocalUnmarshaledExpressionCache = memory.NewMockCache(cacheimpls.UnmarshalExpression)
 	})
 
 	Describe("EvalPolicies", func() {
@@ -213,7 +212,7 @@ var _ = Describe("Evaluation", func() {
 
 		})
 
-		It("impls.GetUnmarshalledResourceExpression fail", func() {
+		It("cacheimpls.GetUnmarshalledResourceExpression fail", func() {
 			policy = types.AuthPolicy{
 				Expression: "123",
 			}

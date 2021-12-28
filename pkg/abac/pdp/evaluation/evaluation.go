@@ -20,7 +20,7 @@ import (
 	"iam/pkg/abac/pdp/condition/operator"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 )
 
 /*
@@ -59,7 +59,7 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error
 		return false, fmt.Errorf("evalPolicy action: %s get not resource in request", ctx.Action.ID)
 	}
 
-	cond, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
@@ -105,7 +105,7 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool
 		return true, condition.NewAnyCondition(), nil
 	}
 
-	cond, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)

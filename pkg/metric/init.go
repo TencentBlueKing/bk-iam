@@ -23,7 +23,7 @@ var (
 	// RequestCount api状态计数 + server_ip的请求数量和状态
 	RequestCount = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name:        "api_requests_total",
+			Name:        "bkiam_api_requests_total",
 			Help:        "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
 			ConstLabels: prometheus.Labels{"service": serviceName},
 		},
@@ -32,7 +32,7 @@ var (
 
 	// RequestDuration api响应时间分布
 	RequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        "api_request_duration_milliseconds",
+		Name:        "bkiam_api_request_duration_milliseconds",
 		Help:        "How long it took to process the request, partitioned by status code, method and HTTP path.",
 		ConstLabels: prometheus.Labels{"service": serviceName},
 		Buckets:     []float64{50, 100, 200, 500, 1000, 2000, 5000},
@@ -42,7 +42,7 @@ var (
 
 	// ComponentRequestDuration 依赖 api 响应时间分布
 	ComponentRequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        "component_request_duration_milliseconds",
+		Name:        "bkiam_component_request_duration_milliseconds",
 		Help:        "How long it took to process the request, partitioned by status code, method and HTTP path.",
 		ConstLabels: prometheus.Labels{"service": serviceName},
 		Buckets:     []float64{20, 50, 100, 200, 500, 1000, 2000, 5000},

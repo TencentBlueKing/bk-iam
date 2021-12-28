@@ -1,8 +1,26 @@
+# 1.9.2
+
+- hotfix: condition StringPrefix eval wrong when key is _bk_iam_path_
+- bugfix: remove redundant policy index
+
+# 1.9.1
+
+- bugfix: partialEval out of index while the any condition key is empty
+
 # 1.9.0
 
 - refactor: pdp 模块重构, 完备的表达式, 支持两阶段计算
 - add: 支持新老版本表达式unmarshal
 - add: 支持gt/gte/lt/lte操作符
+
+# 1.8.11
+
+- upgrade: metrics name add prefix bkiam
+
+
+# 1.8.10
+
+- upgrade: config template update cmdb resource limit
 
 # 1.8.9
 

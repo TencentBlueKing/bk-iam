@@ -10,10 +10,6 @@
 
 package util
 
-import (
-	"math/rand"
-)
-
 // TruncateBytes truncate []byte to specific length
 func TruncateBytes(content []byte, length int) []byte {
 	if len(content) > length {
@@ -26,23 +22,4 @@ func TruncateBytes(content []byte, length int) []byte {
 func TruncateBytesToString(content []byte, length int) string {
 	s := TruncateBytes(content, length)
 	return string(s)
-}
-
-// TruncateString truncate string to specific length
-func TruncateString(s string, n int) string {
-	if n > len(s) {
-		return s
-	}
-	return s[:n]
-}
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
-
-// RandString ...
-func RandString(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }

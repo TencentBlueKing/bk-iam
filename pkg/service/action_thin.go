@@ -11,8 +11,9 @@
 package service
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 

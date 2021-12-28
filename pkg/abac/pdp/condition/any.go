@@ -20,7 +20,6 @@ type AnyCondition struct {
 	baseCondition
 }
 
-//nolint:unparam
 func newAnyCondition(key string, values []interface{}) (Condition, error) {
 	return &AnyCondition{
 		baseCondition: baseCondition{
@@ -45,9 +44,9 @@ func (c *AnyCondition) GetName() string {
 }
 
 // GetKeys 属性key
-func (c *AnyCondition) GetKeys() []string {
-	return []string{}
-}
+// func (c *AnyCondition) GetKeys() []string {
+// 	return []string{}
+// }
 
 // Eval 求值
 func (c *AnyCondition) Eval(ctx types.EvalContextor) bool {

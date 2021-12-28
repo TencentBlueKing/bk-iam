@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/abac/pdp/condition"
 	pdptypes "iam/pkg/abac/pdp/types"
-	"iam/pkg/errorx"
 )
 
 /*
@@ -74,11 +74,11 @@ func ConditionsTranslate(
 		// NOTE: if got an `any`, return `any`!
 		if condition["op"].(string) == "any" {
 			return condition, nil
-			//return ExprCell{
+			// return ExprCell{
 			//	"op":    "any",
 			//	"field": "",
 			//	"value": []interface{}{},
-			//}, nil
+			// }, nil
 		}
 
 		content = append(content, condition)
@@ -154,7 +154,6 @@ func newExprToCondition(expr string) (condition.Condition, error) {
 		return nil, fmt.Errorf("newConditionFromPolicyCondition fail! expr: %s error: %w", expr, err2)
 	}
 	return cond, nil
-
 }
 
 func expressionToCondition(expr string) (condition.Condition, error) {

@@ -11,9 +11,10 @@
 package pip
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	svctypes "iam/pkg/service/types"
 )
 
@@ -34,11 +35,11 @@ func convertSubjectGroups(subjectGroups []svctypes.ThinSubjectGroup) []types.Sub
 
 // GetSubjectPK 获取subject的PK, note this will cache in local for 1 minutes
 func GetSubjectPK(_type, id string) (int64, error) {
-	// pk, err := impls.GetSubjectPK(_type, id)
-	pk, err := impls.GetLocalSubjectPK(_type, id)
+	// pk, err := cacheimpls.GetSubjectPK(_type, id)
+	pk, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
 		return pk, errorx.Wrapf(err, SubjectPIP, "GetSubjectPK",
-			"impls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	return pk, err
@@ -46,10 +47,10 @@ func GetSubjectPK(_type, id string) (int64, error) {
 
 // GetSubjectDetail ...
 func GetSubjectDetail(pk int64) (departments []int64, groups []types.SubjectGroup, err error) {
-	detail, err := impls.GetSubjectDetail(pk)
+	detail, err := cacheimpls.GetSubjectDetail(pk)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDetail",
-			"impls.GetSubjectDetail pk=`%d` fail", pk)
+			"cacheimpls.GetSubjectDetail pk=`%d` fail", pk)
 		return
 	}
 

@@ -13,6 +13,7 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/api/common"
@@ -152,9 +153,9 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 }
 
 func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (bool, string) {
-	resourceTypeID := util.NewStringSet()
-	for index, d := range data {
-		if err := binding.Validator.ValidateStruct(d); err != nil {
+	resourceTypeID := set.NewStringSet()
+	for index, data := range data {
+		if err := binding.Validator.ValidateStruct(data); err != nil {
 			message := fmt.Sprintf("data of action_id=%s related_resource_types[%d], %s",
 				actionID, index, util.ValidationErrorMessage(err))
 			return false, message
@@ -224,9 +225,9 @@ func validateAction(body []actionSerializer) (bool, string) {
 }
 
 func validateActionsRepeat(actions []actionSerializer) error {
-	idSet := util.NewStringSet()
-	nameSet := util.NewStringSet()
-	nameEnSet := util.NewStringSet()
+	idSet := set.NewStringSet()
+	nameSet := set.NewStringSet()
+	nameEnSet := set.NewStringSet()
 	for _, ac := range actions {
 		if idSet.Has(ac.ID) {
 			return fmt.Errorf("action id[%s] repeat", ac.ID)

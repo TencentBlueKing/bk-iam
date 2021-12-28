@@ -11,11 +11,12 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/gin-gonic/gin"
+
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListModelChangeEvent 查询变更事件列表

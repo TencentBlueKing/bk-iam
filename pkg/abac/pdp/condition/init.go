@@ -25,7 +25,10 @@ import (
 1. 条件之间没有隐含的关系 每个条件都是 {"operator": {"filed": values}}
 */
 
-const iamPath = "_bk_iam_path_"
+const (
+	iamPath       = "_bk_iam_path_"
+	iamPathSuffix = "." + iamPath
+)
 
 var errMustNotEmpty = errors.New("value must not be empty")
 

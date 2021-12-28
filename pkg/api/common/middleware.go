@@ -13,10 +13,11 @@ package common
 import (
 	"fmt"
 
-	"iam/pkg/cache/impls"
-	"iam/pkg/util"
-
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
+
+	"iam/pkg/cacheimpls"
+	"iam/pkg/util"
 )
 
 // SystemExists via system_id in path
@@ -30,7 +31,7 @@ func SystemExists() gin.HandlerFunc {
 		}
 
 		// use cache here
-		_, err := impls.GetSystem(systemID)
+		_, err := cacheimpls.GetSystem(systemID)
 		if err != nil {
 			util.NotFoundJSONResponse(c, fmt.Sprintf("system(%s) not exists", systemID))
 			c.Abort()
@@ -54,7 +55,7 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 
 		// check system is exists
 		// use cache here
-		system, err := impls.GetSystem(systemID)
+		system, err := cacheimpls.GetSystem(systemID)
 		if err != nil {
 			util.NotFoundJSONResponse(c, fmt.Sprintf("system(%s) not exists", systemID))
 			c.Abort()
@@ -68,7 +69,7 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 			return
 		}
 
-		validClients := util.SplitStringToSet(system.Clients, ",")
+		validClients := set.SplitStringToSet(system.Clients, ",")
 		if !validClients.Has(clientID) {
 			util.UnauthorizedJSONResponse(c,
 				fmt.Sprintf("app(%s) is not allowed to call system (%s) api", clientID, systemID))

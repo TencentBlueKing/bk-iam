@@ -13,9 +13,8 @@ package handler
 import (
 	"testing"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/util"
 )
 
 func Test_validateFields(t *testing.T) {
@@ -78,7 +77,7 @@ func Test_filterFields(t *testing.T) {
 		ID:   "1",
 		Name: "test",
 	}
-	fields := util.NewStringSetWithValues([]string{"id"})
+	fields := set.NewStringSetWithValues([]string{"id"})
 
 	// one
 	want1 := map[string]interface{}{"id": "1"}
@@ -88,20 +87,20 @@ func Test_filterFields(t *testing.T) {
 
 	// all
 	want2 := map[string]interface{}{"id": "1", "name": "test"}
-	fields = util.NewStringSetWithValues([]string{"id", "name"})
+	fields = set.NewStringSetWithValues([]string{"id", "name"})
 	got2, err := filterFields(fields, obj)
 	assert.NoError(t, err)
 	assert.Equal(t, want2, got2)
 
 	// not exists
 	want3 := map[string]interface{}{}
-	fields = util.NewStringSetWithValues([]string{"age"})
+	fields = set.NewStringSetWithValues([]string{"age"})
 	got3, err := filterFields(fields, obj)
 	assert.NoError(t, err)
 	assert.Equal(t, want3, got3)
 
 	// empty set
-	fields = util.NewStringSetWithValues([]string{})
+	fields = set.NewStringSetWithValues([]string{})
 	got4, err := filterFields(fields, obj)
 	assert.NoError(t, err)
 	assert.Equal(t, want3, got4)

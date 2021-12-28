@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/agiledragon/gomonkey"
 	rds "github.com/go-redis/redis/v8"
 	. "github.com/onsi/ginkgo"
@@ -22,9 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/prp/common"
-	"iam/pkg/cache"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -43,7 +43,7 @@ var _ = Describe("Memory", func() {
 	Describe("retrieve", func() {
 		var r *memoryRetriever
 
-		//var ctl *gomock.Controller
+		// var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		var retrievedExpressions []types.AuthExpression
 		var cached1, cached2, cached3 *cachedExpression
@@ -51,12 +51,12 @@ var _ = Describe("Memory", func() {
 		var hitExpressions map[string]*cachedExpression
 
 		BeforeEach(func() {
-			//ctl = gomock.NewController(GinkgoT())
+			// ctl = gomock.NewController(GinkgoT())
 			patches = gomonkey.NewPatches()
 
 			// init cache
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
-			impls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
 
 			r = newMemoryRetriever(1, nil)
 
@@ -107,12 +107,12 @@ var _ = Describe("Memory", func() {
 
 		})
 		AfterEach(func() {
-			//ctl.Finish()
+			// ctl.Finish()
 			patches.Reset()
 		})
 
 		It("batchFetchActionExpressionChangedList fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return nil, errors.New("ZRevRangeByScore fail")
 				})
@@ -138,18 +138,18 @@ var _ = Describe("Memory", func() {
 			assert.Equal(GinkgoT(), int64(1000), missingPKs[0])
 
 			// check the cache
-			_, ok := impls.LocalExpressionCache.Get("123")
+			_, ok := cacheimpls.LocalExpressionCache.Get("123")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("456")
+			_, ok = cacheimpls.LocalExpressionCache.Get("456")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("789")
+			_, ok = cacheimpls.LocalExpressionCache.Get("789")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("1000")
+			_, ok = cacheimpls.LocalExpressionCache.Get("1000")
 			assert.True(GinkgoT(), ok)
 		})
 		It("all hit, no change list", func() {
 			for key, cached := range hitExpressions {
-				impls.LocalExpressionCache.Set(key, cached, 0)
+				cacheimpls.LocalExpressionCache.Set(key, cached, 0)
 			}
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
@@ -163,7 +163,7 @@ var _ = Describe("Memory", func() {
 
 		})
 		It("all hit, has change list", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return []rds.Z{
 						{
@@ -182,7 +182,7 @@ var _ = Describe("Memory", func() {
 				})
 
 			for key, cached := range hitExpressions {
-				impls.LocalExpressionCache.Set(key, cached, 0)
+				cacheimpls.LocalExpressionCache.Set(key, cached, 0)
 			}
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
@@ -198,9 +198,9 @@ var _ = Describe("Memory", func() {
 		It("one expression cast fail", func() {
 			// all hit
 			for key, cached := range hitExpressions {
-				impls.LocalExpressionCache.Set(key, cached, 0)
+				cacheimpls.LocalExpressionCache.Set(key, cached, 0)
 			}
-			impls.LocalExpressionCache.Set("456", "abc", 0)
+			cacheimpls.LocalExpressionCache.Set("456", "abc", 0)
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return nil, nil, errors.New("should be called")
@@ -215,9 +215,9 @@ var _ = Describe("Memory", func() {
 		It("one expression is empty", func() {
 			// all hit
 			for key, cached := range hitExpressions {
-				impls.LocalExpressionCache.Set(key, cached, 0)
+				cacheimpls.LocalExpressionCache.Set(key, cached, 0)
 			}
-			impls.LocalExpressionCache.Set("456", &cachedExpression{
+			cacheimpls.LocalExpressionCache.Set("456", &cachedExpression{
 				timestamp:  now + 100,
 				expression: types.AuthExpression{},
 			}, 0)
@@ -243,7 +243,7 @@ var _ = Describe("Memory", func() {
 		var r *memoryRetriever
 		BeforeEach(func() {
 			r = newMemoryRetriever(123, nil)
-			impls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
 
 		})
 
@@ -260,13 +260,13 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// check the cache
-			_, ok := impls.LocalExpressionCache.Get("123")
+			_, ok := cacheimpls.LocalExpressionCache.Get("123")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("456")
+			_, ok = cacheimpls.LocalExpressionCache.Get("456")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("789")
+			_, ok = cacheimpls.LocalExpressionCache.Get("789")
 			assert.True(GinkgoT(), ok)
-			_, ok = impls.LocalExpressionCache.Get("111")
+			_, ok = cacheimpls.LocalExpressionCache.Get("111")
 			assert.False(GinkgoT(), ok)
 		})
 	})
@@ -275,8 +275,8 @@ var _ = Describe("Memory", func() {
 
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			impls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
-			impls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
+			cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
 
 			patches = gomonkey.NewPatches()
 		})
@@ -292,15 +292,15 @@ var _ = Describe("Memory", func() {
 
 		It("ok", func() {
 			// init local cache
-			impls.LocalExpressionCache.Set("123", "abc", 0)
-			_, ok := impls.LocalExpressionCache.Get("123")
+			cacheimpls.LocalExpressionCache.Set("123", "abc", 0)
+			_, ok := cacheimpls.LocalExpressionCache.Get("123")
 			assert.True(GinkgoT(), ok)
 
 			max := time.Now().Unix()
 			min := max - expressionLocalCacheTTL
 
 			// init redis cache
-			err := impls.ChangeListCache.BatchZAdd([]redis.ZData{
+			err := cacheimpls.ChangeListCache.BatchZAdd([]redis.ZData{
 				{
 					Key: "expression:1",
 					Zs: []*rds.Z{
@@ -330,21 +330,21 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 
 			// check the local cache
-			_, ok = impls.LocalExpressionCache.Get("123")
+			_, ok = cacheimpls.LocalExpressionCache.Get("123")
 			assert.False(GinkgoT(), ok)
 
 			// check the change list
 			// _type=expression,  actionPK=1
-			assert.True(GinkgoT(), impls.ChangeListCache.Exists(cache.NewStringKey("expression:1")))
+			assert.True(GinkgoT(), cacheimpls.ChangeListCache.Exists(cache.NewStringKey("expression:1")))
 
-			zs, err := impls.ChangeListCache.ZRevRangeByScore("expression:1", min, max, 0, maxChangeListCount)
+			zs, err := cacheimpls.ChangeListCache.ZRevRangeByScore("expression:1", min, max, 0, maxChangeListCount)
 			assert.NoError(GinkgoT(), err)
 			// 0000 + 123 + 456
 			assert.Len(GinkgoT(), zs, 3)
 
 			// _type=expression,  actionPK=2
-			assert.True(GinkgoT(), impls.ChangeListCache.Exists(cache.NewStringKey("expression:2")))
-			zs, err = impls.ChangeListCache.ZRevRangeByScore("expression:2", min, max, 0, maxChangeListCount)
+			assert.True(GinkgoT(), cacheimpls.ChangeListCache.Exists(cache.NewStringKey("expression:2")))
+			zs, err = cacheimpls.ChangeListCache.ZRevRangeByScore("expression:2", min, max, 0, maxChangeListCount)
 			assert.NoError(GinkgoT(), err)
 			//  1111 + 789 - 1111 => 789
 			assert.Len(GinkgoT(), zs, 1)

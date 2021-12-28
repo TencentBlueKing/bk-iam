@@ -13,6 +13,7 @@ package service
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -22,7 +23,6 @@ import (
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 var _ = Describe("PolicyService", func() {
@@ -431,14 +431,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			_, err := svc.AlterCustomPolicies(1, createPolicies, updatePolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -687,14 +687,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			err := svc.CreateAndDeleteTemplatePolicies(1, 1, createPolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -803,14 +803,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			err := svc.UpdateTemplatePolicies(1, updatePolicies, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})

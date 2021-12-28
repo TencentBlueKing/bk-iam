@@ -14,11 +14,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
-	"iam/pkg/errorx"
 	svctypes "iam/pkg/service/types"
 )
 
@@ -117,9 +118,9 @@ func hasSystemSuperPermission(systemID, _type, id string) (bool, error) {
 	}
 
 	// check system manager or super manager
-	systemIDs, err := impls.ListSubjectRoleSystemID(_type, id)
+	systemIDs, err := cacheimpls.ListSubjectRoleSystemID(_type, id)
 	if err != nil {
-		err = errorWrapf(err, "impls.ListSubjectRoleSystemID subjectType=`%s`, subjectID=`%s` fail",
+		err = errorWrapf(err, "cacheimpls.ListSubjectRoleSystemID subjectType=`%s`, subjectID=`%s` fail",
 			systemID, _type, id)
 		return false, err
 	}
@@ -158,7 +159,7 @@ func ValidateSystemMatchClient(systemID, clientID string) error {
 		return fmt.Errorf("system_id or client_id do not allow empty")
 	}
 
-	validClients, err := impls.GetSystemClients(systemID)
+	validClients, err := cacheimpls.GetSystemClients(systemID)
 	if err != nil {
 		return fmt.Errorf("get system(%s) valid clients fail, err=%w", systemID, err)
 	}

@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-
-	"iam/pkg/errorx"
 )
 
 // Error Codes
@@ -39,5 +37,7 @@ func ReportToSentry(message string, extra map[string]interface{}) {
 	ev.Level = "error"
 	ev.Timestamp = time.Now()
 	ev.Extra = extra
-	errorx.ReportEvent(ev)
+	if sentryOn {
+		sentry.CaptureEvent(ev)
+	}
 }

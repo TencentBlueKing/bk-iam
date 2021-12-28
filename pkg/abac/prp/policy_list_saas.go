@@ -14,8 +14,9 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	svcTypes "iam/pkg/service/types"
 )
 

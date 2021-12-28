@@ -11,11 +11,11 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListInstanceSelection 查询系统的所有实例视图

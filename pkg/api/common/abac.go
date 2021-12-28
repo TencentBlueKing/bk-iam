@@ -11,15 +11,16 @@
 package common
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/abac/pip"
-	"iam/pkg/util"
 )
 
 // GetActionResourceTypeSet get resource type set for translate expression
-func GetActionResourceTypeSet(systemID string, actionID string) (resourceTypeSet *util.StringSet, err error) {
+func GetActionResourceTypeSet(systemID string, actionID string) (resourceTypeSet *set.StringSet, err error) {
 	_, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
 
-	resourceTypeSet = util.NewFixedLengthStringSet(len(actionResourceTypes))
+	resourceTypeSet = set.NewFixedLengthStringSet(len(actionResourceTypes))
 	for _, rt := range actionResourceTypes {
 		key := rt.System + ":" + rt.Type
 		resourceTypeSet.Add(key)
