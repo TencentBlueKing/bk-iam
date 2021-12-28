@@ -13,13 +13,14 @@ package pdp
 import (
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
-	"iam/pkg/util"
+	"iam/pkg/cacheimpls"
 )
 
 func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (err error) {
@@ -44,25 +45,17 @@ func queryRemoteResourceAttrs(
 ) (attrs map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
-	// TODO: unittest
 	// 查询policies相关的属性key
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
-		condition, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		condition, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 		if err != nil {
 			return nil, err
 		}
 		conditions = append(conditions, condition)
 	}
 
-	var keys []string
-	keys, err = getConditionAttrKeys(resource, conditions)
-	if err != nil {
-		err = errorWrapf(err,
-			"getConditionAttrKeys resource=`%+v`, conditions=`%+v` fail",
-			resource, conditions)
-		return
-	}
+	keys := getConditionAttrKeys(resource, conditions)
 
 	// 6. PIP查询依赖resource相关keys的属性
 	attrs, err = pip.QueryRemoteResourceAttribute(resource.System, resource.Type, resource.ID, keys)
@@ -70,9 +63,9 @@ func queryRemoteResourceAttrs(
 		err = errorWrapf(err,
 			"pip.QueryRemoteResourceAttribute system=`%s`, resourceType=`%s`, resourceID=`%s`, keys=`%+v` fail",
 			resource.System, resource.Type, resource.ID, keys)
-		return
+		return nil, err
 	}
-	return
+	return attrs, nil
 }
 
 func queryExtResourceAttrs(
@@ -81,17 +74,11 @@ func queryExtResourceAttrs(
 ) (resources []map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryExtResourceAttrs")
 
-	keys, err := getConditionAttrKeys(&types.Resource{
+	keys := getConditionAttrKeys(&types.Resource{
 		System: resource.System,
 		Type:   resource.Type,
 		ID:     resource.IDs[0],
 	}, policies)
-	if err != nil {
-		err = errorWrapf(err,
-			"getConditionAttrKeys policies=`%+v`, resource=`%+v` fail",
-			policies, resource)
-		return
-	}
 
 	// 6. PIP查询依赖resource相关keys的属性
 	resources, err = pip.BatchQueryRemoteResourcesAttribute(resource.System, resource.Type, resource.IDs, keys)
@@ -107,11 +94,10 @@ func queryExtResourceAttrs(
 func getConditionAttrKeys(
 	resource *types.Resource,
 	conditions []condition.Condition,
-) ([]string, error) {
-	// TODO: unittest
+) []string {
 	keyPrefix := resource.System + "." + resource.Type + "."
 
-	keySet := util.NewFixedLengthStringSet(len(conditions))
+	keySet := set.NewFixedLengthStringSet(len(conditions))
 	for _, condition := range conditions {
 		for _, key := range condition.GetKeys() {
 			// NOTE: here remove all the prefix: {system}.{type}.
@@ -121,5 +107,5 @@ func getConditionAttrKeys(
 		}
 	}
 
-	return keySet.ToSlice(), nil
+	return keySet.ToSlice()
 }

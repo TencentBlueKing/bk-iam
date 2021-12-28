@@ -15,6 +15,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
@@ -22,7 +24,6 @@ import (
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 

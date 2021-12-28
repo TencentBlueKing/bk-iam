@@ -17,10 +17,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/sdao"
-	"iam/pkg/errorx"
 )
 
 // SystemConfigSVC ...
@@ -175,7 +175,7 @@ func (s *systemConfigService) update(systemConfig sdao.SaaSSystemConfig, data in
 	return s.manager.Update(systemConfig)
 }
 
-// func (s *systemConfigService) createOrUpdate(system, key, _type string, data map[string]interface{}) (err error) {
+// nolint:unparam
 func (s *systemConfigService) createOrUpdate(system, key, _type string, data interface{}) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SystemConfigSVC, "createOrUpdate")
 

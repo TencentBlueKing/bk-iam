@@ -18,7 +18,7 @@ import (
 	"go.uber.org/multierr"
 
 	"iam/pkg/abac/prp/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -81,9 +81,10 @@ func (r *memoryRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64
 	} else {
 		for _, expressionPK := range pks {
 			key := r.genKey(expressionPK)
-			value, found := impls.LocalExpressionCache.Get(key)
+			value, found := cacheimpls.LocalExpressionCache.Get(key)
 			if !found {
 				missExpressionPKs = append(missExpressionPKs, expressionPK)
+
 				continue
 			}
 
@@ -91,6 +92,7 @@ func (r *memoryRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64
 			if !ok {
 				log.Errorf("[%s] parse cachedExpression in memory cache fail, will do retrieve!", MemoryLayer)
 				missExpressionPKs = append(missExpressionPKs, expressionPK)
+
 				continue
 			}
 
@@ -137,7 +139,7 @@ func (r *memoryRetriever) setMissing(expressions []types.AuthExpression, missing
 	for _, expr := range expressions {
 		key := r.genKey(expr.PK)
 
-		impls.LocalExpressionCache.Set(key, &cachedExpression{
+		cacheimpls.LocalExpressionCache.Set(key, &cachedExpression{
 			timestamp:  nowTimestamp,
 			expression: expr,
 		}, 0)
@@ -145,7 +147,7 @@ func (r *memoryRetriever) setMissing(expressions []types.AuthExpression, missing
 	for _, pk := range missingPKs {
 		key := r.genKey(pk)
 
-		impls.LocalExpressionCache.Set(
+		cacheimpls.LocalExpressionCache.Set(
 			key,
 			&cachedExpression{
 				timestamp:  nowTimestamp,
@@ -172,7 +174,7 @@ func batchDeleteExpressionsFromMemory(updatedActionPKExpressionPKs map[int64][]i
 			members = append(members, strconv.FormatInt(expressionPK, 10))
 
 			// delete from local cache
-			impls.LocalExpressionCache.Delete(strconv.FormatInt(expressionPK, 10))
+			cacheimpls.LocalExpressionCache.Delete(strconv.FormatInt(expressionPK, 10))
 		}
 
 		key := strconv.FormatInt(actionPK, 10)

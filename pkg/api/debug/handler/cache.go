@@ -13,12 +13,11 @@ package handler
 import (
 	"strconv"
 
-	"iam/pkg/abac/prp/expression"
-
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/abac/prp/expression"
 	pl "iam/pkg/abac/prp/policy"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -40,7 +39,7 @@ func QueryPolicyCache(c *gin.Context) {
 		return
 	}
 
-	subjectPK, err := impls.GetSubjectPK(body.SubjectType, body.SubjectID)
+	subjectPK, err := cacheimpls.GetSubjectPK(body.SubjectType, body.SubjectID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -53,7 +52,7 @@ func QueryPolicyCache(c *gin.Context) {
 		errs := []error{}
 
 		hashKey := body.System + ":" + strconv.FormatInt(subjectPK, 10)
-		keys, err0 := impls.PolicyCache.HKeys(hashKey)
+		keys, err0 := cacheimpls.PolicyCache.HKeys(hashKey)
 		errs = append(errs, err0)
 
 		actions := make([]types.ThinAction, 0, len(keys))
@@ -87,7 +86,7 @@ func QueryPolicyCache(c *gin.Context) {
 		return
 	}
 
-	actionPK, err := impls.GetActionPK(body.System, body.Action)
+	actionPK, err := cacheimpls.GetActionPK(body.System, body.Action)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

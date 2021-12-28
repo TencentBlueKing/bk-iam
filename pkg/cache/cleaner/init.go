@@ -13,11 +13,10 @@ package cleaner
 import (
 	"context"
 
-	"iam/pkg/util"
-
+	"github.com/TencentBlueKing/gopkg/cache"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache"
+	"iam/pkg/util"
 )
 
 // it's a goroutine

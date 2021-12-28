@@ -13,10 +13,11 @@ package prp
 import (
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
-	"iam/pkg/util"
+	"iam/pkg/cacheimpls"
 )
 
 /*
@@ -24,7 +25,7 @@ NOTE:
  - 当前部门不会直接配置权限, 只能通过加入用户组的方式配置; 所以 dept PKs 不加入最终生效的pks
 
 TODO:
- - 当前  impls.ListSubjectEffectGroups pipeline获取的性能有问题, 需要考虑走cache?
+ - 当前  cacheimpls.ListSubjectEffectGroups pipeline获取的性能有问题, 需要考虑走cache?
 
 */
 
@@ -52,9 +53,9 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 
 	// 用户继承组织加入的用户组 => 多个部门属于同一个组, 所以需要去重
 	now := time.Now().Unix()
-	inheritGroupPKSet := util.NewInt64Set()
+	inheritGroupPKSet := set.NewInt64Set()
 	if len(deptPKs) > 0 {
-		subjectGroups, newErr := impls.ListSubjectEffectGroups(deptPKs)
+		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			return nil, newErr
@@ -70,7 +71,7 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 
 	// 1. merge `user-groupPKs` and `user-dept-groupPKs`
 	groupPKMaxLen := len(groupPKs) + len(inheritGroupPKs)
-	groupPKSet := util.NewFixedLengthInt64Set(groupPKMaxLen)
+	groupPKSet := set.NewFixedLengthInt64Set(groupPKMaxLen)
 	// 用户加入的用户组
 	groupPKSet.Append(groupPKs...)
 	// 用户继承组织加入的用户组

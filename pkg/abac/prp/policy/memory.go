@@ -19,7 +19,7 @@ import (
 	"go.uber.org/multierr"
 
 	"iam/pkg/abac/prp/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )
@@ -85,9 +85,10 @@ func (r *memoryRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []in
 			subjectPKStr := strconv.FormatInt(subjectPK, 10)
 
 			key := r.genKey(subjectPKStr)
-			value, found := impls.LocalPolicyCache.Get(key)
+			value, found := cacheimpls.LocalPolicyCache.Get(key)
 			if !found {
 				missSubjectPKs = append(missSubjectPKs, subjectPK)
+
 				continue
 			}
 
@@ -95,6 +96,7 @@ func (r *memoryRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []in
 			if !ok {
 				log.Errorf("[%s] parse cachedPolicy in memory cache fail, will do retrieve!", MemoryLayer)
 				missSubjectPKs = append(missSubjectPKs, subjectPK)
+
 				continue
 			}
 
@@ -163,7 +165,7 @@ func (r *memoryRetriever) setMissing(policies []types.AuthPolicy, missingSubject
 		subjectPKStr := strconv.FormatInt(subjectPK, 10)
 		key := r.genKey(subjectPKStr)
 
-		impls.LocalPolicyCache.Set(
+		cacheimpls.LocalPolicyCache.Set(
 			key,
 			&cachedPolicy{
 				timestamp: nowTimestamp,
@@ -212,6 +214,7 @@ func batchDeleteSystemSubjectPKsFromMemory(systems []string, subjectPKs []int64)
 				"[%s] list system actions fail system=`%s`, subjectPKs=`%v` the changelist will not add these subjectPKs",
 				MemoryLayer, system, subjectPKs,
 			)
+
 			continue
 		}
 

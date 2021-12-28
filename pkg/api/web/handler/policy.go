@@ -11,11 +11,11 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )

@@ -16,13 +16,13 @@ import (
 	"strconv"
 	"time"
 
+	gopkgcache "github.com/TencentBlueKing/gopkg/cache"
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/sync/singleflight"
 
-	iamcache "iam/pkg/cache"
 	"iam/pkg/util"
 )
 
@@ -39,7 +39,7 @@ const (
 )
 
 // RetrieveFunc ...
-type RetrieveFunc func(key iamcache.Key) (interface{}, error)
+type RetrieveFunc func(key gopkgcache.Key) (interface{}, error)
 
 // Cache is a cache implements
 type Cache struct {
@@ -106,7 +106,7 @@ func (c *Cache) copyTo(source interface{}, dest interface{}) error {
 }
 
 // Set execute `set`
-func (c *Cache) Set(key iamcache.Key, value interface{}, duration time.Duration) error {
+func (c *Cache) Set(key gopkgcache.Key, value interface{}, duration time.Duration) error {
 	if duration == time.Duration(0) {
 		duration = c.defaultExpiration
 	}
@@ -120,13 +120,13 @@ func (c *Cache) Set(key iamcache.Key, value interface{}, duration time.Duration)
 }
 
 // Get execute `get`
-func (c *Cache) Get(key iamcache.Key, value interface{}) error {
+func (c *Cache) Get(key gopkgcache.Key, value interface{}) error {
 	k := c.genKey(key.Key())
 	return c.codec.Get(context.TODO(), k, value)
 }
 
 // Exists execute `exists`
-func (c *Cache) Exists(key iamcache.Key) bool {
+func (c *Cache) Exists(key gopkgcache.Key) bool {
 	k := c.genKey(key.Key())
 
 	count, err := c.cli.Exists(context.TODO(), k).Result()
@@ -135,11 +135,11 @@ func (c *Cache) Exists(key iamcache.Key) bool {
 }
 
 // GetInto will retrieve the data from cache and unmarshal into the obj
-func (c *Cache) GetInto(key iamcache.Key, obj interface{}, retrieveFunc RetrieveFunc) (err error) {
+func (c *Cache) GetInto(key gopkgcache.Key, obj interface{}, retrieveFunc RetrieveFunc) (err error) {
 	// 1. get from cache, hit, return
 	err = c.Get(key, obj)
 	if err == nil {
-		return
+		return nil
 	}
 
 	// 2. if missing
@@ -167,7 +167,7 @@ func (c *Cache) GetInto(key iamcache.Key, obj interface{}, retrieveFunc Retrieve
 }
 
 // Delete execute `del`
-func (c *Cache) Delete(key iamcache.Key) (err error) {
+func (c *Cache) Delete(key gopkgcache.Key) (err error) {
 	k := c.genKey(key.Key())
 
 	ctx := context.TODO()
@@ -177,7 +177,7 @@ func (c *Cache) Delete(key iamcache.Key) (err error) {
 }
 
 // BatchDelete execute `del` with pipeline
-func (c *Cache) BatchDelete(keys []iamcache.Key) error {
+func (c *Cache) BatchDelete(keys []gopkgcache.Key) error {
 	newKeys := make([]string, 0, len(keys))
 	for _, key := range keys {
 		newKeys = append(newKeys, c.genKey(key.Key()))
@@ -200,7 +200,7 @@ func (c *Cache) BatchDelete(keys []iamcache.Key) error {
 }
 
 // BatchExpireWithTx execute `expire` with tx pipeline
-func (c *Cache) BatchExpireWithTx(keys []iamcache.Key, expiration time.Duration) error {
+func (c *Cache) BatchExpireWithTx(keys []gopkgcache.Key, expiration time.Duration) error {
 	pipe := c.cli.TxPipeline()
 	ctx := context.TODO()
 
@@ -220,12 +220,12 @@ type KV struct {
 }
 
 // BatchGet execute `get` with pipeline
-func (c *Cache) BatchGet(keys []iamcache.Key) (map[iamcache.Key]string, error) {
+func (c *Cache) BatchGet(keys []gopkgcache.Key) (map[gopkgcache.Key]string, error) {
 	pipe := c.cli.Pipeline()
 
 	ctx := context.TODO()
 
-	cmds := map[iamcache.Key]*redis.StringCmd{}
+	cmds := map[gopkgcache.Key]*redis.StringCmd{}
 	for _, k := range keys {
 		key := c.genKey(k.Key())
 		cmd := pipe.Get(ctx, key)
@@ -240,7 +240,7 @@ func (c *Cache) BatchGet(keys []iamcache.Key) (map[iamcache.Key]string, error) {
 		return nil, err
 	}
 
-	values := make(map[iamcache.Key]string, len(cmds))
+	values := make(map[gopkgcache.Key]string, len(cmds))
 	for hkf, cmd := range cmds {
 		// maybe err or key missing
 		// only return the HashKeyField who get value success from redis

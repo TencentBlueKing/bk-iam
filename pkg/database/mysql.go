@@ -94,8 +94,6 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		"UTC",
 	)
 
-	//log.Infof("init db client: [host=%s, port=%d, name=%s, user=%s]", cfg.Host, cfg.Port, cfg.Name, cfg.User)
-
 	maxOpenConns := defaultMaxOpenConns
 	if cfg.MaxOpenConns > 0 {
 		maxOpenConns = cfg.MaxOpenConns

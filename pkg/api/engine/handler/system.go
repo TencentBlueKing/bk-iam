@@ -11,9 +11,9 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service"
-	"iam/pkg/service/types"
 	"iam/pkg/util"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +37,6 @@ func GetSystem(c *gin.Context) {
 	systemID := c.Param("system_id")
 
 	svc := service.NewSystemService()
-	var systemInfo types.System
 	systemInfo, err := svc.Get(systemID)
 	if err != nil {
 		err = errorWrapf(err, "systemID=`%s`", systemID)

@@ -52,7 +52,7 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 
 		// 支持表达式中最后一个节点为任意
 		// /biz,1/set,*/ -> /biz,1/set,
-		if c.Key == abacTypes.IamPath && strings.HasSuffix(bStr, ",*/") {
+		if strings.HasSuffix(c.Key, abacTypes.IamPathSuffix) && strings.HasSuffix(bStr, ",*/") {
 			bStr = bStr[0 : len(bStr)-2]
 		}
 
@@ -90,5 +90,4 @@ func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface
 			"content": content,
 		}, nil
 	}
-
 }

@@ -83,7 +83,6 @@ func (c *OrCondition) Translate(withSystem bool) (map[string]interface{}, error)
 		"op":      "OR",
 		"content": content,
 	}, nil
-
 }
 
 // PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分

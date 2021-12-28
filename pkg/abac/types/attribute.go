@@ -41,6 +41,7 @@ func (a Attribute) Keys() []string {
 	for key := range a {
 		keys = append(keys, key)
 	}
+
 	return keys
 }
 
@@ -56,10 +57,12 @@ func (a Attribute) GetInt64(key string) (int64, error) {
 	if !ok {
 		return 0, fmt.Errorf("key %s not exists", key)
 	}
+
 	vInt64, ok := v.(int64)
 	if !ok {
 		return 0, fmt.Errorf("value %+v of key %s can not convert to int64", v, key)
 	}
+
 	return vInt64, nil
 }
 
@@ -69,10 +72,12 @@ func (a Attribute) GetInt64Slice(key string) ([]int64, error) {
 	if !ok {
 		return nil, fmt.Errorf("key %s not exists", key)
 	}
+
 	vInt64Slice, ok := v.([]int64)
 	if !ok {
 		return nil, fmt.Errorf("value %+v of key %s can not convert to []int64", v, key)
 	}
+
 	return vInt64Slice, nil
 }
 
@@ -82,10 +87,12 @@ func (a Attribute) GetString(key string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("key %s not exists", key)
 	}
+
 	vStr, ok := v.(string)
 	if !ok {
 		return "", fmt.Errorf("value %+v of key %s can not convert to string", v, key)
 	}
+
 	return vStr, nil
 }
 
@@ -160,6 +167,7 @@ func (a *SubjectAttribute) GetGroups() ([]SubjectGroup, error) {
 	if !ok {
 		return nil, fmt.Errorf("key %s not exists", GroupAttrName)
 	}
+
 	subjectGroups, ok := groups.([]SubjectGroup)
 	if !ok {
 		return nil, fmt.Errorf("value %+v of key %s can not convert to []SubjectGroup", groups, GroupAttrName)

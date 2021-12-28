@@ -11,10 +11,12 @@
 package component
 
 import (
-	"iam/pkg/errorx"
+	"strings"
+
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service/types"
 	"iam/pkg/util"
-	"strings"
 )
 
 // PrepareRequest ...

@@ -21,7 +21,7 @@ import (
 	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 )
 
 // NOTE: 目前所有的 query/eval都在这个文件中, 两个主要入口:
@@ -60,7 +60,7 @@ func evalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime t
 		return false, fmt.Errorf("evalPolicy action: %s get not resource in request", ctx.Action.ID)
 	}
 
-	cond, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
@@ -119,7 +119,7 @@ func partialEvalPolicy(
 		return true, condition.NewAnyCondition(), nil
 	}
 
-	cond, err := impls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)

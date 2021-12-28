@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	svctypes "iam/pkg/service/types"
 )
 
@@ -67,8 +67,8 @@ var _ = Describe("Helper", func() {
 			assert.Contains(GinkgoT(), err.Error(), "subject.GetDepartmentPKs")
 		})
 
-		It("impls.ListSubjectEffectGroups fail", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectEffectGroups,
+		It("cacheimpls.ListSubjectEffectGroups fail", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectEffectGroups,
 				func(pks []int64) ([]svctypes.ThinSubjectGroup, error) {
 					return nil, errors.New("list subject_group fail")
 				})
@@ -79,7 +79,7 @@ var _ = Describe("Helper", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectEffectGroups,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectEffectGroups,
 				func(pks []int64) ([]svctypes.ThinSubjectGroup, error) {
 					return []svctypes.ThinSubjectGroup{
 						{

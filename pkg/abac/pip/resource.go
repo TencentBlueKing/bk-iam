@@ -11,8 +11,9 @@
 package pip
 
 import (
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/cacheimpls"
 )
 
 // ResourcePIP ...
@@ -28,10 +29,10 @@ func QueryRemoteResourceAttribute(system, _type, id string, keys []string) (map[
 		}, nil
 	}
 
-	resource, err := impls.GetRemoteResource(system, _type, id, keys)
+	resource, err := cacheimpls.GetRemoteResource(system, _type, id, keys)
 	if err != nil {
 		err = errorx.Wrapf(err, ResourcePIP, "QueryRemoteResourceAttribute",
-			"impls.GetRemoteResource system=`%s`, _type=`%s`, id=`%s`, keys=`%+v` fail",
+			"cacheimpls.GetRemoteResource system=`%s`, _type=`%s`, id=`%s`, keys=`%+v` fail",
 			system, _type, id, keys)
 		return nil, err
 	}
@@ -53,7 +54,7 @@ func BatchQueryRemoteResourcesAttribute(
 		return resources, nil
 	}
 
-	resources, err := impls.ListRemoteResources(system, _type, ids, keys)
+	resources, err := cacheimpls.ListRemoteResources(system, _type, ids, keys)
 	if err != nil {
 		err = errorx.Wrapf(err, ResourcePIP, "BatchQueryRemoteResourcesAttribute",
 			"listRemoteResources system=`%s`, _type=`%s`, ids=`%+v`, keys=`%+v` fail",

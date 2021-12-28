@@ -16,13 +16,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 )
 
@@ -135,7 +136,7 @@ func Eval(
 	if entry != nil {
 		debug.WithValue(entry, "expression", "set fail")
 
-		expr, err1 := impls.PoliciesTranslate(policies)
+		expr, err1 := cacheimpls.PoliciesTranslate(policies)
 		if err1 == nil {
 			debug.WithValue(entry, "expression", expr)
 		}

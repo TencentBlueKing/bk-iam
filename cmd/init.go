@@ -18,14 +18,14 @@ import (
 	"github.com/spf13/viper"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/component"
 	"iam/pkg/config"
 	"iam/pkg/database"
-	"iam/pkg/errorx"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
+	"iam/pkg/util"
 )
 
 var globalConfig *config.Config
@@ -62,7 +62,7 @@ func initSentry() {
 		log.Info("Sentry is not enabled, will not init it")
 	}
 
-	errorx.InitErrorReport(globalConfig.Sentry.Enable)
+	util.InitErrorReport(globalConfig.Sentry.Enable)
 }
 
 func initMetrics() {
@@ -122,11 +122,11 @@ func initLogger() {
 }
 
 func initCaches() {
-	impls.InitCaches(false)
+	cacheimpls.InitCaches(false)
 }
 
 func initPolicyCacheSettings() {
-	impls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
+	cacheimpls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
 }
 
 func initSuperAppCode() {

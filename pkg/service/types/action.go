@@ -25,6 +25,11 @@ type ActionResourceType struct {
 	InstanceSelections []map[string]interface{} `json:"instance_selections" structs:"instance_selections"`
 }
 
+type ActionEnvironment struct {
+	Type string `json:"type" structs:"type"`
+	// Operators []string `json:"operators" structs:"operators"`
+}
+
 // ReferenceInstanceSelection ...
 type ReferenceInstanceSelection struct {
 	System        string `json:"system_id" structs:"system_id"`
@@ -45,6 +50,7 @@ type Action struct {
 	Version              int64                `json:"version" structs:"version"`
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`
 	RelatedActions       []string             `json:"related_actions" structs:"related_actions"`
+	RelatedEnvironments  []ActionEnvironment  `json:"related_environments" structs:"related_environments"`
 }
 
 // ThinAction ...

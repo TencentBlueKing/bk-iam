@@ -16,8 +16,8 @@ import (
 	rds "github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/util"
 )
 
@@ -55,7 +55,7 @@ func (r *ChangeList) FetchList(key string) (data map[string]int64, err error) {
 	// wrap the key
 	changeListKey := r.KeyPrefix + key
 
-	zs, err := impls.ChangeListCache.ZRevRangeByScore(changeListKey, min, max, 0, r.MaxCount)
+	zs, err := cacheimpls.ChangeListCache.ZRevRangeByScore(changeListKey, min, max, 0, r.MaxCount)
 	if err != nil {
 		log.WithError(err).Errorf(
 			"[%s:%s] zrange by scores fail changeListKey=`%s`, min=`%d`, max=`%d`, offset=`0`, count=`%d`",
@@ -98,7 +98,7 @@ func (r *ChangeList) AddToChangeList(keyMembers map[string][]string) error {
 		})
 	}
 
-	err := impls.ChangeListCache.BatchZAdd(zDataList)
+	err := cacheimpls.ChangeListCache.BatchZAdd(zDataList)
 	if err != nil {
 		log.WithError(err).Errorf("[%s:%s]  add items to change list fail zDataList=`%v`",
 			changeListLayer, r.Type, zDataList)
@@ -129,7 +129,7 @@ func (r *ChangeList) Truncate(keys []string) error {
 	}
 
 	expiredTimestamp := nowUnix - r.TTL
-	err := impls.ChangeListCache.BatchZRemove(changeListKeys, 0, expiredTimestamp)
+	err := cacheimpls.ChangeListCache.BatchZRemove(changeListKeys, 0, expiredTimestamp)
 	if err != nil {
 		log.WithError(err).Errorf("[%s:%s]  truncated changelist fail keys=`%v`, expiredTimestamp=`%d`",
 			changeListLayer, r.Type, changeListKeys, expiredTimestamp)

@@ -11,24 +11,24 @@
 package config
 
 import (
-	"iam/pkg/util"
+	"github.com/TencentBlueKing/gopkg/collection/set"
 )
 
 // SuperAppCodeSet ...
 var (
-	SuperAppCodeSet          *util.StringSet
-	SuperUserSet             *util.StringSet
-	SupportShieldFeaturesSet *util.StringSet
+	SuperAppCodeSet          *set.StringSet
+	SuperUserSet             *set.StringSet
+	SupportShieldFeaturesSet *set.StringSet
 )
 
 // InitSuperAppCode ...
 func InitSuperAppCode(superAppCode string) {
-	SuperAppCodeSet = util.SplitStringToSet(superAppCode, ",")
+	SuperAppCodeSet = set.SplitStringToSet(superAppCode, ",")
 }
 
 // InitSuperUser ...
 func InitSuperUser(users string) {
-	SuperUserSet = util.SplitStringToSet(users, ",")
+	SuperUserSet = set.SplitStringToSet(users, ",")
 
 	if !SuperUserSet.Has("admin") {
 		SuperUserSet.Add("admin")
@@ -37,7 +37,7 @@ func InitSuperUser(users string) {
 
 // InitSupportShieldFeatures ...
 func InitSupportShieldFeatures(supportShieldFeatures []string) {
-	SupportShieldFeaturesSet = util.NewStringSetWithValues(supportShieldFeatures)
+	SupportShieldFeaturesSet = set.NewStringSetWithValues(supportShieldFeatures)
 	// 默认支持的屏蔽的功能
 	defaultSupportShieldFeatures := []string{
 		// 申请功能

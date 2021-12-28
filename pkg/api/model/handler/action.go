@@ -11,11 +11,12 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
@@ -88,6 +89,7 @@ func BatchCreateActions(c *gin.Context) {
 			RelatedActions: ac.RelatedActions,
 		}
 		action.RelatedResourceTypes = convertToRelatedResourceTypes(ac.RelatedResourceTypes)
+		action.RelatedEnvironments = convertToRelatedEnvironments(ac.RelatedEnvironments)
 
 		actions = append(actions, action)
 	}
@@ -179,6 +181,9 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["related_actions"]; ok {
 		allowEmptyFields.AddKey("RelatedActions")
 	}
+	if _, ok := data["related_environments"]; ok {
+		allowEmptyFields.AddKey("RelatedEnvironments")
+	}
 	if _, ok := data["description"]; ok {
 		allowEmptyFields.AddKey("Description")
 	}
@@ -195,6 +200,7 @@ func UpdateAction(c *gin.Context) {
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
+		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),
 
 		AllowEmptyFields: allowEmptyFields,
 	}
@@ -209,7 +215,7 @@ func UpdateAction(c *gin.Context) {
 	}
 
 	// delete from cache
-	impls.BatchDeleteActionCache(systemID, []string{actionID})
+	cacheimpls.BatchDeleteActionCache(systemID, []string{actionID})
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -289,7 +295,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		eventSvc := service.NewModelChangeService()
 		events := make([]svctypes.ModelChangeEvent, 0, len(needAsyncDeletedActionIDs))
 		for _, id := range needAsyncDeletedActionIDs {
-			actionPK, err1 := impls.GetActionPK(systemID, id)
+			actionPK, err1 := cacheimpls.GetActionPK(systemID, id)
 			if err1 != nil {
 				err1 = errorx.Wrapf(err1, "Handler", "batchDeleteActions",
 					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
@@ -328,7 +334,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 	}
 
 	// 从同步删除的操作里剔除掉需要异步删除的
-	asyncDeletedIDs := util.NewStringSetWithValues(needAsyncDeletedActionIDs)
+	asyncDeletedIDs := set.NewStringSetWithValues(needAsyncDeletedActionIDs)
 	newIDs := make([]string, 0, len(ids))
 	for _, id := range ids {
 		if !asyncDeletedIDs.Has(id) {
@@ -346,7 +352,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		}
 
 		// delete from cache
-		impls.BatchDeleteActionCache(systemID, newIDs)
+		cacheimpls.BatchDeleteActionCache(systemID, newIDs)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)

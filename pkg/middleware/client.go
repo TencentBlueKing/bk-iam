@@ -16,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/util"
 )
@@ -80,7 +80,7 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 			}
 
 			// 2. validate from cache -> database
-			valid := impls.VerifyAppCodeAppSecret(appCode, appSecret)
+			valid := cacheimpls.VerifyAppCodeAppSecret(appCode, appSecret)
 			if !valid {
 				util.UnauthorizedJSONResponse(c, "app code or app secret wrong")
 				c.Abort()

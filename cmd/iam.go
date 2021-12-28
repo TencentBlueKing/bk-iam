@@ -39,7 +39,6 @@ import (
 var cfgFile string
 
 func init() {
-	// cobra.OnInitialize(initConfig)
 	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
 	rootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
 
@@ -54,8 +53,6 @@ var rootCmd = &cobra.Command{
            is a service that helps you securely control access to system resources`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
-
 		Start()
 	},
 }

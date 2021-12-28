@@ -1,3 +1,8 @@
+# 1.9.2
+
+- hotfix: condition StringPrefix eval wrong when key is _bk_iam_path_
+- bugfix: remove redundant policy index
+
 # 1.9.1
 
 - bugfix: partialEval out of index while the any condition key is empty
