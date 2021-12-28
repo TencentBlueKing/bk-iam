@@ -18,7 +18,7 @@ import (
 	"iam/pkg/abac/prp/mock"
 	"iam/pkg/util"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 )
 

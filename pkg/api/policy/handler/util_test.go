@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/cache/memory"
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 

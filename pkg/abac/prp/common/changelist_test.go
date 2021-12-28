@@ -15,7 +15,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	rds "github.com/go-redis/redis/v8"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"

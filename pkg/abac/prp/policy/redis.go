@@ -271,6 +271,10 @@ func (r *redisRetriever) batchSet(subjectPKPolicies map[int64][]types.AuthPolicy
 }
 
 func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
+
 	keys := make([]cache.Key, 0, len(subjectPKs))
 	for _, subjectPK := range subjectPKs {
 		keys = append(keys, r.genKey(subjectPK))
@@ -299,6 +303,10 @@ func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
 }
 
 func deleteSystemSubjectPKsFromRedis(system string, subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
+
 	c := newRedisRetriever(system, -1, nil)
 	return c.batchDelete(subjectPKs)
 }

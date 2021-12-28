@@ -14,7 +14,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
@@ -54,10 +54,6 @@ var _ = Describe("Entrance", func() {
 			}
 
 			patches = gomonkey.NewPatches()
-			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
-				func(_ *request.Request) bool {
-					return true
-				})
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -94,6 +90,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
@@ -109,6 +109,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -131,6 +135,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -157,6 +165,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -183,6 +195,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -211,6 +227,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -237,6 +257,10 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})

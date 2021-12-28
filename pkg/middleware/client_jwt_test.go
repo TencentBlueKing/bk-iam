@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang-jwt/jwt/v4"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"

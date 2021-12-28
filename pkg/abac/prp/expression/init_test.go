@@ -13,7 +13,7 @@ package expression_test
 import (
 	"time"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	gocache "github.com/patrickmn/go-cache"
