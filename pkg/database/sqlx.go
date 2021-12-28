@@ -14,9 +14,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/jmoiron/sqlx"
-
-	"iam/pkg/util"
 )
 
 // ============== timer ==============
@@ -293,7 +292,7 @@ func sqlxBulkInsertReturnIDWithTx(tx *sqlx.Tx, query string, args interface{}) (
 	}
 	defer stmt.Close()
 
-	argSlice, err := util.ToSlice(args)
+	argSlice, err := conv.ToSlice(args)
 	// 转换不成功，说明是非数组，则单个条件
 	if err != nil {
 		return nil, err
@@ -323,7 +322,7 @@ func sqlxBulkUpdateWithTx(tx *sqlx.Tx, query string, args interface{}) error {
 	}
 	defer stmt.Close()
 
-	argSlice, err := util.ToSlice(args)
+	argSlice, err := conv.ToSlice(args)
 	// 转换不成功，说明是非数组，则单个条件
 	if err != nil {
 		return err

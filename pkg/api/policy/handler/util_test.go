@@ -15,14 +15,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 )

@@ -13,12 +13,12 @@ package cacheimpls
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/types"
-	"iam/pkg/cache"
 )
 
 // ResourceExpressionCacheKey is the key for a policy expression, signature is unique

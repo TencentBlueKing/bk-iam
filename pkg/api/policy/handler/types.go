@@ -13,8 +13,9 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
+
 	"iam/pkg/api/common"
-	"iam/pkg/util"
 )
 
 type subject struct {
@@ -36,7 +37,7 @@ type resource struct {
 // UID ...
 func (r *resource) UID() string {
 	s := fmt.Sprintf("%s:%s:%s:%v", r.System, r.Type, r.ID, r.Attribute)
-	return util.GetMD5Hash(s)
+	return stringx.MD5Hash(s)
 }
 
 // query for ext resources 附加查询的资源实例

@@ -15,6 +15,7 @@ import (
 
 	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
+	abacTypes "iam/pkg/abac/types"
 )
 
 // StringPrefixCondition 字符串前缀匹配
@@ -51,7 +52,7 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 
 		// 支持表达式中最后一个节点为任意
 		// /biz,1/set,*/ -> /biz,1/set,
-		if c.Key == iamPath && strings.HasSuffix(bStr, ",*/") {
+		if strings.HasSuffix(c.Key, abacTypes.IamPathSuffix) && strings.HasSuffix(bStr, ",*/") {
 			bStr = bStr[0 : len(bStr)-2]
 		}
 

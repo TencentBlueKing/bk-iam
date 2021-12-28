@@ -15,10 +15,11 @@ import (
 	"sort"
 	"strings"
 
-	"iam/pkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
+
 	"iam/pkg/component"
-	"iam/pkg/errorx"
-	"iam/pkg/util"
 )
 
 // RemoteResourceListCacheKey ...
@@ -34,7 +35,7 @@ type RemoteResourceListCacheKey struct {
 // Key ...
 func (k RemoteResourceListCacheKey) Key() string {
 	key := k.System + ":" + k.Type + ":" + k.IDs + ":" + k.Fields
-	return util.GetMD5Hash(key)
+	return stringx.MD5Hash(key)
 }
 
 func retrieveRemoteResourceList(k cache.Key) (interface{}, error) {

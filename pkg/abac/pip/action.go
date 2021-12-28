@@ -11,9 +11,10 @@
 package pip
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 )
 
 // ActionPIP ...

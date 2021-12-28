@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/logging/debug"
@@ -151,7 +151,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
+				ctx *evalctx.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return true, 1, nil
 			})
@@ -181,7 +181,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
+				ctx *evalctx.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, nil
 			})
@@ -211,7 +211,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
+				ctx *evalctx.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, errors.New("eval fail")
 			})
@@ -243,7 +243,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
+				ctx *evalctx.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return false, -1, errors.New("test")
 			})
@@ -273,7 +273,7 @@ var _ = Describe("Entrance", func() {
 				return []types.AuthPolicy{}, nil
 			})
 			patches.ApplyFunc(evaluation.EvalPolicies, func(
-				ctx *pdptypes.EvalContext, policies []types.AuthPolicy,
+				ctx *evalctx.EvalContext, policies []types.AuthPolicy,
 			) (isPass bool, policyID int64, err error) {
 				return true, 1, nil
 			})

@@ -25,12 +25,12 @@ import (
 1. 条件之间没有隐含的关系 每个条件都是 {"operator": {"filed": values}}
 */
 
-const iamPath = "_bk_iam_path_"
-
 var errMustNotEmpty = errors.New("value must not be empty")
 
 // conditionFunc define the func which keyword match to func be called
 type conditionFunc func(key string, values []interface{}) (Condition, error)
+
+type keyMatchFunc func(key string) bool
 
 var conditionFactories map[string]conditionFunc
 
@@ -54,6 +54,11 @@ func init() {
 type Condition interface {
 	GetName() string
 	GetKeys() []string // 返回条件中包含的所有属性key
+
+	// HasKey return true if match key, use a keyMatchFunc to verify if matched
+	HasKey(f keyMatchFunc) bool
+	// GetFirstMatchKeyValues retrieve the first match key's values from condition
+	GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool)
 
 	Eval(ctx types.EvalContextor) bool
 	Translate(withSystem bool) (map[string]interface{}, error)

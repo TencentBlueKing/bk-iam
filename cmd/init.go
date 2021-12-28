@@ -23,9 +23,9 @@ import (
 	"iam/pkg/component"
 	"iam/pkg/config"
 	"iam/pkg/database"
-	"iam/pkg/errorx"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
+	"iam/pkg/util"
 )
 
 var globalConfig *config.Config
@@ -62,7 +62,7 @@ func initSentry() {
 		log.Info("Sentry is not enabled, will not init it")
 	}
 
-	errorx.InitErrorReport(globalConfig.Sentry.Enable)
+	util.InitErrorReport(globalConfig.Sentry.Enable)
 }
 
 func initMetrics() {

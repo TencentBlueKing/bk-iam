@@ -11,9 +11,10 @@
 package policy
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 type databaseRetriever struct {
@@ -39,7 +40,7 @@ func (r *databaseRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []
 }
 
 func (r *databaseRetriever) getMissingPKs(subjectPKs []int64, policies []types.AuthPolicy) []int64 {
-	gotSubjectPKSet := util.NewFixedLengthInt64Set(len(policies))
+	gotSubjectPKSet := set.NewFixedLengthInt64Set(len(policies))
 	for _, e := range policies {
 		gotSubjectPKSet.Add(e.SubjectPK)
 	}

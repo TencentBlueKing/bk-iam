@@ -11,9 +11,10 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -64,7 +65,7 @@ func ListAction(c *gin.Context) {
 		return
 	}
 
-	set := util.SplitStringToSet(query.Fields, ",")
+	set := set.SplitStringToSet(query.Fields, ",")
 	actions := make([]map[string]interface{}, 0, len(allActions))
 	for _, action := range allActions {
 		ac, err := filterFields(set, action)

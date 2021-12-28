@@ -13,15 +13,17 @@ package pdp
 import (
 	"database/sql"
 	"errors"
+	"time"
+
+	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 
@@ -155,7 +157,11 @@ func queryAndPartialEvalConditions(
 	}
 
 	// 执行完后, 只返回 执行后的残留的 conditions
-	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(pdptypes.NewEvalContext(r), policies)
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
+	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(evalctx.NewEvalContext(r), policies)
 	if len(conditions) == 0 {
 		debug.WithNoPassEvalPolicies(entry, policies)
 	}

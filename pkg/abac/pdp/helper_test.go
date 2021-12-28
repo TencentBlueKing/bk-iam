@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	types2 "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/mock"
@@ -206,7 +206,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policie []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return nil, nil, errors.New("filter error")
@@ -237,7 +237,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{}, []int64{}, nil
@@ -267,7 +267,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{

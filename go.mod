@@ -4,7 +4,8 @@ go 1.17
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/TencentBlueKing/iam-go-sdk v0.0.5
+	github.com/TencentBlueKing/gopkg v1.0.7
+	github.com/TencentBlueKing/iam-go-sdk v0.0.7
 	github.com/agiledragon/gomonkey/v2 v2.3.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alicebob/miniredis/v2 v2.17.0

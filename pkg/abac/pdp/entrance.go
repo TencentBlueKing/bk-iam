@@ -14,14 +14,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 
@@ -43,7 +45,11 @@ PDP 模块鉴权入口结构与鉴权函数定义
 */
 
 // PDP ...
-const PDP = "PDP"
+const (
+	PDP = "PDP"
+
+	DefaultTz = "Asia/Shanghai"
+)
 
 // EmptyPolicies ...
 var (
@@ -137,8 +143,12 @@ func Eval(
 	}
 
 	debug.AddStep(entry, "Eval")
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
 	var passPolicyID int64
-	isPass, passPolicyID, err = evaluation.EvalPolicies(pdptypes.NewEvalContext(r), policies)
+	isPass, passPolicyID, err = evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 	if err != nil {
 		err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, request=`%+v` fail",
 			policies, *r)

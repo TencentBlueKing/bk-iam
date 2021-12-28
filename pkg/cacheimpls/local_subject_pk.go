@@ -11,8 +11,8 @@
 package cacheimpls
 
 import (
-	"iam/pkg/cache"
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
 )
 
 func retrieveSubjectPKFromRedis(key cache.Key) (interface{}, error) {

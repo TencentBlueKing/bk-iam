@@ -15,12 +15,12 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/TencentBlueKing/gopkg/cache/memory/backend"
 	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache/cleaner"
-	"iam/pkg/cache/memory"
-	"iam/pkg/cache/memory/backend"
 	"iam/pkg/cache/redis"
 )
 
@@ -64,7 +64,7 @@ var (
 // ErrNotExceptedTypeFromCache ...
 var ErrNotExceptedTypeFromCache = errors.New("not expected type from cache")
 
-func newRandomDuration(seconds int) backend.RandomExpirationDurationFunc {
+func newRandomDuration(seconds int) backend.RandomExtraExpirationDurationFunc {
 	return func() time.Duration {
 		return time.Duration(rand.Intn(seconds*1000)) * time.Millisecond
 	}

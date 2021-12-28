@@ -13,6 +13,7 @@ package service
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -22,7 +23,6 @@ import (
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 var _ = Describe("PolicyService", func() {
@@ -431,7 +431,7 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
@@ -687,7 +687,7 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
@@ -803,7 +803,7 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 

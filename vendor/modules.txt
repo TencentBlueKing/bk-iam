@@ -10,7 +10,16 @@ github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 ## explicit
 github.com/PuerkitoBio/urlesc
-# github.com/TencentBlueKing/iam-go-sdk v0.0.5
+# github.com/TencentBlueKing/gopkg v1.0.7
+## explicit; go 1.16
+github.com/TencentBlueKing/gopkg/cache
+github.com/TencentBlueKing/gopkg/cache/memory
+github.com/TencentBlueKing/gopkg/cache/memory/backend
+github.com/TencentBlueKing/gopkg/collection/set
+github.com/TencentBlueKing/gopkg/conv
+github.com/TencentBlueKing/gopkg/errorx
+github.com/TencentBlueKing/gopkg/stringx
+# github.com/TencentBlueKing/iam-go-sdk v0.0.7
 ## explicit; go 1.16
 github.com/TencentBlueKing/iam-go-sdk/expression/eval
 # github.com/agiledragon/gomonkey/v2 v2.3.1

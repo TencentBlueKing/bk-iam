@@ -11,10 +11,10 @@
 package cacheimpls
 
 import (
-	"iam/pkg/cache"
-	"iam/pkg/database/edao"
-
+	"github.com/TencentBlueKing/gopkg/cache"
 	log "github.com/sirupsen/logrus"
+
+	"iam/pkg/database/edao"
 )
 
 // AppCodeAppSecretCacheKey ...
