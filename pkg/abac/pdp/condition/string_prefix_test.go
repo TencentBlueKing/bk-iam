@@ -11,6 +11,8 @@
 package condition
 
 import (
+	abacTypes "iam/pkg/abac/types"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 )
@@ -74,7 +76,7 @@ var _ = Describe("StringPrefix", func() {
 		It("_bk_iam_path_", func() {
 			c = &StringPrefixCondition{
 				baseCondition{
-					Key:   "bk_test" + iamPathSuffix,
+					Key:   "bk_test" + abacTypes.IamPathSuffix,
 					Value: []interface{}{"/biz,1/set,*/"},
 				},
 			}

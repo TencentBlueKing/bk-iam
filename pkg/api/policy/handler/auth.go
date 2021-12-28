@@ -12,13 +12,14 @@ package handler
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
@@ -278,6 +279,12 @@ func BatchAuthByResources(c *gin.Context) {
 		return
 	}
 
+	// TODO: move to pdp/entrance.go
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(pdp.DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
+
 	// do eval for each resource
 	for _, resources := range body.ResourcesList {
 		// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
@@ -294,7 +301,7 @@ func BatchAuthByResources(c *gin.Context) {
 		}
 
 		// do eval
-		isAllowed, _, err := evaluation.EvalPolicies(pdptypes.NewEvalContext(r), policies)
+		isAllowed, _, err := evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 		if err != nil {
 			err = errorWrapf(err, " pdp.EvalPolicies req=`%+v`, policies=`%+v` fail", r, policies)
 			util.SystemErrorJSONResponseWithDebug(c, err, entry)

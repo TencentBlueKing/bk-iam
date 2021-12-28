@@ -11,12 +11,14 @@
 package evaluation
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/cache/memory"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
-	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
@@ -24,7 +26,7 @@ import (
 
 var _ = Describe("Evaluation", func() {
 
-	var c *pdptypes.EvalContext
+	var c *evalctx.EvalContext
 	var policy types.AuthPolicy
 	willPassPolicy := types.AuthPolicy{
 		ID: 1,
@@ -122,7 +124,7 @@ var _ = Describe("Evaluation", func() {
 				Type:   "job",
 			},
 		})
-		c = pdptypes.NewEvalContext(request)
+		c = evalctx.NewEvalContext(request)
 		policy = types.AuthPolicy{
 			Expression: "",
 		}
@@ -199,14 +201,14 @@ var _ = Describe("Evaluation", func() {
 	Describe("evalPolicy", func() {
 		It("ctx.Action.WithoutResourceType", func() {
 			c.Action.FillAttributes(1, []types.ActionResourceType{})
-			allowed, err := evalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
 
 		It("has no resources", func() {
 			c.Resources = []types.Resource{}
-			allowed, err := evalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.False(GinkgoT(), allowed)
 			assert.Contains(GinkgoT(), err.Error(), "get not resource in request")
 
@@ -216,7 +218,7 @@ var _ = Describe("Evaluation", func() {
 			policy = types.AuthPolicy{
 				Expression: "123",
 			}
-			allowed, err := evalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.Error(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
@@ -248,7 +250,7 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "33268b97074629d05fda196e2f7e59d2",
 			}
 
-			allowed, err := evalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 		})
@@ -280,7 +282,7 @@ var _ = Describe("Evaluation", func() {
 				ExpressionSignature: "cfeeb810bf45de623f8007d25d25293a",
 			}
 
-			allowed, err := evalPolicy(c, policy)
+			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
@@ -350,7 +352,7 @@ var _ = Describe("Evaluation", func() {
 	Describe("partialEvalPolicy", func() {
 		It("ctx.Action.WithoutResourceType", func() {
 			c.Action.FillAttributes(1, []types.ActionResourceType{})
-			allowed, cond, err := partialEvalPolicy(c, policy)
+			allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
@@ -358,14 +360,14 @@ var _ = Describe("Evaluation", func() {
 
 		It("has no resources in ctx", func() {
 			c.Resources = []types.Resource{}
-			allowed, cond, err := partialEvalPolicy(c, policy)
+			allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
 		})
 
 		It("ok, any", func() {
-			allowed, cond, err := partialEvalPolicy(c, policy)
+			allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
 			assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
@@ -390,7 +392,7 @@ var _ = Describe("Evaluation", func() {
 					ExpressionSignature: "7c1af23ce3f3664789c5d698f8c3f0d5",
 				}
 
-				allowed, cond, err := partialEvalPolicy(c, policy)
+				allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 				assert.NoError(GinkgoT(), err)
 				assert.True(GinkgoT(), allowed)
 				assert.Equal(GinkgoT(), condition.NewAnyCondition(), cond)
@@ -413,7 +415,7 @@ var _ = Describe("Evaluation", func() {
 					ExpressionSignature: "7c1af23ce3f3664789c5d698f8c3f0d5",
 				}
 
-				allowed, cond, err := partialEvalPolicy(c, policy)
+				allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 				assert.NoError(GinkgoT(), err)
 				assert.False(GinkgoT(), allowed)
 				assert.Nil(GinkgoT(), cond)
@@ -436,7 +438,7 @@ var _ = Describe("Evaluation", func() {
 					ExpressionSignature: "609d10bfe269ee71bb708209696572f9",
 				}
 
-				allowed, cond, err := partialEvalPolicy(c, policy)
+				allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 				assert.NoError(GinkgoT(), err)
 				assert.True(GinkgoT(), allowed)
 				assert.NotNil(GinkgoT(), cond)

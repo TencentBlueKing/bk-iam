@@ -61,8 +61,8 @@ github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWX
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/TencentBlueKing/gopkg v1.0.7 h1:Kp/Qt8UtVb1LTr6ZSPXWTGS8KlHhWMqH4JZh7Jguu9E=
 github.com/TencentBlueKing/gopkg v1.0.7/go.mod h1:oopRfRIMuG0IeZfNR99olKNx7976tYrRM1E1CY2y31M=
-github.com/TencentBlueKing/iam-go-sdk v0.0.5 h1:hliT6K1cwOFJNkzlGb5uBeAnUkxyBWzof6eD3UQVm0I=
-github.com/TencentBlueKing/iam-go-sdk v0.0.5/go.mod h1:5Z5YMclIZBokfgT9dTJFUcywygZXY9nhloX8rj+zFEc=
+github.com/TencentBlueKing/iam-go-sdk v0.0.7 h1:yMSGaDvCV0wnBJz5CFpBeyoo7h/7C1afucGtyyWfv0c=
+github.com/TencentBlueKing/iam-go-sdk v0.0.7/go.mod h1:5Z5YMclIZBokfgT9dTJFUcywygZXY9nhloX8rj+zFEc=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
 github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5/go.mod h1:SkGFH1ia65gfNATL8TAiHDNxPzPdmEL5uirI2Uyuz6c=
 github.com/agiledragon/gomonkey v2.0.2+incompatible h1:eXKi9/piiC3cjJD1658mEE2o3NjkJ5vDLgYjCQu0Xlw=

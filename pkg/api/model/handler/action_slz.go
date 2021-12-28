@@ -132,7 +132,7 @@ func validateRelatedInstanceSelections(data []referenceInstanceSelection, action
 }
 
 func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bool, string) {
-	typeID := util.NewStringSet()
+	typeID := set.NewStringSet()
 	for index, d := range data {
 		if err := binding.Validator.ValidateStruct(d); err != nil {
 			message := fmt.Sprintf("data of action_id=%s related_environments[%d], %s",
@@ -154,8 +154,8 @@ func validateRelatedEnvironments(data []relatedEnvironment, actionID string) (bo
 
 func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (bool, string) {
 	resourceTypeID := set.NewStringSet()
-	for index, data := range data {
-		if err := binding.Validator.ValidateStruct(data); err != nil {
+	for index, d := range data {
+		if err := binding.Validator.ValidateStruct(d); err != nil {
 			message := fmt.Sprintf("data of action_id=%s related_resource_types[%d], %s",
 				actionID, index, util.ValidationErrorMessage(err))
 			return false, message

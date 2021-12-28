@@ -16,7 +16,7 @@ github.com/TencentBlueKing/gopkg/collection/set
 github.com/TencentBlueKing/gopkg/conv
 github.com/TencentBlueKing/gopkg/errorx
 github.com/TencentBlueKing/gopkg/stringx
-# github.com/TencentBlueKing/iam-go-sdk v0.0.5
+# github.com/TencentBlueKing/iam-go-sdk v0.0.7
 ## explicit
 github.com/TencentBlueKing/iam-go-sdk/expression/eval
 # github.com/agiledragon/gomonkey v2.0.2+incompatible

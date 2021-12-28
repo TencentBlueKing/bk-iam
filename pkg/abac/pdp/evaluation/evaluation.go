@@ -13,26 +13,27 @@ package evaluation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/condition/operator"
-	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 )
 
-/*
-求值逻辑, 包括:
-
-对Policy的condition求值
-*/
+// NOTE: 目前所有的 query/eval都在这个文件中, 两个主要入口:
+// - eval:  EvalPolicies
+// - query: PartialEvalPolicies
 
 // EvalPolicies 计算是否满足
-func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
+func EvalPolicies(ctx *evalctx.EvalContext, policies []types.AuthPolicy) (isPass bool, policyID int64, err error) {
+	currentTime := time.Now()
+
 	for _, policy := range policies {
-		isPass, err = evalPolicy(ctx, policy)
+		isPass, err = evalPolicy(ctx, policy, currentTime)
 		if err != nil {
 			log.Debugf("pdp evalPolicy: ctx=`%+v`, policy=`%+v`, error=`%s`", ctx, policy, err)
 		}
@@ -47,7 +48,7 @@ func EvalPolicies(ctx *pdptypes.EvalContext, policies []types.AuthPolicy) (isPas
 }
 
 // evalPolicy 计算单个policy是否满足
-func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error) {
+func evalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime time.Time) (bool, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -67,20 +68,29 @@ func evalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, error
 		return false, err
 	}
 
+	err = ctx.InitEnvironments(cond, currentTime)
+	if err != nil {
+		log.Errorf("pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
+			policy.ID, policy.Expression, currentTime, err)
+		return false, err
+	}
+
 	isPass := cond.Eval(ctx)
 	return isPass, err
 }
 
 // PartialEvalPolicies 筛选check pass的policies
 func PartialEvalPolicies(
-	ctx *pdptypes.EvalContext,
+	ctx *evalctx.EvalContext,
 	policies []types.AuthPolicy,
 ) ([]condition.Condition, []int64, error) {
+	currentTime := time.Now()
+
 	remainedConditions := make([]condition.Condition, 0, len(policies))
 
 	passedPolicyIDs := make([]int64, 0, len(policies))
 	for _, policy := range policies {
-		isPass, condition, err := partialEvalPolicy(ctx, policy)
+		isPass, condition, err := partialEvalPolicy(ctx, policy, currentTime)
 		if err != nil {
 			// TODO: 一条报错怎么处理?????
 			log.Debugf("pdp PartialEvalPoliciesy policy: %+v ctx: %+v error: %s", policy, ctx, err)
@@ -98,7 +108,11 @@ func PartialEvalPolicies(
 	return remainedConditions, passedPolicyIDs, nil
 }
 
-func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool, condition.Condition, error) {
+func partialEvalPolicy(
+	ctx *evalctx.EvalContext,
+	policy types.AuthPolicy,
+	currentTime time.Time,
+) (bool, condition.Condition, error) {
 	// action 不关联资源类型时, 直接返回true
 	if ctx.Action.WithoutResourceType() {
 		log.Debugf("pdp evalPolicy WithoutResourceType action: %s %s", ctx.System, ctx.Action.ID)
@@ -109,6 +123,14 @@ func partialEvalPolicy(ctx *pdptypes.EvalContext, policy types.AuthPolicy) (bool
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
+		return false, nil, err
+	}
+
+	err = ctx.InitEnvironments(cond, currentTime)
+	if err != nil {
+		log.Errorf(
+			"pdp evalPolicy polidy id:%d expression: %s, currentTime: %s, error:%v",
+			policy.ID, policy.Expression, currentTime, err)
 		return false, nil, err
 	}
 

@@ -24,6 +24,17 @@ func (c *baseCondition) GetKeys() []string {
 	return []string{c.Key}
 }
 
+func (c *baseCondition) HasKey(f keyMatchFunc) bool {
+	return f(c.Key)
+}
+
+func (c *baseCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+	if f(c.Key) {
+		return c.Value, true
+	}
+	return nil, false
+}
+
 // GetValues 如果Value中有参数, 获取参数的值
 func (c *baseCondition) GetValues() []interface{} {
 	return c.Value
