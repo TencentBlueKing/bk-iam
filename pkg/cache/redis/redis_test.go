@@ -15,11 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
-
-	"iam/pkg/cache"
-	"iam/pkg/util"
 )
 
 func TestCache_genKey(t *testing.T) {
@@ -169,7 +168,7 @@ func TestBatchExpireWithTx(t *testing.T) {
 // 	assert.Equal(t, "1", data)
 // }
 
-//func TestBatchHSetWithTx_and_BatchHGet(t *testing.T) {
+// func TestBatchHSetWithTx_and_BatchHGet(t *testing.T) {
 //	c := NewMockCache("test", 5*time.Minute)
 //
 //	hs := []Hash{
@@ -215,7 +214,7 @@ func TestBatchExpireWithTx(t *testing.T) {
 //
 //	assert.Contains(t, data, keyField1)
 //	assert.Equal(t, "1", data[keyField1])
-//}
+// }
 
 func TestBatchSetWithTx_and_BatchGet(t *testing.T) {
 	c := NewMockCache("test", 5*time.Minute)
@@ -276,12 +275,12 @@ func TestSetOneAndBatchGet(t *testing.T) {
 		fmt.Println("value", value)
 		var abc Abc
 
-		err = c.Unmarshal(util.StringToBytes(value), &abc)
+		err = c.Unmarshal(conv.StringToBytes(value), &abc)
 		fmt.Println("abc:", abc)
 		assert.NoError(t, err)
 
 		var def Abc
-		err = msgpack.Unmarshal(util.StringToBytes(value), &def)
+		err = msgpack.Unmarshal(conv.StringToBytes(value), &def)
 		fmt.Println("def:", abc)
 		assert.NoError(t, err)
 	})
@@ -302,12 +301,12 @@ func TestSetOneAndBatchGet(t *testing.T) {
 		fmt.Println("value", value)
 		var abc Abc
 
-		err = c.Unmarshal(util.StringToBytes(value), &abc)
+		err = c.Unmarshal(conv.StringToBytes(value), &abc)
 		fmt.Println("abc:", abc)
 		assert.NoError(t, err)
 
 		var def Abc
-		err = msgpack.Unmarshal(util.StringToBytes(value), &def)
+		err = msgpack.Unmarshal(conv.StringToBytes(value), &def)
 		fmt.Println("def:", abc)
 		assert.Error(t, err)
 	})
@@ -336,11 +335,11 @@ func TestBatchSetAndGet(t *testing.T) {
 	kvs := []KV{
 		{
 			Key:   "a",
-			Value: util.BytesToString(small),
+			Value: conv.BytesToString(small),
 		},
 		{
 			Key:   "b",
-			Value: util.BytesToString(huge),
+			Value: conv.BytesToString(huge),
 		},
 	}
 

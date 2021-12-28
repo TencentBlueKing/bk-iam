@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/abac/pdp/condition"
 	pdptypes "iam/pkg/abac/pdp/types"
-	"iam/pkg/errorx"
 )
 
 /*

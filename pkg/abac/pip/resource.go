@@ -11,8 +11,9 @@
 package pip
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 )
 
 // ResourcePIP ...

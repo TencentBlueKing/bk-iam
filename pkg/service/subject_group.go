@@ -11,10 +11,11 @@
 package service
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
@@ -124,7 +125,7 @@ func (l *subjectService) ListExistSubjectsBeforeExpiredAt(
 		return []types.Subject{}, nil
 	}
 
-	idSet := util.NewStringSetWithValues(existGroupIDs)
+	idSet := set.NewStringSetWithValues(existGroupIDs)
 	existSubjects := make([]types.Subject, 0, len(existGroupIDs))
 	for _, subject := range subjects {
 		if subject.Type == types.GroupType && idSet.Has(subject.ID) {

@@ -13,10 +13,11 @@ package prp
 import (
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
-	"iam/pkg/util"
 )
 
 /*
@@ -52,7 +53,7 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 
 	// 用户继承组织加入的用户组 => 多个部门属于同一个组, 所以需要去重
 	now := time.Now().Unix()
-	inheritGroupPKSet := util.NewInt64Set()
+	inheritGroupPKSet := set.NewInt64Set()
 	if len(deptPKs) > 0 {
 		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
 		if newErr != nil {
@@ -70,7 +71,7 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 
 	// 1. merge `user-groupPKs` and `user-dept-groupPKs`
 	groupPKMaxLen := len(groupPKs) + len(inheritGroupPKs)
-	groupPKSet := util.NewFixedLengthInt64Set(groupPKMaxLen)
+	groupPKSet := set.NewFixedLengthInt64Set(groupPKMaxLen)
 	// 用户加入的用户组
 	groupPKSet.Append(groupPKs...)
 	// 用户继承组织加入的用户组

@@ -44,9 +44,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/conv"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
@@ -109,7 +110,7 @@ func (r *redisRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []int
 	noPoliciesSubjectPKs := make([]int64, 0, len(subjectPKs))
 	for subjectPK, policiesStr := range hitPolicies {
 		var ps []types.AuthPolicy
-		err = cacheimpls.PolicyCache.Unmarshal(util.StringToBytes(policiesStr), &ps)
+		err = cacheimpls.PolicyCache.Unmarshal(conv.StringToBytes(policiesStr), &ps)
 		if err != nil {
 			log.WithError(err).Errorf("[%s] parse string to expression fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`",
 				RedisLayer, r.system, r.actionPK, subjectPKs)
@@ -238,7 +239,7 @@ func (r *redisRetriever) batchSet(subjectPKPolicies map[int64][]types.AuthPolicy
 				Key:   key.Key(),
 				Field: field,
 			},
-			Value: util.BytesToString(policiesBytes),
+			Value: conv.BytesToString(policiesBytes),
 		})
 
 		// collect keys to set expire

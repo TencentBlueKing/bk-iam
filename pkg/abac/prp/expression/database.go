@@ -11,9 +11,10 @@
 package expression
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 type databaseRetriever struct {
@@ -38,7 +39,7 @@ func (r *databaseRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int
 }
 
 func (r *databaseRetriever) getMissingPKs(fullPKs []int64, expressions []types.AuthExpression) []int64 {
-	gotPKSet := util.NewFixedLengthInt64Set(len(expressions))
+	gotPKSet := set.NewFixedLengthInt64Set(len(expressions))
 	for _, e := range expressions {
 		gotPKSet.Add(e.PK)
 	}

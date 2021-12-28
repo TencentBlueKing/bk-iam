@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/util"
@@ -24,7 +25,7 @@ import (
 
 // ValidateArray ...
 func ValidateArray(data interface{}) (bool, string) {
-	array, err := util.ToSlice(data)
+	array, err := conv.ToSlice(data)
 	if err != nil {
 		return false, err.Error()
 	}

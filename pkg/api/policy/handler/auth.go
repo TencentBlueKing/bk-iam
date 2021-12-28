@@ -13,6 +13,7 @@ package handler
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
@@ -21,7 +22,6 @@ import (
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
