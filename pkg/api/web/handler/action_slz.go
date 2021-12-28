@@ -12,7 +12,7 @@ package handler
 
 const (
 	actionSupportFields = "id,name,name_en,related_resource_types,version,type," +
-		"description,description_en,related_actions"
+		"description,description_en,related_actions,related_environments"
 	actionDefaultFields = "id,name,name_en"
 )
 
