@@ -16,11 +16,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
@@ -93,7 +94,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 
 	// 1. get the subject's groups
 	groups := subjectDetail.SubjectGroups
-	groupPKs := util.NewFixedLengthInt64Set(len(groups))
+	groupPKs := set.NewFixedLengthInt64Set(len(groups))
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
 		if group.PolicyExpiredAt > nowUnix {
