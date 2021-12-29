@@ -74,5 +74,4 @@ func Register(r *gin.RouterGroup) {
 	// 	groups.GET("/", handler.Groups)
 	// 	groups.GET("/:group_id", handler.GroupGet)
 	// }
-
 }

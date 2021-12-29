@@ -43,8 +43,7 @@ import (
 func UserGroups(c *gin.Context) {
 	subjectID := c.Param("user_id")
 
-	inheritValue, ok := c.GetQuery("inherit")
-	inherit := ok && strings.ToLower(inheritValue) == "true"
+	inherit := strings.ToLower(c.Query("inherit")) == "true"
 
 	handleSubjectGroups(c, types.UserType, subjectID, inherit)
 }
@@ -61,7 +60,7 @@ func UserGroups(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/open/departments/{user_id}/groups [get]
+// @Router /api/v1/open/departments/{department_id}/groups [get]
 func DepartmentGroups(c *gin.Context) {
 	subjectID := c.Param("department_id")
 
