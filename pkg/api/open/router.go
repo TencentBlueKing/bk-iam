@@ -54,12 +54,25 @@ func Register(r *gin.RouterGroup) {
 		policies.GET("/-/subjects", handler.PoliciesSubjects)
 	}
 
-	// 2. subjects
-	subjects := r.Group("/subjects")
+	// 2. subjects: users, departments, groups
+	users := r.Group("/users")
 	{
-		// GET /api/v1/
-		subjects.GET("/:subject_type/:subject_id/groups", handler.SubjectGroups)
-		subjects.GET("/group/:group_id/members", handler.GroupMembers)
+		// GET /user/123/groups?inherit=true
+		users.GET("/:user_id/groups", handler.UserGroups)
 	}
+
+	departments := r.Group("/departments")
+	{
+		// GET /department/456/groups
+		departments.GET("/:department_id/groups", handler.DepartmentGroups)
+	}
+
+	// 3. groups
+	// groups := r.Group("/groups")
+	// {
+	// 	groups.GET("/:group_id/members", handler.GroupMembers)
+	// 	groups.GET("/", handler.Groups)
+	// 	groups.GET("/:group_id", handler.GroupGet)
+	// }
 
 }

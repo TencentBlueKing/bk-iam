@@ -21,40 +21,56 @@ import (
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/errorx"
+	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
-// TODO:
-//    2. 直接插 subject-relation表好, 还是全部走缓存?
-//    3. group被删除的时候, subjectDetail引用的并不会清理 => 一个group 被删除, 可能 1min 之内, 还会出现在列表中
-
-// SubjectGroups godoc
-// @Summary subject groups
-// @Description get a subject's groups, include the inherit groups from department
-// @ID api-open-subject-groups-get
+// UserGroups godoc
+// @Summary user groups
+// @Description get a user's groups, include the inherit groups from department
+// @ID api-open-user-groups-get
 // @Tags open
 // @Accept json
 // @Produce json
-// @Param subject_type path string true "Subject Type"
-// @Param subject_id path string true "Subject ID"
+// @Param user_id path string true "User ID"
 // @Param inherit query bool true "get subject's inherit groups from it's departments"
 // @Success 200 {object} util.Response{data=subjectGroupsResponse}
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/open/subjects/{subject_type}/{subject_id}/groups [get]
-func SubjectGroups(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "subject_groups")
+// @Router /api/v1/open/users/{user_id}/groups [get]
+func UserGroups(c *gin.Context) {
+	subjectID := c.Param("user_id")
 
-	var pathParams subjectGroupsSerializer
-	if err := c.ShouldBindUri(&pathParams); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
 	inheritValue, ok := c.GetQuery("inherit")
 	inherit := ok && strings.ToLower(inheritValue) == "true"
 
-	subjectPK, err := cacheimpls.GetLocalSubjectPK(pathParams.SubjectType, pathParams.SubjectID)
+	handleSubjectGroups(c, types.UserType, subjectID, inherit)
+}
+
+// DepartmentGroups godoc
+// @Summary department groups
+// @Description get a department's groups
+// @ID api-open-department-groups-get
+// @Tags open
+// @Accept json
+// @Produce json
+// @Param department_id path string true "Department ID"
+// @Success 200 {object} util.Response{data=subjectGroupsResponse}
+// @Header 200 {string} X-Request-Id "the request id"
+// @Security AppCode
+// @Security AppSecret
+// @Router /api/v1/open/departments/{user_id}/groups [get]
+func DepartmentGroups(c *gin.Context) {
+	subjectID := c.Param("department_id")
+
+	handleSubjectGroups(c, types.DepartmentType, subjectID, false)
+}
+
+func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit bool) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "subject_groups")
+
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(subjectType, subjectID)
 	if err != nil {
 		// 不存在的情况, 404
 		if errors.Is(err, sql.ErrNoRows) {
@@ -66,7 +82,7 @@ func SubjectGroups(c *gin.Context) {
 		return
 	}
 
-	// NOTE: group被删除的时候, subjectDetail引用的并不会清理=> how to?
+	// NOTE: group被删除的时候, subjectDetail引用的并不会清理
 	subjectDetail, err := cacheimpls.GetSubjectDetail(subjectPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -111,6 +127,7 @@ func SubjectGroups(c *gin.Context) {
 			if errors.Is(err, sql.ErrNoRows) {
 				continue
 			}
+
 			// get subject fail, continue
 			log.Info(errorWrapf(err, "subject_groups GetSubjectByPK subject_pk=`%d` fail", pk))
 			continue

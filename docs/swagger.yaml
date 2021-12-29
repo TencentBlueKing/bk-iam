@@ -255,6 +255,35 @@ definitions:
     required:
     - id
     type: object
+  handler.enginePolicyResponse:
+    properties:
+      action:
+        $ref: '#/definitions/handler.policyResponseAction'
+        type: object
+      expired_at:
+        example: 4102444800
+        type: integer
+      expression:
+        additionalProperties: true
+        type: object
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/handler.policyResponseSubject'
+        type: object
+      system:
+        example: bk_cmdb
+        type: string
+      template_id:
+        type: integer
+      updated_at:
+        example: 4102444800
+        type: integer
+      version:
+        example: "1"
+        type: string
+    type: object
   handler.extResource:
     properties:
       ids:
@@ -495,28 +524,13 @@ definitions:
     type: object
   handler.policyListResponse:
     properties:
-      count:
-        example: 120
-        type: integer
       metadata:
-        $ref: '#/definitions/handler.policyListResponseMetadata'
+        $ref: '#/definitions/handler.listPolicySerializer'
         type: object
       results:
         items:
-          $ref: '#/definitions/handler.thinPolicyResponse'
+          $ref: '#/definitions/handler.enginePolicyResponse'
         type: array
-    type: object
-  handler.policyListResponseMetadata:
-    properties:
-      action:
-        $ref: '#/definitions/handler.policyResponseAction'
-        type: object
-      system:
-        example: bk_test
-        type: string
-      timestamp:
-        example: 1592899208
-        type: integer
     type: object
   handler.policyResponseAction:
     properties:
@@ -771,10 +785,8 @@ definitions:
   handler.subject:
     properties:
       id:
-        example: admin
         type: string
       type:
-        example: user
         type: string
     required:
     - id
@@ -910,24 +922,6 @@ definitions:
       provider_config:
         $ref: '#/definitions/handler.systemProviderConfig'
         type: object
-    type: object
-  handler.thinPolicyResponse:
-    properties:
-      expired_at:
-        example: 4102444800
-        type: integer
-      expression:
-        additionalProperties: true
-        type: object
-      id:
-        example: 100
-        type: integer
-      subject:
-        $ref: '#/definitions/handler.policyResponseSubject'
-        type: object
-      version:
-        example: "1"
-        type: string
     type: object
   handler.tokenResponse:
     properties:
@@ -1198,6 +1192,79 @@ paths:
       summary: system info
       tags:
       - engine
+  /api/v1/open/departments/{user_id}/groups:
+    get:
+      consumes:
+      - application/json
+      description: get a department's groups
+      operationId: api-open-department-groups-get
+      parameters:
+      - description: Department ID
+        in: path
+        name: department_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.subjectGroupsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: department groups
+      tags:
+      - open
+  /api/v1/open/users/{user_id}/groups:
+    get:
+      consumes:
+      - application/json
+      description: get a user's groups, include the inherit groups from department
+      operationId: api-open-user-groups-get
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: get subject's inherit groups from it's departments
+        in: query
+        name: inherit
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.subjectGroupsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: user groups
+      tags:
+      - open
   /api/v1/policy/auth:
     post:
       consumes:
@@ -2184,55 +2251,6 @@ paths:
       summary: resource type update
       tags:
       - model
-  /api/v1/systems/{system_id}/subjects/{subject_type}/{subject_id}/groups:
-    get:
-      consumes:
-      - application/json
-      description: get a subject's groups, include the inherit groups from department
-      operationId: api-open-subject-groups-get
-      parameters:
-      - description: System ID
-        in: path
-        name: system_id
-        required: true
-        type: string
-      - description: Subject Type
-        in: path
-        name: subject_type
-        required: true
-        type: string
-      - description: Subject ID
-        in: path
-        name: subject_id
-        required: true
-        type: string
-      - description: get subject's inherit groups from it's departments
-        in: query
-        name: inherit
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/handler.subjectGroupsResponse'
-              type: object
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: subject group
-      tags:
-      - open
   /api/v1/systems/{system_id}/token:
     get:
       consumes:

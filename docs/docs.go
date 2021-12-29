@@ -334,6 +334,131 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/open/departments/{user_id}/groups": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a department's groups",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "department groups",
+                "operationId": "api-open-department-groups-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "department_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/open/users/{user_id}/groups": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a user's groups, include the inherit groups from department",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "user groups",
+                "operationId": "api-open-user-groups-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "get subject's inherit groups from it's departments",
+                        "name": "inherit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/policy/auth": {
             "post": {
                 "security": [
@@ -1931,86 +2056,6 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/systems/{system_id}/subjects/{subject_type}/{subject_id}/groups": {
-            "get": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "get a subject's groups, include the inherit groups from department",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "open"
-                ],
-                "summary": "subject group",
-                "operationId": "api-open-subject-groups-get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "System ID",
-                        "name": "system_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Subject Type",
-                        "name": "subject_type",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Subject ID",
-                        "name": "subject_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "get subject's inherit groups from it's departments",
-                        "name": "inherit",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/systems/{system_id}/token": {
             "get": {
                 "security": [
@@ -3086,6 +3131,46 @@ var doc = `{
                 }
             }
         },
+        "handler.enginePolicyResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseAction"
+                },
+                "expired_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "expression": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseSubject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_cmdb"
+                },
+                "template_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
         "handler.extResource": {
             "type": "object",
             "required": [
@@ -3429,36 +3514,15 @@ var doc = `{
         "handler.policyListResponse": {
             "type": "object",
             "properties": {
-                "count": {
-                    "type": "integer",
-                    "example": 120
-                },
                 "metadata": {
                     "type": "object",
-                    "$ref": "#/definitions/handler.policyListResponseMetadata"
+                    "$ref": "#/definitions/handler.listPolicySerializer"
                 },
                 "results": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handler.thinPolicyResponse"
+                        "$ref": "#/definitions/handler.enginePolicyResponse"
                     }
-                }
-            }
-        },
-        "handler.policyListResponseMetadata": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseAction"
-                },
-                "system": {
-                    "type": "string",
-                    "example": "bk_test"
-                },
-                "timestamp": {
-                    "type": "integer",
-                    "example": 1592899208
                 }
             }
         },
@@ -3819,12 +3883,10 @@ var doc = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string",
-                    "example": "admin"
+                    "type": "string"
                 },
                 "type": {
-                    "type": "string",
-                    "example": "user"
+                    "type": "string"
                 }
             }
         },
@@ -4008,31 +4070,6 @@ var doc = `{
                 "provider_config": {
                     "type": "object",
                     "$ref": "#/definitions/handler.systemProviderConfig"
-                }
-            }
-        },
-        "handler.thinPolicyResponse": {
-            "type": "object",
-            "properties": {
-                "expired_at": {
-                    "type": "integer",
-                    "example": 4102444800
-                },
-                "expression": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseSubject"
-                },
-                "version": {
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },
