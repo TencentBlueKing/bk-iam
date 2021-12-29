@@ -1,3 +1,9 @@
+# 1.9.3
+
+- update: replace some lib with https://github.com/TencentBlueKing/gopkg
+- move: API /api/v1/systems/ to /api/v1/open/systems/
+- add: API /api/v1/open/users/:user_id/groups
+
 # 1.9.2
 
 - hotfix: condition StringPrefix eval wrong when key is _bk_iam_path_
