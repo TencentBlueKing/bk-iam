@@ -17,26 +17,49 @@ import (
 	"iam/pkg/api/open/handler"
 )
 
-// Register the urls: /api/v1/systems
-func Register(r *gin.RouterGroup) {
+// RegisterLegacySystemAPIs the urls: /api/v1/systems
+// NOTE: should not add more apis here, move to /api/v1/open/systems/{system_id}/
+func RegisterLegacySystemAPIs(r *gin.RouterGroup) {
 	policies := r.Group("/:system_id/policies")
 	policies.Use(common.SystemExistsAndClientValid())
 	{
 		// GET /api/v1/systems/:system/policies?action=x    拉取某个操作的所有策略列表
-		policies.GET("", handler.List)
+		policies.GET("", handler.PolicyList)
 
 		// GET /api/v1/systems/:system/policies/:policy_id  查询某个策略详情(这个策略必须属于本系统)
-		policies.GET("/:policy_id", handler.Get)
+		policies.GET("/:policy_id", handler.PolicyGet)
 
 		// https://cloud.google.com/apis/design/design_patterns#list_sub-collections
 		// GET /api/v1/systems/:system/policies/-/subjects?ids=1,2,3,4
-		policies.GET("/:policy_id/subjects", handler.Subjects)
+		policies.GET("/-/subjects", handler.PoliciesSubjects)
+	}
+}
+
+// Register the urls: /api/v1/open
+func Register(r *gin.RouterGroup) {
+	// 1. system scope /api/v1/open/systems
+
+	// 1.1 policies
+	policies := r.Group("/systems/:system_id/policies")
+	policies.Use(common.SystemExistsAndClientValid())
+	{
+		// GET /api/v1/open/systems/:system_id/policies?action=x    拉取某个操作的所有策略列表
+		policies.GET("", handler.PolicyList)
+
+		// GET /api/v1/open/systems/:system_id/policies/:policy_id  查询某个策略详情(这个策略必须属于本系统)
+		policies.GET("/:policy_id", handler.PolicyGet)
+
+		// https://cloud.google.com/apis/design/design_patterns#list_sub-collections
+		// GET /api/v1/open/systems/:system_id/policies/-/subjects?ids=1,2,3,4
+		policies.GET("/-/subjects", handler.PoliciesSubjects)
 	}
 
-	subjects := r.Group("/:system_id/subjects")
-	subjects.Use(common.SystemExistsAndClientValid())
+	// 2. subjects
+	subjects := r.Group("/subjects")
 	{
+		// GET /api/v1/
 		subjects.GET("/:subject_type/:subject_id/groups", handler.SubjectGroups)
+		subjects.GET("/group/:group_id/members", handler.GroupMembers)
 	}
 
 }

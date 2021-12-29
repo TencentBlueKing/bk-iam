@@ -8,22 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package open
+package handler
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/util"
+	"github.com/gin-gonic/gin"
 )
 
-func TestRegister(t *testing.T) {
-	t.Parallel()
+func GroupMembers(c *gin.Context) {
 
-	r := util.SetupRouter()
-	g := r.Group("/test")
-	RegisterLegacySystemAPIs(g)
-
-	assert.NotNil(t, g)
 }

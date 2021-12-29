@@ -61,7 +61,16 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policy.Register(policyRouter)
 
 	// restful apis for open api
-	openAPIRouter := router.Group("/api/v1/systems")
+	// 1. legacy apis, will be removed in the future
+	openLegacyAPIRouter := router.Group("/api/v1/systems")
+	openLegacyAPIRouter.Use(middleware.Metrics())
+	openLegacyAPIRouter.Use(middleware.APILogger())
+	openLegacyAPIRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
+	open.RegisterLegacySystemAPIs(openLegacyAPIRouter)
+
+	// 2. open apis
+	openAPIRouter := router.Group("/api/v1/open")
 	openAPIRouter.Use(middleware.Metrics())
 	openAPIRouter.Use(middleware.APILogger())
 	openAPIRouter.Use(middleware.NewClientAuthMiddleware(cfg))
@@ -86,7 +95,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	engineRouter := router.Group("/api/v1/engine")
 	engineRouter.Use(middleware.Metrics())
 	// NOTE: disable the log
-	//engineRouter.Use(middleware.WebLogger())
+	// engineRouter.Use(middleware.WebLogger())
 	engineRouter.Use(middleware.NewClientAuthMiddleware(cfg))
 	engineRouter.Use(middleware.SuperClientMiddleware())
 	engine.Register(engineRouter)

@@ -8,22 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package open
+package handler
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/util"
-)
-
-func TestRegister(t *testing.T) {
-	t.Parallel()
-
-	r := util.SetupRouter()
-	g := r.Group("/test")
-	RegisterLegacySystemAPIs(g)
-
-	assert.NotNil(t, g)
+type subjectGroupsSerializer struct {
+	// NOTE: currently only support subject_type=user, maybe support subject_type=department later
+	SubjectType string `uri:"subject_type" binding:"required,oneof=user" example:"user"`
+	SubjectID   string `uri:"subject_id" binding:"required" example:"admin"`
 }
+
+type responseSubject struct {
+	Type string `json:"type" example:"user"`
+	ID   string `json:"id" example:"admin"`
+	Name string `json:"name" example:"Administer"`
+}
+
+type subjectGroupsResponse []responseSubject

@@ -1,8 +1,19 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package handler
 
 import (
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,18 +25,16 @@ import (
 )
 
 // TODO:
-//    1. url怎么设置?
 //    2. 直接插 subject-relation表好, 还是全部走缓存?
 //    3. group被删除的时候, subjectDetail引用的并不会清理 => 一个group 被删除, 可能 1min 之内, 还会出现在列表中
 
 // SubjectGroups godoc
-// @Summary subject group
+// @Summary subject groups
 // @Description get a subject's groups, include the inherit groups from department
 // @ID api-open-subject-groups-get
 // @Tags open
 // @Accept json
 // @Produce json
-// @Param system_id path string true "System ID"
 // @Param subject_type path string true "Subject Type"
 // @Param subject_id path string true "Subject ID"
 // @Param inherit query bool true "get subject's inherit groups from it's departments"
@@ -33,7 +42,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/subjects/{subject_type}/{subject_id}/groups [get]
+// @Router /api/v1/open/subjects/{subject_type}/{subject_id}/groups [get]
 func SubjectGroups(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "subject_groups")
 
@@ -42,7 +51,8 @@ func SubjectGroups(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
-	_, inherit := c.GetQuery("inherit")
+	inheritValue, ok := c.GetQuery("inherit")
+	inherit := ok && strings.ToLower(inheritValue) == "true"
 
 	subjectPK, err := cacheimpls.GetLocalSubjectPK(pathParams.SubjectType, pathParams.SubjectID)
 	if err != nil {
