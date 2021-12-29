@@ -13,14 +13,14 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 // SystemSVC ...
@@ -130,7 +130,7 @@ func (l *systemService) Create(system types.System) error {
 	}
 
 	// NOTE: generate token here
-	system.ProviderConfig["token"] = util.RandString(32)
+	system.ProviderConfig["token"] = stringx.Random(32)
 
 	providerConfig, err := jsoniter.MarshalToString(system.ProviderConfig)
 	if err != nil {

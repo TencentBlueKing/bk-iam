@@ -38,8 +38,8 @@ func newEntryPool() *entryPool {
 // Get ...
 func (p *entryPool) Get() *Entry {
 	entry := p.pool.Get().(*Entry)
-
 	entry.Time = time.Now()
+
 	return entry
 }
 

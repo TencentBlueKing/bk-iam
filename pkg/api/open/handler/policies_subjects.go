@@ -13,11 +13,11 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -72,6 +72,7 @@ func PoliciesSubjects(c *gin.Context) {
 			log.Info(errorWrapf(err,
 				"policy_list.GetSystemAction action_pk=`%d` fail",
 				policy.ActionPK))
+
 			continue
 		}
 		// 不是本系统的策略, 过滤掉. not my system policy, continue
@@ -85,6 +86,7 @@ func PoliciesSubjects(c *gin.Context) {
 			log.Info(errorWrapf(err1,
 				"policy_list.PoliciesSubjects GetSubjectByPK subject_pk=`%d` fail",
 				policy.SubjectPK))
+
 			continue
 		}
 

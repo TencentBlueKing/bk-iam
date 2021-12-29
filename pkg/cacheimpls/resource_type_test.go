@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/agiledragon/gomonkey"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
 	"iam/pkg/cache/redis"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	svctypes "iam/pkg/service/types"
-
-	"github.com/agiledragon/gomonkey"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestResourceTypeCacheKey_Key(t *testing.T) {

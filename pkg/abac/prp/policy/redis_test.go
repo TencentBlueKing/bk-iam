@@ -15,11 +15,11 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/agiledragon/gomonkey"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"

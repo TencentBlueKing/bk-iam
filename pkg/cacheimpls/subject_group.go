@@ -11,20 +11,21 @@
 package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/conv"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
 	svc := service.NewSubjectService()
-	return svc.GetThinSubjectGroups(k.PK)
+	return svc.GetEffectThinSubjectGroups(k.PK)
 }
 
 // TODO: remove this cache? => if we can know a department add or remove from a group?
@@ -62,9 +63,9 @@ func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
 	// 3. ids of no cache, retrieve multiple
 	svc := service.NewSubjectService()
 	// 按照时间过滤, 不应该查已过期的回来
-	notCachedSubjectGroups, err := svc.ListSubjectEffectGroups(notExistCachePKs)
+	notCachedSubjectGroups, err := svc.ListEffectThinSubjectGroups(notExistCachePKs)
 	if err != nil {
-		err = errorWrapf(err, "SubjectService.ListSubjectEffectGroups pks=`%v` fail", notExistCachePKs)
+		err = errorWrapf(err, "SubjectService.ListEffectThinSubjectGroups pks=`%v` fail", notExistCachePKs)
 		return nil, err
 	}
 	setMissing(notCachedSubjectGroups, notExistCachePKs)
@@ -97,7 +98,7 @@ func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup,
 		if data, ok := hitCacheResults[key]; ok {
 			// do unmarshal
 			var sg []types.ThinSubjectGroup
-			err = SubjectGroupCache.Unmarshal(util.StringToBytes(data), &sg)
+			err = SubjectGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
 			if err != nil {
 				err = errorWrapf(err, "unmarshal text in cache into SubjectGroup fail", "")
 				return
@@ -112,7 +113,7 @@ func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup,
 }
 
 func setMissing(notCachedSubjectGroups map[int64][]types.ThinSubjectGroup, missingPKs []int64) {
-	hasGroupPKs := util.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
+	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
 	for pk, sgs := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)

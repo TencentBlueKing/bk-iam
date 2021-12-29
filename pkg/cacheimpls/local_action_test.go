@@ -15,10 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
 	svctypes "iam/pkg/service/types"
 )
 

@@ -85,7 +85,6 @@ func (c *AndCondition) Translate(withSystem bool) (map[string]interface{}, error
 		"op":      "AND",
 		"content": content,
 	}, nil
-
 }
 
 // PartialEval 使用传递的部分资源执行表达式, 并返回剩余的部分
@@ -94,7 +93,6 @@ func (c *AndCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 	// once got False=> return
 	remainedContent := make([]Condition, 0, len(c.content))
 	for _, condition := range c.content {
-
 		switch condition.GetName() {
 		case operator.AND, operator.OR:
 			// if AND/OR, do PartialEval recursive

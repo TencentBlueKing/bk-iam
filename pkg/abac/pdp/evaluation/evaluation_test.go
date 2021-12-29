@@ -11,6 +11,7 @@
 package evaluation
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
 
@@ -18,7 +19,6 @@ import (
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/memory"
 	"iam/pkg/cacheimpls"
 )
 

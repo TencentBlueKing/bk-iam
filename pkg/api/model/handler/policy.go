@@ -11,12 +11,12 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // DeleteActionPolicies 并非实时删除，而是发起一个删除事件

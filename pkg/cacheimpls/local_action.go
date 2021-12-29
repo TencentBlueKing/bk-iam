@@ -14,7 +14,8 @@ import (
 	"errors"
 	"strconv"
 
-	"iam/pkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache"
+
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )

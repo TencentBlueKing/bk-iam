@@ -11,9 +11,10 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -42,7 +43,7 @@ func ListSystem(c *gin.Context) {
 		return
 	}
 
-	set := util.SplitStringToSet(query.Fields, ",")
+	set := set.SplitStringToSet(query.Fields, ",")
 	systems := make([]map[string]interface{}, 0, len(allSystems))
 	for _, system := range allSystems {
 		systemInfo, err := filterFields(set, system)
@@ -84,7 +85,7 @@ func GetSystem(c *gin.Context) {
 		return
 	}
 
-	set := util.SplitStringToSet(query.Fields, ",")
+	set := set.SplitStringToSet(query.Fields, ",")
 	data, err := filterFields(set, systemInfo)
 	if err != nil {
 		err = errorWrapf(err, "filterFields systemID=`%s`, set=`%+v` fail", systemID, set)

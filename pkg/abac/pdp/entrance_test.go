@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
-
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
 	pdptypes "iam/pkg/abac/pdp/types"
@@ -38,7 +37,7 @@ var _ = Describe("Entrance", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			//entry = debug.EntryPool.Get()
+			// entry = debug.EntryPool.Get()
 			ctl = gomock.NewController(GinkgoT())
 			req = &request.Request{
 				System: "test",
@@ -514,7 +513,7 @@ var _ = Describe("Entrance", func() {
 
 			expr, resources, err := QueryByExtResources(req, extResources, entry, false)
 			assert.Equal(GinkgoT(), expr, map[string]interface{}{})
-			//assert.Equal(GinkgoT(), resources, []types.ExtResourceWithAttribute{})
+			// assert.Equal(GinkgoT(), resources, []types.ExtResourceWithAttribute{})
 			assert.Equal(GinkgoT(), []types.ExtResourceWithAttribute{
 				{
 					System: "bk_cmdb",
@@ -542,7 +541,7 @@ var _ = Describe("Entrance", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			//entry = debug.EntryPool.Get()
+			// entry = debug.EntryPool.Get()
 			ctl = gomock.NewController(GinkgoT())
 			req = &request.Request{
 				System: "test",

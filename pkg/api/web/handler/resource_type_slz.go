@@ -13,7 +13,7 @@ package handler
 import (
 	"strings"
 
-	"iam/pkg/util"
+	"github.com/TencentBlueKing/gopkg/collection/set"
 )
 
 const (
@@ -43,6 +43,6 @@ func (s *resourceTypeSerializer) systems() []string {
 	return strings.Split(s.Systems, ",")
 }
 
-func (s *resourceTypeSerializer) fieldsSet() *util.StringSet {
-	return util.SplitStringToSet(s.Fields, ",")
+func (s *resourceTypeSerializer) fieldsSet() *set.StringSet {
+	return set.SplitStringToSet(s.Fields, ",")
 }

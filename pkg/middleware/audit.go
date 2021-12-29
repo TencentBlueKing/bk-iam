@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
@@ -66,13 +67,13 @@ func Audit() gin.HandlerFunc {
 			// always add 1ms, in case the 0ms in log
 			latency := float64(duration/time.Millisecond) + 1
 
-			params := util.TruncateString(c.Request.URL.RawQuery, 1024)
+			params := stringx.Truncate(c.Request.URL.RawQuery, 1024)
 			fields := log.Fields{
 				"method":        c.Request.Method,
 				"path":          c.Request.URL.Path,
 				"params":        params,
 				"body":          body,
-				"response_body": util.TruncateString(newWriter.body.String(), 1024),
+				"response_body": stringx.Truncate(newWriter.body.String(), 1024),
 				"status":        c.Writer.Status(),
 				"latency":       latency,
 

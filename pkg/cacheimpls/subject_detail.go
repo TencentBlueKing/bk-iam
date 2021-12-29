@@ -11,8 +11,9 @@
 package cacheimpls
 
 import (
-	"iam/pkg/cache"
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )
@@ -27,7 +28,8 @@ func retrieveSubjectDetail(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
-	groups, err := svc.GetThinSubjectGroups(k.PK)
+	// NOTE: 这里只获取当前有效的 subject-groups, 之后放入缓存; 使用的时候, 会再次过滤掉已过期的(入缓存时可能还没过期, 使用时过期)
+	groups, err := svc.GetEffectThinSubjectGroups(k.PK)
 	if err != nil {
 		return nil, err
 	}

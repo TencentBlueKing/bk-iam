@@ -84,6 +84,7 @@ func (r *memoryRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64
 			value, found := cacheimpls.LocalExpressionCache.Get(key)
 			if !found {
 				missExpressionPKs = append(missExpressionPKs, expressionPK)
+
 				continue
 			}
 
@@ -91,6 +92,7 @@ func (r *memoryRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64
 			if !ok {
 				log.Errorf("[%s] parse cachedExpression in memory cache fail, will do retrieve!", MemoryLayer)
 				missExpressionPKs = append(missExpressionPKs, expressionPK)
+
 				continue
 			}
 

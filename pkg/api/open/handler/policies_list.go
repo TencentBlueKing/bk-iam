@@ -15,14 +15,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
-	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -97,7 +96,8 @@ func PolicyList(c *gin.Context) {
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}
-		results, err = convertQueryPoliciesToThinPolicies(systemID, actionID, policies)
+
+		results, err = convertQueryPoliciesToThinPolicies(policies)
 		if err != nil {
 			err = fmt.Errorf(
 				"convertQueryPoliciesToThinPolicies system=`%s`, action=`%s` fail. err=%w",
@@ -120,18 +120,10 @@ func PolicyList(c *gin.Context) {
 }
 
 func convertQueryPoliciesToThinPolicies(
-	systemID, actionID string,
 	policies []types.QueryPolicy,
 ) (thinPolicies []thinPolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.convertQueryPoliciesToThinPolicies")
 	if len(policies) == 0 {
-		return
-	}
-
-	// 0. get action resource type set
-	resourceTypeSet, err := common.GetActionResourceTypeSet(systemID, actionID)
-	if err != nil {
-		err = errorWrapf(err, "getActionResourceTypeSet systemID=`%s`, actionID=`%s` fail", systemID, actionID)
 		return
 	}
 
@@ -144,10 +136,9 @@ func convertQueryPoliciesToThinPolicies(
 	}
 
 	// 2. query expression from cache
-	pkExpressionMap, err := translateExpressions(resourceTypeSet, expressionPKs)
+	pkExpressionMap, err := translateExpressions(expressionPKs)
 	if err != nil {
-		err = errorWrapf(err, "translateExpressions resourceTypeSet=`%+v`, expressionPKs=`%+v` fail",
-			resourceTypeSet, expressionPKs)
+		err = errorWrapf(err, "translateExpressions expressionPKs=`%+v` fail", expressionPKs)
 		return
 	}
 
@@ -186,9 +177,8 @@ func convertQueryPoliciesToThinPolicies(
 	return thinPolicies, nil
 }
 
-// translateExpressions translate expression to json formart
+// translateExpressions translate expression to json format
 func translateExpressions(
-	resourceTypeSet *util.StringSet,
 	expressionPKs []int64,
 ) (expressionMap map[int64]map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.translateExpressions")

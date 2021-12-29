@@ -88,6 +88,7 @@ func (r *memoryRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []in
 			value, found := cacheimpls.LocalPolicyCache.Get(key)
 			if !found {
 				missSubjectPKs = append(missSubjectPKs, subjectPK)
+
 				continue
 			}
 
@@ -95,6 +96,7 @@ func (r *memoryRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []in
 			if !ok {
 				log.Errorf("[%s] parse cachedPolicy in memory cache fail, will do retrieve!", MemoryLayer)
 				missSubjectPKs = append(missSubjectPKs, subjectPK)
+
 				continue
 			}
 
@@ -212,6 +214,7 @@ func batchDeleteSystemSubjectPKsFromMemory(systems []string, subjectPKs []int64)
 				"[%s] list system actions fail system=`%s`, subjectPKs=`%v` the changelist will not add these subjectPKs",
 				MemoryLayer, system, subjectPKs,
 			)
+
 			continue
 		}
 

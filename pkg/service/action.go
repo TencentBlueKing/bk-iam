@@ -22,12 +22,12 @@ types定义的数据结构的加载层
 import (
 	"database/sql"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 
@@ -137,7 +137,7 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 
 	for idx := range dbActionResourceTypes {
 		sart := &dbSaaSActionResourceTypes[idx]
-		//art := &dbActionResourceTypes[idx]
+		// art := &dbActionResourceTypes[idx]
 
 		var actionResourceType types.ActionResourceType
 		actionResourceType, err = l.toServiceActionResourceType(sart)
@@ -209,17 +209,18 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 		if !ok {
 			action.RelatedResourceTypes = relatedResourceTypes
 			actions = append(actions, action)
+
 			continue
 		}
 
 		for idx := range actionResourceTypeMap[ac.ID] {
 			sart := &saasActionResourceTypeMap[ac.ID][idx]
-			//art := &actionResourceTypeMap[ac.ID][idx]
+			// art := &actionResourceTypeMap[ac.ID][idx]
 
 			var actionResourceType types.ActionResourceType
 			actionResourceType, err = l.toServiceActionResourceType(sart)
 			if err != nil {
-				//return nil, errorWrapf(err, "toServiceActionResourceType art=`%+v`, sart=`%+v` fail", art, sart)
+				// return nil, errorWrapf(err, "toServiceActionResourceType art=`%+v`, sart=`%+v` fail", art, sart)
 				return nil, errorWrapf(err, "toServiceActionResourceType art=`%+v`, sart=`%+v` fail", sart)
 			}
 

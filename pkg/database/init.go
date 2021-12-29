@@ -71,7 +71,7 @@ func GetBKPaaSDBClient() *DBClient {
 	return BKPaaSDBClient
 }
 
-// 生成一个事务链接
+// GenerateDefaultDBTx 生成一个事务链接
 func GenerateDefaultDBTx() (*sqlx.Tx, error) {
 	return GetDefaultDBClient().DB.Beginx()
 }

@@ -51,6 +51,7 @@ func (s *Subject) GetEffectGroupPKs() ([]int64, error) {
 
 	nowUnix := time.Now().Unix()
 	pks := make([]int64, 0, len(groups))
+
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
 		if group.PolicyExpiredAt > nowUnix {

@@ -15,11 +15,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
-	"iam/pkg/util"
 )
 
 func TestRemoteResourceListCacheKey_Key(t *testing.T) {
@@ -30,7 +29,7 @@ func TestRemoteResourceListCacheKey_Key(t *testing.T) {
 		Fields: "id;name",
 	}
 
-	assert.Equal(t, util.GetMD5Hash("test:host:1,2:id;name"), k.Key())
+	assert.Equal(t, stringx.MD5Hash("test:host:1,2:id;name"), k.Key())
 }
 
 func TestListRemoteResources(t *testing.T) {

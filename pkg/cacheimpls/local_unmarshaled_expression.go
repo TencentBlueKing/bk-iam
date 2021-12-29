@@ -13,12 +13,12 @@ package cacheimpls
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/types"
-	"iam/pkg/cache"
 )
 
 // ResourceExpressionCacheKey is the key for a policy expression, signature is unique
@@ -68,7 +68,6 @@ func GetUnmarshalledResourceExpression(
 func PoliciesTranslate(policies []types.AuthPolicy) (map[string]interface{}, error) {
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
-
 		cond, err := GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
 		if err != nil {
 			logrus.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",

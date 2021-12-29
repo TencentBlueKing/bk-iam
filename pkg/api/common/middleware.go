@@ -13,10 +13,11 @@ package common
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/gin-gonic/gin"
+
 	"iam/pkg/cacheimpls"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // SystemExists via system_id in path
@@ -68,7 +69,7 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 			return
 		}
 
-		validClients := util.SplitStringToSet(system.Clients, ",")
+		validClients := set.SplitStringToSet(system.Clients, ",")
 		if !validClients.Has(clientID) {
 			util.UnauthorizedJSONResponse(c,
 				fmt.Sprintf("app(%s) is not allowed to call system (%s) api", clientID, systemID))
