@@ -22,7 +22,7 @@ import (
 	"iam/pkg/util"
 )
 
-// Get godoc
+// PolicyGet godoc
 // @Summary policy get
 // @Description get a policy
 // @ID api-open-system-policies-get
@@ -36,7 +36,7 @@ import (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies/{policy_id} [get]
-func Get(c *gin.Context) {
+func PolicyGet(c *gin.Context) {
 	var pathParams policyGetSerializer
 	if err := c.ShouldBindUri(&pathParams); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
