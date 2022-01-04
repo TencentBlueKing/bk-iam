@@ -15,9 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
-
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	"github.com/stretchr/testify/assert"
 )
 

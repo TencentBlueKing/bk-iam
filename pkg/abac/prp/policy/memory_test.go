@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/agiledragon/gomonkey"
 	rds "github.com/go-redis/redis/v8"
 	"github.com/golang/mock/gomock"
@@ -23,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/prp/common"
-	"iam/pkg/cache"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"

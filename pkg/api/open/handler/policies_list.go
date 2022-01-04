@@ -15,19 +15,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
-// List godoc
+// PolicyList godoc
 // @Summary policy list
 // @Description list policies of a action
 // @ID api-open-system-policies-list
@@ -41,7 +41,7 @@ import (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies [get]
-func List(c *gin.Context) {
+func PolicyList(c *gin.Context) {
 	// TODO: 翻页接口是否有性能问题 / 限制调用并发, 用drl
 	var query listQuerySerializer
 	if err := c.ShouldBindQuery(&query); err != nil {

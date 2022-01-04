@@ -14,9 +14,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 

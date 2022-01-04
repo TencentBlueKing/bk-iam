@@ -13,11 +13,10 @@ package cacheimpls
 import (
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
 	. "github.com/onsi/ginkgo"
 	"github.com/stretchr/testify/assert"
-
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
 )
 
 var _ = Describe("LocalApigwJwtClientId", func() {

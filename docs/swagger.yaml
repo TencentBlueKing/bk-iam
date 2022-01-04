@@ -122,6 +122,9 @@ definitions:
         type: string
       app_secret:
         type: string
+    required:
+    - app_code
+    - app_secret
     type: object
   handler.authByActionsRequest:
     properties:
@@ -240,6 +243,9 @@ definitions:
         type: object
       type:
         type: string
+    required:
+    - data
+    - type
     type: object
   handler.deleteViaID:
     properties:
@@ -248,6 +254,35 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  handler.enginePolicyResponse:
+    properties:
+      action:
+        $ref: '#/definitions/handler.policyResponseAction'
+        type: object
+      expired_at:
+        example: 4102444800
+        type: integer
+      expression:
+        additionalProperties: true
+        type: object
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/handler.policyResponseSubject'
+        type: object
+      system:
+        example: bk_cmdb
+        type: string
+      template_id:
+        type: integer
+      updated_at:
+        example: 4102444800
+        type: integer
+      version:
+        example: "1"
+        type: string
     type: object
   handler.extResource:
     properties:
@@ -443,6 +478,7 @@ definitions:
       action_id:
         type: string
       environment:
+        description: 'NOTE: this field not used!'
         type: string
       expired_at:
         type: integer
@@ -488,28 +524,13 @@ definitions:
     type: object
   handler.policyListResponse:
     properties:
-      count:
-        example: 120
-        type: integer
       metadata:
-        $ref: '#/definitions/handler.policyListResponseMetadata'
+        $ref: '#/definitions/handler.listPolicySerializer'
         type: object
       results:
         items:
-          $ref: '#/definitions/handler.thinPolicyResponse'
+          $ref: '#/definitions/handler.enginePolicyResponse'
         type: array
-    type: object
-  handler.policyListResponseMetadata:
-    properties:
-      action:
-        $ref: '#/definitions/handler.policyResponseAction'
-        type: object
-      system:
-        example: bk_test
-        type: string
-      timestamp:
-        example: 1592899208
-        type: integer
     type: object
   handler.policyResponseAction:
     properties:
@@ -608,10 +629,49 @@ definitions:
         example: base_info,resource_types,actions
         type: string
     type: object
+  handler.referenceInstanceSelection:
+    properties:
+      id:
+        example: host_view
+        type: string
+      ignore_iam_path:
+        example: false
+        type: boolean
+      system_id:
+        example: bk_cmdb
+        type: string
+    required:
+    - id
+    - system_id
+    type: object
   handler.referenceResourceType:
     properties:
       id:
         example: host
+        type: string
+      system_id:
+        example: bk_cmdb
+        type: string
+    required:
+    - id
+    - system_id
+    type: object
+  handler.relatedResourceType:
+    properties:
+      id:
+        example: host
+        type: string
+      name_alias:
+        type: string
+      name_alias_en:
+        type: string
+      related_instance_selections:
+        items:
+          $ref: '#/definitions/handler.referenceInstanceSelection'
+        type: array
+      selection_mode:
+        description: '实例选择方式/范围: ["all", "instance", "attribute"]'
+        example: instance
         type: string
       system_id:
         example: bk_cmdb
@@ -710,6 +770,18 @@ definitions:
         example: 1
         type: integer
     type: object
+  handler.responseSubject:
+    properties:
+      id:
+        example: admin
+        type: string
+      name:
+        example: Administer
+        type: string
+      type:
+        example: user
+        type: string
+    type: object
   handler.subject:
     properties:
       id:
@@ -720,6 +792,10 @@ definitions:
     - id
     - type
     type: object
+  handler.subjectGroupsResponse:
+    items:
+      $ref: '#/definitions/handler.responseSubject'
+    type: array
   handler.subjectTemplateSerializer:
     properties:
       subject_id:
@@ -847,24 +923,6 @@ definitions:
         $ref: '#/definitions/handler.systemProviderConfig'
         type: object
     type: object
-  handler.thinPolicyResponse:
-    properties:
-      expired_at:
-        example: 4102444800
-        type: integer
-      expression:
-        additionalProperties: true
-        type: object
-      id:
-        example: 100
-        type: integer
-      subject:
-        $ref: '#/definitions/handler.policyResponseSubject'
-        type: object
-      version:
-        example: "1"
-        type: string
-    type: object
   handler.tokenResponse:
     properties:
       token:
@@ -876,6 +934,7 @@ definitions:
       action_id:
         type: string
       environment:
+        description: 'NOTE: this field not used!'
         type: string
       expired_at:
         type: integer
@@ -997,18 +1056,22 @@ paths:
       description: list policies of ids or between min-max ids
       operationId: api-engine-policies-list
       parameters:
-      - in: query
-        name: timestamp
-        type: integer
-      - in: query
-        name: min_id
-        type: integer
-      - in: query
-        name: max_id
-        type: integer
-      - in: query
+      - example: 1,2,3
+        in: query
         name: ids
         type: string
+      - example: 10001
+        in: query
+        name: max_id
+        type: integer
+      - example: 1
+        in: query
+        name: min_id
+        type: integer
+      - example: 1592899208
+        in: query
+        name: timestamp
+        type: integer
       produces:
       - application/json
       responses:
@@ -1038,10 +1101,12 @@ paths:
       description: list policy pks by condition
       operationId: api-engine-policy-id-list
       parameters:
-      - in: query
+      - example: 1592899208
+        in: query
         name: begin_updated_at
         type: integer
-      - in: query
+      - example: 1592899208
+        in: query
         name: end_updated_at
         type: integer
       produces:
@@ -1073,7 +1138,8 @@ paths:
       description: get max policy id by condition
       operationId: api-engine-policy-id-max
       parameters:
-      - in: query
+      - example: 1592899208
+        in: query
         name: updated_at
         type: integer
       produces:
@@ -1126,6 +1192,79 @@ paths:
       summary: system info
       tags:
       - engine
+  /api/v1/open/departments/{user_id}/groups:
+    get:
+      consumes:
+      - application/json
+      description: get a department's groups
+      operationId: api-open-department-groups-get
+      parameters:
+      - description: Department ID
+        in: path
+        name: department_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.subjectGroupsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: department groups
+      tags:
+      - open
+  /api/v1/open/users/{user_id}/groups:
+    get:
+      consumes:
+      - application/json
+      description: get a user's groups, include the inherit groups from department
+      operationId: api-open-user-groups-get
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: get subject's inherit groups from it's departments
+        in: query
+        name: inherit
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.subjectGroupsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: user groups
+      tags:
+      - open
   /api/v1/policy/auth:
     post:
       consumes:
@@ -1804,17 +1943,21 @@ paths:
         name: system_id
         required: true
         type: string
-      - in: query
+      - example: edit_host
+        in: query
         name: actionID
         required: true
         type: string
-      - in: query
-        name: pageSize
-        type: integer
-      - in: query
+      - example: 1
+        in: query
         name: page
         type: integer
-      - in: query
+      - example: 100
+        in: query
+        name: pageSize
+        type: integer
+      - example: 1592899208
+        in: query
         name: timestamp
         type: integer
       produces:
@@ -1851,7 +1994,8 @@ paths:
         name: system_id
         required: true
         type: string
-      - in: query
+      - example: 1,2,3
+        in: query
         name: ids
         required: true
         type: string

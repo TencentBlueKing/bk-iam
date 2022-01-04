@@ -17,10 +17,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/sdao"
-	"iam/pkg/errorx"
 )
 
 // SystemConfigSVC ...

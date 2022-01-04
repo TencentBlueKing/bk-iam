@@ -13,8 +13,9 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/api/common"
-	"iam/pkg/util"
 )
 
 type resourceProviderConfig struct {
@@ -88,9 +89,9 @@ func (r *resourceTypeUpdateSerializer) validate(keys map[string]interface{}) (bo
 }
 
 func validateResourceTypesRepeat(resourceTypes []resourceTypeSerializer) error {
-	idSet := util.NewStringSet()
-	nameSet := util.NewStringSet()
-	nameEnSet := util.NewStringSet()
+	idSet := set.NewStringSet()
+	nameSet := set.NewStringSet()
+	nameEnSet := set.NewStringSet()
 	for _, rt := range resourceTypes {
 		if idSet.Has(rt.ID) {
 			return fmt.Errorf("resource type id[%s] repeat", rt.ID)

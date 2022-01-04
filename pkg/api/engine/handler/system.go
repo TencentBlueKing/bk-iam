@@ -11,7 +11,8 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service"
 	"iam/pkg/util"
 

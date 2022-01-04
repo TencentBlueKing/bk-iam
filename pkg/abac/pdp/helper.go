@@ -14,6 +14,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/evaluation"
 	pdptypes "iam/pkg/abac/pdp/types"
@@ -21,7 +23,6 @@ import (
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 

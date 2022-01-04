@@ -22,12 +22,12 @@ types定义的数据结构的加载层
 import (
 	"database/sql"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 

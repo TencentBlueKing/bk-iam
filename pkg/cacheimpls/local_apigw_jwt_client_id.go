@@ -13,8 +13,8 @@ package cacheimpls
 import (
 	"errors"
 
-	"iam/pkg/cache"
-	"iam/pkg/util"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/stringx"
 )
 
 // APIGatewayJWTClientIDCacheKey cache key for JWTToken
@@ -24,7 +24,7 @@ type APIGatewayJWTClientIDCacheKey struct {
 
 // Key ...
 func (k APIGatewayJWTClientIDCacheKey) Key() string {
-	return util.GetMD5Hash(k.JWTToken)
+	return stringx.MD5Hash(k.JWTToken)
 }
 
 func retrieveAPIGatewayJWTClientID(key cache.Key) (interface{}, error) {

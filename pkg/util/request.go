@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/gin-gonic/gin"
 )
 
@@ -69,5 +70,5 @@ func SetError(c *gin.Context, err error) {
 // BasicAuthAuthorizationHeader ...
 func BasicAuthAuthorizationHeader(user, password string) string {
 	base := user + ":" + password
-	return "Basic " + base64.StdEncoding.EncodeToString(StringToBytes(base))
+	return "Basic " + base64.StdEncoding.EncodeToString(conv.StringToBytes(base))
 }

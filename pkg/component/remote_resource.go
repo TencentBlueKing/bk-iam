@@ -19,9 +19,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/parnurzeal/gorequest"
-
-	"iam/pkg/errorx"
 )
 
 // RemoteResourceTimeout ...

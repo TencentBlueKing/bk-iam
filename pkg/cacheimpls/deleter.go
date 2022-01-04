@@ -11,9 +11,8 @@
 package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache"
 	"go.uber.org/multierr"
-
-	"iam/pkg/cache"
 )
 
 // NOTE: action

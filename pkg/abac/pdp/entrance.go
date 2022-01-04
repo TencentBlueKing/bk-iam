@@ -15,13 +15,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
 	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 

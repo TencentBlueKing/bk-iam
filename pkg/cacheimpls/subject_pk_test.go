@@ -14,13 +14,13 @@ import (
 	"testing"
 	"time"
 
-	"iam/pkg/cache/redis"
-	"iam/pkg/service"
-	"iam/pkg/service/mock"
-
 	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/cache/redis"
+	"iam/pkg/service"
+	"iam/pkg/service/mock"
 )
 
 func TestSubjectIDCacheKey_Key(t *testing.T) {
