@@ -835,7 +835,7 @@ func (s *policyService) DeleteUnQuotedExpression() error {
 			expressionTypeUnQuoted, updateAt)
 	}
 
-	// 3. 标记未被引用的experssion
+	// 3. 标记未被引用的expression
 	err = s.expressionManger.UpdateUnQuotedType(expressionTypeTemplate, expressionTypeUnQuoted)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.UpdateUnQuotedType fromType=`%d`, toType=`%d`",
