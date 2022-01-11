@@ -119,4 +119,7 @@ func Register(r *gin.RouterGroup) {
 	// 模型变更事件
 	r.GET("/model-change-event", handler.ListModelChangeEvent)
 	r.PUT("/model-change-event/:event_pk", handler.UpdateModelChangeEvent)
+
+	// 清理未引用的expression
+	r.DELETE("/unquoted-expressions", handler.DeleteUnquotedExpressions)
 }

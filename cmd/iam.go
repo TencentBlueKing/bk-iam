@@ -103,9 +103,6 @@ func Start() {
 		interrupt(cancelFunc)
 	}()
 
-	// 2. start expression clean task
-	initExpressionCleanTask(ctx)
-
 	// 3. start the server
 	httpServer := server.NewServer(globalConfig)
 	httpServer.Run(ctx)

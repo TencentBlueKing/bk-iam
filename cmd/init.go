@@ -11,7 +11,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/getsentry/sentry-go"
@@ -26,7 +25,6 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -153,8 +151,4 @@ func initQuota() {
 
 func initSwitch() {
 	common.InitSwitch(globalConfig.Switch)
-}
-
-func initExpressionCleanTask(ctx context.Context) {
-	service.InitExpressionCleanTask(ctx)
 }

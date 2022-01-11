@@ -313,3 +313,17 @@ func DeleteActionPolicies(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", gin.H{})
 }
+
+// DeleteUnquotedExpressions clean not quoted expression
+func DeleteUnquotedExpressions(c *gin.Context) {
+	manager := service.NewPolicyService()
+
+	err := manager.DeleteUnquotedExpressions()
+	if err != nil {
+		err = errorx.Wrapf(err, "Handler", "DeleteUnquotedExpressions", "")
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{})
+}

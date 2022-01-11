@@ -88,7 +88,7 @@ type PolicyService interface {
 	HasAnyByActionPK(actionPK int64) (bool, error)
 
 	// for expression clean task
-	DeleteUnquotedExpression() error
+	DeleteUnquotedExpressions() error
 }
 
 type policyService struct {
@@ -816,8 +816,8 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 	return err
 }
 
-// DeleteUnquotedExpression 删除未被引用的expression
-func (s *policyService) DeleteUnquotedExpression() error {
+// DeleteUnquotedExpressions 删除未被引用的expression
+func (s *policyService) DeleteUnquotedExpressions() error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
 

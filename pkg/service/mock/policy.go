@@ -283,16 +283,16 @@ func (mr *MockPolicyServiceMockRecorder) HasAnyByActionPK(actionPK interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAnyByActionPK", reflect.TypeOf((*MockPolicyService)(nil).HasAnyByActionPK), actionPK)
 }
 
-// DeleteUnquotedExpression mocks base method
-func (m *MockPolicyService) DeleteUnquotedExpression() error {
+// DeleteUnquotedExpressions mocks base method
+func (m *MockPolicyService) DeleteUnquotedExpressions() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUnquotedExpression")
+	ret := m.ctrl.Call(m, "DeleteUnquotedExpressions")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteUnquotedExpression indicates an expected call of DeleteUnquotedExpression
-func (mr *MockPolicyServiceMockRecorder) DeleteUnquotedExpression() *gomock.Call {
+// DeleteUnquotedExpressions indicates an expected call of DeleteUnquotedExpressions
+func (mr *MockPolicyServiceMockRecorder) DeleteUnquotedExpressions() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnquotedExpression", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnquotedExpression))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnquotedExpressions", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnquotedExpressions))
 }
