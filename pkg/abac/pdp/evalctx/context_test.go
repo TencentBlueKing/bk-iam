@@ -128,7 +128,14 @@ var _ = Describe("Context", func() {
 
 			assert.False(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
 		})
+	})
 
+	Describe("HasEnv", func() {
+		It("ok", func() {
+			assert.False(GinkgoT(), c.HasEnv())
+			c.SetEnv(map[string]interface{}{"ts": 123})
+			assert.True(GinkgoT(), c.HasEnv())
+		})
 	})
 
 	Describe("InitEnvironments", func() {

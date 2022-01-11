@@ -135,7 +135,7 @@ func partialEvalPolicy(
 	}
 
 	// if no resource passed
-	if !ctx.HasResources() {
+	if !(ctx.HasResources() || ctx.HasEnv()) {
 		return true, cond, nil
 	}
 
