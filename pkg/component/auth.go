@@ -121,7 +121,6 @@ func (c *authClient) call(
 			path, conv.BytesToString(respBody), err.Error())
 		return nil, err
 	}
-	fmt.Println("result.Data", result.Data)
 
 	return result.Data, nil
 }
