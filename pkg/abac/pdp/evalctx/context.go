@@ -75,6 +75,10 @@ func (c *EvalContext) UnsetEnv() {
 	c.objSet.Del(c.System + types.IamEnvSuffix)
 }
 
+func (c *EvalContext) HasEnv() bool {
+	return c.objSet.Has(c.System + types.IamEnvSuffix)
+}
+
 func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime time.Time) error {
 	// build envs
 	c.UnsetEnv()
