@@ -334,7 +334,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/open/departments/{user_id}/groups": {
+        "/api/v1/open/departments/{department_id}/groups": {
             "get": {
                 "security": [
                     {
@@ -3778,46 +3778,14 @@ var doc = `{
         "handler.resourceTypeSerializer": {
             "type": "object",
             "required": [
-                "id",
-                "name",
-                "name_en",
-                "provider_config"
+                "systems"
             ],
             "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "biz_set is a"
+                "fields": {
+                    "type": "string"
                 },
-                "description_en": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name_en": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "parents": {
-                    "description": "can be empty",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.referenceResourceType"
-                    }
-                },
-                "provider_config": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.resourceProviderConfig"
-                },
-                "version": {
-                    "type": "integer",
-                    "example": 1
+                "systems": {
+                    "type": "string"
                 }
             }
         },
@@ -3883,10 +3851,12 @@ var doc = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "admin"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "user"
                 }
             }
         },

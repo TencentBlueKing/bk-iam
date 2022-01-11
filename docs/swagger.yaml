@@ -711,37 +711,12 @@ definitions:
     type: object
   handler.resourceTypeSerializer:
     properties:
-      description:
-        example: biz_set is a
+      fields:
         type: string
-      description_en:
-        example: biz_set is a
+      systems:
         type: string
-      id:
-        example: biz_set
-        type: string
-      name:
-        example: biz_set
-        type: string
-      name_en:
-        example: biz_set
-        type: string
-      parents:
-        description: can be empty
-        items:
-          $ref: '#/definitions/handler.referenceResourceType'
-        type: array
-      provider_config:
-        $ref: '#/definitions/handler.resourceProviderConfig'
-        type: object
-      version:
-        example: 1
-        type: integer
     required:
-    - id
-    - name
-    - name_en
-    - provider_config
+    - systems
     type: object
   handler.resourceTypeUpdateSerializer:
     properties:
@@ -785,8 +760,10 @@ definitions:
   handler.subject:
     properties:
       id:
+        example: admin
         type: string
       type:
+        example: user
         type: string
     required:
     - id
@@ -1192,7 +1169,7 @@ paths:
       summary: system info
       tags:
       - engine
-  /api/v1/open/departments/{user_id}/groups:
+  /api/v1/open/departments/{department_id}/groups:
     get:
       consumes:
       - application/json
