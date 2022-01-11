@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/parnurzeal/gorequest"
 
@@ -88,7 +89,7 @@ func (c *authClient) call(
 	request.Header.Set("X-BK-APP-SECRET", c.appSecret)
 
 	// do request
-	resp, _, errs := request.
+	resp, respBody, errs := request.
 		Send(data).
 		EndStruct(&result, callbackFunc)
 
@@ -108,28 +109,35 @@ func (c *authClient) call(
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("gorequest statusCode is %d not 200", resp.StatusCode)
+		err = fmt.Errorf("gorequest statusCode is %d not 200, respBody=%s",
+			resp.StatusCode, conv.BytesToString(respBody))
 		logger.Errorf("call auth api %s fail , err=%s", path, err.Error())
 		return nil, errorWrapf(err, "status=%d", resp.StatusCode)
 	}
 	if result.Code != 0 {
 		err = errors.New(result.Message)
 		err = errorWrapf(err, "result.Code=%d", result.Code)
-		logger.Errorf("call auth api %s ok but code in response is not 0, err=%s", path, err.Error())
+		logger.Errorf("call auth api %s ok but code in response is not 0, respBody=%s, err=%s",
+			path, conv.BytesToString(respBody), err.Error())
 		return nil, err
 	}
+	fmt.Println("result.Data", result.Data)
 
 	return result.Data, nil
 }
 
 // Verify will check bkAppCode, bkAppSecret is valid
 func (c *authClient) Verify(bkAppCode, bkAppSecret string) (bool, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("component", "authClient.Verify")
+
 	path := fmt.Sprintf("/api/v1/apps/%s/access-keys/verify", bkAppCode)
 
-	data, err := c.call(GET, path, map[string]interface{}{
+	data, err := c.call(POST, path, map[string]interface{}{
 		"bk_app_secret": bkAppSecret,
 	}, 5)
 	if err != nil {
+		err = errorWrapf(err, "verify app_code=`%s` fail", bkAppCode)
+
 		return false, err
 	}
 	matchI, ok := data["is_match"]
