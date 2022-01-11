@@ -5,12 +5,10 @@
 package mock
 
 import (
-	reflect "reflect"
-
-	"github.com/TencentBlueKing/gopkg/collection/set"
+	set "github.com/TencentBlueKing/gopkg/collection/set"
 	gomock "github.com/golang/mock/gomock"
-
 	types "iam/pkg/service/types"
+	reflect "reflect"
 )
 
 // MockPolicyService is a mock of PolicyService interface
@@ -283,4 +281,18 @@ func (m *MockPolicyService) HasAnyByActionPK(actionPK int64) (bool, error) {
 func (mr *MockPolicyServiceMockRecorder) HasAnyByActionPK(actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAnyByActionPK", reflect.TypeOf((*MockPolicyService)(nil).HasAnyByActionPK), actionPK)
+}
+
+// DeleteUnQuotedExpression mocks base method
+func (m *MockPolicyService) DeleteUnQuotedExpression() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnQuotedExpression")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnQuotedExpression indicates an expected call of DeleteUnQuotedExpression
+func (mr *MockPolicyServiceMockRecorder) DeleteUnQuotedExpression() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnQuotedExpression", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnQuotedExpression))
 }

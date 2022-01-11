@@ -154,3 +154,63 @@ func Test_expressionManager_ListDistinctBySignaturesType(t *testing.T) {
 		assert.Equal(t, mockData[1].(Expression), expressions[1])
 	})
 }
+
+func Test_expressionManager_UpdateUnQuotedType(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE expression SET type=`).WithArgs(
+			int64(-1), int64(1),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.updateUnQuotedType(1, -1)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}
+
+func Test_expressionManager_UpdateQuotedType(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE expression SET type=`).WithArgs(
+			int64(1), int64(-1), int64(0),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.UpdateQuotedType(-1, 1, 0)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}
+
+func Test_expressionManager_DeleteUnQuoted(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`DELETE FROM expression WHERE type=`).WithArgs(
+			int64(-1), int64(0),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.DeleteUnQuoted(-1, 0)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}

@@ -107,3 +107,45 @@ func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
+
+// UpdateUnQuotedType mocks base method
+func (m *MockExpressionManager) UpdateUnQuotedType(fromType, toType int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUnQuotedType", fromType, toType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUnQuotedType indicates an expected call of UpdateUnQuotedType
+func (mr *MockExpressionManagerMockRecorder) UpdateUnQuotedType(fromType, toType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnQuotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateUnQuotedType), fromType, toType)
+}
+
+// UpdateQuotedType mocks base method
+func (m *MockExpressionManager) UpdateQuotedType(fromType, toType, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateQuotedType", fromType, toType, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateQuotedType indicates an expected call of UpdateQuotedType
+func (mr *MockExpressionManagerMockRecorder) UpdateQuotedType(fromType, toType, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateQuotedType), fromType, toType, updatedAt)
+}
+
+// DeleteUnQuoted mocks base method
+func (m *MockExpressionManager) DeleteUnQuoted(_type, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnQuoted", _type, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnQuoted indicates an expected call of DeleteUnQuoted
+func (mr *MockExpressionManagerMockRecorder) DeleteUnQuoted(_type, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnQuoted", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnQuoted), _type, updatedAt)
+}
