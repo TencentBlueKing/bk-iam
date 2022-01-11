@@ -81,10 +81,10 @@ func listRemoteResources(systemID, _type string, ids []string, fields []string) 
 		return nil, err
 	}
 
-	resources, err := component.BKRemoteResource.GetResources(req, systemID, _type, ids, fields)
+	resources, err := component.BkRemoteResource.GetResources(req, systemID, _type, ids, fields)
 	if err != nil {
 		err = errorWrapf(
-			err, "BKRemoteResource.GetResource systemID=`%s`, resourceTypeID=`%s`, ids length=`%d`, fields=`%s` fail",
+			err, "BkRemoteResource.GetResource systemID=`%s`, resourceTypeID=`%s`, ids length=`%d`, fields=`%s` fail",
 			systemID, _type, len(ids), fields)
 		return nil, err
 	}

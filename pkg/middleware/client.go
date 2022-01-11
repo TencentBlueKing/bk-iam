@@ -33,11 +33,11 @@ func NewClientAuthMiddleware(c *config.Config) gin.HandlerFunc {
 		apiGatewayPublicKey = []byte(apigwCrypto.Key)
 	}
 
-	return ClientAuthMiddleware(apiGatewayPublicKey)
+	return ClientAuthMiddleware(apiGatewayPublicKey, c.EnableBkAuth)
 }
 
 // ClientAuthMiddleware ...
-func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
+func ClientAuthMiddleware(apiGatewayPublicKey []byte, enableBkAuth bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Debug("Middleware: ClientAuthMiddleware")
 
@@ -80,7 +80,12 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 			}
 
 			// 2. validate from cache -> database
-			valid := cacheimpls.VerifyAppCodeAppSecret(appCode, appSecret)
+			var valid bool
+			if enableBkAuth {
+				valid = cacheimpls.VerifyAppCodeAppSecretFromAuth(appCode, appSecret)
+			} else {
+				valid = cacheimpls.VerifyAppCodeAppSecret(appCode, appSecret)
+			}
 			if !valid {
 				util.UnauthorizedJSONResponse(c, "app code or app secret wrong")
 				c.Abort()
