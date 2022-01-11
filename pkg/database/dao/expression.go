@@ -51,9 +51,9 @@ type ExpressionManager interface {
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int64, error)
 
 	// for task
-	UpdateUnQuotedType(fromType int64, toType int64) error
+	UpdateUnquotedType(fromType int64, toType int64) error
 	UpdateQuotedType(fromType int64, toType int64, updatedAt int64) error
-	DeleteUnQuoted(_type int64, updatedAt int64) error
+	DeleteUnquoted(_type int64, updatedAt int64) error
 }
 
 type expressionManager struct {
@@ -117,9 +117,9 @@ func (m *expressionManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int
 	return m.bulkDeleteByPKsWithTx(tx, pks)
 }
 
-// UpdateUnQuotedType 更新未引用的expression的type字段
-func (m *expressionManager) UpdateUnQuotedType(fromType int64, toType int64) error {
-	return m.updateUnQuotedType(fromType, toType)
+// UpdateUnquotedType 更新未引用的expression的type字段
+func (m *expressionManager) UpdateUnquotedType(fromType int64, toType int64) error {
+	return m.updateUnquotedType(fromType, toType)
 }
 
 // UpdateQuotedType 更新有引用的expression的type字段
@@ -127,9 +127,9 @@ func (m *expressionManager) UpdateQuotedType(fromType int64, toType int64, updat
 	return m.updateQuotedType(fromType, toType, updatedAt)
 }
 
-// DeleteUnQuoted 删除未被引用的expression
-func (m *expressionManager) DeleteUnQuoted(_type int64, updatedAt int64) error {
-	return m.deleteUnQuoted(_type, updatedAt)
+// DeleteUnquoted 删除未被引用的expression
+func (m *expressionManager) DeleteUnquoted(_type int64, updatedAt int64) error {
+	return m.deleteUnquoted(_type, updatedAt)
 }
 
 func (m *expressionManager) selectAuthByPKs(expressions *[]AuthExpression, pks []int64) error {
@@ -185,7 +185,7 @@ func (m *expressionManager) bulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, pks)
 }
 
-func (m *expressionManager) updateUnQuotedType(fromType int64, toType int64) error {
+func (m *expressionManager) updateUnquotedType(fromType int64, toType int64) error {
 	sql := `UPDATE expression SET type=? WHERE type=? AND pk NOT IN (SELECT expression_pk FROM policy)`
 	return database.SqlxExec(m.DB, sql, toType, fromType)
 }
@@ -199,7 +199,7 @@ func (m *expressionManager) updateQuotedType(fromType int64, toType int64, updat
 	return database.SqlxExec(m.DB, sql, toType, fromType, updatedAt)
 }
 
-func (m *expressionManager) deleteUnQuoted(_type int64, updatedAt int64) error {
+func (m *expressionManager) deleteUnquoted(_type int64, updatedAt int64) error {
 	sql := `DELETE FROM expression
 		WHERE type=?
 		AND updated_at < FROM_UNIXTIME(?)

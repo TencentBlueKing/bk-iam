@@ -108,18 +108,18 @@ func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
 
-// UpdateUnQuotedType mocks base method
-func (m *MockExpressionManager) UpdateUnQuotedType(fromType, toType int64) error {
+// UpdateUnquotedType mocks base method
+func (m *MockExpressionManager) UpdateUnquotedType(fromType, toType int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUnQuotedType", fromType, toType)
+	ret := m.ctrl.Call(m, "UpdateUnquotedType", fromType, toType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateUnQuotedType indicates an expected call of UpdateUnQuotedType
-func (mr *MockExpressionManagerMockRecorder) UpdateUnQuotedType(fromType, toType interface{}) *gomock.Call {
+// UpdateUnquotedType indicates an expected call of UpdateUnquotedType
+func (mr *MockExpressionManagerMockRecorder) UpdateUnquotedType(fromType, toType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnQuotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateUnQuotedType), fromType, toType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnquotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateUnquotedType), fromType, toType)
 }
 
 // UpdateQuotedType mocks base method
@@ -136,16 +136,16 @@ func (mr *MockExpressionManagerMockRecorder) UpdateQuotedType(fromType, toType, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateQuotedType), fromType, toType, updatedAt)
 }
 
-// DeleteUnQuoted mocks base method
-func (m *MockExpressionManager) DeleteUnQuoted(_type, updatedAt int64) error {
+// DeleteUnquoted mocks base method
+func (m *MockExpressionManager) DeleteUnquoted(_type, updatedAt int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUnQuoted", _type, updatedAt)
+	ret := m.ctrl.Call(m, "DeleteUnquoted", _type, updatedAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteUnQuoted indicates an expected call of DeleteUnQuoted
-func (mr *MockExpressionManagerMockRecorder) DeleteUnQuoted(_type, updatedAt interface{}) *gomock.Call {
+// DeleteUnquoted indicates an expected call of DeleteUnquoted
+func (mr *MockExpressionManagerMockRecorder) DeleteUnquoted(_type, updatedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnQuoted", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnQuoted), _type, updatedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnquoted", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnquoted), _type, updatedAt)
 }

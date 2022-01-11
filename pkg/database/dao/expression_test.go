@@ -167,7 +167,7 @@ func Test_expressionManager_UpdateUnQuotedType(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &expressionManager{DB: db}
-		err = manager.updateUnQuotedType(1, -1)
+		err = manager.UpdateUnquotedType(1, -1)
 
 		tx.Commit()
 
@@ -207,7 +207,7 @@ func Test_expressionManager_DeleteUnQuoted(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &expressionManager{DB: db}
-		err = manager.DeleteUnQuoted(-1, 0)
+		err = manager.DeleteUnquoted(-1, 0)
 
 		tx.Commit()
 

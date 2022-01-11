@@ -23,7 +23,7 @@ func InitExpressionCleanTask(ctx context.Context) {
 			select {
 			case <-ticker.C:
 				// TODO 记录保存日志，需要有一个新的logger
-				svc.DeleteUnQuotedExpression()
+				svc.DeleteUnquotedExpression()
 			case <-ctx.Done():
 				ticker.Stop()
 				return

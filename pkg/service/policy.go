@@ -36,7 +36,7 @@ const (
 	expressionTypeCustom   int64 = 0 // 自定义的expression类型
 	expressionTypeTemplate int64 = 1 // 模板的expression类型
 
-	expressionTypeUnQuoted int64 = -1 // 未被引用的模板expression类型
+	expressionTypeUnquoted int64 = -1 // 未被引用的模板expression类型
 
 	expressionPKActionWithoutResource = -1 // 操作不关联资源时的expression pk
 
@@ -88,7 +88,7 @@ type PolicyService interface {
 	HasAnyByActionPK(actionPK int64) (bool, error)
 
 	// for expression clean task
-	DeleteUnQuotedExpression() error
+	DeleteUnquotedExpression() error
 }
 
 type policyService struct {
@@ -816,30 +816,30 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 	return err
 }
 
-// DeleteUnQuotedExpression 删除未被引用的expression
-func (s *policyService) DeleteUnQuotedExpression() error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnQuotedExpression")
+// DeleteUnquotedExpression 删除未被引用的expression
+func (s *policyService) DeleteUnquotedExpression() error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
 
 	// 1. 更新被引用但是标记为未引用的expression
-	err := s.expressionManger.UpdateQuotedType(expressionTypeUnQuoted, expressionTypeTemplate, updateAt)
+	err := s.expressionManger.UpdateQuotedType(expressionTypeUnquoted, expressionTypeTemplate, updateAt)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.UpdateQuotedType fromType=`%d`, toType=`%d`, updateAt=`%d`",
-			expressionTypeUnQuoted, expressionTypeTemplate, updateAt)
+			expressionTypeUnquoted, expressionTypeTemplate, updateAt)
 	}
 
 	// 2. 删除标记未被引用的expression
-	err = s.expressionManger.DeleteUnQuoted(expressionTypeUnQuoted, updateAt)
+	err = s.expressionManger.DeleteUnquoted(expressionTypeUnquoted, updateAt)
 	if err != nil {
-		return errorWrapf(err, "expressionManger.DeleteUnQuoted type=`%d`, updateAt=`%d`",
-			expressionTypeUnQuoted, updateAt)
+		return errorWrapf(err, "expressionManger.DeleteUnquoted type=`%d`, updateAt=`%d`",
+			expressionTypeUnquoted, updateAt)
 	}
 
 	// 3. 标记未被引用的expression
-	err = s.expressionManger.UpdateUnQuotedType(expressionTypeTemplate, expressionTypeUnQuoted)
+	err = s.expressionManger.UpdateUnquotedType(expressionTypeTemplate, expressionTypeUnquoted)
 	if err != nil {
-		return errorWrapf(err, "expressionManger.UpdateUnQuotedType fromType=`%d`, toType=`%d`",
-			expressionTypeTemplate, expressionTypeUnQuoted)
+		return errorWrapf(err, "expressionManger.UpdateUnquotedType fromType=`%d`, toType=`%d`",
+			expressionTypeTemplate, expressionTypeUnquoted)
 	}
 
 	return nil
