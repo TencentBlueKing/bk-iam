@@ -1,3 +1,7 @@
+# 1.10.0
+
+- upgrade: permission model supports environment attributes
+
 # 1.9.2
 
 - hotfix: condition StringPrefix eval wrong when key is _bk_iam_path_
