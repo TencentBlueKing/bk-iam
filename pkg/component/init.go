@@ -39,8 +39,8 @@ func InitBkRemoteResourceClient() {
 	BkRemoteResource = NewRemoteResourceClient()
 }
 
-func InitBkAuthClient(bkAuthHost, appCode, appSecret string) {
-	BkAuth = NewAuthClient(bkAuthHost, appCode, appSecret)
+func InitBkAuthClient(bkAuthHost, bkAppCode, bkAppSecret string) {
+	BkAuth = NewAuthClient(bkAuthHost, bkAppCode, bkAppSecret)
 }
 
 // CallbackFunc ...

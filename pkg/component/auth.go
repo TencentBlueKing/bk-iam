@@ -37,23 +37,24 @@ func (r *AuthResponse) String() string {
 
 // AuthClient is the interface of auth client
 type AuthClient interface {
-	Verify(bkAppCode, bkAppSecret string) (bool, error)
+	Verify(appCode, appSecret string) (bool, error)
 }
 
 type authClient struct {
 	Host string
 
-	appCode   string
-	appSecret string
+	// iam's app_code/app_secret, credentials for bkauth
+	bkAppCode   string
+	bkAppSecret string
 }
 
 // NewAuthClient will create a auth client
-func NewAuthClient(host string, appCode string, appSecret string) AuthClient {
+func NewAuthClient(host string, bkAppCode string, bkAppSecret string) AuthClient {
 	host = strings.TrimRight(host, "/")
 	return &authClient{
-		Host:      host,
-		appCode:   appCode,
-		appSecret: appSecret,
+		Host:        host,
+		bkAppCode:   bkAppCode,
+		bkAppSecret: bkAppSecret,
 	}
 }
 
@@ -85,8 +86,8 @@ func (c *authClient) call(
 	request = request.Timeout(callTimeout).Type("json")
 
 	// set headers
-	request.Header.Set("X-BK-APP-CODE", c.appCode)
-	request.Header.Set("X-BK-APP-SECRET", c.appSecret)
+	request.Header.Set("X-BK-APP-CODE", c.bkAppCode)
+	request.Header.Set("X-BK-APP-SECRET", c.bkAppSecret)
 
 	// do request
 	resp, respBody, errs := request.
@@ -126,16 +127,16 @@ func (c *authClient) call(
 }
 
 // Verify will check bkAppCode, bkAppSecret is valid
-func (c *authClient) Verify(bkAppCode, bkAppSecret string) (bool, error) {
+func (c *authClient) Verify(appCode, appSecret string) (bool, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("component", "authClient.Verify")
 
-	path := fmt.Sprintf("/api/v1/apps/%s/access-keys/verify", bkAppCode)
+	path := fmt.Sprintf("/api/v1/apps/%s/access-keys/verify", appCode)
 
 	data, err := c.call(POST, path, map[string]interface{}{
-		"bk_app_secret": bkAppSecret,
+		"bk_app_secret": appSecret,
 	}, 5)
 	if err != nil {
-		err = errorWrapf(err, "verify app_code=`%s` fail", bkAppCode)
+		err = errorWrapf(err, "verify app_code=`%s` fail", appCode)
 
 		return false, err
 	}

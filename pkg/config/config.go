@@ -191,11 +191,6 @@ func Load(v *viper.Viper) (*Config, error) {
 	for _, host := range cfg.Hosts {
 		cfg.HostMap[host.ID] = host
 	}
-	if cfg.EnableBkAuth {
-		if len(cfg.HostMap) == 0 {
-			return nil, errors.New("hosts cannot be empty")
-		}
-	}
 
 	// 4. init quota
 	cfg.CustomQuotasMap = make(map[string]Quota)
