@@ -88,7 +88,7 @@ type PolicyService interface {
 	HasAnyByActionPK(actionPK int64) (bool, error)
 
 	// for expression clean task
-	DeleteUnquotedExpressions() error
+	DeleteUnreferencedExpressions() error
 }
 
 type policyService struct {
@@ -817,26 +817,27 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 }
 
 // DeleteUnquotedExpressions 删除未被引用的expression
-func (s *policyService) DeleteUnquotedExpressions() error {
+func (s *policyService) DeleteUnreferencedExpressions() error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
 
 	// 1. 更新被引用但是标记为未引用的expression
-	err := s.expressionManger.UpdateQuotedType(expressionTypeUnquoted, expressionTypeTemplate, updateAt)
+	err := s.expressionManger.ChangeReferencedExpressionTypeBeforeUpdateAt(
+		expressionTypeUnquoted, expressionTypeTemplate, updateAt)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.UpdateQuotedType fromType=`%d`, toType=`%d`, updateAt=`%d`",
 			expressionTypeUnquoted, expressionTypeTemplate, updateAt)
 	}
 
 	// 2. 删除标记未被引用的expression
-	err = s.expressionManger.DeleteUnquoted(expressionTypeUnquoted, updateAt)
+	err = s.expressionManger.DeleteByTypeBeforeUpdateAt(expressionTypeUnquoted, updateAt)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.DeleteUnquoted type=`%d`, updateAt=`%d`",
 			expressionTypeUnquoted, updateAt)
 	}
 
 	// 3. 标记未被引用的expression
-	err = s.expressionManger.UpdateUnquotedType(expressionTypeTemplate, expressionTypeUnquoted)
+	err = s.expressionManger.ChangeUnreferencedExpressionType(expressionTypeTemplate, expressionTypeUnquoted)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.UpdateUnquotedType fromType=`%d`, toType=`%d`",
 			expressionTypeTemplate, expressionTypeUnquoted)

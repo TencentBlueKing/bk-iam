@@ -51,9 +51,10 @@ type ExpressionManager interface {
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int64, error)
 
 	// for task
-	UpdateUnquotedType(fromType int64, toType int64) error
-	UpdateQuotedType(fromType int64, toType int64, updatedAt int64) error
-	DeleteUnquoted(_type int64, updatedAt int64) error
+
+	ChangeUnreferencedExpressionType(fromType int64, toType int64) error
+	ChangeReferencedExpressionTypeBeforeUpdateAt(fromType int64, toType int64, updatedAt int64) error
+	DeleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error
 }
 
 type expressionManager struct {
@@ -117,19 +118,21 @@ func (m *expressionManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int
 	return m.bulkDeleteByPKsWithTx(tx, pks)
 }
 
-// UpdateUnquotedType 更新未引用的expression的type字段
-func (m *expressionManager) UpdateUnquotedType(fromType int64, toType int64) error {
-	return m.updateUnquotedType(fromType, toType)
+// ChangeUnreferencedExpressionType 更新未引用的expression的type字段
+func (m *expressionManager) ChangeUnreferencedExpressionType(fromType int64, toType int64) error {
+	return m.updateUnreferencedExpressionType(fromType, toType)
 }
 
-// UpdateQuotedType 更新有引用的expression的type字段
-func (m *expressionManager) UpdateQuotedType(fromType int64, toType int64, updatedAt int64) error {
-	return m.updateQuotedType(fromType, toType, updatedAt)
+// ChangeReferencedExpressionTypeBeforeUpdateAt 更新有引用的expression的type字段
+func (m *expressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(
+	fromType int64, toType int64, updatedAt int64,
+) error {
+	return m.updateReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt)
 }
 
-// DeleteUnquoted 删除未被引用的expression
-func (m *expressionManager) DeleteUnquoted(_type int64, updatedAt int64) error {
-	return m.deleteUnquoted(_type, updatedAt)
+// DeleteByTypeBeforeUpdateAt 删除未被引用的expression
+func (m *expressionManager) DeleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error {
+	return m.deleteByTypeBeforeUpdateAt(_type, updatedAt)
 }
 
 func (m *expressionManager) selectAuthByPKs(expressions *[]AuthExpression, pks []int64) error {
@@ -185,12 +188,17 @@ func (m *expressionManager) bulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, pks)
 }
 
-func (m *expressionManager) updateUnquotedType(fromType int64, toType int64) error {
-	sql := `UPDATE expression SET type=? WHERE type=? AND pk NOT IN (SELECT expression_pk FROM policy)`
+func (m *expressionManager) updateUnreferencedExpressionType(fromType int64, toType int64) error {
+	sql := `UPDATE expression SET 
+		type=? 
+		WHERE type=? 
+		AND pk NOT IN (SELECT expression_pk FROM policy)`
 	return database.SqlxExec(m.DB, sql, toType, fromType)
 }
 
-func (m *expressionManager) updateQuotedType(fromType int64, toType int64, updatedAt int64) error {
+func (m *expressionManager) updateReferencedExpressionTypeBeforeUpdateAt(
+	fromType int64, toType int64, updatedAt int64,
+) error {
 	sql := `UPDATE expression SET
 		type=?
 		WHERE type=?
@@ -199,7 +207,7 @@ func (m *expressionManager) updateQuotedType(fromType int64, toType int64, updat
 	return database.SqlxExec(m.DB, sql, toType, fromType, updatedAt)
 }
 
-func (m *expressionManager) deleteUnquoted(_type int64, updatedAt int64) error {
+func (m *expressionManager) deleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error {
 	sql := `DELETE FROM expression
 		WHERE type=?
 		AND updated_at < FROM_UNIXTIME(?)

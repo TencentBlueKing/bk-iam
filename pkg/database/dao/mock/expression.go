@@ -108,44 +108,44 @@ func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
 
-// UpdateUnquotedType mocks base method
-func (m *MockExpressionManager) UpdateUnquotedType(fromType, toType int64) error {
+// ChangeUnreferencedExpressionType mocks base method
+func (m *MockExpressionManager) ChangeUnreferencedExpressionType(fromType, toType int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUnquotedType", fromType, toType)
+	ret := m.ctrl.Call(m, "ChangeUnreferencedExpressionType", fromType, toType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateUnquotedType indicates an expected call of UpdateUnquotedType
-func (mr *MockExpressionManagerMockRecorder) UpdateUnquotedType(fromType, toType interface{}) *gomock.Call {
+// ChangeUnreferencedExpressionType indicates an expected call of ChangeUnreferencedExpressionType
+func (mr *MockExpressionManagerMockRecorder) ChangeUnreferencedExpressionType(fromType, toType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUnquotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateUnquotedType), fromType, toType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUnreferencedExpressionType", reflect.TypeOf((*MockExpressionManager)(nil).ChangeUnreferencedExpressionType), fromType, toType)
 }
 
-// UpdateQuotedType mocks base method
-func (m *MockExpressionManager) UpdateQuotedType(fromType, toType, updatedAt int64) error {
+// ChangeReferencedExpressionTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateQuotedType", fromType, toType, updatedAt)
+	ret := m.ctrl.Call(m, "ChangeReferencedExpressionTypeBeforeUpdateAt", fromType, toType, updatedAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateQuotedType indicates an expected call of UpdateQuotedType
-func (mr *MockExpressionManagerMockRecorder) UpdateQuotedType(fromType, toType, updatedAt interface{}) *gomock.Call {
+// ChangeReferencedExpressionTypeBeforeUpdateAt indicates an expected call of ChangeReferencedExpressionTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateQuotedType", reflect.TypeOf((*MockExpressionManager)(nil).UpdateQuotedType), fromType, toType, updatedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeReferencedExpressionTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).ChangeReferencedExpressionTypeBeforeUpdateAt), fromType, toType, updatedAt)
 }
 
-// DeleteUnquoted mocks base method
-func (m *MockExpressionManager) DeleteUnquoted(_type, updatedAt int64) error {
+// DeleteByTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) DeleteByTypeBeforeUpdateAt(_type, updatedAt int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUnquoted", _type, updatedAt)
+	ret := m.ctrl.Call(m, "DeleteByTypeBeforeUpdateAt", _type, updatedAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteUnquoted indicates an expected call of DeleteUnquoted
-func (mr *MockExpressionManagerMockRecorder) DeleteUnquoted(_type, updatedAt interface{}) *gomock.Call {
+// DeleteByTypeBeforeUpdateAt indicates an expected call of DeleteByTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) DeleteByTypeBeforeUpdateAt(_type, updatedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnquoted", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnquoted), _type, updatedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).DeleteByTypeBeforeUpdateAt), _type, updatedAt)
 }
