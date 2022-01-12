@@ -516,49 +516,51 @@ func compareTwoValues(e1 interface{}, e2 interface{}, allowedComparesResults []C
 	e1Kind := reflect.ValueOf(e1).Kind()
 	e2Kind := reflect.ValueOf(e2).Kind()
 
-	// if got json.Number => cast to the int64 or float64
-	if reflect.TypeOf(e1).String() == "json.Number" {
-		newE1, newE1Kind, err := castJsonNumber(e1)
-		if err == nil {
-			e1 = newE1
-			e1Kind = newE1Kind
+	if e1 != nil && e2 != nil {
+		// if got json.Number => cast to the int64 or float64
+		if reflect.TypeOf(e1).String() == "json.Number" {
+			newE1, newE1Kind, err := castJsonNumber(e1)
+			if err == nil {
+				e1 = newE1
+				e1Kind = newE1Kind
+			}
 		}
-	}
-	if reflect.TypeOf(e2).String() == "json.Number" {
-		newE2, newE2Kind, err := castJsonNumber(e2)
-		if err == nil {
-			e2 = newE2
-			e2Kind = newE2Kind
+		if reflect.TypeOf(e2).String() == "json.Number" {
+			newE2, newE2Kind, err := castJsonNumber(e2)
+			if err == nil {
+				e2 = newE2
+				e2Kind = newE2Kind
+			}
 		}
-	}
 
-	// here, we support number types: int64/float64 compare
-	// check and cast to same type: int64 or float64 and do compare later
-	// but, here got a precision lost, which may case the eval result wrong
-	if e1Kind != e2Kind && isNumberKind(e1Kind) && isNumberKind(e2Kind) {
-		if isFloatKind(e1Kind) || isFloatKind(e2Kind) {
-			// both cast to float64
-			newE1, err := toFloat64(e1)
-			if err == nil {
-				e1 = newE1
-				e1Kind = reflect.Float64
-			}
-			newE2, err2 := toFloat64(e2)
-			if err2 == nil {
-				e2 = newE2
-				e2Kind = reflect.Float64
-			}
-		} else {
-			// both cast to int64
-			newE1, err := toInt64(e1)
-			if err == nil {
-				e1 = newE1
-				e1Kind = reflect.Int64
-			}
-			newE2, err2 := toInt64(e2)
-			if err2 == nil {
-				e2 = newE2
-				e2Kind = reflect.Int64
+		// here, we support number types: int64/float64 compare
+		// check and cast to same type: int64 or float64 and do compare later
+		// but, here got a precision lost, which may case the eval result wrong
+		if e1Kind != e2Kind && isNumberKind(e1Kind) && isNumberKind(e2Kind) {
+			if isFloatKind(e1Kind) || isFloatKind(e2Kind) {
+				// both cast to float64
+				newE1, err := toFloat64(e1)
+				if err == nil {
+					e1 = newE1
+					e1Kind = reflect.Float64
+				}
+				newE2, err2 := toFloat64(e2)
+				if err2 == nil {
+					e2 = newE2
+					e2Kind = reflect.Float64
+				}
+			} else {
+				// both cast to int64
+				newE1, err := toInt64(e1)
+				if err == nil {
+					e1 = newE1
+					e1Kind = reflect.Int64
+				}
+				newE2, err2 := toInt64(e2)
+				if err2 == nil {
+					e2 = newE2
+					e2Kind = reflect.Int64
+				}
 			}
 		}
 	}
