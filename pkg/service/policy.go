@@ -36,7 +36,7 @@ const (
 	expressionTypeCustom   int64 = 0 // 自定义的expression类型
 	expressionTypeTemplate int64 = 1 // 模板的expression类型
 
-	expressionTypeUnquoted int64 = -1 // 未被引用的模板expression类型
+	expressionTypeReferenced int64 = -1 // 未被引用的模板expression类型
 
 	expressionPKActionWithoutResource = -1 // 操作不关联资源时的expression pk
 
@@ -823,24 +823,25 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 
 	// 1. 更新被引用但是标记为未引用的expression
 	err := s.expressionManger.ChangeReferencedExpressionTypeBeforeUpdateAt(
-		expressionTypeUnquoted, expressionTypeTemplate, updateAt)
+		expressionTypeReferenced, expressionTypeTemplate, updateAt)
 	if err != nil {
-		return errorWrapf(err, "expressionManger.UpdateQuotedType fromType=`%d`, toType=`%d`, updateAt=`%d`",
-			expressionTypeUnquoted, expressionTypeTemplate, updateAt)
+		return errorWrapf(err, "expressionManger.ChangeReferencedExpressionTypeBeforeUpdateAt "+
+			"fromType=`%d`, toType=`%d`, updateAt=`%d`",
+			expressionTypeReferenced, expressionTypeTemplate, updateAt)
 	}
 
 	// 2. 删除标记未被引用的expression
-	err = s.expressionManger.DeleteByTypeBeforeUpdateAt(expressionTypeUnquoted, updateAt)
+	err = s.expressionManger.DeleteByTypeBeforeUpdateAt(expressionTypeReferenced, updateAt)
 	if err != nil {
-		return errorWrapf(err, "expressionManger.DeleteUnquoted type=`%d`, updateAt=`%d`",
-			expressionTypeUnquoted, updateAt)
+		return errorWrapf(err, "expressionManger.DeleteByTypeBeforeUpdateAt type=`%d`, updateAt=`%d`",
+			expressionTypeReferenced, updateAt)
 	}
 
 	// 3. 标记未被引用的expression
-	err = s.expressionManger.ChangeUnreferencedExpressionType(expressionTypeTemplate, expressionTypeUnquoted)
+	err = s.expressionManger.ChangeUnreferencedExpressionType(expressionTypeTemplate, expressionTypeReferenced)
 	if err != nil {
-		return errorWrapf(err, "expressionManger.UpdateUnquotedType fromType=`%d`, toType=`%d`",
-			expressionTypeTemplate, expressionTypeUnquoted)
+		return errorWrapf(err, "expressionManger.ChangeUnreferencedExpressionType fromType=`%d`, toType=`%d`",
+			expressionTypeTemplate, expressionTypeReferenced)
 	}
 
 	return nil
