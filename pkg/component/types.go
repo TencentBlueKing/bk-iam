@@ -10,6 +10,22 @@
 
 package component
 
+import "time"
+
+const (
+	defaultTimeout = 5 * time.Second
+)
+
+// Method is the type of http method
+type Method string
+
+var (
+	// POST http post
+	POST Method = "POST"
+	// GET http get
+	GET Method = "GET"
+)
+
 type responseStruct interface {
 	Error() error
 }

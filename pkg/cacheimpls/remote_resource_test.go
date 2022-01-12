@@ -84,7 +84,7 @@ func TestGetCMDBResource(t *testing.T) {
 			"id": "checklist",
 		}}, nil).AnyTimes()
 
-	component.BKRemoteResource = mockService
+	component.BkRemoteResource = mockService
 
 	mockCache := redis.NewMockCache("mockCache", expiration)
 
