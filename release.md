@@ -1,3 +1,7 @@
+# 1.9.4
+
+- add: bkauth support
+
 # 1.9.3
 
 - update: replace some lib with https://github.com/TencentBlueKing/gopkg

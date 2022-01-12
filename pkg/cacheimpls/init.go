@@ -30,6 +30,7 @@ const CacheLayer = "Cache"
 // LocalAppCodeAppSecretCache ...
 var (
 	LocalAppCodeAppSecretCache      memory.Cache
+	LocalAuthAppAccessKeyCache      *gocache.Cache
 	LocalSubjectCache               memory.Cache
 	LocalSubjectRoleCache           memory.Cache
 	LocalSystemClientsCache         memory.Cache
@@ -80,6 +81,9 @@ func InitCaches(disabled bool) {
 		12*time.Hour,
 		nil,
 	)
+
+	// auth app_code/app_secret cache
+	LocalAuthAppAccessKeyCache = gocache.New(12*time.Hour, 5*time.Minute)
 
 	// 影响: engine增量同步
 
