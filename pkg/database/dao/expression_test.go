@@ -195,7 +195,7 @@ func Test_expressionManager_ChangeReferencedExpressionTypeBeforeUpdateAt(t *test
 	})
 }
 
-func Test_expressionManager_DeleteByTypeBeforeUpdateAt(t *testing.T) {
+func Test_expressionManager_DeleteUnreferencedExpressionByTypeBeforeUpdateAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`DELETE FROM expression WHERE type=`).WithArgs(
@@ -207,7 +207,7 @@ func Test_expressionManager_DeleteByTypeBeforeUpdateAt(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &expressionManager{DB: db}
-		err = manager.DeleteByTypeBeforeUpdateAt(-1, 0)
+		err = manager.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(-1, 0)
 
 		tx.Commit()
 

@@ -831,7 +831,7 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 	}
 
 	// 2. 删除标记未被引用的expression
-	err = s.expressionManger.DeleteByTypeBeforeUpdateAt(expressionTypeUnreferenced, updateAt)
+	err = s.expressionManger.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(expressionTypeUnreferenced, updateAt)
 	if err != nil {
 		return errorWrapf(err, "expressionManger.DeleteByTypeBeforeUpdateAt type=`%d`, updateAt=`%d`",
 			expressionTypeUnreferenced, updateAt)

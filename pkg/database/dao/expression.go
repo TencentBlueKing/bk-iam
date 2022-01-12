@@ -54,7 +54,7 @@ type ExpressionManager interface {
 
 	ChangeUnreferencedExpressionType(fromType int64, toType int64) error
 	ChangeReferencedExpressionTypeBeforeUpdateAt(fromType int64, toType int64, updatedAt int64) error
-	DeleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error
+	DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type int64, updatedAt int64) error
 }
 
 type expressionManager struct {
@@ -130,9 +130,11 @@ func (m *expressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(
 	return m.updateReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt)
 }
 
-// DeleteByTypeBeforeUpdateAt 删除未被引用的expression
-func (m *expressionManager) DeleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error {
-	return m.deleteByTypeBeforeUpdateAt(_type, updatedAt)
+// DeleteUnreferencedExpressionByTypeBeforeUpdateAt 删除未被引用的expression
+func (m *expressionManager) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(
+	_type int64, updatedAt int64,
+) error {
+	return m.deleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt)
 }
 
 func (m *expressionManager) selectAuthByPKs(expressions *[]AuthExpression, pks []int64) error {
@@ -207,7 +209,9 @@ func (m *expressionManager) updateReferencedExpressionTypeBeforeUpdateAt(
 	return database.SqlxExec(m.DB, sql, toType, fromType, updatedAt)
 }
 
-func (m *expressionManager) deleteByTypeBeforeUpdateAt(_type int64, updatedAt int64) error {
+func (m *expressionManager) deleteUnreferencedExpressionByTypeBeforeUpdateAt(
+	_type int64, updatedAt int64,
+) error {
 	sql := `DELETE FROM expression
 		WHERE type=?
 		AND updated_at < FROM_UNIXTIME(?)
