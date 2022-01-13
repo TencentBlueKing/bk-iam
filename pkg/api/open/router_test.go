@@ -23,7 +23,7 @@ func TestRegister(t *testing.T) {
 
 	r := util.SetupRouter()
 	g := r.Group("/test")
-	Register(g)
+	RegisterLegacySystemAPIs(g)
 
 	assert.NotNil(t, g)
 }

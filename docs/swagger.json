@@ -93,23 +93,27 @@
                 "operationId": "api-engine-policies-list",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "name": "timestamp",
+                        "type": "string",
+                        "example": "1,2,3",
+                        "name": "ids",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 10001,
+                        "name": "max_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
                         "name": "min_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "name": "max_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "ids",
+                        "example": 1592899208,
+                        "name": "timestamp",
                         "in": "query"
                     }
                 ],
@@ -166,11 +170,13 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1592899208,
                         "name": "begin_updated_at",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 1592899208,
                         "name": "end_updated_at",
                         "in": "query"
                     }
@@ -228,6 +234,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1592899208,
                         "name": "updated_at",
                         "in": "query"
                     }
@@ -295,6 +302,131 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/types.System"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/open/departments/{user_id}/groups": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a department's groups",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "department groups",
+                "operationId": "api-open-department-groups-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "department_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/open/users/{user_id}/groups": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get a user's groups, include the inherit groups from department",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "open"
+                ],
+                "summary": "user groups",
+                "operationId": "api-open-user-groups-get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "get subject's inherit groups from it's departments",
+                        "name": "inherit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
                                         }
                                     }
                                 }
@@ -1417,22 +1549,26 @@
                     },
                     {
                         "type": "string",
+                        "example": "edit_host",
                         "name": "actionID",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
+                        "example": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 100,
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
                     }
@@ -1497,6 +1633,7 @@
                     },
                     {
                         "type": "string",
+                        "example": "1,2,3",
                         "name": "ids",
                         "in": "query",
                         "required": true
@@ -2780,6 +2917,10 @@
         },
         "handler.appCodeAppSecretSerializer": {
             "type": "object",
+            "required": [
+                "app_code",
+                "app_secret"
+            ],
             "properties": {
                 "app_code": {
                     "type": "string"
@@ -2947,6 +3088,10 @@
         },
         "handler.credentialsVerifySerializer": {
             "type": "object",
+            "required": [
+                "data",
+                "type"
+            ],
             "properties": {
                 "data": {
                     "type": "object",
@@ -2966,6 +3111,46 @@
                 "id": {
                     "type": "string",
                     "example": "192.168.1.1"
+                }
+            }
+        },
+        "handler.enginePolicyResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseAction"
+                },
+                "expired_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "expression": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.policyResponseSubject"
+                },
+                "system": {
+                    "type": "string",
+                    "example": "bk_cmdb"
+                },
+                "template_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
@@ -3252,6 +3437,7 @@
                     "type": "string"
                 },
                 "environment": {
+                    "description": "NOTE: this field not used!",
                     "type": "string"
                 },
                 "expired_at": {
@@ -3311,36 +3497,15 @@
         "handler.policyListResponse": {
             "type": "object",
             "properties": {
-                "count": {
-                    "type": "integer",
-                    "example": 120
-                },
                 "metadata": {
                     "type": "object",
-                    "$ref": "#/definitions/handler.policyListResponseMetadata"
+                    "$ref": "#/definitions/handler.listPolicySerializer"
                 },
                 "results": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handler.thinPolicyResponse"
+                        "$ref": "#/definitions/handler.enginePolicyResponse"
                     }
-                }
-            }
-        },
-        "handler.policyListResponseMetadata": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseAction"
-                },
-                "system": {
-                    "type": "string",
-                    "example": "bk_test"
-                },
-                "timestamp": {
-                    "type": "integer",
-                    "example": 1592899208
                 }
             }
         },
@@ -3481,6 +3646,27 @@
                 }
             }
         },
+        "handler.referenceInstanceSelection": {
+            "type": "object",
+            "required": [
+                "id",
+                "system_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "host_view"
+                },
+                "ignore_iam_path": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "system_id": {
+                    "type": "string",
+                    "example": "bk_cmdb"
+                }
+            }
+        },
         "handler.referenceResourceType": {
             "type": "object",
             "required": [
@@ -3491,6 +3677,40 @@
                 "id": {
                     "type": "string",
                     "example": "host"
+                },
+                "system_id": {
+                    "type": "string",
+                    "example": "bk_cmdb"
+                }
+            }
+        },
+        "handler.relatedResourceType": {
+            "type": "object",
+            "required": [
+                "id",
+                "system_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "host"
+                },
+                "name_alias": {
+                    "type": "string"
+                },
+                "name_alias_en": {
+                    "type": "string"
+                },
+                "related_instance_selections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceInstanceSelection"
+                    }
+                },
+                "selection_mode": {
+                    "description": "实例选择方式/范围: [\"all\", \"instance\", \"attribute\"]",
+                    "type": "string",
+                    "example": "instance"
                 },
                 "system_id": {
                     "type": "string",
@@ -3621,6 +3841,23 @@
                 }
             }
         },
+        "handler.responseSubject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Administer"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
         "handler.subject": {
             "type": "object",
             "required": [
@@ -3634,6 +3871,12 @@
                 "type": {
                     "type": "string"
                 }
+            }
+        },
+        "handler.subjectGroupsResponse": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/handler.responseSubject"
             }
         },
         "handler.subjectTemplateSerializer": {
@@ -3813,31 +4056,6 @@
                 }
             }
         },
-        "handler.thinPolicyResponse": {
-            "type": "object",
-            "properties": {
-                "expired_at": {
-                    "type": "integer",
-                    "example": 4102444800
-                },
-                "expression": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseSubject"
-                },
-                "version": {
-                    "type": "string",
-                    "example": "1"
-                }
-            }
-        },
         "handler.tokenResponse": {
             "type": "object",
             "properties": {
@@ -3860,6 +4078,7 @@
                     "type": "string"
                 },
                 "environment": {
+                    "description": "NOTE: this field not used!",
                     "type": "string"
                 },
                 "expired_at": {
