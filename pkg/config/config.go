@@ -109,10 +109,10 @@ type SystemQuota struct {
 	Quota Quota
 }
 
-// type Host struct {
-// 	ID   string
-// 	Addr string
-// }
+type Host struct {
+	ID   string
+	Addr string
+}
 
 // Crypto store the keys for crypto
 type Crypto struct {
@@ -127,6 +127,10 @@ type Config struct {
 	Server Server
 	Sentry Sentry
 
+	// iam's app_code and app_secret
+	BkAppCode   string
+	BkAppSecret string
+
 	SuperAppCode string
 	// default superuser
 	SuperUser string
@@ -139,13 +143,15 @@ type Config struct {
 	Redis    []Redis
 	RedisMap map[string]Redis
 
+	EnableBkAuth bool
+	Hosts        []Host
+	HostMap      map[string]Host
+
 	Quota Quota
 
 	CustomQuotas    []SystemQuota
 	CustomQuotasMap map[string]Quota
 
-	// Hosts   []Host
-	// HostMap map[string]Host
 	Switch map[string]bool
 
 	Cache       Cache
@@ -155,7 +161,7 @@ type Config struct {
 	Cryptos map[string]*Crypto
 }
 
-// Load: 从viper中读取配置文件
+// Load 从viper中读取配置文件
 func Load(v *viper.Viper) (*Config, error) {
 	var cfg Config
 	// 将配置信息绑定到结构体上
@@ -180,17 +186,17 @@ func Load(v *viper.Viper) (*Config, error) {
 		cfg.RedisMap[rds.ID] = rds
 	}
 
-	// 3. init quota
+	// 3. hosts
+	cfg.HostMap = make(map[string]Host)
+	for _, host := range cfg.Hosts {
+		cfg.HostMap[host.ID] = host
+	}
+
+	// 4. init quota
 	cfg.CustomQuotasMap = make(map[string]Quota)
 	for _, q := range cfg.CustomQuotas {
 		cfg.CustomQuotasMap[q.ID] = q.Quota
 	}
-
-	// 3. hosts
-	// cfg.HostMap = make(map[string]Host)
-	// for _, host := range cfg.Hosts {
-	// 	cfg.HostMap[host.ID] = host
-	// }
 
 	return &cfg, nil
 }

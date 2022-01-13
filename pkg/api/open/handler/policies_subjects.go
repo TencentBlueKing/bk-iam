@@ -22,7 +22,7 @@ import (
 	"iam/pkg/util"
 )
 
-// Subjects godoc
+// PoliciesSubjects godoc
 // @Summary query subjects/获取有权限的用户列表
 // @Description system+action+policy_ids => subjects
 // @ID api-open-system-policies-subjects
@@ -36,8 +36,8 @@ import (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies/-/subjects [get]
-func Subjects(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.Subjects")
+func PoliciesSubjects(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.PoliciesSubjects")
 	// TODO: maybe add cache here;
 	// key is subjectsSerializer md5 => value is []subjects; search from git history LocalPolicySubjectsCache
 
@@ -84,7 +84,7 @@ func Subjects(c *gin.Context) {
 		// if get subject fail, continue
 		if err1 != nil {
 			log.Info(errorWrapf(err1,
-				"policy_list.Subjects GetSubjectByPK subject_pk=`%d` fail",
+				"policy_list.PoliciesSubjects GetSubjectByPK subject_pk=`%d` fail",
 				policy.SubjectPK))
 
 			continue

@@ -29,7 +29,7 @@ func TestClientAuthMiddleware(t *testing.T) {
 
 	// 1. without appCode appSecret
 	r := gin.Default()
-	r.Use(ClientAuthMiddleware([]byte("")))
+	r.Use(ClientAuthMiddleware([]byte(""), false))
 	util.NewTestRouter(r)
 
 	req, _ := http.NewRequest("GET", "/ping", nil)

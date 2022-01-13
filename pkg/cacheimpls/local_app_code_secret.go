@@ -11,9 +11,14 @@
 package cacheimpls
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/stringx"
+	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/component"
 	"iam/pkg/database/edao"
 )
 
@@ -43,8 +48,40 @@ func VerifyAppCodeAppSecret(appCode, appSecret string) bool {
 	}
 	exists, err := LocalAppCodeAppSecretCache.GetBool(key)
 	if err != nil {
-		log.Errorf("get app_code_app_secret from memory cache fail, key=%s, err=%s", key.Key(), err)
+		log.Errorf("get app_code_app_secret from memory cache fail, app_code=%s, app_secret=%s, err=%s",
+			appCode,
+			stringx.Truncate(appSecret, 6)+"******",
+			err)
 		return false
 	}
 	return exists
+}
+
+func VerifyAppCodeAppSecretFromAuth(appCode, appSecret string) bool {
+	// 1. get from cache
+	key := appCode + ":" + appSecret
+
+	value, found := LocalAuthAppAccessKeyCache.Get(key)
+	if found {
+		return value.(bool)
+	}
+
+	// 2. get from auth
+	valid, err := component.BkAuth.Verify(appCode, appSecret)
+	if err != nil {
+		log.Errorf("verify app_code_app_secret from auth fail, app_code=%s, app_secret=%s, err=%s",
+			appCode,
+			stringx.Truncate(appSecret, 6)+"******",
+			err)
+		return false
+	}
+
+	// 3. set to cache, default 12 hours, if not valid, only keep in cache for 1 minutes
+	//    in case of auth server down, we can still get the valid matched accessKeys from cache
+	ttl := gocache.DefaultExpiration
+	if !valid {
+		ttl = 1 * time.Minute
+	}
+	LocalAuthAppAccessKeyCache.Set(key, valid, ttl)
+	return valid
 }

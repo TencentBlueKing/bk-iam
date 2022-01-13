@@ -8,24 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package component
+package handler
 
-import "time"
-
-const (
-	defaultTimeout = 5 * time.Second
-)
-
-// Method is the type of http method
-type Method string
-
-var (
-	// POST http post
-	POST Method = "POST"
-	// GET http get
-	GET Method = "GET"
-)
-
-type responseStruct interface {
-	Error() error
+type responseSubject struct {
+	Type string `json:"type" example:"user"`
+	ID   string `json:"id" example:"admin"`
+	Name string `json:"name" example:"Administer"`
 }
+
+type subjectGroupsResponse []responseSubject
