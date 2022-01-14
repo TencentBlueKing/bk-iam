@@ -356,7 +356,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			)
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
-					"eventSvc.UpdateStatusByModel fail, actionPK=`%s", actionPK)
+					"eventSvc.UpdateStatusByModel fail, actionPK=`%d`", actionPK)
 				util.SystemErrorJSONResponse(c, err)
 				return
 			}
