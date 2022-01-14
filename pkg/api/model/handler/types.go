@@ -16,8 +16,8 @@ const (
 
 	ModelChangeEventModelTypeAction = "action"
 
-	ModelChangeEventStatusPending = "pending"
-	// ModelChangeEventStatusFinished          = "finished"
+	ModelChangeEventStatusPending  = "pending"
+	ModelChangeEventStatusFinished = "finished"
 )
 
 type referenceResourceType struct {

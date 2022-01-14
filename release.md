@@ -1,3 +1,8 @@
+# 1.9.5
+
+- bugfix: healthz check fail if enable bkauth
+- bugfix: ModelChangeEvent when action(no policy related) be deleted
+
 # 1.9.4
 
 - add: bkauth support
