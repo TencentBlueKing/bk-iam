@@ -1,3 +1,7 @@
+# 1.9.5
+
+- bugfix: healthz check fail if enable bkauth
+
 # 1.9.4
 
 - add: bkauth support

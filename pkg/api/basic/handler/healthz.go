@@ -82,9 +82,15 @@ func NewHealthzHandleFunc(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1. check database
 		defaultDBConfig := cfg.DatabaseMap["iam"]
-		bkPaaSDBConfig := cfg.DatabaseMap["open_paas"]
 
-		for _, dbConfig := range []config.Database{defaultDBConfig, bkPaaSDBConfig} {
+		dbConfigs := []config.Database{defaultDBConfig}
+
+		if !cfg.EnableBkAuth {
+			bkPaaSDBConfig := cfg.DatabaseMap["open_paas"]
+			dbConfigs = append(dbConfigs, bkPaaSDBConfig)
+		}
+
+		for _, dbConfig := range dbConfigs {
 			dbConfig := dbConfig
 			// reset the options for check
 			dbConfig.MaxIdleConns = 1
