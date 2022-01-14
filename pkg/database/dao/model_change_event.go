@@ -110,7 +110,7 @@ func (m *modelChangeEventManager) UpdateStatusByModel(eventType, modelType strin
 
 	// 2. build sql
 	updatedSQL := "UPDATE model_change_event SET " + expr +
-		" WHERE type=:type AND model_type:=model_type AND model_pk:=model_pk"
+		" WHERE type=:type AND model_type=:model_type AND model_pk=:model_pk"
 
 	return m.update(updatedSQL, data)
 }

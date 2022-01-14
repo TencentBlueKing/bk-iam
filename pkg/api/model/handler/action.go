@@ -345,7 +345,6 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
 					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
-				//
 				log.Error(err)
 				continue
 			}
