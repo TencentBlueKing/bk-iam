@@ -344,7 +344,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			actionPK, err := cacheimpls.GetActionPK(systemID, id)
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
-					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
+					"query action pk fail, cacheimpls.GetActionPK systemID=`%s`, ids=`%v`", systemID, ids)
 				log.Error(err)
 				continue
 			}
