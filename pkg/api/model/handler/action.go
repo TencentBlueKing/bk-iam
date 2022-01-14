@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
@@ -338,13 +339,15 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 	}
 	if len(newIDs) > 0 {
 		// Note: 同步删除的Action，若存在其对应的delete_policy事件，那么需要标记为结束（因为Action是真删除了，代表其一定没有关联Policy）
+		// 对于处理Event失败，并非核心逻辑，不能影响正常删除Action，所以失败时只能记录日志
 		for _, id := range newIDs {
 			actionPK, err := cacheimpls.GetActionPK(systemID, id)
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
 					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
-				util.SystemErrorJSONResponse(c, err)
-				return
+				//
+				log.Error(err)
+				continue
 			}
 			// 直接更新掉 delete_policy事件的状态
 			eventSvc := service.NewModelChangeService()
@@ -357,8 +360,8 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
 					"eventSvc.UpdateStatusByModel fail, actionPK=`%d`", actionPK)
-				util.SystemErrorJSONResponse(c, err)
-				return
+				log.Error(err)
+				continue
 			}
 		}
 
