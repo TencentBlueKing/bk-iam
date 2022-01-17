@@ -19,7 +19,7 @@ import (
 	"iam/pkg/abac/pdp/condition"
 	pdptypes "iam/pkg/abac/pdp/types"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 

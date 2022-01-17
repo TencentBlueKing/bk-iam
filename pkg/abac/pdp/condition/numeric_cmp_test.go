@@ -12,7 +12,7 @@ package condition
 
 import (
 	"github.com/TencentBlueKing/iam-go-sdk/expression/eval"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition/operator"
