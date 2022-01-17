@@ -15,34 +15,35 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
-
 	"iam/pkg/service/types"
 )
 
 var _ = Describe("Database", func() {
 
 	Describe("newDatabaseRetriever", func() {
-		var ctl *gomock.Controller
-		var patches *gomonkey.Patches
+		It("ok", func() {
+			var ctl *gomock.Controller
+			var patches *gomonkey.Patches
 
-		ctl = gomock.NewController(GinkgoT())
-		patches = gomonkey.NewPatches()
+			ctl = gomock.NewController(GinkgoT())
+			patches = gomonkey.NewPatches()
 
-		mockPolicyService := mock.NewMockPolicyService(ctl)
-		patches.ApplyFunc(service.NewPolicyService, func() service.PolicyService {
-			return mockPolicyService
+			mockPolicyService := mock.NewMockPolicyService(ctl)
+			patches.ApplyFunc(service.NewPolicyService, func() service.PolicyService {
+				return mockPolicyService
+			})
+
+			r := newDatabaseRetriever()
+			assert.NotNil(GinkgoT(), r)
+
+			ctl.Finish()
+			patches.Reset()
 		})
-
-		r := newDatabaseRetriever()
-		assert.NotNil(GinkgoT(), r)
-
-		ctl.Finish()
-		patches.Reset()
 	})
 
 	Describe("retrieve", func() {

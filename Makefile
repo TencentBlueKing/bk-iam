@@ -11,6 +11,8 @@ init:
 	go install github.com/swaggo/swag/cmd/swag@v1.7.6
 	# for make mock
 	go install github.com/golang/mock/mockgen@v1.4.4
+	# for ginkgo
+	go install github.com/onsi/ginkgo/v2/ginkgo@latest
 
 dep:
 	go mod tidy

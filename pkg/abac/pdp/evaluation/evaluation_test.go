@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache/memory"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
