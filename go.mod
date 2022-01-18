@@ -37,6 +37,7 @@ require (
 	github.com/swaggo/gin-swagger v1.3.3
 	github.com/swaggo/swag v1.7.6
 	github.com/vmihailenco/msgpack/v5 v5.3.4
+	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
