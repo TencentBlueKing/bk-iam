@@ -38,6 +38,7 @@
 - [TencentBlueKing/bk-iam](https://github.com/TencentBlueKing/bk-iam)
 - [TencentBlueKing/bk-iam-saas](https://github.com/TencentBlueKing/bk-iam-saas)
 - [TencentBlueKing/bk-iam-search-engine](https://github.com/TencentBlueKing/bk-iam-search-engine)
+- [TencentBlueKing/bk-iam-cli](https://github.com/TencentBlueKing/bk-iam-cli)
 - [TencentBlueKing/iam-python-sdk](https://github.com/TencentBlueKing/iam-python-sdk)
 - [TencentBlueKing/iam-go-sdk](https://github.com/TencentBlueKing/iam-go-sdk)
 - [TencentBlueKing/iam-php-sdk](https://github.com/TencentBlueKing/iam-php-sdk)
