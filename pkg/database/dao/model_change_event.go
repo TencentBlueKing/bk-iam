@@ -41,6 +41,7 @@ type ModelChangeEventManager interface {
 	ListByStatus(status string) ([]ModelChangeEvent, error)
 	UpdateStatusByPK(pk int64, status string) error
 	BulkCreate(modelChangeEvents []ModelChangeEvent) error
+	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
 }
 
 type modelChangeEventManager struct {
@@ -91,6 +92,27 @@ func (m *modelChangeEventManager) UpdateStatusByPK(pk int64, status string) erro
 // BulkCreate ...
 func (m *modelChangeEventManager) BulkCreate(modelChangeEvents []ModelChangeEvent) error {
 	return m.insert(modelChangeEvents)
+}
+
+// UpdateStatusByModel ...
+func (m *modelChangeEventManager) UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error {
+	modelChangeEvent := ModelChangeEvent{Status: status}
+	// 1. parse the set sql string and update data
+	expr, data, err := database.ParseUpdateStruct(modelChangeEvent, modelChangeEvent.AllowBlankFields)
+	if err != nil {
+		return fmt.Errorf("parse update struct fail. %w", err)
+	}
+
+	// Where Content
+	data["type"] = eventType
+	data["model_type"] = modelType
+	data["model_pk"] = modelPK
+
+	// 2. build sql
+	updatedSQL := "UPDATE model_change_event SET " + expr +
+		" WHERE type=:type AND model_type=:model_type AND model_pk=:model_pk"
+
+	return m.update(updatedSQL, data)
 }
 
 func (m *modelChangeEventManager) selectOne(modelChangeEvent *ModelChangeEvent, eventType, status, modelType string,
