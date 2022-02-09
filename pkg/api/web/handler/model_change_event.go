@@ -13,6 +13,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/service"
@@ -22,7 +23,7 @@ import (
 // ListModelChangeEvent 查询变更事件列表
 func ListModelChangeEvent(c *gin.Context) {
 	status := c.Query("status")
-	limit, err := util.StringToInt64(c.Query("limit"))
+	limit, err := conv.ToInt64(c.Query("limit"))
 	if err != nil {
 		limit = 1000
 	}
@@ -46,7 +47,7 @@ func UpdateModelChangeEvent(c *gin.Context) {
 		return
 	}
 
-	eventPK, err := util.StringToInt64(c.Param("event_pk"))
+	eventPK, err := conv.ToInt64(c.Param("event_pk"))
 	if err != nil {
 		util.BadRequestErrorJSONResponse(c, err.Error())
 		return

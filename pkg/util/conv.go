@@ -21,11 +21,6 @@ func Int64SliceToString(s []int64, sep string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(s)), sep), "[]")
 }
 
-// StringToInt64 ...
-func StringToInt64(i string) (int64, error) {
-	return strconv.ParseInt(i, 10, 64)
-}
-
 // StringToInt64Slice ...
 func StringToInt64Slice(s, sep string) ([]int64, error) {
 	if s == "" {
