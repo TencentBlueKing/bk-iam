@@ -22,10 +22,13 @@ import (
 // ListModelChangeEvent 查询变更事件列表
 func ListModelChangeEvent(c *gin.Context) {
 	status := c.Query("status")
+	limit, err := util.StringToInt64(c.Query("limit"))
+	if err != nil {
+		limit = 1000
+	}
 
 	svc := service.NewModelChangeService()
-	events, err := svc.ListByStatus(status)
-
+	events, err := svc.ListByStatus(status, limit)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "ListModelChangeEvent", "status=`%s`", status)
 		util.SystemErrorJSONResponse(c, err)
