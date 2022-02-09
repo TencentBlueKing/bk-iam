@@ -38,7 +38,7 @@ type ModelChangeEvent struct {
 // ModelChangeEventManager define the event crud for model change
 type ModelChangeEventManager interface {
 	GetByTypeModel(eventType, status, modelType string, modelPK int64) (ModelChangeEvent, error)
-	ListByStatus(status string) ([]ModelChangeEvent, error)
+	ListByStatus(status string, limit int64) ([]ModelChangeEvent, error)
 	UpdateStatusByPK(pk int64, status string) error
 	BulkCreate(modelChangeEvents []ModelChangeEvent) error
 	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
@@ -66,8 +66,8 @@ func (m *modelChangeEventManager) GetByTypeModel(eventType, status, modelType st
 }
 
 // ListByStatus ...
-func (m *modelChangeEventManager) ListByStatus(status string) (modelChangeEvents []ModelChangeEvent, err error) {
-	err = m.selectByStatus(&modelChangeEvents, status)
+func (m *modelChangeEventManager) ListByStatus(status string, limit int64) (modelChangeEvents []ModelChangeEvent, err error) {
+	err = m.selectByStatus(&modelChangeEvents, status, limit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return modelChangeEvents, nil
 	}
@@ -134,7 +134,7 @@ func (m *modelChangeEventManager) selectOne(modelChangeEvent *ModelChangeEvent, 
 	return database.SqlxGet(m.DB, modelChangeEvent, query, eventType, status, modelType, modelPK)
 }
 
-func (m *modelChangeEventManager) selectByStatus(modelChangeEvents *[]ModelChangeEvent, status string) error {
+func (m *modelChangeEventManager) selectByStatus(modelChangeEvents *[]ModelChangeEvent, status string, limit int64) error {
 	query := `SELECT
 		pk,
 		type,
@@ -144,8 +144,9 @@ func (m *modelChangeEventManager) selectByStatus(modelChangeEvents *[]ModelChang
 		model_id,
 		model_pk
 		FROM model_change_event
-		WHERE status=?`
-	return database.SqlxSelect(m.DB, modelChangeEvents, query, status)
+		WHERE status=?
+		LIMIT ?`
+	return database.SqlxSelect(m.DB, modelChangeEvents, query, status, limit)
 }
 
 func (m *modelChangeEventManager) update(updatedSQL string, data map[string]interface{}) error {

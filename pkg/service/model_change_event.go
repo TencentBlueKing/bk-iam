@@ -23,7 +23,7 @@ const ModelChangeEventSVC = "ModelChangeEventSVC"
 
 // ModelChangeEventService define the interface for model change
 type ModelChangeEventService interface {
-	ListByStatus(status string) ([]types.ModelChangeEvent, error)
+	ListByStatus(status string, limit int64) ([]types.ModelChangeEvent, error)
 	UpdateStatusByPK(pk int64, status string) error
 	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
 	BulkCreate(modelChangeEvents []types.ModelChangeEvent) error
@@ -42,10 +42,10 @@ func NewModelChangeService() ModelChangeEventService {
 }
 
 // ListByStatus ...
-func (l *modelChangeEventService) ListByStatus(status string) (modelChangeEvents []types.ModelChangeEvent, err error) {
+func (l *modelChangeEventService) ListByStatus(status string, limit int64) (modelChangeEvents []types.ModelChangeEvent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "ListByStatus")
 
-	dbModelChangeEvents, err := l.manager.ListByStatus(status)
+	dbModelChangeEvents, err := l.manager.ListByStatus(status, limit)
 	if err != nil {
 		return modelChangeEvents, errorWrapf(err, "ListByStatus(status=%s) fail", status)
 	}
