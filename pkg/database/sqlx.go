@@ -72,6 +72,16 @@ func bulkInsertTimer(f bulkInsertFunc) bulkInsertFunc {
 	}
 }
 
+type execFunc func(db *sqlx.DB, query string, args ...interface{}) error
+
+func execTimer(f execFunc) execFunc {
+	return func(db *sqlx.DB, query string, args ...interface{}) error {
+		start := time.Now()
+		defer logSlowSQL(start, query, args)
+		return f(db, query, args...)
+	}
+}
+
 // ================== raw execute func ==================
 func sqlxSelectFunc(db *sqlx.DB, dest interface{}, query string, args ...interface{}) error {
 	query, args, err := sqlx.In(query, args...)
@@ -173,6 +183,11 @@ func sqlxBulkUpdateFunc(db *sqlx.DB, query string, args interface{}) error {
 	}
 
 	return tx.Commit()
+}
+
+func sqlxExecFunc(db *sqlx.DB, query string, args ...interface{}) error {
+	_, err := db.Exec(query, args...)
+	return err
 }
 
 // ============== timer with tx ==============
@@ -388,6 +403,7 @@ var (
 	SqlxUpdate     = updateTimer(sqlxUpdateFunc)
 	SqlxBulkInsert = bulkInsertTimer(sqlxBulkInsertFunc)
 	SqlxBulkUpdate = bulkInsertTimer(sqlxBulkUpdateFunc)
+	SqlxExec       = execTimer(sqlxExecFunc)
 
 	SqlxDeleteWithCtx = deleteWithCtxTimer(sqlxDeleteWithCtxFunc)
 	SqlxInsertWithTx  = insertWithTxTimer(sqlxInsertWithTx)
