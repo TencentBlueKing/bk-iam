@@ -66,7 +66,9 @@ func (m *modelChangeEventManager) GetByTypeModel(eventType, status, modelType st
 }
 
 // ListByStatus ...
-func (m *modelChangeEventManager) ListByStatus(status string, limit int64) (modelChangeEvents []ModelChangeEvent, err error) {
+func (m *modelChangeEventManager) ListByStatus(
+	status string, limit int64,
+) (modelChangeEvents []ModelChangeEvent, err error) {
 	err = m.selectByStatus(&modelChangeEvents, status, limit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return modelChangeEvents, nil
@@ -115,8 +117,12 @@ func (m *modelChangeEventManager) UpdateStatusByModel(eventType, modelType strin
 	return m.update(updatedSQL, data)
 }
 
-func (m *modelChangeEventManager) selectOne(modelChangeEvent *ModelChangeEvent, eventType, status, modelType string,
-	modelPK int64) error {
+func (m *modelChangeEventManager) selectOne(
+	modelChangeEvent *ModelChangeEvent,
+	eventType,
+	status, modelType string,
+	modelPK int64,
+) error {
 	query := `SELECT
 		pk,
 		type,
@@ -134,7 +140,9 @@ func (m *modelChangeEventManager) selectOne(modelChangeEvent *ModelChangeEvent, 
 	return database.SqlxGet(m.DB, modelChangeEvent, query, eventType, status, modelType, modelPK)
 }
 
-func (m *modelChangeEventManager) selectByStatus(modelChangeEvents *[]ModelChangeEvent, status string, limit int64) error {
+func (m *modelChangeEventManager) selectByStatus(
+	modelChangeEvents *[]ModelChangeEvent, status string, limit int64,
+) error {
 	query := `SELECT
 		pk,
 		type,

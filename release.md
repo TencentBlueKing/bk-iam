@@ -1,3 +1,8 @@
+# 1.10.1
+
+- add: API /api/v1/web//unreferenced-expressions
+- upgrade: go version 1.17
+
 # 1.10.0
 
 - upgrade: permission model supports environment attributes
