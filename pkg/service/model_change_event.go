@@ -42,7 +42,9 @@ func NewModelChangeService() ModelChangeEventService {
 }
 
 // ListByStatus ...
-func (l *modelChangeEventService) ListByStatus(status string, limit int64) (modelChangeEvents []types.ModelChangeEvent, err error) {
+func (l *modelChangeEventService) ListByStatus(
+	status string, limit int64,
+) (modelChangeEvents []types.ModelChangeEvent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "ListByStatus")
 
 	dbModelChangeEvents, err := l.manager.ListByStatus(status, limit)
