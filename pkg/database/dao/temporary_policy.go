@@ -42,12 +42,12 @@ type ThinTemporaryPolicy struct {
 // TemporaryPolicyManager ...
 type TemporaryPolicyManager interface {
 	// for auth
-	ListThinBySubjectAction(subjectPK int64, actionPK int64, expiredAt int64) ([]ThinTemporaryPolicy, error)
+	ListThinBySubjectAction(subjectPK, actionPK, expiredAt int64) ([]ThinTemporaryPolicy, error)
 	ListByPKs(pks []int64) ([]TemporaryPolicy, error)
 
 	// for saas
 	BulkCreateWithTx(tx *sqlx.Tx, policies []TemporaryPolicy) ([]int64, error)
-	BulkDeleteByPKsWithTx(tx *sqlx.Tx, subjectPK, pks []int64) (int64, error)
+	BulkDeleteByPKsWithTx(tx *sqlx.Tx, subjectPK int64, pks []int64) (int64, error)
 }
 
 type temporaryPolicyManager struct {
@@ -63,7 +63,7 @@ func NewTemporaryPolicyManager() TemporaryPolicyManager {
 
 // ListThinBySubjectAction ...
 func (m *temporaryPolicyManager) ListThinBySubjectAction(
-	subjectPK int64, actionPK int64, expiredAt int64) (policies []ThinTemporaryPolicy, err error) {
+	subjectPK, actionPK, expiredAt int64) (policies []ThinTemporaryPolicy, err error) {
 	err = m.selectBySubjectAction(&policies, subjectPK, actionPK, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
@@ -90,7 +90,7 @@ func (m *temporaryPolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []Tempor
 
 // BulkDeleteByPKsWithTx ...
 func (m *temporaryPolicyManager) BulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK, pks []int64,
+	tx *sqlx.Tx, subjectPK int64, pks []int64,
 ) (int64, error) {
 	if len(pks) == 0 {
 		return 0, nil
@@ -111,7 +111,7 @@ func (m *temporaryPolicyManager) selectByPKs(policies *[]TemporaryPolicy, pks []
 }
 
 func (m *temporaryPolicyManager) selectBySubjectAction(
-	policies *[]ThinTemporaryPolicy, subjectPK int64, actionPK int64, expiredAt int64) error {
+	policies *[]ThinTemporaryPolicy, subjectPK, actionPK, expiredAt int64) error {
 	query := `SELECT
 		pk,
 		expired_at
@@ -137,7 +137,7 @@ func (m *temporaryPolicyManager) bulkInsertWithTx(tx *sqlx.Tx, policies []Tempor
 }
 
 func (m *temporaryPolicyManager) bulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK, pks []int64,
+	tx *sqlx.Tx, subjectPK int64, pks []int64,
 ) (int64, error) {
 	sql := `DELETE FROM temporary_policy WHERE subject_pk = ? AND pk IN (?)`
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, subjectPK, pks)

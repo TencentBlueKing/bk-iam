@@ -24,7 +24,7 @@ const TemporaryPolicySVC = "TemporaryPolicySVC"
 // TemporaryPolicyService ...
 type TemporaryPolicyService interface {
 	// for auth
-	ListThinBySubjectAction(subjectPK int64, actionPK int64) ([]types.ThinTemporaryPolicy, error)
+	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
 	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
 }
 
@@ -41,7 +41,7 @@ func NewTemporaryPolicyService() TemporaryPolicyService {
 
 // ListThinBySubjectAction ...
 func (s *temporaryPolicyService) ListThinBySubjectAction(
-	subjectPK int64, actionPK int64,
+	subjectPK, actionPK int64,
 ) ([]types.ThinTemporaryPolicy, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "ListThinBySubjectAction")
 	nowUnix := time.Now().Unix()

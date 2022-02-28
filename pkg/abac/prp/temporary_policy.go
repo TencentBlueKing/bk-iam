@@ -50,7 +50,7 @@ func (c *temporaryPolicyCache) genKey(subjectPK int64) cache.Key {
 
 // ListThinBySubjectAction ...
 func (c *temporaryPolicyCache) ListThinBySubjectAction(
-	subjectPK int64, actionPK int64,
+	subjectPK, actionPK int64,
 ) (ps []types.ThinTemporaryPolicy, err error) {
 	key := c.genKey(subjectPK)
 	field := strconv.FormatInt(actionPK, 10)
