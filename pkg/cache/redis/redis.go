@@ -17,6 +17,7 @@ import (
 	"time"
 
 	gopkgcache "github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
@@ -335,6 +336,38 @@ type HashKeyField struct {
 type Hash struct {
 	HashKeyField
 	Value string
+}
+
+// HGet execute `hget`
+func (c *Cache) HGet(hashKeyField HashKeyField, value interface{}) error {
+	k := c.genKey(hashKeyField.Key)
+	valueStr, err := c.cli.HGet(context.TODO(), k, hashKeyField.Field).Result()
+	if err != nil {
+		return err
+	}
+	return c.Unmarshal(conv.StringToBytes(valueStr), value)
+}
+
+// HSet execute `hset`
+func (c *Cache) HSet(hashKeyField HashKeyField, value interface{}, duration time.Duration) error {
+	bytes, err := c.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	pipe := c.cli.TxPipeline()
+	ctx := context.TODO()
+
+	k := c.genKey(hashKeyField.Key)
+	pipe.HSet(ctx, k, hashKeyField.Field, conv.BytesToString(bytes))
+
+	if duration == time.Duration(0) {
+		duration = c.defaultExpiration
+	}
+
+	pipe.Expire(ctx, k, duration)
+	_, err = pipe.Exec(ctx)
+	return err
 }
 
 // BatchHSetWithTx execute `hset` with tx pipeline

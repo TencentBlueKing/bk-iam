@@ -49,12 +49,14 @@ var (
 	ActionPKCache       *redis.Cache
 	ActionDetailCache   *redis.Cache
 
-	PolicyCache     *redis.Cache
-	ExpressionCache *redis.Cache
+	PolicyCache          *redis.Cache
+	ExpressionCache      *redis.Cache
+	TemporaryPolicyCache *redis.Cache
 
-	LocalPolicyCache     *gocache.Cache
-	LocalExpressionCache *gocache.Cache
-	ChangeListCache      *redis.Cache
+	LocalPolicyCache         *gocache.Cache
+	LocalExpressionCache     *gocache.Cache
+	LocalTemporayPolicyCache *gocache.Cache
+	ChangeListCache          *redis.Cache
 
 	ActionCacheCleaner       *cleaner.CacheCleaner
 	ResourceTypeCacheCleaner *cleaner.CacheCleaner
@@ -223,6 +225,7 @@ func InitCaches(disabled bool) {
 
 	LocalPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	LocalExpressionCache = gocache.New(5*time.Minute, 5*time.Minute)
+	LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	ChangeListCache = redis.NewCache("cl", 5*time.Minute)
 
 	PolicyCache = redis.NewCache(
@@ -232,6 +235,11 @@ func InitCaches(disabled bool) {
 
 	ExpressionCache = redis.NewCache(
 		"ex",
+		30*time.Minute,
+	)
+
+	TemporaryPolicyCache = redis.NewCache(
+		"tp",
 		30*time.Minute,
 	)
 
