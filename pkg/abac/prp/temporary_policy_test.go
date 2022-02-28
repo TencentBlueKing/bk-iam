@@ -9,3 +9,166 @@
  */
 
 package prp
+
+import (
+	"errors"
+	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
+	"iam/pkg/service/mock"
+	"iam/pkg/service/types"
+	"time"
+
+	red "github.com/go-redis/redis/v8"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo/v2"
+	gocache "github.com/patrickmn/go-cache"
+	"github.com/stretchr/testify/assert"
+)
+
+var _ = Describe("Redis", func() {
+	It("genKey", func() {
+		c := &temporaryPolicyRedisCache{
+			system:                 "test",
+			keyPrefix:              "test" + ":",
+			temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
+		}
+		k := c.genKey(456)
+
+		assert.Equal(GinkgoT(), "test:456", k.Key())
+	})
+
+	It("genHashKeyField", func() {
+		c := &temporaryPolicyRedisCache{
+			system:                 "test",
+			keyPrefix:              "test" + ":",
+			temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
+		}
+		hashKeyField := c.genHashKeyField(456, 789)
+
+		assert.Equal(GinkgoT(), hashKeyField, redis.HashKeyField{
+			Key:   "test:456",
+			Field: "789",
+		})
+	})
+
+	Describe("temporaryPolicyRedisCache", func() {
+		var c *temporaryPolicyRedisCache
+		BeforeEach(func() {
+			c = &temporaryPolicyRedisCache{
+				system:                 "test",
+				keyPrefix:              "test" + ":",
+				temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
+			}
+			cacheimpls.TemporaryPolicyCache = redis.NewMockCache("test", 5*time.Minute)
+		})
+
+		It("get fail", func() {
+			_, err := c.getThinTemporaryPoliciesFromCache(456, 789)
+			assert.ErrorIs(GinkgoT(), err, red.Nil)
+		})
+
+		It("set and get ok", func() {
+			ps := []types.ThinTemporaryPolicy{{}}
+			c.setThinTemporaryPoliciesToCache(456, 789, ps)
+			value, err := c.getThinTemporaryPoliciesFromCache(456, 789)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), ps, value)
+		})
+
+		It("ListThinBySubjectAction fail", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT()))
+			mockTemporaryPolicyService.EXPECT().ListThinBySubjectAction(
+				int64(456), int64(789),
+			).Return(
+				nil, errors.New("list fail"),
+			).AnyTimes()
+
+			c = &temporaryPolicyRedisCache{
+				system:                 "test",
+				keyPrefix:              "test" + ":",
+				temporaryPolicyService: mockTemporaryPolicyService,
+			}
+
+			_, err := c.ListThinBySubjectAction(456, 789)
+			assert.Contains(GinkgoT(), err.Error(), "fail")
+		})
+
+		It("ListThinBySubjectAction ok", func() {
+			ps := []types.ThinTemporaryPolicy{{}}
+
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT()))
+			mockTemporaryPolicyService.EXPECT().ListThinBySubjectAction(
+				int64(456), int64(789),
+			).Return(
+				ps, nil,
+			).AnyTimes()
+
+			c = &temporaryPolicyRedisCache{
+				system:                 "test",
+				keyPrefix:              "test" + ":",
+				temporaryPolicyService: mockTemporaryPolicyService,
+			}
+
+			value, err := c.ListThinBySubjectAction(456, 789)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), ps, value)
+		})
+	})
+
+	Describe("temporaryPolicyLocalCache", func() {
+		var c *temporaryPolicyLocalCache
+		BeforeEach(func() {
+			c = &temporaryPolicyLocalCache{
+				temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
+			}
+			cacheimpls.LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
+		})
+
+		It("batchGet miss all", func() {
+			_, missPKs := c.batchGet([]int64{1, 2})
+			assert.Equal(GinkgoT(), missPKs, []int64{1, 2})
+		})
+
+		It("batchGet ok", func() {
+			ps := []types.TemporaryPolicy{{PK: 1}, {PK: 2}}
+			c.setMissing(ps)
+			value, missPKs := c.batchGet([]int64{1, 2})
+			assert.Equal(GinkgoT(), missPKs, []int64{})
+			assert.Equal(GinkgoT(), value, ps)
+		})
+
+		It("ListByPKs fail", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT()))
+			mockTemporaryPolicyService.EXPECT().ListByPKs(
+				[]int64{1, 2},
+			).Return(
+				nil, errors.New("list fail"),
+			).AnyTimes()
+
+			c = &temporaryPolicyLocalCache{
+				temporaryPolicyService: mockTemporaryPolicyService,
+			}
+
+			_, err := c.ListByPKs([]int64{1, 2})
+			assert.Contains(GinkgoT(), err.Error(), "fail")
+		})
+
+		It("ListByPKs ok", func() {
+			ps := []types.TemporaryPolicy{{PK: 1}, {PK: 2}}
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT()))
+			mockTemporaryPolicyService.EXPECT().ListByPKs(
+				[]int64{1, 2},
+			).Return(
+				ps, nil,
+			).AnyTimes()
+
+			c = &temporaryPolicyLocalCache{
+				temporaryPolicyService: mockTemporaryPolicyService,
+			}
+
+			value, err := c.ListByPKs([]int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), ps, value)
+		})
+	})
+})

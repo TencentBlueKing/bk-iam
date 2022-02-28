@@ -285,34 +285,26 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	cache := newTemporaryPolicyCache(system)
-	// 3. 查询在有效期内的临时权限pks
-	var thinTemporaryPolices []svctypes.ThinTemporaryPolicy
-	debug.AddStep(entry, "List ThinTemporary Policy By Subject Action")
+	var svc TemporaryPolicyListService
 	if withoutCache {
-		thinTemporaryPolices, err = m.temporaryPolicyService.ListThinBySubjectAction(
-			subjectPK, actionPK,
-		)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"temporaryPolicyService.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
-				subjectPK,
-				actionPK,
-			)
-			return nil, err
-		}
+		svc = m.temporaryPolicyService
 	} else {
-		thinTemporaryPolices, err = cache.ListThinBySubjectAction(subjectPK, actionPK)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"cache.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
-				subjectPK,
-				actionPK,
-			)
-			return
-		}
+		svc = newTemporaryPolicyCache(system)
+	}
+
+	// 3. 查询在有效期内的临时权限pks
+	debug.AddStep(entry, "List ThinTemporary Policy By Subject Action")
+	thinTemporaryPolices, err := svc.ListThinBySubjectAction(
+		subjectPK, actionPK,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"svc.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
+			subjectPK,
+			actionPK,
+		)
+		return nil, err
 	}
 	debug.WithValue(entry, "thinTemporaryPolicies", thinTemporaryPolices)
 
@@ -332,26 +324,14 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	// 4. 查询临时权限数据
 	var temporaryPolicies []svctypes.TemporaryPolicy
 	debug.AddStep(entry, "List Temporary Policy By pks")
-	if withoutCache {
-		temporaryPolicies, err = m.temporaryPolicyService.ListByPKs(pks)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"temporaryPolicyService.ListByPKs pks=`%+v` fail",
-				pks,
-			)
-			return
-		}
-	} else {
-		temporaryPolicies, err = cache.ListByPKs(pks)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"cache.ListByPKs pks=`%+v` fail",
-				pks,
-			)
-			return
-		}
+	temporaryPolicies, err = svc.ListByPKs(pks)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"svc.ListByPKs pks=`%+v` fail",
+			pks,
+		)
+		return
 	}
 	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)
 

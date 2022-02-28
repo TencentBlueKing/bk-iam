@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/conv"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache/redis"
@@ -30,69 +31,131 @@ const (
 	TemporaryPolicyCacheDelaySeconds = 10
 )
 
+// TemporaryPolicyListService ...
+type TemporaryPolicyListService interface {
+	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
+	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
+}
+
 type temporaryPolicyCache struct {
-	system        string
-	keyPrefix     string
-	policyService service.TemporaryPolicyService
+	*temporaryPolicyRedisCache
+	*temporaryPolicyLocalCache
 }
 
 func newTemporaryPolicyCache(system string) *temporaryPolicyCache {
 	return &temporaryPolicyCache{
-		system:        system,
-		keyPrefix:     system + ":",
-		policyService: service.NewTemporaryPolicyService(),
+		temporaryPolicyRedisCache: newTemporaryPolicyRedisCache(system),
+		temporaryPolicyLocalCache: newTemporaryPolicyLocalCache(),
 	}
 }
 
-func (c *temporaryPolicyCache) genKey(subjectPK int64) cache.Key {
+type temporaryPolicyRedisCache struct {
+	system                 string
+	keyPrefix              string
+	temporaryPolicyService service.TemporaryPolicyService
+}
+
+func newTemporaryPolicyRedisCache(system string) *temporaryPolicyRedisCache {
+	return &temporaryPolicyRedisCache{
+		system:                 system,
+		keyPrefix:              system + ":",
+		temporaryPolicyService: service.NewTemporaryPolicyService(),
+	}
+}
+
+func (c *temporaryPolicyRedisCache) genKey(subjectPK int64) cache.Key {
 	return cache.NewStringKey(c.keyPrefix + strconv.FormatInt(subjectPK, 10))
 }
 
-// ListThinBySubjectAction ...
-func (c *temporaryPolicyCache) ListThinBySubjectAction(
-	subjectPK, actionPK int64,
-) (ps []types.ThinTemporaryPolicy, err error) {
+func (c *temporaryPolicyRedisCache) genHashKeyField(subjectPK, actionPK int64) redis.HashKeyField {
 	key := c.genKey(subjectPK)
 	field := strconv.FormatInt(actionPK, 10)
-
-	hashKeyField := redis.HashKeyField{
+	return redis.HashKeyField{
 		Key:   key.Key(),
 		Field: field,
 	}
+}
 
-	err = cacheimpls.TemporaryPolicyCache.HGet(hashKeyField, &ps)
+// ListThinBySubjectAction ...
+func (c *temporaryPolicyRedisCache) ListThinBySubjectAction(
+	subjectPK, actionPK int64,
+) (ps []types.ThinTemporaryPolicy, err error) {
+	ps, err = c.getThinTemporaryPoliciesFromCache(subjectPK, actionPK)
+	if err == nil {
+		return
+	}
+
+	ps, err = c.temporaryPolicyService.ListThinBySubjectAction(subjectPK, actionPK)
+	if err != nil {
+		return nil, err
+	}
+
+	c.setThinTemporaryPoliciesToCache(subjectPK, actionPK, ps)
+	return ps, nil
+}
+
+func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
+	subjectPK, actionPK int64, ps []types.ThinTemporaryPolicy,
+) {
+	valueByets, err := cacheimpls.TemporaryPolicyCache.Marshal(ps)
+	if err != nil {
+		log.WithError(err).Errorf("[%s] Marshal fail ps=`%+v`",
+			TemporaryPolicyRedisLayer, ps)
+		return
+	}
+
+	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
+	err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, conv.BytesToString(valueByets), 0)
+	if err != nil {
+		log.WithError(err).Errorf("[%s] HSet fail system=`%s`, actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
+			TemporaryPolicyRedisLayer, c.system, actionPK, subjectPK, ps)
+	}
+}
+
+func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
+	subjectPK, actionPK int64,
+) (ps []types.ThinTemporaryPolicy, err error) {
+	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
+	value, err := cacheimpls.TemporaryPolicyCache.HGet(hashKeyField)
 	if err != nil {
 		log.WithError(err).Errorf("[%s] HGet fail system=`%s`, actionPK=`%d`, subjectPK=`%d`",
 			TemporaryPolicyRedisLayer, c.system, actionPK, subjectPK)
+		return
+	}
 
-		ps, err = c.policyService.ListThinBySubjectAction(subjectPK, actionPK)
-		if err != nil {
-			return nil, err
-		}
-
-		err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, ps, 0)
-		if err != nil {
-			log.WithError(err).Errorf("[%s] HSet fail system=`%s`, actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
-				TemporaryPolicyRedisLayer, c.system, actionPK, subjectPK, ps)
-		}
+	err = cacheimpls.TemporaryPolicyCache.Unmarshal(conv.StringToBytes(value), &ps)
+	if err != nil {
+		log.WithError(err).Errorf(
+			"[%s] Unmarshal fail value=`%s`", TemporaryPolicyRedisLayer, value)
+		return
 	}
 	return ps, nil
 }
 
 // DeleteBySubject ...
-func (c *temporaryPolicyCache) DeleteBySubject(subjectPK int64) error {
+func (c *temporaryPolicyRedisCache) DeleteBySubject(subjectPK int64) error {
 	key := c.genKey(subjectPK)
 	return cacheimpls.TemporaryPolicyCache.Delete(key)
 }
 
+type temporaryPolicyLocalCache struct {
+	temporaryPolicyService service.TemporaryPolicyService
+}
+
+func newTemporaryPolicyLocalCache() *temporaryPolicyLocalCache {
+	return &temporaryPolicyLocalCache{
+		temporaryPolicyService: service.NewTemporaryPolicyService(),
+	}
+}
+
 // ListByPKs ...
-func (c *temporaryPolicyCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
+func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
 	policies, missPKs := c.batchGet(pks)
 	if len(missPKs) == 0 {
 		return policies, nil
 	}
 
-	retrievedPolicies, err := c.policyService.ListByPKs(missPKs)
+	retrievedPolicies, err := c.temporaryPolicyService.ListByPKs(missPKs)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +167,7 @@ func (c *temporaryPolicyCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, 
 	return policies, nil
 }
 
-func (c *temporaryPolicyCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
+func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
 	policies := make([]types.TemporaryPolicy, 0, len(pks))
 	missPKs := make([]int64, 0, len(pks))
 	for _, pk := range pks {
@@ -126,7 +189,7 @@ func (c *temporaryPolicyCache) batchGet(pks []int64) ([]types.TemporaryPolicy, [
 	return policies, missPKs
 }
 
-func (c *temporaryPolicyCache) setMissing(policies []types.TemporaryPolicy) {
+func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy) {
 	nowTimestamp := time.Now().Unix()
 	for i := range policies {
 		p := &policies[i]

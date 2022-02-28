@@ -64,7 +64,7 @@ func NewTemporaryPolicyManager() TemporaryPolicyManager {
 // ListThinBySubjectAction ...
 func (m *temporaryPolicyManager) ListThinBySubjectAction(
 	subjectPK, actionPK, expiredAt int64) (policies []ThinTemporaryPolicy, err error) {
-	err = m.selectBySubjectAction(&policies, subjectPK, actionPK, expiredAt)
+	err = m.selectThinBySubjectAction(&policies, subjectPK, actionPK, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
 	}
@@ -110,7 +110,7 @@ func (m *temporaryPolicyManager) selectByPKs(policies *[]TemporaryPolicy, pks []
 	return database.SqlxSelect(m.DB, policies, query, pks)
 }
 
-func (m *temporaryPolicyManager) selectBySubjectAction(
+func (m *temporaryPolicyManager) selectThinBySubjectAction(
 	policies *[]ThinTemporaryPolicy, subjectPK, actionPK, expiredAt int64) error {
 	query := `SELECT
 		pk,

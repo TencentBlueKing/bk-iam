@@ -18,6 +18,8 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 )
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 // TemporaryPolicySVC ...
 const TemporaryPolicySVC = "TemporaryPolicySVC"
 

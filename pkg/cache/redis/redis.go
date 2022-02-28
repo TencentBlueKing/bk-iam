@@ -17,7 +17,6 @@ import (
 	"time"
 
 	gopkgcache "github.com/TencentBlueKing/gopkg/cache"
-	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
@@ -339,34 +338,25 @@ type Hash struct {
 }
 
 // HGet execute `hget`
-func (c *Cache) HGet(hashKeyField HashKeyField, value interface{}) error {
+func (c *Cache) HGet(hashKeyField HashKeyField) (string, error) {
 	k := c.genKey(hashKeyField.Key)
-	valueStr, err := c.cli.HGet(context.TODO(), k, hashKeyField.Field).Result()
-	if err != nil {
-		return err
-	}
-	return c.Unmarshal(conv.StringToBytes(valueStr), value)
+	return c.cli.HGet(context.TODO(), k, hashKeyField.Field).Result()
 }
 
 // HSet execute `hset`
-func (c *Cache) HSet(hashKeyField HashKeyField, value interface{}, duration time.Duration) error {
-	bytes, err := c.Marshal(value)
-	if err != nil {
-		return err
-	}
-
+func (c *Cache) HSet(hashKeyField HashKeyField, value string, duration time.Duration) error {
 	pipe := c.cli.TxPipeline()
 	ctx := context.TODO()
 
 	k := c.genKey(hashKeyField.Key)
-	pipe.HSet(ctx, k, hashKeyField.Field, conv.BytesToString(bytes))
+	pipe.HSet(ctx, k, hashKeyField.Field, value)
 
 	if duration == time.Duration(0) {
 		duration = c.defaultExpiration
 	}
 
 	pipe.Expire(ctx, k, duration)
-	_, err = pipe.Exec(ctx)
+	_, err := pipe.Exec(ctx)
 	return err
 }
 
