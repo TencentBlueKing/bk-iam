@@ -12,6 +12,7 @@ package prp
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -98,7 +99,35 @@ func (m *policyManager) ListBySubjectAction(
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "ListPolicyBySubjectAction")
+	// 1. 查询一般权限
+	policies, err = m.listBySubjectAction(
+		system, subject, action, withoutCache, parentEntry,
+	)
+	if err != nil {
+		return
+	}
+
+	// 2. 查询临时权限
+	temporaryPolicies, err := m.listTemporaryBySubjectAction(
+		system, subject, action, withoutCache, parentEntry,
+	)
+	if err != nil {
+		return
+	}
+
+	policies = append(policies, temporaryPolicies...)
+	return
+}
+
+// listBySubjectAction 查询普通权限
+func (m *policyManager) listBySubjectAction(
+	system string,
+	subject types.Subject,
+	action types.Action,
+	withoutCache bool,
+	parentEntry *debug.Entry,
+) (policies []types.AuthPolicy, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
 	if entry != nil {
@@ -221,6 +250,123 @@ func (m *policyManager) ListBySubjectAction(
 	// debug.WithValue(entry, "return policies", policies)
 	reportTooLargeReturnedPolicies(len(policies), system, action.ID, subject.Type, subject.ID)
 	return policies, nil
+}
+
+// listTemporaryBySubjectAction 查询临时权限
+func (m *policyManager) listTemporaryBySubjectAction(
+	system string,
+	subject types.Subject,
+	action types.Action,
+	withoutCache bool,
+	parentEntry *debug.Entry,
+) (polices []types.AuthPolicy, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listTemporaryBySubjectAction")
+
+	entry := debug.NewSubDebug(parentEntry)
+	if entry != nil {
+		debug.WithValue(entry, "cacheEnabled", !withoutCache)
+	}
+
+	// 1. get subject pk
+	debug.AddStep(entry, "Get Subject PK")
+	subjectPK, err := subject.Attribute.GetPK()
+	if err != nil {
+		err = errorWrapf(err, "subject.Attribute subject=`%+v` fail", subject)
+		return
+	}
+	debug.WithValue(entry, "subjectPK", subjectPK)
+
+	// 2. get action pk
+	debug.AddStep(entry, "Get Action PK")
+	actionPK, err := action.Attribute.GetPK()
+	if err != nil {
+		err = errorWrapf(err, "action.Attribute.GetPK action=`%+v` fail", action)
+		return
+	}
+	debug.WithValue(entry, "actionPK", actionPK)
+
+	cache := newTemporaryPolicyCache(system)
+	// 3. 查询在有效期内的临时权限pks
+	var thinTemporaryPolices []svctypes.ThinTemporaryPolicy
+	debug.AddStep(entry, "List ThinTemporary Policy By Subject Action")
+	if withoutCache {
+		thinTemporaryPolices, err = m.temporaryPolicyService.ListThinBySubjectAction(
+			subjectPK, actionPK,
+		)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"temporaryPolicyService.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
+				subjectPK,
+				actionPK,
+			)
+			return nil, err
+		}
+	} else {
+		thinTemporaryPolices, err = cache.ListThinBySubjectAction(subjectPK, actionPK)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"cache.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
+				subjectPK,
+				actionPK,
+			)
+			return
+		}
+	}
+	debug.WithValue(entry, "thinTemporaryPolicies", thinTemporaryPolices)
+
+	nowTimestamp := time.Now().Unix()
+	pks := make([]int64, 0, len(thinTemporaryPolices))
+	for _, p := range thinTemporaryPolices {
+		if p.ExpiredAt > nowTimestamp {
+			pks = append(pks, p.PK)
+		}
+	}
+	debug.WithValue(entry, "temporaryPolicyPKs", pks)
+
+	if len(pks) == 0 {
+		return nil, nil
+	}
+
+	// 4. 查询临时权限数据
+	var temporaryPolicies []svctypes.TemporaryPolicy
+	debug.AddStep(entry, "List Temporary Policy By pks")
+	if withoutCache {
+		temporaryPolicies, err = m.temporaryPolicyService.ListByPKs(pks)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"temporaryPolicyService.ListByPKs pks=`%+v` fail",
+				pks,
+			)
+			return
+		}
+	} else {
+		temporaryPolicies, err = cache.ListByPKs(pks)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"cache.ListByPKs pks=`%+v` fail",
+				pks,
+			)
+			return
+		}
+	}
+	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)
+
+	// 5. 转换数据结构
+	polices = make([]types.AuthPolicy, 0, len(temporaryPolicies))
+	for _, p := range temporaryPolicies {
+		polices = append(polices, types.AuthPolicy{
+			Version:    service.PolicyVersion,
+			ID:         p.PK,
+			Expression: p.Expression,
+			ExpiredAt:  p.ExpiredAt,
+		})
+	}
+
+	return polices, nil
 }
 
 // GetExpressionsFromCache will retrieve expression from cache

@@ -57,16 +57,18 @@ type PolicyManager interface {
 }
 
 type policyManager struct {
-	subjectService service.SubjectService
-	actionService  service.ActionService
-	policyService  service.PolicyService
+	subjectService         service.SubjectService
+	actionService          service.ActionService
+	policyService          service.PolicyService
+	temporaryPolicyService service.TemporaryPolicyService
 }
 
 // NewPolicyManager ...
 func NewPolicyManager() PolicyManager {
 	return &policyManager{
-		subjectService: service.NewSubjectService(),
-		actionService:  service.NewActionService(),
-		policyService:  service.NewPolicyService(),
+		subjectService:         service.NewSubjectService(),
+		actionService:          service.NewActionService(),
+		policyService:          service.NewPolicyService(),
+		temporaryPolicyService: service.NewTemporaryPolicyService(),
 	}
 }
