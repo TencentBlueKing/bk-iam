@@ -79,8 +79,32 @@ func (c *temporaryPolicyCache) ListThinBySubjectAction(
 	return ps, nil
 }
 
+// DeleteBySubject ...
+func (c *temporaryPolicyCache) DeleteBySubject(subjectPK int64) error {
+	key := c.genKey(subjectPK)
+	return cacheimpls.TemporaryPolicyCache.Delete(key)
+}
+
 // ListByPKs ...
 func (c *temporaryPolicyCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
+	policies, missPKs := c.batchGet(pks)
+	if len(missPKs) == 0 {
+		return policies, nil
+	}
+
+	retrievedPolicies, err := c.policyService.ListByPKs(missPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(retrievedPolicies) != 0 {
+		c.setMissing(retrievedPolicies)
+		policies = append(policies, retrievedPolicies...)
+	}
+	return policies, nil
+}
+
+func (c *temporaryPolicyCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
 	policies := make([]types.TemporaryPolicy, 0, len(pks))
 	missPKs := make([]int64, 0, len(pks))
 	for _, pk := range pks {
@@ -99,21 +123,7 @@ func (c *temporaryPolicyCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, 
 
 		policies = append(policies, *policy)
 	}
-
-	if len(missPKs) == 0 {
-		return policies, nil
-	}
-
-	retrievedPolicies, err := c.policyService.ListByPKs(missPKs)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(retrievedPolicies) != 0 {
-		c.setMissing(retrievedPolicies)
-		policies = append(policies, retrievedPolicies...)
-	}
-	return policies, nil
+	return policies, missPKs
 }
 
 func (c *temporaryPolicyCache) setMissing(policies []types.TemporaryPolicy) {
@@ -125,10 +135,4 @@ func (c *temporaryPolicyCache) setMissing(policies []types.TemporaryPolicy) {
 
 		cacheimpls.LocalTemporayPolicyCache.Set(key, p, time.Duration(ttl))
 	}
-}
-
-// DeleteBySubject ...
-func (c *temporaryPolicyCache) DeleteBySubject(subjectPK int64) error {
-	key := c.genKey(subjectPK)
-	return cacheimpls.TemporaryPolicyCache.Delete(key)
 }
