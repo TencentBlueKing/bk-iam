@@ -301,12 +301,9 @@ func (m *policyManager) listTemporaryBySubjectAction(
 		subjectPK, actionPK,
 	)
 	if err != nil {
-		err = errorWrapf(
-			err,
+		err = errorWrapf(err,
 			"retriever.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
-			subjectPK,
-			actionPK,
-		)
+			subjectPK, actionPK)
 		return nil, err
 	}
 	debug.WithValue(entry, "thinTemporaryPolicies", thinTemporaryPolices)
@@ -329,11 +326,7 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	debug.AddStep(entry, "List Temporary Policy By pks")
 	temporaryPolicies, err = retriever.ListByPKs(pks)
 	if err != nil {
-		err = errorWrapf(
-			err,
-			"retriever.ListByPKs pks=`%+v` fail",
-			pks,
-		)
+		err = errorWrapf(err, "retriever.ListByPKs pks=`%+v` fail", pks)
 		return
 	}
 	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)

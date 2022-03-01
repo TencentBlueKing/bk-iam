@@ -10,20 +10,6 @@
 
 package prp
 
-import (
-	"strconv"
-	"time"
-
-	"github.com/TencentBlueKing/gopkg/cache"
-	"github.com/TencentBlueKing/gopkg/conv"
-	log "github.com/sirupsen/logrus"
-
-	"iam/pkg/cache/redis"
-	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
-	"iam/pkg/service/types"
-)
-
 /*
 临时权限的查询分为2步:
 
@@ -46,6 +32,20 @@ import (
 	Get From Cache (without miss pks) -> return policies
 	               (miss pks) -> DB -> Set miss -> return policies
 */
+
+import (
+	"strconv"
+	"time"
+
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/conv"
+	log "github.com/sirupsen/logrus"
+
+	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
+	"iam/pkg/service"
+	"iam/pkg/service/types"
+)
 
 const (
 	TemporaryPolicyRedisLayer  = "TemporaryPolicyRedisLayer"
@@ -131,8 +131,8 @@ func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
 	err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, conv.BytesToString(valueByets), 0)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] HSet fail actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
-			TemporaryPolicyRedisLayer, actionPK, subjectPK, ps)
+		log.WithError(err).Errorf("[%s] HSet fail keyPrefix=`%s`, actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
+			TemporaryPolicyRedisLayer, c.keyPrefix, actionPK, subjectPK, ps)
 	}
 }
 
@@ -142,8 +142,8 @@ func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
 	value, err := cacheimpls.TemporaryPolicyCache.HGet(hashKeyField)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] HGet fail actionPK=`%d`, subjectPK=`%d`",
-			TemporaryPolicyRedisLayer, actionPK, subjectPK)
+		log.WithError(err).Errorf("[%s] HGet fail keyPrefix=`%s`, actionPK=`%d`, subjectPK=`%d`",
+			TemporaryPolicyRedisLayer, c.keyPrefix, actionPK, subjectPK)
 		return
 	}
 
