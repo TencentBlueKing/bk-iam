@@ -239,7 +239,7 @@ func InitCaches(disabled bool) {
 	)
 
 	TemporaryPolicyCache = redis.NewCache(
-		"tp",
+		"tpl",
 		30*time.Minute,
 	)
 

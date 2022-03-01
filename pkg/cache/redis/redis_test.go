@@ -363,7 +363,7 @@ func TestBatchSetAndGet(t *testing.T) {
 	assert.Equal(t, v2.Z, "123456789012345678901234567890123456789012345678901234567890")
 }
 
-func TestHSet_AND_HGet(t *testing.T) {
+func TestHSet(t *testing.T) {
 	c := NewMockCache("test", 5*time.Minute)
 
 	hashKeyField := HashKeyField{
@@ -371,18 +371,32 @@ func TestHSet_AND_HGet(t *testing.T) {
 		Field: "1",
 	}
 
-	err := c.HSet(hashKeyField, "test", 0)
+	err := c.HSet(hashKeyField, "test")
+	assert.NoError(t, err)
+}
+
+func TestHGet(t *testing.T) {
+	c := NewMockCache("test", 5*time.Minute)
+
+	hashKeyField := HashKeyField{
+		Key:   "hash",
+		Field: "1",
+	}
+
+	_, err := c.HGet(hashKeyField)
+	assert.ErrorIs(t, err, redis.Nil)
+
+	err = c.HSet(hashKeyField, "test")
 	assert.NoError(t, err)
 
 	value, err := c.HGet(hashKeyField)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", value)
+}
 
-	hashKeyField2 := HashKeyField{
-		Key:   "hash",
-		Field: "2",
-	}
+func TestExpire(t *testing.T) {
+	c := NewMockCache("test", 5*time.Minute)
 
-	_, err = c.HGet(hashKeyField2)
-	assert.ErrorIs(t, err, redis.Nil)
+	err := c.Expire(cache.NewStringKey("a"), 0)
+	assert.NoError(t, err)
 }

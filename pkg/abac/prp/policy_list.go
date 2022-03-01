@@ -118,7 +118,9 @@ func (m *policyManager) ListBySubjectAction(
 		return
 	}
 
-	policies = append(policies, temporaryPolicies...)
+	if len(temporaryPolicies) != 0 {
+		policies = append(policies, temporaryPolicies...)
+	}
 	return
 }
 
@@ -308,6 +310,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "thinTemporaryPolicies", thinTemporaryPolices)
 
+	if len(thinTemporaryPolices) == 0 {
+		debug.AddStep(entry, "thin temporary policies is empty so return")
+		return
+	}
+
 	nowTimestamp := time.Now().Unix()
 	pks := make([]int64, 0, len(thinTemporaryPolices))
 	for _, p := range thinTemporaryPolices {
@@ -318,7 +325,8 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	debug.WithValue(entry, "temporaryPolicyPKs", pks)
 
 	if len(pks) == 0 {
-		return nil, nil
+		debug.AddStep(entry, "all temporary policy expired so return")
+		return
 	}
 
 	// 4. 查询临时权限数据

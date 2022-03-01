@@ -129,10 +129,15 @@ func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
 	}
 
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
-	err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, conv.BytesToString(valueByets), 0)
+	err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, conv.BytesToString(valueByets))
 	if err != nil {
 		log.WithError(err).Errorf("[%s] HSet fail keyPrefix=`%s`, actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
 			TemporaryPolicyRedisLayer, c.keyPrefix, actionPK, subjectPK, ps)
+	}
+	err = cacheimpls.TemporaryPolicyCache.Expire(c.genKey(subjectPK), 0) // 0 means default duration
+	if err != nil {
+		log.WithError(err).Errorf("[%s] Expire fail keyPrefix=`%s`, subjectPK=`%d`",
+			TemporaryPolicyRedisLayer, c.keyPrefix, subjectPK)
 	}
 }
 

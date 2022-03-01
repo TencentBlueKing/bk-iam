@@ -176,6 +176,17 @@ func (c *Cache) Delete(key gopkgcache.Key) (err error) {
 	return err
 }
 
+// Expire execute `expire`
+func (c *Cache) Expire(key gopkgcache.Key, duration time.Duration) error {
+	if duration == time.Duration(0) {
+		duration = c.defaultExpiration
+	}
+
+	k := c.genKey(key.Key())
+	_, err := c.cli.Expire(context.TODO(), k, duration).Result()
+	return err
+}
+
 // BatchDelete execute `del` with pipeline
 func (c *Cache) BatchDelete(keys []gopkgcache.Key) error {
 	newKeys := make([]string, 0, len(keys))
@@ -344,19 +355,9 @@ func (c *Cache) HGet(hashKeyField HashKeyField) (string, error) {
 }
 
 // HSet execute `hset`
-func (c *Cache) HSet(hashKeyField HashKeyField, value string, duration time.Duration) error {
-	pipe := c.cli.TxPipeline()
-	ctx := context.TODO()
-
+func (c *Cache) HSet(hashKeyField HashKeyField, value string) error {
 	k := c.genKey(hashKeyField.Key)
-	pipe.HSet(ctx, k, hashKeyField.Field, value)
-
-	if duration == time.Duration(0) {
-		duration = c.defaultExpiration
-	}
-
-	pipe.Expire(ctx, k, duration)
-	_, err := pipe.Exec(ctx)
+	_, err := c.cli.HSet(context.TODO(), k, hashKeyField.Field, value).Result()
 	return err
 }
 
