@@ -28,7 +28,6 @@ import (
 var _ = Describe("Redis", func() {
 	It("genKey", func() {
 		c := &temporaryPolicyRedisCache{
-			system:                 "test",
 			keyPrefix:              "test" + ":",
 			temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
 		}
@@ -39,7 +38,6 @@ var _ = Describe("Redis", func() {
 
 	It("genHashKeyField", func() {
 		c := &temporaryPolicyRedisCache{
-			system:                 "test",
 			keyPrefix:              "test" + ":",
 			temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
 		}
@@ -55,7 +53,6 @@ var _ = Describe("Redis", func() {
 		var c *temporaryPolicyRedisCache
 		BeforeEach(func() {
 			c = &temporaryPolicyRedisCache{
-				system:                 "test",
 				keyPrefix:              "test" + ":",
 				temporaryPolicyService: mock.NewMockTemporaryPolicyService(gomock.NewController(GinkgoT())),
 			}
@@ -84,7 +81,6 @@ var _ = Describe("Redis", func() {
 			).AnyTimes()
 
 			c = &temporaryPolicyRedisCache{
-				system:                 "test",
 				keyPrefix:              "test" + ":",
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
@@ -104,7 +100,6 @@ var _ = Describe("Redis", func() {
 			).AnyTimes()
 
 			c = &temporaryPolicyRedisCache{
-				system:                 "test",
 				keyPrefix:              "test" + ":",
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}

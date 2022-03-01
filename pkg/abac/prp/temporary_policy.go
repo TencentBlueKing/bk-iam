@@ -24,6 +24,29 @@ import (
 	"iam/pkg/service/types"
 )
 
+/*
+临时权限的查询分为2步:
+
+1. 查询临时权限的pks
+	Redis Hash
+
+	key:   system + subjectPK
+	filed: actionPK
+	value: policy pk and expired_at
+
+	HGet (hit) -> return pk and expired_at
+	     (miss) -> DB -> HSet -> return pk and expired_at
+
+2. 通过pks查询临时权限的策略列表
+	Local Cache
+
+	key:   policy pk
+	value: policy
+
+	Get From Cache (without miss pks) -> return policies
+	               (miss pks) -> DB -> Set miss -> return policies
+*/
+
 const (
 	TemporaryPolicyRedisLayer  = "TemporaryPolicyRedisLayer"
 	TemporaryPolicyMemoryLayer = "TemporaryPolicyMemoryLayer"
@@ -31,35 +54,33 @@ const (
 	TemporaryPolicyCacheDelaySeconds = 10
 )
 
-// TemporaryPolicyListService ...
-type TemporaryPolicyListService interface {
-	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
-	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
-}
-
 type temporaryPolicyCache struct {
 	*temporaryPolicyRedisCache
 	*temporaryPolicyLocalCache
 }
 
-func newTemporaryPolicyCache(system string) *temporaryPolicyCache {
+func newTemporaryPolicyCacheRetriever(
+	system string,
+	svc service.TemporaryPolicyService,
+) TemporaryPolicyRetriever {
 	return &temporaryPolicyCache{
-		temporaryPolicyRedisCache: newTemporaryPolicyRedisCache(system),
-		temporaryPolicyLocalCache: newTemporaryPolicyLocalCache(),
+		temporaryPolicyRedisCache: newTemporaryPolicyRedisCache(system, svc),
+		temporaryPolicyLocalCache: newTemporaryPolicyLocalCache(svc),
 	}
 }
 
 type temporaryPolicyRedisCache struct {
-	system                 string
 	keyPrefix              string
 	temporaryPolicyService service.TemporaryPolicyService
 }
 
-func newTemporaryPolicyRedisCache(system string) *temporaryPolicyRedisCache {
+func newTemporaryPolicyRedisCache(
+	system string,
+	svc service.TemporaryPolicyService,
+) *temporaryPolicyRedisCache {
 	return &temporaryPolicyRedisCache{
-		system:                 system,
 		keyPrefix:              system + ":",
-		temporaryPolicyService: service.NewTemporaryPolicyService(),
+		temporaryPolicyService: svc,
 	}
 }
 
@@ -80,18 +101,21 @@ func (c *temporaryPolicyRedisCache) genHashKeyField(subjectPK, actionPK int64) r
 func (c *temporaryPolicyRedisCache) ListThinBySubjectAction(
 	subjectPK, actionPK int64,
 ) (ps []types.ThinTemporaryPolicy, err error) {
+	// 从Redis中查询缓存
 	ps, err = c.getThinTemporaryPoliciesFromCache(subjectPK, actionPK)
 	if err == nil {
+		return ps, nil
+	}
+
+	// Redis miss时, 从DB查询
+	ps, err = c.temporaryPolicyService.ListThinBySubjectAction(subjectPK, actionPK)
+	if err != nil {
 		return
 	}
 
-	ps, err = c.temporaryPolicyService.ListThinBySubjectAction(subjectPK, actionPK)
-	if err != nil {
-		return nil, err
-	}
-
+	// set 数据到Redis中
 	c.setThinTemporaryPoliciesToCache(subjectPK, actionPK, ps)
-	return ps, nil
+	return
 }
 
 func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
@@ -107,8 +131,8 @@ func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
 	err = cacheimpls.TemporaryPolicyCache.HSet(hashKeyField, conv.BytesToString(valueByets), 0)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] HSet fail system=`%s`, actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
-			TemporaryPolicyRedisLayer, c.system, actionPK, subjectPK, ps)
+		log.WithError(err).Errorf("[%s] HSet fail actionPK=`%d`, subjectPK=`%d`, policies=`%+v`",
+			TemporaryPolicyRedisLayer, actionPK, subjectPK, ps)
 	}
 }
 
@@ -118,8 +142,8 @@ func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
 	value, err := cacheimpls.TemporaryPolicyCache.HGet(hashKeyField)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] HGet fail system=`%s`, actionPK=`%d`, subjectPK=`%d`",
-			TemporaryPolicyRedisLayer, c.system, actionPK, subjectPK)
+		log.WithError(err).Errorf("[%s] HGet fail actionPK=`%d`, subjectPK=`%d`",
+			TemporaryPolicyRedisLayer, actionPK, subjectPK)
 		return
 	}
 
@@ -142,24 +166,27 @@ type temporaryPolicyLocalCache struct {
 	temporaryPolicyService service.TemporaryPolicyService
 }
 
-func newTemporaryPolicyLocalCache() *temporaryPolicyLocalCache {
+func newTemporaryPolicyLocalCache(svc service.TemporaryPolicyService) *temporaryPolicyLocalCache {
 	return &temporaryPolicyLocalCache{
-		temporaryPolicyService: service.NewTemporaryPolicyService(),
+		temporaryPolicyService: svc,
 	}
 }
 
 // ListByPKs ...
 func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
+	// 从本地缓存中批量查询
 	policies, missPKs := c.batchGet(pks)
 	if len(missPKs) == 0 {
 		return policies, nil
 	}
 
+	// 没有查到的pks回落到db查询
 	retrievedPolicies, err := c.temporaryPolicyService.ListByPKs(missPKs)
 	if err != nil {
 		return nil, err
 	}
 
+	// 从db中查询到的policies set到本地缓存
 	if len(retrievedPolicies) != 0 {
 		c.setMissing(retrievedPolicies)
 		policies = append(policies, retrievedPolicies...)
@@ -168,6 +195,7 @@ func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPol
 }
 
 func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
+	// 本地缓存以policy pk为key, 批量查询循环get
 	policies := make([]types.TemporaryPolicy, 0, len(pks))
 	missPKs := make([]int64, 0, len(pks))
 	for _, pk := range pks {
@@ -192,7 +220,7 @@ func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPoli
 func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy) {
 	nowTimestamp := time.Now().Unix()
 	for i := range policies {
-		p := &policies[i]
+		p := &policies[i] // NOTE: 避免循环中对象复制, 取指针地址重复
 		key := strconv.FormatInt(p.PK, 10)
 		ttl := p.ExpiredAt - nowTimestamp + TemporaryPolicyCacheDelaySeconds
 

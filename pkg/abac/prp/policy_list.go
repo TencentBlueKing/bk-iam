@@ -91,7 +91,10 @@ func reportTooLargeReturnedPolicies(count int, system, actionID, subjectType, su
 	)
 }
 
-// ListBySubjectAction ...
+// ListBySubjectAction 查询用于鉴权的policy列表
+// policy有2个来源
+// 	1. 普通权限(自定义权限, 继承的用户组权限)
+// 	2. 临时权限(只来自个人)
 func (m *policyManager) ListBySubjectAction(
 	system string,
 	subject types.Subject,
@@ -285,22 +288,22 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var svc TemporaryPolicyListService
+	var retriever TemporaryPolicyRetriever
 	if withoutCache {
-		svc = m.temporaryPolicyService
+		retriever = m.temporaryPolicyService
 	} else {
-		svc = newTemporaryPolicyCache(system)
+		retriever = newTemporaryPolicyCacheRetriever(system, m.temporaryPolicyService)
 	}
 
 	// 3. 查询在有效期内的临时权限pks
 	debug.AddStep(entry, "List ThinTemporary Policy By Subject Action")
-	thinTemporaryPolices, err := svc.ListThinBySubjectAction(
+	thinTemporaryPolices, err := retriever.ListThinBySubjectAction(
 		subjectPK, actionPK,
 	)
 	if err != nil {
 		err = errorWrapf(
 			err,
-			"svc.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
+			"retriever.ListThinBySubjectAction subjectPK=`%d`, actionPK=`%d` fail",
 			subjectPK,
 			actionPK,
 		)
@@ -324,11 +327,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	// 4. 查询临时权限数据
 	var temporaryPolicies []svctypes.TemporaryPolicy
 	debug.AddStep(entry, "List Temporary Policy By pks")
-	temporaryPolicies, err = svc.ListByPKs(pks)
+	temporaryPolicies, err = retriever.ListByPKs(pks)
 	if err != nil {
 		err = errorWrapf(
 			err,
-			"svc.ListByPKs pks=`%+v` fail",
+			"retriever.ListByPKs pks=`%+v` fail",
 			pks,
 		)
 		return
