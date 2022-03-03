@@ -193,8 +193,8 @@ var _ = Describe("TemporaryPolicyService", func() {
 
 		It("DeleteByPKs fail", func() {
 			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
-			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKsWithTx(
-				gomock.Any(), int64(1), []int64{1, 2},
+			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKs(
+				int64(1), []int64{1, 2},
 			).Return(
 				int64(0), errors.New("delete fail"),
 			).AnyTimes()
@@ -217,8 +217,8 @@ var _ = Describe("TemporaryPolicyService", func() {
 
 		It("ok", func() {
 			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
-			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKsWithTx(
-				gomock.Any(), int64(1), []int64{1, 2},
+			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKs(
+				int64(1), []int64{1, 2},
 			).Return(
 				int64(2), nil,
 			).AnyTimes()

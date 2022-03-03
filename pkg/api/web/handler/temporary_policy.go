@@ -11,14 +11,15 @@
 package handler
 
 import (
-	"iam/pkg/abac/prp"
-	"iam/pkg/abac/types"
-	"iam/pkg/service"
-	"iam/pkg/util"
 	"strconv"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
+
+	"iam/pkg/abac/prp"
+	"iam/pkg/abac/types"
+	"iam/pkg/service"
+	"iam/pkg/util"
 )
 
 // CreateTemporaryPolicies godoc
@@ -46,8 +47,6 @@ func CreateTemporaryPolicies(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, message)
 		return
 	}
-
-	// ? 后端api没有检查policy是否有重复, action是否存在, 暂时交由SaaS侧做检查
 
 	systemID := c.Param("system_id")
 
@@ -124,11 +123,12 @@ func BatchDeleteTemporaryPolicies(c *gin.Context) {
 // @Router /api/v1/web/temporary-policies/before_expired_at [delete]
 // DeleteTemporaryBeforeExpiredAt will delete all policies by action_id
 func DeleteTemporaryBeforeExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "DeleteTemporaryBeforeExpiredAt")
+
 	expiredAtStr := c.Param("expired_at")
 	expiredAt, err := strconv.ParseInt(expiredAtStr, 10, 64)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "DeleteTemporaryBeforeExpiredAt",
-			"strconv.ParseInt fail, expiredAt=`%s`", expiredAtStr)
+		err = errorWrapf(err, "strconv.ParseInt fail, expiredAt=`%s`", expiredAtStr)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -136,8 +136,7 @@ func DeleteTemporaryBeforeExpiredAt(c *gin.Context) {
 	manager := prp.NewPolicyManager()
 	err = manager.DeleteTemporaryBeforeExpiredAt(expiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "DeleteTemporaryBeforeExpiredAt",
-			"expiredAt=`%d`", expiredAt)
+		err = errorWrapf(err, "expiredAt=`%d`", expiredAt)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

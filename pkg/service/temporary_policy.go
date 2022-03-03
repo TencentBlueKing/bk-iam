@@ -97,7 +97,7 @@ func (s *temporaryPolicyService) ListByPKs(pks []int64) ([]types.TemporaryPolicy
 func (s *temporaryPolicyService) Create(
 	policies []types.TemporaryPolicy,
 ) (pks []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Create")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "Create")
 
 	daoPolicies := make([]dao.TemporaryPolicy, 0, len(policies))
 	for _, p := range policies {
@@ -130,30 +130,19 @@ func (s *temporaryPolicyService) Create(
 
 // DeleteByPKs ...
 func (s *temporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteByPKs")
 
-	tx, err := database.GenerateDefaultDBTx()
+	_, err := s.manager.BulkDeleteByPKs(subjectPK, pks)
 	if err != nil {
-		return errorWrapf(err, "define tx fail")
-	}
-	defer database.RollBackWithLog(tx)
-
-	_, err = s.manager.BulkDeleteByPKsWithTx(tx, subjectPK, pks)
-	if err != nil {
-		return errorWrapf(err, "manager.BulkDeleteByPKsWithTx subjectPK=`%d`, pks=`%+v`",
+		return errorWrapf(err, "manager.BulkDeleteByPKs subjectPK=`%d`, pks=`%+v`",
 			subjectPK, pks)
 	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errorWrapf(err, "tx.Commit fail")
-	}
-	return err
+	return nil
 }
 
 // DeleteBeforeExpireAt ...
 func (s *temporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteBeforeExpireAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteBeforeExpireAt")
 	tx, err := database.GenerateDefaultDBTx()
 	if err != nil {
 		return errorWrapf(err, "define tx fail")

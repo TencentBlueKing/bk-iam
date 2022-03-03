@@ -79,19 +79,19 @@ func (mr *MockTemporaryPolicyManagerMockRecorder) BulkCreateWithTx(tx, policies 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockTemporaryPolicyManager)(nil).BulkCreateWithTx), tx, policies)
 }
 
-// BulkDeleteByPKsWithTx mocks base method
-func (m *MockTemporaryPolicyManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, subjectPK int64, pks []int64) (int64, error) {
+// BulkDeleteByPKs mocks base method
+func (m *MockTemporaryPolicyManager) BulkDeleteByPKs(subjectPK int64, pks []int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, subjectPK, pks)
+	ret := m.ctrl.Call(m, "BulkDeleteByPKs", subjectPK, pks)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx
-func (mr *MockTemporaryPolicyManagerMockRecorder) BulkDeleteByPKsWithTx(tx, subjectPK, pks interface{}) *gomock.Call {
+// BulkDeleteByPKs indicates an expected call of BulkDeleteByPKs
+func (mr *MockTemporaryPolicyManagerMockRecorder) BulkDeleteByPKs(subjectPK, pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockTemporaryPolicyManager)(nil).BulkDeleteByPKsWithTx), tx, subjectPK, pks)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKs", reflect.TypeOf((*MockTemporaryPolicyManager)(nil).BulkDeleteByPKs), subjectPK, pks)
 }
 
 // BulkDeleteBeforeExpiredAtWithTx mocks base method

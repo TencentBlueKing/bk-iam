@@ -47,7 +47,7 @@ type TemporaryPolicyManager interface {
 
 	// for saas
 	BulkCreateWithTx(tx *sqlx.Tx, policies []TemporaryPolicy) ([]int64, error)
-	BulkDeleteByPKsWithTx(tx *sqlx.Tx, subjectPK int64, pks []int64) (int64, error)
+	BulkDeleteByPKs(subjectPK int64, pks []int64) (int64, error)
 	BulkDeleteBeforeExpiredAtWithTx(tx *sqlx.Tx, expiredAt, limit int64) (int64, error)
 }
 
@@ -89,14 +89,14 @@ func (m *temporaryPolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []Tempor
 	return m.bulkInsertWithTx(tx, policies)
 }
 
-// BulkDeleteByPKsWithTx ...
-func (m *temporaryPolicyManager) BulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK int64, pks []int64,
+// BulkDeleteByPKs ...
+func (m *temporaryPolicyManager) BulkDeleteByPKs(
+	subjectPK int64, pks []int64,
 ) (int64, error) {
 	if len(pks) == 0 {
 		return 0, nil
 	}
-	return m.bulkDeleteByPKsWithTx(tx, subjectPK, pks)
+	return m.bulkDeleteByPKs(subjectPK, pks)
 }
 
 // BulkDeleteBeforeExpiredAtWithTx ...
@@ -144,11 +144,11 @@ func (m *temporaryPolicyManager) bulkInsertWithTx(tx *sqlx.Tx, policies []Tempor
 	return database.SqlxBulkInsertReturnIDWithTx(tx, sql, policies)
 }
 
-func (m *temporaryPolicyManager) bulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK int64, pks []int64,
+func (m *temporaryPolicyManager) bulkDeleteByPKs(
+	subjectPK int64, pks []int64,
 ) (int64, error) {
 	sql := `DELETE FROM temporary_policy WHERE subject_pk = ? AND pk IN (?)`
-	return database.SqlxDeleteReturnRowsWithTx(tx, sql, subjectPK, pks)
+	return database.SqlxDelete(m.DB, sql, subjectPK, pks)
 }
 
 func (m *temporaryPolicyManager) bulkDeleteBeforeExpiredAtWithTx(
