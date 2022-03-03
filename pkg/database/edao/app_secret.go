@@ -19,6 +19,8 @@ import (
 	"iam/pkg/database"
 )
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 // BKPaaSApp ...
 type BKPaaSApp struct {
 	Code      string `db:"code"`

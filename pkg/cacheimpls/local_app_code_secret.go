@@ -13,7 +13,6 @@ package cacheimpls
 import (
 	"time"
 
-	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
@@ -22,39 +21,35 @@ import (
 	"iam/pkg/database/edao"
 )
 
-// AppCodeAppSecretCacheKey ...
-type AppCodeAppSecretCacheKey struct {
-	AppCode   string
-	AppSecret string
-}
-
-// Key ...
-func (k AppCodeAppSecretCacheKey) Key() string {
-	return k.AppCode + ":" + k.AppSecret
-}
-
-func retrieveAppCodeAppSecret(key cache.Key) (interface{}, error) {
-	k := key.(AppCodeAppSecretCacheKey)
-
-	manager := edao.NewAppSecretManager()
-	return manager.Exists(k.AppCode, k.AppSecret)
-}
-
 // VerifyAppCodeAppSecret ...
 func VerifyAppCodeAppSecret(appCode, appSecret string) bool {
-	key := AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
+	// 1. get from cache
+	key := appCode + ":" + appSecret
+
+	value, found := LocalAppCodeAppSecretCache.Get(key)
+	if found {
+		return value.(bool)
 	}
-	exists, err := LocalAppCodeAppSecretCache.GetBool(key)
+
+	// 2. get from database
+	manager := edao.NewAppSecretManager()
+	valid, err := manager.Exists(appCode, appSecret)
 	if err != nil {
-		log.Errorf("get app_code_app_secret from memory cache fail, app_code=%s, app_secret=%s, err=%s",
+		log.Errorf("verify app_code_app_secret from bk_paas+esb_app_account fail, app_code=%s, app_secret=%s, err=%s",
 			appCode,
 			stringx.Truncate(appSecret, 6)+"******",
 			err)
 		return false
 	}
-	return exists
+
+	// 3. set to cache, default 12 hours, if not valid, only keep in cache for 1 minutes
+	//    in case of auth server down, we can still get the valid matched accessKeys from cache
+	ttl := gocache.DefaultExpiration
+	if !valid {
+		ttl = 1 * time.Minute
+	}
+	LocalAppCodeAppSecretCache.Set(key, valid, ttl)
+	return valid
 }
 
 func VerifyAppCodeAppSecretFromAuth(appCode, appSecret string) bool {
