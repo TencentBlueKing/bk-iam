@@ -99,10 +99,7 @@ func TestCreateSystem(t *testing.T) {
 	appSecret := "123"
 
 	cacheimpls.InitCaches(false)
-	cacheimpls.LocalAppCodeAppSecretCache.Set(cacheimpls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller
@@ -296,10 +293,7 @@ func TestUpdateSystem(t *testing.T) {
 	appSecret := "123"
 
 	cacheimpls.InitCaches(false)
-	cacheimpls.LocalAppCodeAppSecretCache.Set(cacheimpls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller

@@ -18,8 +18,8 @@ import (
 
 func TestInitCaches(t *testing.T) {
 	InitCaches(true)
-	assert.True(t, LocalAppCodeAppSecretCache.Disabled())
+	assert.True(t, LocalSubjectCache.Disabled())
 
 	InitCaches(false)
-	assert.False(t, LocalAppCodeAppSecretCache.Disabled())
+	assert.False(t, LocalSubjectCache.Disabled())
 }
