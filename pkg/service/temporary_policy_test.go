@@ -13,10 +13,12 @@ package service
 import (
 	"errors"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
@@ -115,6 +117,182 @@ var _ = Describe("TemporaryPolicyService", func() {
 			ps, err := manager.ListByPKs([]int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.TemporaryPolicy{{PK: 1}}, ps)
+		})
+
+	})
+
+	Describe("Create", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("Create fail", func() {
+			policies := []types.TemporaryPolicy{{}}
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkCreateWithTx(
+				gomock.Any(), []dao.TemporaryPolicy{{}},
+			).Return(
+				nil, errors.New("create fail"),
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			_, err := manager.Create(policies)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "fail")
+		})
+
+		It("ok", func() {
+			policies := []types.TemporaryPolicy{{}}
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkCreateWithTx(
+				gomock.Any(), []dao.TemporaryPolicy{{}},
+			).Return(
+				[]int64{1}, nil,
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			pks, err := manager.Create(policies)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []int64{1}, pks)
+		})
+
+	})
+
+	Describe("DeleteByPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("DeleteByPKs fail", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKsWithTx(
+				gomock.Any(), int64(1), []int64{1, 2},
+			).Return(
+				int64(0), errors.New("delete fail"),
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			err := manager.DeleteByPKs(int64(1), []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "fail")
+		})
+
+		It("ok", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkDeleteByPKsWithTx(
+				gomock.Any(), int64(1), []int64{1, 2},
+			).Return(
+				int64(2), nil,
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			err := manager.DeleteByPKs(int64(1), []int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+		})
+
+	})
+	Describe("DeleteBeforeExpireAt", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("BulkDeleteBeforeExpiredAtWithTx fail", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkDeleteBeforeExpiredAtWithTx(
+				gomock.Any(), int64(1), int64(10000),
+			).Return(
+				int64(0), errors.New("delete fail"),
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			err := manager.DeleteBeforeExpireAt(int64(1))
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "fail")
+		})
+
+		It("ok", func() {
+			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyManager(ctl)
+			mockTemporaryPolicyService.EXPECT().BulkDeleteBeforeExpiredAtWithTx(
+				gomock.Any(), int64(1), int64(10000),
+			).Return(
+				int64(1), nil,
+			).AnyTimes()
+
+			manager := &temporaryPolicyService{
+				manager: mockTemporaryPolicyService,
+			}
+
+			db, dbMock := database.NewMockSqlxDB()
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
+			defer patches.Reset()
+
+			err := manager.DeleteBeforeExpireAt(int64(1))
+			assert.NoError(GinkgoT(), err)
 		})
 
 	})

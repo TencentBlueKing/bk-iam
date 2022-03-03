@@ -54,6 +54,14 @@ type PolicyManager interface {
 		createPolicies []types.Policy, deletePolicyIDs []int64) error
 	UpdateTemplatePolicies(systemID, subjectType, subjectID string, policies []types.Policy) error
 	DeleteTemplatePolicies(systemID, subjectType, subjectID string, templateID int64) error
+
+	// temporary policy
+	CreateTemporaryPolicies(
+		systemID, subjectType, subjectID string,
+		policies []types.Policy,
+	) ([]int64, error)
+	DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
+	DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
 }
 
 type policyManager struct {

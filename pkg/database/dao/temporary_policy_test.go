@@ -107,3 +107,24 @@ func Test_temporaryPolicyManager_BulkDeleteByPKsWithTx(t *testing.T) {
 		assert.Equal(t, l, int64(1))
 	})
 }
+
+func Test_temporaryPolicyManager_BulkDeleteBeforeExpiredAtWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`DELETE FROM temporary_policy WHERE expired_at`).WithArgs(
+			int64(1), int64(1),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &temporaryPolicyManager{DB: db}
+		l, err := manager.BulkDeleteBeforeExpiredAtWithTx(tx, 1, 1)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+		assert.Equal(t, l, int64(1))
+	})
+}

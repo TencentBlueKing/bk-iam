@@ -93,3 +93,18 @@ func (mr *MockTemporaryPolicyManagerMockRecorder) BulkDeleteByPKsWithTx(tx, subj
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockTemporaryPolicyManager)(nil).BulkDeleteByPKsWithTx), tx, subjectPK, pks)
 }
+
+// BulkDeleteBeforeExpiredAtWithTx mocks base method
+func (m *MockTemporaryPolicyManager) BulkDeleteBeforeExpiredAtWithTx(tx *sqlx.Tx, expiredAt, limit int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBeforeExpiredAtWithTx", tx, expiredAt, limit)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BulkDeleteBeforeExpiredAtWithTx indicates an expected call of BulkDeleteBeforeExpiredAtWithTx
+func (mr *MockTemporaryPolicyManagerMockRecorder) BulkDeleteBeforeExpiredAtWithTx(tx, expiredAt, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBeforeExpiredAtWithTx", reflect.TypeOf((*MockTemporaryPolicyManager)(nil).BulkDeleteBeforeExpiredAtWithTx), tx, expiredAt, limit)
+}

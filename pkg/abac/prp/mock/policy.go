@@ -207,3 +207,46 @@ func (mr *MockPolicyManagerMockRecorder) DeleteTemplatePolicies(systemID, subjec
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemplatePolicies), systemID, subjectType, subjectID, templateID)
 }
+
+// CreateTemporaryPolicies mocks base method
+func (m *MockPolicyManager) CreateTemporaryPolicies(systemID, subjectType, subjectID string, policies []types.Policy) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTemporaryPolicies", systemID, subjectType, subjectID, policies)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTemporaryPolicies indicates an expected call of CreateTemporaryPolicies
+func (mr *MockPolicyManagerMockRecorder) CreateTemporaryPolicies(systemID, subjectType, subjectID, policies interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemporaryPolicies", reflect.TypeOf((*MockPolicyManager)(nil).CreateTemporaryPolicies), systemID, subjectType, subjectID, policies)
+}
+
+// DeleteTemporaryByIDs mocks base method
+func (m *MockPolicyManager) DeleteTemporaryByIDs(system, subjectType, subjectID string, policyIDs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTemporaryByIDs", system, subjectType, subjectID, policyIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTemporaryByIDs indicates an expected call of DeleteTemporaryByIDs
+func (mr *MockPolicyManagerMockRecorder) DeleteTemporaryByIDs(system, subjectType, subjectID, policyIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemporaryByIDs", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemporaryByIDs), system, subjectType, subjectID, policyIDs)
+}
+
+// DeleteTemporaryBeforeExpiredAt mocks base method
+func (m *MockPolicyManager) DeleteTemporaryBeforeExpiredAt(expiredAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTemporaryBeforeExpiredAt", expiredAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTemporaryBeforeExpiredAt indicates an expected call of DeleteTemporaryBeforeExpiredAt
+func (mr *MockPolicyManagerMockRecorder) DeleteTemporaryBeforeExpiredAt(expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemporaryBeforeExpiredAt", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemporaryBeforeExpiredAt), expiredAt)
+}
