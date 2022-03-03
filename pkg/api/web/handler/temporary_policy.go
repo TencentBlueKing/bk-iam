@@ -100,7 +100,7 @@ func BatchDeleteTemporaryPolicies(c *gin.Context) {
 	manager := prp.NewPolicyManager()
 	err := manager.DeleteTemporaryByIDs(body.SystemID, body.SubjectType, body.SubjectID, body.IDs)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "BatchDeletePolicies",
+		err = errorx.Wrapf(err, "Handler", "DeleteTemporaryByIDs",
 			"subjectType=`%s`, subjectID=`%s`, IDs=`%+v`", body.SubjectType, body.SubjectID, body.IDs)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -128,7 +128,7 @@ func DeleteTemporaryBeforeExpiredAt(c *gin.Context) {
 	expiredAt, err := strconv.ParseInt(expiredAtStr, 10, 64)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "DeleteTemporaryBeforeExpiredAt",
-			"strconv.ParseInt fail, expiredAt=`%d`", expiredAtStr)
+			"strconv.ParseInt fail, expiredAt=`%s`", expiredAtStr)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
