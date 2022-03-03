@@ -125,7 +125,7 @@ func BatchDeleteTemporaryPolicies(c *gin.Context) {
 func DeleteTemporaryBeforeExpiredAt(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "DeleteTemporaryBeforeExpiredAt")
 
-	expiredAtStr := c.Param("expired_at")
+	expiredAtStr := c.Query("expired_at")
 	expiredAt, err := strconv.ParseInt(expiredAtStr, 10, 64)
 	if err != nil {
 		err = errorWrapf(err, "strconv.ParseInt fail, expiredAt=`%s`", expiredAtStr)

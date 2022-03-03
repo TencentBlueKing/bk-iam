@@ -110,27 +110,23 @@ var doc = `{
                 "operationId": "api-engine-policies-list",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "name": "max_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
-                        "example": "1,2,3",
                         "name": "ids",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "example": 10001,
-                        "name": "max_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "example": 1,
-                        "name": "min_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "example": 1592899208,
                         "name": "timestamp",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "min_id",
                         "in": "query"
                     }
                 ],
@@ -187,14 +183,12 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "example": 1592899208,
-                        "name": "begin_updated_at",
+                        "name": "end_updated_at",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "example": 1592899208,
-                        "name": "end_updated_at",
+                        "name": "begin_updated_at",
                         "in": "query"
                     }
                 ],
@@ -251,7 +245,6 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "example": 1592899208,
                         "name": "updated_at",
                         "in": "query"
                     }
@@ -334,7 +327,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/open/departments/{user_id}/groups": {
+        "/api/v1/open/departments/{department_id}/groups": {
             "get": {
                 "security": [
                     {
@@ -1566,26 +1559,22 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "example": "edit_host",
                         "name": "actionID",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "example": 1,
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "example": 100,
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "example": 1592899208,
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
                         "name": "timestamp",
                         "in": "query"
                     }
@@ -1650,7 +1639,6 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "example": "1,2,3",
                         "name": "ids",
                         "in": "query",
                         "required": true
@@ -2636,6 +2624,158 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/web/systems/{system_id}/temporary-policies": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "create temporary policies by application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Create Temporary policies/创建临时权限策略",
+                "operationId": "api-web-create-temporary-policies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "create temporary policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.temporaryPoliciesSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/temporary-policies": {
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete temporary policies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Batch delete temporary policies/删除临时权限策略",
+                "operationId": "api-web-batch-delete-temporary-policies",
+                "parameters": [
+                    {
+                        "description": "delete temporary policy info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.temporaryPoliciesDeleteSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/web/temporary-policies/before_expired_at": {
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch delete temporary policies before expired_at",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Batch delete temporary policies before expired_at/删除指定过期时间之前临时权限策略",
+                "operationId": "api-web-batch-delete-temporary-policies-before-expired-at",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "expired_at",
+                        "name": "expired_at",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "description": "/healthz to make sure the server is health",
@@ -2877,6 +3017,12 @@ var doc = `{
                         "type": "string"
                     }
                 },
+                "related_environments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.relatedEnvironment"
+                    }
+                },
                 "related_resource_types": {
                     "type": "array",
                     "items": {
@@ -2915,6 +3061,12 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "related_environments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.relatedEnvironment"
                     }
                 },
                 "related_resource_types": {
@@ -3701,6 +3853,16 @@ var doc = `{
                 }
             }
         },
+        "handler.relatedEnvironment": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "NOTE: currently only support period_daily, will support current_timestamp later\n      and no operators now!\n      only one field, but should be a struct! keep extensible in the future",
+                    "type": "string",
+                    "example": "period_daily"
+                }
+            }
+        },
         "handler.relatedResourceType": {
             "type": "object",
             "required": [
@@ -3778,46 +3940,14 @@ var doc = `{
         "handler.resourceTypeSerializer": {
             "type": "object",
             "required": [
-                "id",
-                "name",
-                "name_en",
-                "provider_config"
+                "systems"
             ],
             "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "biz_set is a"
+                "fields": {
+                    "type": "string"
                 },
-                "description_en": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name_en": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "parents": {
-                    "description": "can be empty",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.referenceResourceType"
-                    }
-                },
-                "provider_config": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.resourceProviderConfig"
-                },
-                "version": {
-                    "type": "integer",
-                    "example": 1
+                "systems": {
+                    "type": "string"
                 }
             }
         },
@@ -3883,10 +4013,12 @@ var doc = `{
             ],
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "admin"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "user"
                 }
             }
         },
@@ -4070,6 +4202,51 @@ var doc = `{
                 "provider_config": {
                     "type": "object",
                     "$ref": "#/definitions/handler.systemProviderConfig"
+                }
+            }
+        },
+        "handler.temporaryPoliciesDeleteSerializer": {
+            "type": "object",
+            "required": [
+                "ids",
+                "subject_id",
+                "subject_type",
+                "system_id"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "subject_id": {
+                    "type": "string"
+                },
+                "subject_type": {
+                    "type": "string"
+                },
+                "system_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.temporaryPoliciesSerializer": {
+            "type": "object",
+            "required": [
+                "policies",
+                "subject"
+            ],
+            "properties": {
+                "policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.policy"
+                    }
+                },
+                "subject": {
+                    "type": "object",
+                    "$ref": "#/definitions/handler.subject"
                 }
             }
         },

@@ -135,7 +135,7 @@ func (m *temporaryPolicyManager) bulkInsertWithTx(tx *sqlx.Tx, policies []Tempor
 		subject_pk,
 		action_pk,
 		expression,
-		expired_at,
+		expired_at
 	) VALUES (
 		:subject_pk,
 		:action_pk,

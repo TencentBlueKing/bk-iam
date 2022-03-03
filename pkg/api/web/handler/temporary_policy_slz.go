@@ -28,8 +28,8 @@ func (slz *temporaryPoliciesSerializer) validate() (bool, string) {
 }
 
 type temporaryPoliciesDeleteSerializer struct {
-	SubjectType string  `form:"subject_type" json:"subject_type" binding:"required"`
-	SubjectID   string  `form:"subject_id" json:"subject_id" binding:"required"`
+	SubjectType string  `json:"subject_type" binding:"required"`
+	SubjectID   string  `json:"subject_id" binding:"required"`
 	SystemID    string  `json:"system_id" binding:"required"`
 	IDs         []int64 `json:"ids" binding:"required,gt=0"`
 }
