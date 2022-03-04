@@ -40,7 +40,7 @@ var _ = Describe("LocalAppCodeSecret", func() {
 
 		It("hit", func() {
 			cacheimpls.LocalAppCodeAppSecretCache.Set("app:123", true, 12*time.Hour)
-			ok := cacheimpls.VerifyAppCodeAppSecret("app", "123")
+			ok := cacheimpls.VerifyAppCodeAppSecretFromDB("app", "123")
 			assert.True(GinkgoT(), ok)
 		})
 
@@ -51,7 +51,7 @@ var _ = Describe("LocalAppCodeSecret", func() {
 					return mockManager
 				})
 
-			ok := cacheimpls.VerifyAppCodeAppSecret("app", "123")
+			ok := cacheimpls.VerifyAppCodeAppSecretFromDB("app", "123")
 			assert.False(GinkgoT(), ok)
 		})
 
@@ -62,7 +62,7 @@ var _ = Describe("LocalAppCodeSecret", func() {
 					return mockManager
 				})
 
-			ok := cacheimpls.VerifyAppCodeAppSecret("app", "123")
+			ok := cacheimpls.VerifyAppCodeAppSecretFromDB("app", "123")
 			assert.False(GinkgoT(), ok)
 
 		})
@@ -74,7 +74,7 @@ var _ = Describe("LocalAppCodeSecret", func() {
 					return mockManager
 				})
 
-			ok := cacheimpls.VerifyAppCodeAppSecret("app", "123")
+			ok := cacheimpls.VerifyAppCodeAppSecretFromDB("app", "123")
 			assert.True(GinkgoT(), ok)
 		})
 	})

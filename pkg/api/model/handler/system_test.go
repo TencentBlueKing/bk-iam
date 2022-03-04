@@ -88,9 +88,11 @@ func TestCreateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:invalid id")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
-	r.Use(middleware.ClientAuthMiddleware([]byte(""), false))
+	r.Use(middleware.ClientAuthMiddleware([]byte("")))
 	url := "/api/v1/systems"
 	r.POST(url, CreateSystem)
 
@@ -282,9 +284,11 @@ func TestUpdateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
-	r.Use(middleware.ClientAuthMiddleware([]byte(""), false))
+	r.Use(middleware.ClientAuthMiddleware([]byte("")))
 	url := "/api/v1/systems/test"
 	r.POST(url, UpdateSystem)
 

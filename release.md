@@ -1,3 +1,7 @@
+# 1.10.2
+
+- bugfix: API /api/v1/engine/credentials/verify use auth
+
 # 1.10.1
 
 - add: API /api/v1/web//unreferenced-expressions

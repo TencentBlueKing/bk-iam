@@ -39,6 +39,7 @@ config.yaml
 config_dev.yaml
 tmp
 init_test.sh
+build.yml
 .Archive/
 .md_configs.data
 .me_configs.data

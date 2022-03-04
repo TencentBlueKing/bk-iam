@@ -22,7 +22,10 @@ import (
 )
 
 // VerifyAppCodeAppSecret ...
-func VerifyAppCodeAppSecret(appCode, appSecret string) bool {
+var VerifyAppCodeAppSecret func(appCode, appSecret string) bool
+
+// VerifyAppCodeAppSecretFromDB ...
+func VerifyAppCodeAppSecretFromDB(appCode, appSecret string) bool {
 	// 1. get from cache
 	key := appCode + ":" + appSecret
 
