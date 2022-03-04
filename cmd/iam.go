@@ -93,6 +93,7 @@ func Start() {
 	// NOTE: should be after initRedis
 	initCaches()
 	initPolicyCacheSettings()
+	initVerifyAppCodeAppSecret()
 	initSuperAppCode()
 	initSuperUser()
 	initSupportShieldFeatures()

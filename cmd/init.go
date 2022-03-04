@@ -135,6 +135,10 @@ func initPolicyCacheSettings() {
 	cacheimpls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
 }
 
+func initVerifyAppCodeAppSecret() {
+	cacheimpls.InitVerifyAppCodeAppSecret(globalConfig.EnableBkAuth)
+}
+
 func initSuperAppCode() {
 	config.InitSuperAppCode(globalConfig.SuperAppCode)
 }

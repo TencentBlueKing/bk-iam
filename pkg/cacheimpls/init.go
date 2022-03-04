@@ -260,3 +260,14 @@ func InitPolicyCacheSettings(disabled bool, expirationDays int64) {
 		log.Warn("the LocalPolicyCache is disabled! Will query policy from database!")
 	}
 }
+
+// InitVerifyAppCodeAppSecret ...
+func InitVerifyAppCodeAppSecret(enableBkAuth bool) {
+	if enableBkAuth {
+		VerifyAppCodeAppSecret = VerifyAppCodeAppSecretFromAuth
+		log.Infof("init VerifyAppCodeAppSecret to VerifyAppCodeAppSecretFromAuth")
+	} else {
+		VerifyAppCodeAppSecret = VerifyAppCodeAppSecretFromDB
+		log.Infof("init VerifyAppCodeAppSecret to VerifyAppCodeAppSecretFromDB")
+	}
+}
