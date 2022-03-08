@@ -62,3 +62,46 @@ func (mr *MockTemporaryPolicyServiceMockRecorder) ListByPKs(pks interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockTemporaryPolicyService)(nil).ListByPKs), pks)
 }
+
+// Create mocks base method
+func (m *MockTemporaryPolicyService) Create(policies []types.TemporaryPolicy) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", policies)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create
+func (mr *MockTemporaryPolicyServiceMockRecorder) Create(policies interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTemporaryPolicyService)(nil).Create), policies)
+}
+
+// DeleteByPKs mocks base method
+func (m *MockTemporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByPKs", subjectPK, pks)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByPKs indicates an expected call of DeleteByPKs
+func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteByPKs(subjectPK, pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByPKs", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteByPKs), subjectPK, pks)
+}
+
+// DeleteBeforeExpireAt mocks base method
+func (m *MockTemporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBeforeExpireAt", expiredAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBeforeExpireAt indicates an expected call of DeleteBeforeExpireAt
+func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteBeforeExpireAt(expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBeforeExpireAt", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteBeforeExpireAt), expiredAt)
+}

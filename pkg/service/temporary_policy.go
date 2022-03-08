@@ -11,11 +11,13 @@
 package service
 
 import (
-	"iam/pkg/database/dao"
-	"iam/pkg/service/types"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/database"
+	"iam/pkg/database/dao"
+	"iam/pkg/service/types"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -28,6 +30,11 @@ type TemporaryPolicyService interface {
 	// for auth
 	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
 	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
+
+	// for saas
+	Create(policies []types.TemporaryPolicy) (pks []int64, err error)
+	DeleteByPKs(subjectPK int64, pks []int64) error
+	DeleteBeforeExpireAt(expiredAt int64) error
 }
 
 type temporaryPolicyService struct {
@@ -84,4 +91,83 @@ func (s *temporaryPolicyService) ListByPKs(pks []int64) ([]types.TemporaryPolicy
 		})
 	}
 	return policies, nil
+}
+
+// Create subject temporary policies
+func (s *temporaryPolicyService) Create(
+	policies []types.TemporaryPolicy,
+) (pks []int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "Create")
+
+	daoPolicies := make([]dao.TemporaryPolicy, 0, len(policies))
+	for _, p := range policies {
+		daoPolicies = append(daoPolicies, dao.TemporaryPolicy{
+			SubjectPK:  p.SubjectPK,
+			ActionPK:   p.ActionPK,
+			Expression: p.Expression,
+			ExpiredAt:  p.ExpiredAt,
+		})
+	}
+
+	// 使用事务
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+
+	if err != nil {
+		err = errorWrapf(err, "define tx fail")
+		return
+	}
+
+	pks, err = s.manager.BulkCreateWithTx(tx, daoPolicies)
+	if err != nil {
+		err = errorWrapf(err, "manager.BulkCreateWithTx policies=`%+v`", daoPolicies)
+		return
+	}
+
+	err = tx.Commit()
+	return pks, err
+}
+
+// DeleteByPKs ...
+func (s *temporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteByPKs")
+
+	_, err := s.manager.BulkDeleteByPKs(subjectPK, pks)
+	if err != nil {
+		return errorWrapf(err, "manager.BulkDeleteByPKs subjectPK=`%d`, pks=`%+v`",
+			subjectPK, pks)
+	}
+	return nil
+}
+
+// DeleteBeforeExpireAt ...
+func (s *temporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteBeforeExpireAt")
+	tx, err := database.GenerateDefaultDBTx()
+	if err != nil {
+		return errorWrapf(err, "define tx fail")
+	}
+	defer database.RollBackWithLog(tx)
+
+	// NOTE: 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
+	// NOTE: 即使一次没删除完也没关系, 下一个周期的定时任务还是会继续删除
+	rowLimit := int64(10000)
+	maxAttempts := 10 // 相当于最多删除10万数据
+
+	for i := 0; i < maxAttempts; i++ {
+		rowsAffected, err1 := s.manager.BulkDeleteBeforeExpiredAtWithTx(tx, expiredAt, rowLimit)
+		if err1 != nil {
+			return errorWrapf(err1, "manager.BulkDeleteBeforeExpiredAtWithTx expiredAt=`%d`", expiredAt)
+		}
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected < rowLimit {
+			break
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx.Commit fail")
+	}
+	return err
 }

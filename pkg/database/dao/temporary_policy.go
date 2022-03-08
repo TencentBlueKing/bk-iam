@@ -47,7 +47,8 @@ type TemporaryPolicyManager interface {
 
 	// for saas
 	BulkCreateWithTx(tx *sqlx.Tx, policies []TemporaryPolicy) ([]int64, error)
-	BulkDeleteByPKsWithTx(tx *sqlx.Tx, subjectPK int64, pks []int64) (int64, error)
+	BulkDeleteByPKs(subjectPK int64, pks []int64) (int64, error)
+	BulkDeleteBeforeExpiredAtWithTx(tx *sqlx.Tx, expiredAt, limit int64) (int64, error)
 }
 
 type temporaryPolicyManager struct {
@@ -88,14 +89,21 @@ func (m *temporaryPolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []Tempor
 	return m.bulkInsertWithTx(tx, policies)
 }
 
-// BulkDeleteByPKsWithTx ...
-func (m *temporaryPolicyManager) BulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK int64, pks []int64,
+// BulkDeleteByPKs ...
+func (m *temporaryPolicyManager) BulkDeleteByPKs(
+	subjectPK int64, pks []int64,
 ) (int64, error) {
 	if len(pks) == 0 {
 		return 0, nil
 	}
-	return m.bulkDeleteByPKsWithTx(tx, subjectPK, pks)
+	return m.bulkDeleteByPKs(subjectPK, pks)
+}
+
+// BulkDeleteBeforeExpiredAtWithTx ...
+func (m *temporaryPolicyManager) BulkDeleteBeforeExpiredAtWithTx(
+	tx *sqlx.Tx, expiredAt, limit int64,
+) (int64, error) {
+	return m.bulkDeleteBeforeExpiredAtWithTx(tx, expiredAt, limit)
 }
 
 func (m *temporaryPolicyManager) selectByPKs(policies *[]TemporaryPolicy, pks []int64) error {
@@ -127,7 +135,7 @@ func (m *temporaryPolicyManager) bulkInsertWithTx(tx *sqlx.Tx, policies []Tempor
 		subject_pk,
 		action_pk,
 		expression,
-		expired_at,
+		expired_at
 	) VALUES (
 		:subject_pk,
 		:action_pk,
@@ -136,11 +144,16 @@ func (m *temporaryPolicyManager) bulkInsertWithTx(tx *sqlx.Tx, policies []Tempor
 	return database.SqlxBulkInsertReturnIDWithTx(tx, sql, policies)
 }
 
-func (m *temporaryPolicyManager) bulkDeleteByPKsWithTx(
-	tx *sqlx.Tx, subjectPK int64, pks []int64,
+func (m *temporaryPolicyManager) bulkDeleteByPKs(
+	subjectPK int64, pks []int64,
 ) (int64, error) {
 	sql := `DELETE FROM temporary_policy WHERE subject_pk = ? AND pk IN (?)`
-	return database.SqlxDeleteReturnRowsWithTx(tx, sql, subjectPK, pks)
+	return database.SqlxDelete(m.DB, sql, subjectPK, pks)
 }
 
-// TODO 清理过期超时的策略相关逻辑
+func (m *temporaryPolicyManager) bulkDeleteBeforeExpiredAtWithTx(
+	tx *sqlx.Tx, expiredAt, limit int64,
+) (int64, error) {
+	sql := `DELETE FROM temporary_policy WHERE expired_at < ? LIMIT ?`
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, expiredAt, limit)
+}
