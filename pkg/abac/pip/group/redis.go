@@ -11,19 +11,25 @@
 package group
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
-const RedisLayer = "SubjectGroupsRedisLayer"
-
-const RandExpireSeconds = 60
+const (
+	RedisLayer        = "SubjectGroupsRedisLayer"
+	RandExpireSeconds = 60
+	cacheTTL          = 1 * time.Hour
+)
 
 type redisRetriever struct {
 	missingRetrieveFunc MissingRetrieveFunc
@@ -69,43 +75,56 @@ func (r *redisRetriever) setMissing(
 	notCachedSubjectGroups map[int64][]types.ThinSubjectGroup,
 	missingPKs []int64,
 ) error {
+	// init with exists
+	subjectGroups := notCachedSubjectGroups
+
 	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
-	for pk, sgs := range notCachedSubjectGroups {
+	for pk := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)
-
-		key := cacheimpls.SubjectPKCacheKey{
-			PK: pk,
-		}
-
-		// TODO: should collect all and do set in pipeline
-		// TODO: pipeline batch set
-		err := setSubjectGroupCache(key, sgs)
-		if err != nil {
-			log.Errorf("set subject_group to redis fail, key=%s, err=%s", key.Key(), err)
-		}
 	}
 
 	// 4. set the no-groups key cache
 	if len(missingPKs) != hasGroupPKs.Size() {
 		for _, pk := range missingPKs {
 			if !hasGroupPKs.Has(pk) {
-				key := cacheimpls.SubjectPKCacheKey{
-					PK: pk,
-				}
-				// TODO: pipeline batch set
-				err := setSubjectGroupCache(key, []types.ThinSubjectGroup{})
-				if err != nil {
-					log.Errorf("set empty subject_group to redis fail, key=%s, err=%s", key.Key(), err)
-				}
+				subjectGroups[pk] = []types.ThinSubjectGroup{}
 			}
 		}
 	}
-	return nil
+	return r.batchSet(subjectGroups)
 }
 
-func setSubjectGroupCache(key cache.Key, subjectGroups []types.ThinSubjectGroup) error {
-	return cacheimpls.SubjectGroupCache.Set(key, subjectGroups, 0)
+func (r *redisRetriever) batchSet(subjectGroups map[int64][]types.ThinSubjectGroup) error {
+	// set into cache
+	kvs := make([]redis.KV, 0, len(subjectGroups))
+	for subjectPK, sgs := range subjectGroups {
+		key := cacheimpls.SubjectPKCacheKey{
+			PK: subjectPK,
+		}
+
+		sgsBytes, err := cacheimpls.SubjectGroupCache.Marshal(sgs)
+		if err != nil {
+			return err
+		}
+
+		kvs = append(kvs, redis.KV{
+			Key:   key.Key(),
+			Value: conv.BytesToString(sgsBytes),
+		})
+	}
+
+	// keep cache for 1 hour
+	err := cacheimpls.SubjectGroupCache.BatchSetWithTx(
+		kvs,
+		cacheTTL+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
+	)
+	if err != nil {
+		log.WithError(err).Errorf("[%s] cacheimpls.SubjectGroupCache.BatchSetWithTx fail kvs=`%+v`", RedisLayer, kvs)
+		return err
+	}
+
+	return nil
 }
 
 func (r *redisRetriever) batchGet(pks []int64) (map[int64][]types.ThinSubjectGroup, []int64, error) {

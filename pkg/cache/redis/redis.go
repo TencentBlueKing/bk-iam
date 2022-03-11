@@ -215,7 +215,8 @@ func (c *Cache) BatchExpireWithTx(keys []gopkgcache.Key, expiration time.Duratio
 
 // KV is a key-value pair
 type KV struct {
-	Key   string
+	Key string
+	// TODO: 能否不转换, 直接使用 bytes? 减少字符串和bytes之间的转换
 	Value string
 }
 
