@@ -143,7 +143,7 @@ func (r *redisRetriever) batchSet(authExpressions map[int64]types.AuthExpression
 
 		kvs = append(kvs, redis.KV{
 			Key:   key.Key(),
-			Value: conv.BytesToString(exprBytes),
+			Value: exprBytes,
 		})
 	}
 

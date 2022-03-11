@@ -222,11 +222,11 @@ func TestBatchSetWithTx_and_BatchGet(t *testing.T) {
 	kvs := []KV{
 		{
 			Key:   "a",
-			Value: "1",
+			Value: []byte("1"),
 		},
 		{
 			Key:   "b",
-			Value: "2",
+			Value: []byte("2"),
 		},
 	}
 
@@ -335,11 +335,11 @@ func TestBatchSetAndGet(t *testing.T) {
 	kvs := []KV{
 		{
 			Key:   "a",
-			Value: conv.BytesToString(small),
+			Value: small,
 		},
 		{
 			Key:   "b",
-			Value: conv.BytesToString(huge),
+			Value: huge,
 		},
 	}
 

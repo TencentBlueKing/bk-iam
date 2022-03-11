@@ -110,7 +110,7 @@ func (r *redisRetriever) batchSet(subjectGroups map[int64][]types.ThinSubjectGro
 
 		kvs = append(kvs, redis.KV{
 			Key:   key.Key(),
-			Value: conv.BytesToString(sgsBytes),
+			Value: sgsBytes,
 		})
 	}
 
