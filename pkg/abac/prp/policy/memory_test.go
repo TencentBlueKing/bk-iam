@@ -23,7 +23,7 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/prp/common"
+	"iam/pkg/abac/common"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"

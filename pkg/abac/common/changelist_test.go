@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/prp/common"
+	"iam/pkg/abac/common"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 )

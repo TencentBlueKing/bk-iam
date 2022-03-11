@@ -18,7 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.uber.org/multierr"
 
-	"iam/pkg/abac/prp/common"
+	"iam/pkg/abac/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
