@@ -16,8 +16,8 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
 )
 
 /*
@@ -55,14 +55,18 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 	now := time.Now().Unix()
 	inheritGroupPKSet := set.NewInt64Set()
 	if len(deptPKs) > 0 {
-		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
+		// TODO: subject effective groups => 这里改成三级缓存, 不存在pipeline操作
+		// subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
+		subjectGroups, newErr := group.GetSubjectGroupsFromCache(group.SubjectTypeDepartment, deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			return nil, newErr
 		}
-		for _, sg := range subjectGroups {
-			if sg.PolicyExpiredAt > now {
-				inheritGroupPKSet.Add(sg.PK)
+		for _, sgs := range subjectGroups {
+			for _, sg := range sgs {
+				if sg.PolicyExpiredAt > now {
+					inheritGroupPKSet.Add(sg.PK)
+				}
 			}
 		}
 	}
@@ -77,6 +81,7 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 	// 用户继承组织加入的用户组
 	groupPKSet.Append(inheritGroupPKs...)
 
+	// TODO: 把自己加进去, 多构造了一个结构, 其实用groupPkSet+1 即可, 直接转 slice
 	// 2. collect all pks
 	effectSubjectPKs := make([]int64, 0, 1+groupPKSet.Size())
 	// 将用户自身添加进去

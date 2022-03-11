@@ -19,13 +19,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
 	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("Helper", func() {
-
 	Describe("getEffectSubjectPKs", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -34,7 +33,6 @@ var _ = Describe("Helper", func() {
 			ctl = gomock.NewController(GinkgoT())
 
 			s = types.NewSubject()
-
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -68,8 +66,8 @@ var _ = Describe("Helper", func() {
 		})
 
 		It("cacheimpls.ListSubjectEffectGroups fail", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectEffectGroups,
-				func(pks []int64) ([]svctypes.ThinSubjectGroup, error) {
+			patches = gomonkey.ApplyFunc(group.GetSubjectGroupsFromCache,
+				func(subjecType string, pks []int64) (map[int64][]svctypes.ThinSubjectGroup, error) {
 					return nil, errors.New("list subject_group fail")
 				})
 			s.FillAttributes(123, []types.SubjectGroup{}, []int64{1, 2, 3})
@@ -79,29 +77,29 @@ var _ = Describe("Helper", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectEffectGroups,
-				func(pks []int64) ([]svctypes.ThinSubjectGroup, error) {
-					return []svctypes.ThinSubjectGroup{
-						{
+			patches = gomonkey.ApplyFunc(group.GetSubjectGroupsFromCache,
+				func(subjectType string, pks []int64) (map[int64][]svctypes.ThinSubjectGroup, error) {
+					return map[int64][]svctypes.ThinSubjectGroup{
+						1: {{
 							PK:              4,
 							PolicyExpiredAt: 0,
-						},
-						{
+						}},
+						2: {{
 							PK:              5,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
-						},
-						{
+						}},
+						3: {{
 							PK:              6,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
-						},
-						{
+						}},
+						4: {{
 							PK:              6,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
-						},
-						{
+						}},
+						5: {{
 							PK:              7,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
-						},
+						}},
 					}, nil
 				})
 
@@ -127,5 +125,4 @@ var _ = Describe("Helper", func() {
 			assert.ElementsMatch(GinkgoT(), []int64{123, 5, 6, 7, 8}, pks)
 		})
 	})
-
 })

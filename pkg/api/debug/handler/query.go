@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/abac/types/request"
 	modelHandler "iam/pkg/api/model/handler"
 	"iam/pkg/cacheimpls"
@@ -126,11 +127,11 @@ func QuerySubjects(c *gin.Context) {
 				}
 
 				// 查询部门所属的组
-				gs, err2 := cacheimpls.GetSubjectGroups(deptPK)
+				subjectGroups, err2 := group.GetSubjectGroupsFromCache(group.SubjectTypeDepartment, []int64{deptPK})
 				if err2 != nil {
 					d["groups"] = err2.Error()
 				} else {
-					d["groups"] = gs
+					d["groups"] = subjectGroups[deptPK]
 				}
 
 				depts = append(depts, d)
@@ -170,7 +171,7 @@ func QueryPolicies(c *gin.Context) {
 	_, isForce := c.GetQuery("force")
 
 	// make a request
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	req.System = body.System
 	req.Subject.Type = body.SubjectType
 	req.Subject.ID = body.SubjectID

@@ -21,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -104,15 +105,17 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	// 2. get the subject-department's groups
 	deptPKs := subjectDetail.DepartmentPKs
 	if inherit && len(deptPKs) > 0 {
-		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
+		subjectGroups, newErr := group.GetSubjectGroupsFromCache(group.SubjectTypeDepartment, deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			util.SystemErrorJSONResponse(c, newErr)
 			return
 		}
-		for _, sg := range subjectGroups {
-			if sg.PolicyExpiredAt > nowUnix {
-				groupPKs.Add(sg.PK)
+		for _, sgs := range subjectGroups {
+			for _, sg := range sgs {
+				if sg.PolicyExpiredAt > nowUnix {
+					groupPKs.Add(sg.PK)
+				}
 			}
 		}
 	}
