@@ -61,6 +61,7 @@ func (r *redisRetriever) retrieve(pks []int64) (map[int64][]types.ThinSubjectGro
 	if err != nil {
 		return nil, nil, err
 	}
+
 	// set missing into cache
 	r.setMissing(retrievedSubjectGroups, missingPKs)
 	// append the retrieved
@@ -79,52 +80,16 @@ func (r *redisRetriever) setMissing(
 	subjectGroups := notCachedSubjectGroups
 
 	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
-	// 3. set to cache
 	for pk := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)
 	}
 
-	// 4. set the no-groups key cache
-	if len(missingPKs) != hasGroupPKs.Size() {
-		for _, pk := range missingPKs {
-			if !hasGroupPKs.Has(pk) {
-				subjectGroups[pk] = []types.ThinSubjectGroup{}
-			}
+	for _, pk := range missingPKs {
+		if !hasGroupPKs.Has(pk) {
+			subjectGroups[pk] = []types.ThinSubjectGroup{}
 		}
 	}
 	return r.batchSet(subjectGroups)
-}
-
-func (r *redisRetriever) batchSet(subjectGroups map[int64][]types.ThinSubjectGroup) error {
-	// set into cache
-	kvs := make([]redis.KV, 0, len(subjectGroups))
-	for subjectPK, sgs := range subjectGroups {
-		key := cacheimpls.SubjectPKCacheKey{
-			PK: subjectPK,
-		}
-
-		sgsBytes, err := cacheimpls.SubjectGroupCache.Marshal(sgs)
-		if err != nil {
-			return err
-		}
-
-		kvs = append(kvs, redis.KV{
-			Key:   key.Key(),
-			Value: sgsBytes,
-		})
-	}
-
-	// keep cache for 1 hour
-	err := cacheimpls.SubjectGroupCache.BatchSetWithTx(
-		kvs,
-		cacheTTL+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
-	)
-	if err != nil {
-		log.WithError(err).Errorf("[%s] cacheimpls.SubjectGroupCache.BatchSetWithTx fail kvs=`%+v`", RedisLayer, kvs)
-		return err
-	}
-
-	return nil
 }
 
 func (r *redisRetriever) batchGet(pks []int64) (map[int64][]types.ThinSubjectGroup, []int64, error) {
@@ -163,4 +128,36 @@ func (r *redisRetriever) batchGet(pks []int64) (map[int64][]types.ThinSubjectGro
 	}
 
 	return hitSubjectGroups, missSubjectPKs, err
+}
+
+func (r *redisRetriever) batchSet(subjectGroups map[int64][]types.ThinSubjectGroup) error {
+	// set into cache
+	kvs := make([]redis.KV, 0, len(subjectGroups))
+	for subjectPK, sgs := range subjectGroups {
+		key := cacheimpls.SubjectPKCacheKey{
+			PK: subjectPK,
+		}
+
+		sgsBytes, err := cacheimpls.SubjectGroupCache.Marshal(sgs)
+		if err != nil {
+			return err
+		}
+
+		kvs = append(kvs, redis.KV{
+			Key:   key.Key(),
+			Value: sgsBytes,
+		})
+	}
+
+	// keep cache for 1 hour
+	err := cacheimpls.SubjectGroupCache.BatchSetWithTx(
+		kvs,
+		cacheTTL+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
+	)
+	if err != nil {
+		log.WithError(err).Errorf("[%s] cacheimpls.SubjectGroupCache.BatchSetWithTx fail kvs=`%+v`", RedisLayer, kvs)
+		return err
+	}
+
+	return nil
 }

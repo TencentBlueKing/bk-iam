@@ -17,7 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestExpression(t *testing.T) {
+func TestGroup(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Expression Suite")
+	RunSpecs(t, "Group Suite")
 }
