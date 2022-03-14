@@ -119,7 +119,6 @@ func (r *memoryRetriever) retrieve(pks []int64) (map[int64][]types.ThinSubjectGr
 	return hitSubjectGroups, nil, nil
 }
 
-// nolint:unparam
 func (r *memoryRetriever) setMissing(subjectGroups map[int64][]types.ThinSubjectGroup, missingPKs []int64) error {
 	// set into local cache
 	nowTimestamp := time.Now().Unix()
