@@ -23,6 +23,7 @@ import (
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 const (
@@ -160,4 +161,44 @@ func (r *redisRetriever) batchSet(subjectGroups map[int64][]types.ThinSubjectGro
 	}
 
 	return nil
+}
+
+func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
+
+	keys := make([]cache.Key, 0, len(subjectPKs))
+	for _, pk := range subjectPKs {
+		key := cacheimpls.SubjectPKCacheKey{
+			PK: pk,
+		}
+		keys = append(keys, key)
+	}
+
+	err := cacheimpls.SubjectGroupCache.BatchDelete(keys)
+	if err != nil {
+		log.WithError(err).Errorf("[%s] cacheimpls.SubjectGroupCache.BatchDelete fail keys=`%+v`", RedisLayer, keys)
+
+		// report to sentry
+		util.ReportToSentry("redis cache: subject_group cache delete fail",
+			map[string]interface{}{
+				"subjectPKs": subjectPKs,
+				"keys":       keys,
+				"error":      err.Error(),
+			})
+
+		return err
+	}
+
+	return nil
+}
+
+func batchDeleteSubjectGroupsFromRedis(updatedSubjectPKs []int64) error {
+	if len(updatedSubjectPKs) == 0 {
+		return nil
+	}
+
+	r := &redisRetriever{}
+	return r.batchDelete(updatedSubjectPKs)
 }

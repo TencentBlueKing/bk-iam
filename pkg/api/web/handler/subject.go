@@ -19,6 +19,7 @@ import (
 	"github.com/jinzhu/copier"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pip"
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
@@ -33,7 +34,7 @@ func batchDeleteMembersFromCache(members []memberSerializer) error {
 		pk, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
 		pks = append(pks, pk)
 	}
-	return cacheimpls.BatchDeleteSubjectCache(pks)
+	return pip.BatchDeleteSubjectCache(pks)
 }
 
 func batchDeleteUpdatedMembersFromCache(members []types.SubjectMember) error {
@@ -42,7 +43,7 @@ func batchDeleteUpdatedMembersFromCache(members []types.SubjectMember) error {
 		pk, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
 		pks = append(pks, pk)
 	}
-	return cacheimpls.BatchDeleteSubjectCache(pks)
+	return pip.BatchDeleteSubjectCache(pks)
 }
 
 // ListSubject 查询用户/部门/用户组列表
@@ -169,7 +170,7 @@ func BatchDeleteSubjects(c *gin.Context) {
 	}
 
 	// 清除涉及的所有缓存 [subjectGroup / subjectDetails]
-	cacheimpls.BatchDeleteSubjectCache(pks)
+	pip.BatchDeleteSubjectCache(pks)
 
 	for _, s := range subjects {
 		cacheimpls.DeleteSubjectPK(s.Type, s.ID)
@@ -486,7 +487,7 @@ func BatchDeleteSubjectDepartments(c *gin.Context) {
 	}
 
 	// delete from cache
-	cacheimpls.BatchDeleteSubjectCache(pks)
+	pip.BatchDeleteSubjectCache(pks)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -518,7 +519,7 @@ func BatchUpdateSubjectDepartments(c *gin.Context) {
 	}
 
 	// delete from cache
-	cacheimpls.BatchDeleteSubjectCache(pks)
+	pip.BatchDeleteSubjectCache(pks)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -604,7 +605,6 @@ func CreateSubjectRole(c *gin.Context) {
 
 	svc := service.NewSubjectService()
 	err := svc.BulkCreateSubjectRoles(body.RoleType, body.SystemID, svcSubjects)
-
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -644,7 +644,6 @@ func DeleteSubjectRole(c *gin.Context) {
 
 	svc := service.NewSubjectService()
 	err := svc.BulkDeleteSubjectRoles(body.RoleType, body.SystemID, svcSubjects)
-
 	if err != nil {
 		err = errorWrapf(
 			err,

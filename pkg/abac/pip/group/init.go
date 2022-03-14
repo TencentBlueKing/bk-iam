@@ -11,18 +11,27 @@
 package group
 
 import (
+	"errors"
+
+	"go.uber.org/multierr"
+
 	"iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
+
+// currently, only support `department-groups`, so we add a condition here, incase someone use it in a wrong way
+// NOTE: memory and redis cache all operations like set/get should only show in `group`
 
 // TODO: 目前不支持debug, 将会导致不知道 memory - redis - database的所有行为
-
-const (
-	SubjectTypeDepartment = "dept"
-	SubjectTypeUser       = "user"
-)
+var ErrSubjectTypeNotSupported = errors.New("subject type not supported, current only support `department`")
 
 // GetSubjectGroupsFromCache will retrieve subject groups from cache, the order is memory->redis->database
 func GetSubjectGroupsFromCache(subjectType string, subjectPKs []int64) (map[int64][]types.ThinSubjectGroup, error) {
+	// NOTE: if we modify here, should modify the BatchDeleteSubjectGroupsFromCache too
+	if subjectType != svctypes.DepartmentType {
+		return nil, ErrSubjectTypeNotSupported
+	}
+
 	l3 := newDatabaseRetriever()
 
 	l2 := newRedisRetriever(l3.retrieve)
@@ -32,4 +41,19 @@ func GetSubjectGroupsFromCache(subjectType string, subjectPKs []int64) (map[int6
 	// NOTE: the missingPKs maybe nil
 	subjectGroups, _, err := l1.retrieve(subjectPKs)
 	return subjectGroups, err
+}
+
+// BatchDeleteSubjectGroupsFromCache will delete cache from memory and redis
+func BatchDeleteSubjectGroupsFromCache(subjectType string, updatedSubjectPKs []int64) error {
+	if subjectType != svctypes.DepartmentType {
+		return nil
+	}
+
+	err := multierr.Combine(
+		// delete from redis
+		batchDeleteSubjectGroupsFromRedis(updatedSubjectPKs),
+		// delete from memory
+		batchDeleteSubjectGroupsFromMemory(subjectType, updatedSubjectPKs),
+	)
+	return err
 }

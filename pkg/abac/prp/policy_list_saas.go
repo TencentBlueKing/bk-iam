@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/types"
-	svcTypes "iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
 
 // ListSaaSBySubjectSystemTemplate 根据system和subject查询相关的policy的列表
@@ -144,11 +144,11 @@ func (m *policyManager) ListSaaSBySubjectTemplateBeforeExpiredAt(
 }
 
 func (m *policyManager) convertToSaaSPolicies(
-	policies []svcTypes.ThinPolicy,
-	actions []svcTypes.ThinAction,
+	policies []svctypes.ThinPolicy,
+	actions []svctypes.ThinAction,
 ) []types.SaaSPolicy {
 	// 转换数据结构
-	actionMap := make(map[int64]svcTypes.ThinAction, len(actions))
+	actionMap := make(map[int64]svctypes.ThinAction, len(actions))
 	for _, a := range actions {
 		actionMap[a.PK] = a
 	}

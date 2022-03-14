@@ -18,6 +18,7 @@ import (
 
 	"iam/pkg/abac/pip/group"
 	"iam/pkg/abac/types"
+	svctypes "iam/pkg/service/types"
 )
 
 /*
@@ -55,9 +56,9 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 	now := time.Now().Unix()
 	inheritGroupPKSet := set.NewInt64Set()
 	if len(deptPKs) > 0 {
-		// TODO: subject effective groups => 这里改成三级缓存, 不存在pipeline操作
+		// NOTE: subject effective groups => 这里改成三级缓存, 不存在pipeline操作
 		// subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
-		subjectGroups, newErr := group.GetSubjectGroupsFromCache(group.SubjectTypeDepartment, deptPKs)
+		subjectGroups, newErr := group.GetSubjectGroupsFromCache(svctypes.DepartmentType, deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			return nil, newErr

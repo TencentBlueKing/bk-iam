@@ -62,7 +62,8 @@ type subjectCacheDeleter struct{}
 // Execute ...
 func (d subjectCacheDeleter) Execute(key cache.Key) (err error) {
 	err = multierr.Combine(
-		SubjectGroupCache.Delete(key),
+		// NOTE: moved into pip/subject.go
+		// SubjectGroupCache.Delete(key),
 		SubjectDetailCache.Delete(key),
 	)
 	return
@@ -109,20 +110,6 @@ func BatchDeleteResourceTypeCache(systemID string, resourceTypeIDs []string) err
 	}
 
 	ResourceTypeCacheCleaner.BatchDelete(keys)
-	return nil
-}
-
-// BatchDeleteSubjectCache ...
-func BatchDeleteSubjectCache(pks []int64) error {
-	keys := make([]cache.Key, 0, len(pks))
-	for _, pk := range pks {
-		key := SubjectPKCacheKey{
-			PK: pk,
-		}
-		keys = append(keys, key)
-	}
-
-	SubjectCacheCleaner.BatchDelete(keys)
 	return nil
 }
 

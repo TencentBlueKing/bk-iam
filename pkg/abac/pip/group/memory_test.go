@@ -28,12 +28,12 @@ import (
 
 var _ = Describe("Memory", func() {
 	It("newMemoryRetriever", func() {
-		r := newMemoryRetriever(SubjectTypeDepartment, nil)
+		r := newMemoryRetriever(types.DepartmentType, nil)
 		assert.NotNil(GinkgoT(), r)
 	})
 
 	It("genKey", func() {
-		r := newMemoryRetriever(SubjectTypeDepartment, nil)
+		r := newMemoryRetriever(types.DepartmentType, nil)
 		assert.Equal(GinkgoT(), "111", r.genKey(111))
 	})
 
@@ -55,7 +55,7 @@ var _ = Describe("Memory", func() {
 			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
 			cacheimpls.LocalSubjectGroupsCache = gocache.New(1*time.Minute, 1*time.Minute)
 
-			r = newMemoryRetriever(SubjectTypeDepartment, nil)
+			r = newMemoryRetriever(types.DepartmentType, nil)
 
 			now = time.Now().Unix()
 			retrievedSubjectGroups = map[int64][]types.ThinSubjectGroup{
@@ -221,7 +221,7 @@ var _ = Describe("Memory", func() {
 	Describe("setMissing", func() {
 		var r *memoryRetriever
 		BeforeEach(func() {
-			r = newMemoryRetriever(SubjectTypeDepartment, nil)
+			r = newMemoryRetriever(types.DepartmentType, nil)
 			cacheimpls.LocalSubjectGroupsCache = gocache.New(1*time.Minute, 1*time.Minute)
 		})
 

@@ -105,7 +105,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	// 2. get the subject-department's groups
 	deptPKs := subjectDetail.DepartmentPKs
 	if inherit && len(deptPKs) > 0 {
-		subjectGroups, newErr := group.GetSubjectGroupsFromCache(group.SubjectTypeDepartment, deptPKs)
+		subjectGroups, newErr := group.GetSubjectGroupsFromCache(types.DepartmentType, deptPKs)
 		if newErr != nil {
 			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
 			util.SystemErrorJSONResponse(c, newErr)

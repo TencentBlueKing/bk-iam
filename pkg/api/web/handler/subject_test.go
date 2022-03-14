@@ -17,6 +17,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 
+	"iam/pkg/abac/pip"
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
@@ -200,7 +201,7 @@ func TestBatchDeleteSubjects(t *testing.T) {
 			return mockManager2
 		})
 
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		patches.ApplyFunc(cacheimpls.DeleteSubjectPK, func(_type, id string) error { return nil })
 		patches.ApplyFunc(cacheimpls.DeleteLocalSubjectPK, func(_type, id string) error { return nil })
 		patches.ApplyFunc(pl.BatchDeleteSystemSubjectPKsFromCache,
@@ -681,7 +682,7 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 			return mockManager
 		})
 		patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) { return 1, nil })
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).
@@ -772,7 +773,7 @@ func TestDeleteSubjectMembers(t *testing.T) {
 			return mockManager
 		})
 		patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) { return 1, nil })
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).
@@ -938,7 +939,7 @@ func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
 			return mockManager
 		})
 		patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) { return 1, nil })
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).
@@ -1088,7 +1089,7 @@ func TestBatchDeleteSubjectDepartments(t *testing.T) {
 		patches = gomonkey.ApplyFunc(service.NewSubjectService, func() service.SubjectService {
 			return mockManager
 		})
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).JSON([]string{"admin"}).OK()
@@ -1161,7 +1162,7 @@ func TestBatchUpdateSubjectDepartments(t *testing.T) {
 		patches = gomonkey.ApplyFunc(service.NewSubjectService, func() service.SubjectService {
 			return mockManager
 		})
-		patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
+		patches.ApplyFunc(pip.BatchDeleteSubjectCache, func(pks []int64) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).
