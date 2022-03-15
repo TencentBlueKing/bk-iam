@@ -11,7 +11,7 @@
 package condition
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition/operator"
@@ -19,17 +19,19 @@ import (
 
 var _ = Describe("Or", func() {
 	wantOrCondition := &OrCondition{
-		content: []Condition{
-			&StringEqualsCondition{
-				baseCondition: baseCondition{
-					Key:   "system",
-					Value: []interface{}{"linux"},
+		baseLogicalCondition{
+			content: []Condition{
+				&StringEqualsCondition{
+					baseCondition: baseCondition{
+						Key:   "system",
+						Value: []interface{}{"linux"},
+					},
 				},
-			},
-			&StringPrefixCondition{
-				baseCondition: baseCondition{
-					Key:   "path",
-					Value: []interface{}{"/biz,1/"},
+				&StringPrefixCondition{
+					baseCondition: baseCondition{
+						Key:   "path",
+						Value: []interface{}{"/biz,1/"},
+					},
 				},
 			},
 		},
@@ -40,9 +42,11 @@ var _ = Describe("Or", func() {
 		c1, _ := newStringEqualsCondition("k1", []interface{}{"a", "b"})
 		c2, _ := newNumericEqualsCondition("k2", []interface{}{123})
 		c = &OrCondition{
-			[]Condition{
-				c1,
-				c2,
+			baseLogicalCondition{
+				[]Condition{
+					c1,
+					c2,
+				},
 			},
 		}
 	})
@@ -91,22 +95,6 @@ var _ = Describe("Or", func() {
 
 		assert.False(GinkgoT(), c.Eval(strCtx("c")))
 		assert.False(GinkgoT(), c.Eval(intCtx(456)))
-	})
-
-	It("GetKeys", func() {
-		oc := OrCondition{
-			content: []Condition{
-				&StringEqualsCondition{
-					baseCondition{
-						Key: "hello",
-					},
-				},
-			},
-		}
-
-		keys := oc.GetKeys()
-		assert.Len(GinkgoT(), keys, 1)
-		assert.Equal(GinkgoT(), "hello", keys[0])
 	})
 
 	Describe("Translate", func() {
@@ -234,7 +222,7 @@ var _ = Describe("Or", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(HitStrCtx("windows"))
 					assert.False(GinkgoT(), allowed)
 					assert.Nil(GinkgoT(), nc)
-					//assert.Equal(GinkgoT(), NewAnyCondition(), nc)
+					// assert.Equal(GinkgoT(), NewAnyCondition(), nc)
 				})
 
 				It("true", func() {
@@ -410,7 +398,7 @@ var _ = Describe("Or", func() {
 					"host.system": "windows",
 				})
 				assert.True(GinkgoT(), allowed)
-				//assert.Nil(GinkgoT(), nc)
+				// assert.Nil(GinkgoT(), nc)
 				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
 				got := map[string]interface{}{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}

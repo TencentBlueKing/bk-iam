@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	rds "github.com/go-redis/redis/v8"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 

@@ -13,7 +13,7 @@ package component
 import (
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/parnurzeal/gorequest"
 
 	"iam/pkg/config"

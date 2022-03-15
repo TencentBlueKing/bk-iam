@@ -29,7 +29,7 @@ const CacheLayer = "Cache"
 
 // LocalAppCodeAppSecretCache ...
 var (
-	LocalAppCodeAppSecretCache      memory.Cache
+	LocalAppCodeAppSecretCache      *gocache.Cache
 	LocalAuthAppAccessKeyCache      *gocache.Cache
 	LocalSubjectCache               memory.Cache
 	LocalSubjectRoleCache           memory.Cache
@@ -74,13 +74,7 @@ func newRandomDuration(seconds int) backend.RandomExtraExpirationDurationFunc {
 // Cache should only know about get/retrieve data
 // ! DO NOT CARE ABOUT WHAT THE DATA WILL BE USED FOR
 func InitCaches(disabled bool) {
-	LocalAppCodeAppSecretCache = memory.NewCache(
-		"app_code_app_secret",
-		disabled,
-		retrieveAppCodeAppSecret,
-		12*time.Hour,
-		nil,
-	)
+	LocalAppCodeAppSecretCache = gocache.New(12*time.Hour, 5*time.Minute)
 
 	// auth app_code/app_secret cache
 	LocalAuthAppAccessKeyCache = gocache.New(12*time.Hour, 5*time.Minute)
@@ -264,5 +258,16 @@ func InitPolicyCacheSettings(disabled bool, expirationDays int64) {
 	log.Infof("init LocalPolicyCache disabled=%t, expiration=%s", PolicyCacheDisabled, PolicyCacheExpiration)
 	if PolicyCacheDisabled {
 		log.Warn("the LocalPolicyCache is disabled! Will query policy from database!")
+	}
+}
+
+// InitVerifyAppCodeAppSecret ...
+func InitVerifyAppCodeAppSecret(enableBkAuth bool) {
+	if enableBkAuth {
+		VerifyAppCodeAppSecret = VerifyAppCodeAppSecretFromAuth
+		log.Infof("init VerifyAppCodeAppSecret to VerifyAppCodeAppSecretFromAuth")
+	} else {
+		VerifyAppCodeAppSecret = VerifyAppCodeAppSecretFromDB
+		log.Infof("init VerifyAppCodeAppSecret to VerifyAppCodeAppSecretFromDB")
 	}
 }

@@ -14,7 +14,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 
 	pl "iam/pkg/abac/prp/policy"

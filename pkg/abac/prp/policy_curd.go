@@ -11,6 +11,7 @@
 package prp
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -359,6 +360,11 @@ func (m *policyManager) DeleteByActionID(systemID, actionID string) error {
 	// 1. 查询 action pk
 	actionPK, err := m.actionService.GetActionPK(systemID, actionID)
 	if err != nil {
+		// if action already deleted, just return
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
 		err = errorWrapf(err, "actionService.GetActionPK systemID=`%s`, actionID=`%s` fail", systemID, actionID)
 		return err
 	}

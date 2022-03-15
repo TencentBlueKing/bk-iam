@@ -26,16 +26,17 @@ import (
 type SaaSAction struct {
 	database.AllowBlankFields
 
-	PK             int64  `db:"pk"`
-	System         string `db:"system_id"`
-	ID             string `db:"id"`
-	Name           string `db:"name"`
-	NameEn         string `db:"name_en"`
-	Description    string `db:"description"`
-	DescriptionEn  string `db:"description_en"`
-	RelatedActions string `db:"related_actions"`
-	Type           string `db:"type"`
-	Version        int64  `db:"version"`
+	PK                  int64  `db:"pk"`
+	System              string `db:"system_id"`
+	ID                  string `db:"id"`
+	Name                string `db:"name"`
+	NameEn              string `db:"name_en"`
+	Description         string `db:"description"`
+	DescriptionEn       string `db:"description_en"`
+	RelatedActions      string `db:"related_actions"`
+	RelatedEnvironments string `db:"related_environments"`
+	Type                string `db:"type"`
+	Version             int64  `db:"version"`
 }
 
 // SaaSActionManager ...
@@ -118,9 +119,11 @@ func (m *saasActionManager) bulkInsertWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 		description,
 		description_en,
 		related_actions,
+		related_environments,
 		type,
 		version
-	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :related_actions, :type, :version)`
+	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en,
+			:related_actions, :related_environments, :type, :version)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasActions)
 }
 
@@ -147,6 +150,7 @@ func (m *saasActionManager) selectBySystem(saasAction *[]SaaSAction, system stri
 		description,
 		description_en,
 		related_actions,
+		related_environments,
 		type,
 		version
 		FROM saas_action

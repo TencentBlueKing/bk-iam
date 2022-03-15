@@ -20,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/util"
 )
@@ -27,9 +28,11 @@ import (
 func TestClientAuthMiddleware(t *testing.T) {
 	t.Parallel()
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// 1. without appCode appSecret
 	r := gin.Default()
-	r.Use(ClientAuthMiddleware([]byte(""), false))
+	r.Use(ClientAuthMiddleware([]byte("")))
 	util.NewTestRouter(r)
 
 	req, _ := http.NewRequest("GET", "/ping", nil)

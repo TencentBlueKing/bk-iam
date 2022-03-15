@@ -8,9 +8,11 @@ init:
 	# go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.43.0
 	# for make doc
-	go get -u github.com/swaggo/swag/cmd/swag@v1.6.7
+	go install github.com/swaggo/swag/cmd/swag@v1.7.6
 	# for make mock
 	go install github.com/golang/mock/mockgen@v1.4.4
+	# for ginkgo
+	go install github.com/onsi/ginkgo/v2/ginkgo@latest
 
 dep:
 	go mod tidy

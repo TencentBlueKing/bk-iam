@@ -1,7 +1,21 @@
+# 1.10.2
+
+- bugfix: API /api/v1/engine/credentials/verify use auth
+
+# 1.10.1
+
+- add: API /api/v1/web//unreferenced-expressions
+- upgrade: go version 1.17
+
+# 1.10.0
+
+- upgrade: permission model supports environment attributes
+
 # 1.9.5
 
 - bugfix: healthz check fail if enable bkauth
 - bugfix: ModelChangeEvent when action(no policy related) be deleted
+
 
 # 1.9.4
 

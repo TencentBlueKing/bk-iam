@@ -11,7 +11,7 @@
 package condition
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/types"
@@ -20,17 +20,19 @@ import (
 var _ = Describe("Condition", func() {
 
 	wantAndCondition := &AndCondition{
-		content: []Condition{
-			&StringEqualsCondition{
-				baseCondition: baseCondition{
-					Key:   "system",
-					Value: []interface{}{"linux"},
+		baseLogicalCondition{
+			content: []Condition{
+				&StringEqualsCondition{
+					baseCondition: baseCondition{
+						Key:   "system",
+						Value: []interface{}{"linux"},
+					},
 				},
-			},
-			&StringPrefixCondition{
-				baseCondition: baseCondition{
-					Key:   "path",
-					Value: []interface{}{"/biz,1/"},
+				&StringPrefixCondition{
+					baseCondition: baseCondition{
+						Key:   "path",
+						Value: []interface{}{"/biz,1/"},
+					},
 				},
 			},
 		},
