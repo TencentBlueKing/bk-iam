@@ -15,14 +15,14 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	rds "github.com/go-redis/redis/v8"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/prp/common"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 )
 
 var _ = Describe("Changelist", func() {
@@ -40,14 +40,14 @@ var _ = Describe("Changelist", func() {
 			c = common.NewChangeList("test", 60, 100)
 
 			patches = gomonkey.NewPatches()
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
 		})
 		AfterEach(func() {
 			patches.Reset()
 		})
 
 		It("zrange fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return nil, errors.New("ZRevRangeByScore fail")
 				})
@@ -58,7 +58,7 @@ var _ = Describe("Changelist", func() {
 		})
 
 		It("ok", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "ZRevRangeByScore",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return []rds.Z{
 						{
@@ -91,7 +91,7 @@ var _ = Describe("Changelist", func() {
 			c = common.NewChangeList("test", 60, 100)
 
 			patches = gomonkey.NewPatches()
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
 
 			keyMembers = map[string][]string{
 				"abc": {"10", "11"},
@@ -102,7 +102,7 @@ var _ = Describe("Changelist", func() {
 		})
 
 		It("BatchZAdd fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "BatchZAdd",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "BatchZAdd",
 				func(c *redis.Cache, zDataList []redis.ZData) error {
 					return errors.New("batchZAdd fail")
 				})
@@ -125,14 +125,14 @@ var _ = Describe("Changelist", func() {
 			c = common.NewChangeList("test", 60, 100)
 
 			patches = gomonkey.NewPatches()
-			impls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("test", 5*time.Minute)
 		})
 		AfterEach(func() {
 			patches.Reset()
 		})
 
 		It("ZRemove fail", func() {
-			patches.ApplyMethod(reflect.TypeOf(impls.ChangeListCache), "BatchZRemove",
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "BatchZRemove",
 				func(c *redis.Cache, keys []string, min int64, max int64) error {
 					return errors.New("zRemove fail")
 				})

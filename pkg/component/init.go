@@ -29,14 +29,18 @@ const (
 	maxResponseBodyLength = 10240
 )
 
-// BKRemoteResource ...
 var (
-	BKRemoteResource RemoteResourceClient
+	BkRemoteResource RemoteResourceClient
+	BkAuth           AuthClient
 )
 
-// InitComponentClients ...
-func InitComponentClients() {
-	BKRemoteResource = NewRemoteResourceClient()
+// InitBkRemoteResourceClient ...
+func InitBkRemoteResourceClient() {
+	BkRemoteResource = NewRemoteResourceClient()
+}
+
+func InitBkAuthClient(bkAuthHost, bkAppCode, bkAppSecret string) {
+	BkAuth = NewAuthClient(bkAuthHost, bkAppCode, bkAppSecret)
 }
 
 // CallbackFunc ...

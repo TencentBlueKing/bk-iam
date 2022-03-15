@@ -15,20 +15,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
-	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
-// List godoc
+// PolicyList godoc
 // @Summary policy list
 // @Description list policies of a action
 // @ID api-open-system-policies-list
@@ -42,7 +41,7 @@ import (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies [get]
-func List(c *gin.Context) {
+func PolicyList(c *gin.Context) {
 	// TODO: 翻页接口是否有性能问题 / 限制调用并发, 用drl
 	var query listQuerySerializer
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -62,7 +61,7 @@ func List(c *gin.Context) {
 
 	// 2. action exists
 	actionID := query.ActionID
-	actionPK, err := impls.GetActionPK(systemID, actionID)
+	actionPK, err := cacheimpls.GetActionPK(systemID, actionID)
 	if err != nil {
 		// 在本系统内找不到这个action, 返回404
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,7 +69,7 @@ func List(c *gin.Context) {
 			return
 		}
 
-		err = fmt.Errorf("impls.GetActionPK system=`%s`, action=`%s` fail. err=%w", systemID, actionID, err)
+		err = fmt.Errorf("cacheimpls.GetActionPK system=`%s`, action=`%s` fail. err=%w", systemID, actionID, err)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -97,7 +96,8 @@ func List(c *gin.Context) {
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}
-		results, err = convertQueryPoliciesToThinPolicies(systemID, actionID, policies)
+
+		results, err = convertQueryPoliciesToThinPolicies(policies)
 		if err != nil {
 			err = fmt.Errorf(
 				"convertQueryPoliciesToThinPolicies system=`%s`, action=`%s` fail. err=%w",
@@ -120,18 +120,10 @@ func List(c *gin.Context) {
 }
 
 func convertQueryPoliciesToThinPolicies(
-	systemID, actionID string,
 	policies []types.QueryPolicy,
 ) (thinPolicies []thinPolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.convertQueryPoliciesToThinPolicies")
 	if len(policies) == 0 {
-		return
-	}
-
-	// 0. get action resource type set
-	resourceTypeSet, err := common.GetActionResourceTypeSet(systemID, actionID)
-	if err != nil {
-		err = errorWrapf(err, "getActionResourceTypeSet systemID=`%s`, actionID=`%s` fail", systemID, actionID)
 		return
 	}
 
@@ -144,16 +136,15 @@ func convertQueryPoliciesToThinPolicies(
 	}
 
 	// 2. query expression from cache
-	pkExpressionMap, err := translateExpressions(resourceTypeSet, expressionPKs)
+	pkExpressionMap, err := translateExpressions(expressionPKs)
 	if err != nil {
-		err = errorWrapf(err, "translateExpressions resourceTypeSet=`%+v`, expressionPKs=`%+v` fail",
-			resourceTypeSet, expressionPKs)
+		err = errorWrapf(err, "translateExpressions expressionPKs=`%+v` fail", expressionPKs)
 		return
 	}
 
 	// loop policies to build thinPolicies
 	for _, p := range policies {
-		subj, err1 := impls.GetSubjectByPK(p.SubjectPK)
+		subj, err1 := cacheimpls.GetSubjectByPK(p.SubjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
 			log.Info(errorWrapf(err1,
@@ -186,9 +177,8 @@ func convertQueryPoliciesToThinPolicies(
 	return thinPolicies, nil
 }
 
-// translateExpressions translate expression to json formart
+// translateExpressions translate expression to json format
 func translateExpressions(
-	resourceTypeSet *util.StringSet,
 	expressionPKs []int64,
 ) (expressionMap map[int64]map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.translateExpressions")
@@ -218,7 +208,7 @@ func translateExpressions(
 		// TODO: 如何优化这里的性能?
 		// TODO: 理论上, signature一样的只需要转一次
 		// e.Signature
-		translatedExpr, err1 := translate.PolicyTranslate(expr, resourceTypeSet)
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
 		if err1 != nil {
 			err = errorWrapf(err1, "translate fail", "")
 			return

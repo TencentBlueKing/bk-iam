@@ -22,9 +22,9 @@ import (
 
 func Test_subjectManager_GetPK(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk FROM subject WHERE type=.* AND id=.* LIMIT .*`
+		mockQuery := `^SELECT pk FROM subject WHERE type=.* AND id=.* LIMIT 1`
 		mockRows := sqlmock.NewRows([]string{"pk"}).AddRow(1)
-		mock.ExpectQuery(mockQuery).WithArgs("user", "admin", 1).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs("user", "admin").WillReturnRows(mockRows)
 
 		manager := &subjectManager{DB: db}
 		pk, err := manager.GetPK("user", "admin")

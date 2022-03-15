@@ -12,7 +12,8 @@ package handler
 
 import (
 	"fmt"
-	"iam/pkg/cache/impls"
+
+	"iam/pkg/cacheimpls"
 	"iam/pkg/util"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +42,7 @@ func CredentialsVerify(c *gin.Context) {
 	}
 
 	if req.Type == "app" {
-		valid := impls.VerifyAppCodeAppSecret(req.Data.AppCode, req.Data.AppSecret)
+		valid := cacheimpls.VerifyAppCodeAppSecret(req.Data.AppCode, req.Data.AppSecret)
 		util.SuccessJSONResponse(c, "ok", credentialsVerifyResponseSerializer{Valid: valid})
 		return
 	}

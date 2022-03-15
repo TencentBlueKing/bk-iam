@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/logging"
-	"iam/pkg/util"
 )
 
 const (
@@ -62,7 +62,7 @@ func truncateArgs(args interface{}, length int) string {
 	if err != nil {
 		s = fmt.Sprintf("%v", args)
 	}
-	return util.TruncateString(s, length)
+	return stringx.Truncate(s, length)
 }
 
 func isBlank(value reflect.Value) bool {

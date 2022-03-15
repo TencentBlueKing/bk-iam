@@ -11,9 +11,10 @@
 package pip
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/abac/types"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 )
 
 // ActionPIP ...
@@ -23,10 +24,10 @@ const ActionPIP = "ActionPIP"
 func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceType, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
 
-	detail, err := impls.GetActionDetail(system, id)
+	detail, err := cacheimpls.GetActionDetail(system, id)
 	if err != nil {
 		err = errorWrapf(err,
-			"impls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
+			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
 		return
 	}
 

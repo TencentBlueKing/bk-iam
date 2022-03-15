@@ -11,20 +11,25 @@
 package handler
 
 import (
-	"iam/pkg/errorx"
+	"github.com/gin-gonic/gin"
+
+	"github.com/TencentBlueKing/gopkg/conv"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/service"
 	"iam/pkg/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 // ListModelChangeEvent 查询变更事件列表
 func ListModelChangeEvent(c *gin.Context) {
 	status := c.Query("status")
+	limit, err := conv.ToInt64(c.Query("limit"))
+	if err != nil {
+		limit = 1000
+	}
 
 	svc := service.NewModelChangeService()
-	events, err := svc.ListByStatus(status)
-
+	events, err := svc.ListByStatus(status, limit)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "ListModelChangeEvent", "status=`%s`", status)
 		util.SystemErrorJSONResponse(c, err)
@@ -42,7 +47,7 @@ func UpdateModelChangeEvent(c *gin.Context) {
 		return
 	}
 
-	eventPK, err := util.StringToInt64(c.Param("event_pk"))
+	eventPK, err := conv.ToInt64(c.Param("event_pk"))
 	if err != nil {
 		util.BadRequestErrorJSONResponse(c, err.Error())
 		return

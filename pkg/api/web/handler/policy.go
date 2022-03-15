@@ -11,13 +11,11 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/abac/pdp/translate"
-	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -209,32 +207,7 @@ func GetCustomPolicy(c *gin.Context) {
 		return
 	}
 
-	if policy.Expression == "" {
-		util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID, "expression": map[string]interface{}{
-			"op":    "any",
-			"field": "",
-			"value": []interface{}{},
-		}})
-		return
-	}
-
-	_, actionResourceTypes, err := pip.GetActionDetail(systemID, query.ActionID)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	expr, err := translate.PoliciesTranslate([]types.AuthPolicy{policy}, actionResourceTypes)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID, "expression": expr})
+	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID})
 }
 
 // ListPolicy godoc
@@ -334,6 +307,20 @@ func DeleteActionPolicies(c *gin.Context) {
 		err = errorx.Wrapf(err, "Handler", "DeleteActionPolicies",
 			"systemID=`%s`, actionID=`%s`",
 			systemID, actionID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{})
+}
+
+// DeleteUnreferencedExpressions clean not quoted expression
+func DeleteUnreferencedExpressions(c *gin.Context) {
+	manager := service.NewPolicyService()
+
+	err := manager.DeleteUnreferencedExpressions()
+	if err != nil {
+		err = errorx.Wrapf(err, "Handler", "DeleteUnreferencedExpressions", "")
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

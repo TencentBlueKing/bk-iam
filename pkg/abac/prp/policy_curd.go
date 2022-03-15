@@ -11,14 +11,16 @@
 package prp
 
 import (
+	"database/sql"
 	"errors"
+
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
-	"iam/pkg/errorx"
 	svctypes "iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 // NOTE: **important** / **重要**
@@ -57,7 +59,7 @@ func convertToServicePolicies(
 
 func (m *policyManager) querySubjectActionForAlterPolicies(
 	systemID, subjectType, subjectID string,
-) (subjectPK int64, actionPKMap map[string]int64, actionPKWithResourceTypeSet *util.Int64Set, err error) {
+) (subjectPK int64, actionPKMap map[string]int64, actionPKWithResourceTypeSet *set.Int64Set, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "querySubjectActionForAlterPolicies")
 
 	// 1. 查询 subject subjectPK
@@ -85,7 +87,7 @@ func (m *policyManager) querySubjectActionForAlterPolicies(
 		err = errorWrapf(err, "actionService.ListActionResourceTypeIDByActionSystem systemID=`%s` fail", systemID)
 		return
 	}
-	actionPKWithResourceTypeSet = util.NewInt64Set()
+	actionPKWithResourceTypeSet = set.NewInt64Set()
 	for _, t := range actionResourceTypes {
 		actionPKWithResourceTypeSet.Add(actionPKMap[t.ActionID])
 	}
@@ -327,7 +329,7 @@ func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
 	return nil
 }
 
-func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) (*util.StringSet, error) {
+func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) (*set.StringSet, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "RenewExpiredAtByIDs")
 
 	actionPKs := make([]int64, 0, len(policies))
@@ -343,7 +345,7 @@ func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) 
 	}
 
 	// 3. 得到涉及的系统id
-	systemSet := util.NewStringSet()
+	systemSet := set.NewStringSet()
 	for _, ac := range actions {
 		systemSet.Add(ac.System)
 	}
@@ -358,6 +360,11 @@ func (m *policyManager) DeleteByActionID(systemID, actionID string) error {
 	// 1. 查询 action pk
 	actionPK, err := m.actionService.GetActionPK(systemID, actionID)
 	if err != nil {
+		// if action already deleted, just return
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
 		err = errorWrapf(err, "actionService.GetActionPK systemID=`%s`, actionID=`%s` fail", systemID, actionID)
 		return err
 	}

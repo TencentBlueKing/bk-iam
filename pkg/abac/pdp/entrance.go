@@ -14,13 +14,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/pdp/translate"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 )
 
@@ -42,7 +45,11 @@ PDP 模块鉴权入口结构与鉴权函数定义
 */
 
 // PDP ...
-const PDP = "PDP"
+const (
+	PDP = "PDP"
+
+	DefaultTz = "Asia/Shanghai"
+)
 
 // EmptyPolicies ...
 var (
@@ -129,62 +136,34 @@ func Eval(
 	if entry != nil {
 		debug.WithValue(entry, "expression", "set fail")
 
-		//queryResourceTypes, err := r.GetQueryResourceTypes()
-		queryResourceTypes, err1 := r.Action.Attribute.GetResourceTypes()
+		expr, err1 := cacheimpls.PoliciesTranslate(policies)
 		if err1 == nil {
-			expr, err2 := translate.PoliciesTranslate(policies, queryResourceTypes)
-			if err2 == nil {
-				debug.WithValue(entry, "expression", expr)
-			}
+			debug.WithValue(entry, "expression", expr)
 		}
 	}
 
 	debug.AddStep(entry, "Eval")
-	// 5. 针对只有一个本地资源的操作, 只需要计算一次(大部分场景, 只计算一次)
-	if r.HasSingleLocalResource() {
-		debug.AddStep(entry, "Single local resource eval")
-		resource := r.GetSortedResources()[0]
-
-		var passPolicyID int64
-		isPass, passPolicyID, err = evaluation.EvalPolicies(pdptypes.NewExprContext(r, resource), policies)
-		if err != nil {
-			err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, resource=`%+v` fail",
-				policies, *resource)
-
-			return false, err
-		}
-		if !isPass {
-			// if isPass is false, update all to `no pass`
-			debug.WithNoPassEvalPolicies(entry, policies)
-		} else {
-			// if isPass is true, how to know which policy?
-			debug.WithPassEvalPolicy(entry, passPolicyID)
-		}
-
-		return isPass, err
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
 	}
-
-	// 6. 过滤policies
-	debug.AddStep(entry, "Filter policies by eval resources")
-	var filteredPolicies []types.AuthPolicy
-	filteredPolicies, err = filterPoliciesByEvalResources(r, policies)
+	var passPolicyID int64
+	isPass, passPolicyID, err = evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 	if err != nil {
-		if errors.Is(err, ErrNoPolicies) {
-			// if is len(filteredPolicies) == 0, update all to no pass
-			debug.WithNoPassEvalPolicies(entry, policies)
-
-			return false, nil
-		}
-
-		err = errorWrapf(err, "filterPoliciesByEvalResources policies=`%+v` fail", policies)
+		err = errorWrapf(err, "single local evaluation.EvalPolicies policies=`%+v`, request=`%+v` fail",
+			policies, *r)
 
 		return false, err
 	}
+	if !isPass {
+		// if isPass is false, update all to `no pass`
+		debug.WithNoPassEvalPolicies(entry, policies)
+	} else {
+		// if isPass is true, how to know which policy?
+		debug.WithPassEvalPolicy(entry, passPolicyID)
+	}
 
-	// update all  filteredPolicies to pass, 有一条过就算过
-	debug.WithPassEvalPolicies(entry, filteredPolicies)
-
-	return true, nil
+	return isPass, err
 }
 
 // Query 查询请求相关的Policy
@@ -197,29 +176,20 @@ func Query(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "Query")
 
 	// 1. 查询请求相关的策略
-	policies, err := queryFilterPolicies(r, entry, willCheckRemoteResource, withoutCache)
+	conditions, err := queryAndPartialEvalConditions(r, entry, willCheckRemoteResource, withoutCache)
 	if err != nil {
-		err = errorWrapf(err, "queryFilterPolicies fail", r.Action)
+		err = errorWrapf(err, "queryAndPartialEvalConditions fail", r.Action)
 		return nil, err
 	}
 
-	if len(policies) == 0 {
+	if len(conditions) == 0 {
 		return EmptyPolicies, nil
 	}
 
 	// 2. policies表达式转换
-	// 查找请求的local action resource type
-	queryResourceTypes, err := r.GetQueryResourceTypes()
+	expr, err := translate.ConditionsTranslate(conditions)
 	if err != nil {
-		err = errorWrapf(err, "getQueryResourceTypes action=`%+v` fail", r.Action)
-
-		return nil, err
-	}
-
-	expr, err := translate.PoliciesTranslate(policies, queryResourceTypes)
-	if err != nil {
-		err = errorWrapf(err, "PoliciesTranslate resourceTypes=`%+v` fail", queryResourceTypes)
-
+		err = errorWrapf(err, "translate.ConditionsTranslate conditions=`%+v` fail", conditions)
 		return nil, err
 	}
 	debug.WithValue(entry, "expression", expr)
@@ -236,14 +206,10 @@ func QueryByExtResources(
 ) (map[string]interface{}, []types.ExtResourceWithAttribute, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "QueryByExtResources")
 
-	var (
-		policies []types.AuthPolicy
-		err      error
-	)
 	// 1. 查询请求相关的策略
-	policies, err = queryFilterPolicies(r, entry, false, withoutCache)
+	conditions, err := queryAndPartialEvalConditions(r, entry, false, withoutCache)
 	if err != nil {
-		err = errorWrapf(err, "queryFilterPolicies fail", r.Action)
+		err = errorWrapf(err, "queryAndPartialEvalConditions fail", r.Action)
 		return nil, nil, err
 	}
 
@@ -257,7 +223,7 @@ func QueryByExtResources(
 	}
 
 	// 如果策略为空, 直接返回空结果
-	if len(policies) == 0 {
+	if len(conditions) == 0 {
 		for i, resource := range extResources {
 			for _, id := range resource.IDs {
 				extResourcesWithAttr[i].Instances = append(extResourcesWithAttr[i].Instances, types.Instance{
@@ -273,7 +239,7 @@ func QueryByExtResources(
 	// 2. 批量查询 ext resource 的属性
 	var remoteResources []map[string]interface{}
 	for i := range extResources {
-		remoteResources, err = queryExtResourceAttrs(&extResources[i], policies)
+		remoteResources, err = queryExtResourceAttrs(&extResources[i], conditions)
 		if err != nil {
 			err = errorWrapf(err, "queryExtResourceAttrs resource=`%+v` fail", extResources[i])
 			return nil, nil, err
@@ -288,20 +254,10 @@ func QueryByExtResources(
 	}
 
 	// 3. policies表达式转换
-	// 查找请求的local action resource type
-	var queryResourceTypes []types.ActionResourceType
-	queryResourceTypes, err = r.GetQueryResourceTypes()
-	if err != nil {
-		err = errorWrapf(err, "getQueryResourceTypes action=`%+v` fail", r.Action)
-
-		return nil, nil, err
-	}
-
 	var expr map[string]interface{}
-	expr, err = translate.PoliciesTranslate(policies, queryResourceTypes)
+	expr, err = translate.ConditionsTranslate(conditions)
 	if err != nil {
-		err = errorWrapf(err, "PoliciesTranslate resourceTypes=`%+v` fail", queryResourceTypes)
-
+		err = errorWrapf(err, "translate.ConditionsTranslate conditions=`%+v` fail", conditions)
 		return nil, nil, err
 	}
 	debug.WithValue(entry, "expression", expr)
@@ -374,20 +330,4 @@ func QueryAuthPolicies(
 	debug.WithValue(entry, "policies", policies)
 
 	return policies, nil
-}
-
-// EvalPolicies ...
-func EvalPolicies(req *request.Request, policies []types.AuthPolicy) (bool, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "EvalPolicies")
-
-	_, err := filterPoliciesByEvalResources(req, policies)
-	if err != nil {
-		if errors.Is(err, ErrNoPolicies) {
-			return false, nil
-		}
-
-		err = errorWrapf(err, "filterPoliciesByEvalResources policies=`%+v` fail", policies)
-		return false, err
-	}
-	return true, nil
 }

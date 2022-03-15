@@ -15,16 +15,15 @@ import (
 	"testing"
 	"time"
 
-	"iam/pkg/cache"
-	"iam/pkg/cache/memory"
-
-	"github.com/agiledragon/gomonkey"
-	. "github.com/onsi/ginkgo"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/agiledragon/gomonkey/v2"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 )
 
@@ -229,7 +228,7 @@ var _ = Describe("util", func() {
 		})
 
 		It("validateSystemSuperUser error", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectRoleSystemID,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectRoleSystemID,
 				func(subjectType, subjectID string) ([]string, error) {
 					return nil, errors.New("test")
 				})
@@ -240,7 +239,7 @@ var _ = Describe("util", func() {
 		})
 
 		It("false", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectRoleSystemID,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectRoleSystemID,
 				func(subjectType, subjectID string) ([]string, error) {
 					return []string{}, nil
 				})
@@ -257,7 +256,7 @@ var _ = Describe("util", func() {
 		})
 
 		It("ok, system_manager", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectRoleSystemID,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectRoleSystemID,
 				func(subjectType, subjectID string) ([]string, error) {
 					return []string{"bk_cmdb"}, nil
 				})
@@ -268,7 +267,7 @@ var _ = Describe("util", func() {
 		})
 
 		It("ok, super_manager", func() {
-			patches = gomonkey.ApplyFunc(impls.ListSubjectRoleSystemID,
+			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectRoleSystemID,
 				func(subjectType, subjectID string) ([]string, error) {
 					return []string{"SUPER"}, nil
 				})
@@ -323,8 +322,8 @@ func Test_validateSystemMatchClient(t *testing.T) {
 		return []string{"test"}, nil
 	}
 	mockCache := memory.NewCache(
-		"mockCache", false, retrieveFunc, expiration)
-	impls.LocalSystemClientsCache = mockCache
+		"mockCache", false, retrieveFunc, expiration, nil)
+	cacheimpls.LocalSystemClientsCache = mockCache
 
 	type args struct {
 		systemID string

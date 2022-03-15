@@ -12,14 +12,17 @@ package handler
 
 import (
 	"errors"
+	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
-	"iam/pkg/abac/pdp/translate"
+	"iam/pkg/abac/pdp/evalctx"
+	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -250,6 +253,7 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 	_, isForce := c.GetQuery("force")
 
+	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
 	if err != nil {
@@ -275,8 +279,15 @@ func BatchAuthByResources(c *gin.Context) {
 		return
 	}
 
+	// TODO: move to pdp/entrance.go
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(pdp.DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
+
 	// do eval for each resource
 	for _, resources := range body.ResourcesList {
+		// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 		// copy the req, reset and assign the resources
 		r := req
 		r.Resources = make([]types.Resource, 0, len(resources))
@@ -290,7 +301,7 @@ func BatchAuthByResources(c *gin.Context) {
 		}
 
 		// do eval
-		isAllowed, err := pdp.EvalPolicies(r, policies)
+		isAllowed, _, err := evaluation.EvalPolicies(evalctx.NewEvalContext(r), policies)
 		if err != nil {
 			err = errorWrapf(err, " pdp.EvalPolicies req=`%+v`, policies=`%+v` fail", r, policies)
 			util.SystemErrorJSONResponseWithDebug(c, err, entry)
@@ -303,12 +314,9 @@ func BatchAuthByResources(c *gin.Context) {
 	// NOTE: debug mode, do translate, for understanding easier
 	if entry != nil && len(body.ResourcesList) > 0 {
 		debug.WithValue(entry, "expression", "set fail")
-		queryResourceTypes, err := req.Action.Attribute.GetResourceTypes()
-		if err == nil {
-			expr, err := translate.PoliciesTranslate(policies, queryResourceTypes)
-			if err == nil {
-				debug.WithValue(entry, "expression", expr)
-			}
+		expr, err1 := cacheimpls.PoliciesTranslate(policies)
+		if err1 == nil {
+			debug.WithValue(entry, "expression", expr)
 		}
 	}
 

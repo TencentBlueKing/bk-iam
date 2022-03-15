@@ -19,6 +19,22 @@ type baseCondition struct {
 	Value []interface{}
 }
 
+// GetKeys 返回条件中属性key值
+func (c *baseCondition) GetKeys() []string {
+	return []string{c.Key}
+}
+
+func (c *baseCondition) HasKey(f keyMatchFunc) bool {
+	return f(c.Key)
+}
+
+func (c *baseCondition) GetFirstMatchKeyValues(f keyMatchFunc) ([]interface{}, bool) {
+	if f(c.Key) {
+		return c.Value, true
+	}
+	return nil, false
+}
+
 // GetValues 如果Value中有参数, 获取参数的值
 func (c *baseCondition) GetValues() []interface{} {
 	return c.Value
@@ -26,7 +42,7 @@ func (c *baseCondition) GetValues() []interface{} {
 
 // forOr value之间or关系遍历
 // ? 需要注意 对slice的操作都是OR的关系, 如果需要其它的关系, 使用forOR
-func (c *baseCondition) forOr(ctx types.AttributeGetter, fn func(interface{}, interface{}) bool) bool {
+func (c *baseCondition) forOr(ctx types.EvalContextor, fn func(interface{}, interface{}) bool) bool {
 	attrValue, err := ctx.GetAttr(c.Key)
 	if err != nil {
 		return false
@@ -51,9 +67,4 @@ func (c *baseCondition) forOr(ctx types.AttributeGetter, fn func(interface{}, in
 		}
 	}
 	return false
-}
-
-// GetKeys 返回条件中属性key值
-func (c *baseCondition) GetKeys() []string {
-	return []string{c.Key}
 }

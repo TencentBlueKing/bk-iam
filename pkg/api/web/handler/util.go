@@ -11,9 +11,8 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	jsoniter "github.com/json-iterator/go"
-
-	"iam/pkg/util"
 )
 
 func validateFields(expected, actual string) bool {
@@ -22,12 +21,12 @@ func validateFields(expected, actual string) bool {
 	}
 
 	// 求差集
-	s := util.SplitStringToSet(actual, ",").Diff(util.SplitStringToSet(expected, ","))
+	s := set.SplitStringToSet(actual, ",").Diff(set.SplitStringToSet(expected, ","))
 	return s.Size() == 0
 }
 
 // 过滤预期字段
-func filterFields(set *util.StringSet, obj interface{}) (data map[string]interface{}, err error) {
+func filterFields(set *set.StringSet, obj interface{}) (data map[string]interface{}, err error) {
 	// 1. json.Marshal to json
 	var m []byte
 	m, err = jsoniter.Marshal(obj)

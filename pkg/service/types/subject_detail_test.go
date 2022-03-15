@@ -13,7 +13,7 @@ package types_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmihailenco/msgpack/v5"
 
@@ -173,7 +173,7 @@ func BenchmarkThinSubjectDetail(b *testing.B) {
 	}
 
 	bs, _ := msgpack.Marshal(&a)
-	//fmt.Println("size:", len(bs), err)
+	// fmt.Println("size:", len(bs), err)
 
 	var x SubjectDetail
 	for i := 0; i < b.N; i++ {
@@ -209,11 +209,11 @@ func BenchmarkThinSubjectDetailCustomEncodeDecode(b *testing.B) {
 	}
 
 	bs, _ := msgpack.Marshal(&a)
-	//fmt.Println("size:", len(bs), err)
+	// fmt.Println("size:", len(bs), err)
 
 	var x types.SubjectDetail
 	for i := 0; i < b.N; i++ {
 		msgpack.Unmarshal(bs, &x)
 	}
-	//fmt.Printf("+%v", x)
+	// fmt.Printf("+%v", x)
 }

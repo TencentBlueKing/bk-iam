@@ -20,12 +20,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/util"
 )
 
 func TestClientAuthMiddleware(t *testing.T) {
 	t.Parallel()
+
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
 
 	// 1. without appCode appSecret
 	r := gin.Default()

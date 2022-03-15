@@ -11,8 +11,9 @@
 package service
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 
@@ -22,8 +23,9 @@ const ModelChangeEventSVC = "ModelChangeEventSVC"
 
 // ModelChangeEventService define the interface for model change
 type ModelChangeEventService interface {
-	ListByStatus(status string) ([]types.ModelChangeEvent, error)
+	ListByStatus(status string, limit int64) ([]types.ModelChangeEvent, error)
 	UpdateStatusByPK(pk int64, status string) error
+	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
 	BulkCreate(modelChangeEvents []types.ModelChangeEvent) error
 	ExistByTypeModel(eventType, status, modelType string, modelPK int64) (bool, error)
 }
@@ -40,10 +42,12 @@ func NewModelChangeService() ModelChangeEventService {
 }
 
 // ListByStatus ...
-func (l *modelChangeEventService) ListByStatus(status string) (modelChangeEvents []types.ModelChangeEvent, err error) {
+func (l *modelChangeEventService) ListByStatus(
+	status string, limit int64,
+) (modelChangeEvents []types.ModelChangeEvent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "ListByStatus")
 
-	dbModelChangeEvents, err := l.manager.ListByStatus(status)
+	dbModelChangeEvents, err := l.manager.ListByStatus(status, limit)
 	if err != nil {
 		return modelChangeEvents, errorWrapf(err, "ListByStatus(status=%s) fail", status)
 	}
@@ -109,4 +113,16 @@ func (l *modelChangeEventService) ExistByTypeModel(eventType, status, modelType 
 	}
 
 	return event.PK != 0, nil
+}
+
+func (l *modelChangeEventService) UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "UpdateStatusByModel")
+
+	err := l.manager.UpdateStatusByModel(eventType, modelType, modelPK, status)
+	if err != nil {
+		return errorWrapf(err, "UpdateStatusByModel(eventType=%s, modelType=%s, modelPK=%d, status=%s) fail",
+			eventType, modelType, modelPK, status,
+		)
+	}
+	return nil
 }

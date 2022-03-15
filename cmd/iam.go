@@ -29,6 +29,9 @@ import (
 	// init debug entry pool
 	_ "iam/pkg/logging/debug"
 
+	// init the pdp
+	_ "iam/pkg/abac/pdp/evalctx"
+
 	"iam/pkg/server"
 )
 
@@ -36,7 +39,6 @@ import (
 var cfgFile string
 
 func init() {
-	// cobra.OnInitialize(initConfig)
 	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
 	rootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
 
@@ -51,8 +53,6 @@ var rootCmd = &cobra.Command{
            is a service that helps you securely control access to system resources`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
-
 		Start()
 	},
 }
@@ -93,6 +93,7 @@ func Start() {
 	// NOTE: should be after initRedis
 	initCaches()
 	initPolicyCacheSettings()
+	initVerifyAppCodeAppSecret()
 	initSuperAppCode()
 	initSuperUser()
 	initSupportShieldFeatures()

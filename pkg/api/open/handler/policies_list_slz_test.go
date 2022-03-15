@@ -13,9 +13,9 @@ package handler
 import (
 	"testing"
 
-	"iam/pkg/util"
-
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/util"
 )
 
 func Test_listQuerySerializer_validate(t *testing.T) {

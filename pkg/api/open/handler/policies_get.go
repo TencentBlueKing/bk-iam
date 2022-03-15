@@ -17,13 +17,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
-// GetPolicy godoc
+// PolicyGet godoc
 // @Summary policy get
 // @Description get a policy
 // @ID api-open-system-policies-get
@@ -37,7 +36,7 @@ import (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies/{policy_id} [get]
-func Get(c *gin.Context) {
+func PolicyGet(c *gin.Context) {
 	var pathParams policyGetSerializer
 	if err := c.ShouldBindUri(&pathParams); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
@@ -59,7 +58,7 @@ func Get(c *gin.Context) {
 	}
 
 	// 2. query systemAction from cache
-	systemAction, err := impls.GetAction(queryPolicy.ActionPK)
+	systemAction, err := cacheimpls.GetAction(queryPolicy.ActionPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -73,19 +72,14 @@ func Get(c *gin.Context) {
 	}
 
 	// 4. query subj from cache
-	subj, err := impls.GetSubjectByPK(queryPolicy.SubjectPK)
+	subj, err := cacheimpls.GetSubjectByPK(queryPolicy.SubjectPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
 	// 5. get expression
-	resourceTypeSet, err := common.GetActionResourceTypeSet(systemAction.System, systemAction.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-	pkExpressionMap, err := translateExpressions(resourceTypeSet, []int64{queryPolicy.ExpressionPK})
+	pkExpressionMap, err := translateExpressions([]int64{queryPolicy.ExpressionPK})
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

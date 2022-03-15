@@ -15,35 +15,13 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"
 )
 
 var _ = Describe("Conv", func() {
-
-	Describe("ToSlice", func() {
-
-		intSlice := []int{1}
-		strSlice := []string{"abc"}
-
-		DescribeTable("ToSlice cases", func(expected int, willError bool, input interface{}) {
-			data, err := util.ToSlice(input)
-
-			if willError {
-				assert.Error(GinkgoT(), err)
-			} else {
-				assert.NoError(GinkgoT(), err)
-				assert.Equal(GinkgoT(), expected, len(data))
-			}
-		},
-			Entry("not a slice", 0, true, ""),
-			Entry("a []int{1}", 1, false, intSlice),
-			Entry("a []string{abc}", 1, false, strSlice),
-		)
-	})
 
 	Describe("Int64SliceToString", func() {
 		DescribeTable("Int64SliceToString cases", func(expected string, input []int64, sep string) {

@@ -13,14 +13,17 @@ package pdp
 import (
 	"database/sql"
 	"errors"
+	"time"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 )
 
@@ -62,54 +65,14 @@ func queryPolicies(
 	return
 }
 
-func filterPoliciesByEvalResources(
-	r *request.Request,
-	policies []types.AuthPolicy,
-) (filteredPolicies []types.AuthPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "filterPoliciesByEvalResources")
-
-	// 问题: 一次性取? 还是计算一个取一个?
-	// NOTE: 重要, 这个需要处理, 以降低影响?
-	// 问题: 第三方系统查询不到, policy列表 和 auth鉴权结果怎么返回? 鉴权false? policy列表直接不过滤全返回?
-	// if contains remote Resource
-	if r.HasRemoteResources() {
-		err = fillRemoteResourceAttrs(r, policies)
-		if err != nil {
-			return nil, errorWrapf(err, "fillRemoteResourceAttrs fail", "")
-		}
-	}
-
-	// get local + remote resources
-	resources := r.GetSortedResources()
-	for _, resource := range resources {
-		ctx := pdptypes.NewExprContext(r, resource)
-
-		// 10. PDP遍历计算依赖resource的属性是否满足policies
-		policies, err = evaluation.FilterPolicies(ctx, policies)
-		if err != nil {
-			err = errorWrapf(err, "evaluation.FilterPolicies resource=`%+v`, policies=`%+v` fail",
-				resource, policies)
-			return
-		}
-
-		if len(policies) == 0 {
-			err = ErrNoPolicies
-			return
-		}
-	}
-
-	filteredPolicies = policies
-	return filteredPolicies, nil
-}
-
-// queryFilterPolicies 查询请求相关的Policy
-func queryFilterPolicies(
+// queryAndPartialEvalConditions 查询请求相关的Policy
+func queryAndPartialEvalConditions(
 	r *request.Request,
 	entry *debug.Entry,
 	willCheckRemoteResource, // 是否检查请求的外部依赖资源完成性
 	withoutCache bool,
-) ([]types.AuthPolicy, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "queryFilterPolicies")
+) ([]condition.Condition, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDP, "queryAndPartialEvalConditions")
 
 	// init debug entry with values
 	if entry != nil {
@@ -155,7 +118,8 @@ func queryFilterPolicies(
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
-			return []types.AuthPolicy{}, nil
+			// return []types.AuthPolicy{}, nil
+			return []condition.Condition{}, nil
 		}
 
 		err = errorWrapf(err, "request fillSubjectDetail subject=`%+v`", r.Subject)
@@ -179,29 +143,31 @@ func queryFilterPolicies(
 	debug.WithValue(entry, "policies", policies)
 	debug.WithUnknownEvalPolicies(entry, policies)
 
-	// 5. filter policies
+	// 5. eval policies
 	// 这里需要返回剩下的policies
 	debug.AddStep(entry, "Filter policies by eval resources")
-	var filteredPolicies []types.AuthPolicy
-	filteredPolicies, err = filterPoliciesByEvalResources(r, policies)
-	if err != nil {
-		if errors.Is(err, ErrNoPolicies) {
-			// if is len(filteredPolicies) == 0, update all to no pass
-			debug.WithNoPassEvalPolicies(entry, policies)
 
-			// if return nil, the condition will be null in response
-			return []types.AuthPolicy{}, nil
+	// NOTE: 重要, 这个需要处理, 以降低影响?
+	// if contains remote Resource
+	if r.HasRemoteResources() {
+		err1 := fillRemoteResourceAttrs(r, policies)
+		if err1 != nil {
+			return nil, errorWrapf(err1, "fillRemoteResourceAttrs fail", "")
 		}
-
-		err = errorWrapf(err, "filterPoliciesByEvalResources policies=`%+v` fail", policies)
-
-		return nil, err
 	}
 
-	// update all  filteredPolicies to pass, 有一条过就算过
-	debug.WithPassEvalPolicies(entry, filteredPolicies)
+	// 执行完后, 只返回 执行后的残留的 conditions
+	if entry != nil {
+		envs, _ := evalctx.GenTimeEnvsFromCache(DefaultTz, time.Now())
+		debug.WithValue(entry, "env", envs)
+	}
+	conditions, passedPoliciesIDs, err := evaluation.PartialEvalPolicies(evalctx.NewEvalContext(r), policies)
+	if len(conditions) == 0 {
+		debug.WithNoPassEvalPolicies(entry, policies)
+	}
+	debug.WithPassEvalPolicyIDs(entry, passedPoliciesIDs)
 
-	return filteredPolicies, err
+	return conditions, err
 }
 
 // fillSubjectDetail ...

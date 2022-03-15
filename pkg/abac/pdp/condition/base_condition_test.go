@@ -12,19 +12,30 @@ package condition
 
 import (
 	"errors"
+	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-type ctx int
+type intCtx int
 
-func (c ctx) GetAttr(key string) (interface{}, error) {
+func (c intCtx) GetAttr(key string) (interface{}, error) {
 	return int(c), nil
 }
 
-func (c ctx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
+func (c intCtx) HasResource(_type string) bool {
+	return false
+}
+
+type int64Ctx int64
+
+func (c int64Ctx) GetAttr(key string) (interface{}, error) {
+	return int64(c), nil
+}
+
+func (c int64Ctx) HasResource(_type string) bool {
+	return false
 }
 
 type strCtx string
@@ -32,9 +43,8 @@ type strCtx string
 func (c strCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
-
-func (c strCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
+func (c strCtx) HasResource(_type string) bool {
+	return false
 }
 
 type boolCtx bool
@@ -42,9 +52,8 @@ type boolCtx bool
 func (c boolCtx) GetAttr(key string) (interface{}, error) {
 	return bool(c), nil
 }
-
-func (c boolCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
+func (c boolCtx) HasResource(_type string) bool {
+	return false
 }
 
 type listCtx []interface{}
@@ -53,9 +62,8 @@ func (c listCtx) GetAttr(key string) (interface{}, error) {
 	x := []interface{}(c)
 	return x, nil
 }
-
-func (c listCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return "test", nil
+func (c listCtx) HasResource(_type string) bool {
+	return false
 }
 
 type errCtx int
@@ -63,15 +71,108 @@ type errCtx int
 func (c errCtx) GetAttr(key string) (interface{}, error) {
 	return nil, errors.New("missing key")
 }
+func (c errCtx) HasResource(_type string) bool {
+	return false
+}
 
-func (c errCtx) GetFullNameAttr(key string) (interface{}, error) {
-	return nil, errors.New("missing key")
+type HitStrCtx string
+
+func (c HitStrCtx) GetAttr(key string) (interface{}, error) {
+	return string(c), nil
+}
+func (c HitStrCtx) HasResource(_type string) bool {
+	return true
+}
+
+type MissStrCtx string
+
+func (c MissStrCtx) GetAttr(key string) (interface{}, error) {
+	return "", nil
+}
+func (c MissStrCtx) HasResource(_type string) bool {
+	return false
+}
+
+type MapCtx map[string]interface{}
+
+func (c MapCtx) GetAttr(key string) (interface{}, error) {
+	value, ok := c[key]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	return value, nil
+}
+
+// host.system  has key=system
+func (c MapCtx) HasResource(_type string) bool {
+	for k, _ := range c {
+		if strings.HasPrefix(k, _type+".") {
+			return true
+		}
+	}
+	return false
 }
 
 var _ = Describe("BaseCondition", func() {
 
-	Describe("GetValues", func() {
+	Describe("GetKeys", func() {
+		It("ok", func() {
+			expectedKey := "test"
 
+			c := baseCondition{
+				Key:   expectedKey,
+				Value: nil,
+			}
+			assert.Equal(GinkgoT(), []string{expectedKey}, c.GetKeys())
+		})
+	})
+
+	Describe("HasKey", func() {
+		It("ok", func() {
+			expectedKey := "test"
+
+			c := baseCondition{
+				Key:   expectedKey,
+				Value: nil,
+			}
+
+			assert.True(GinkgoT(), c.HasKey(func(key string) bool {
+				return key == expectedKey
+			}))
+		})
+	})
+
+	Describe("GetFirstMatchKeyValues", func() {
+		It("ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
+				return key == "test"
+			})
+			assert.True(GinkgoT(), ok)
+
+			assert.Equal(GinkgoT(), expectedValues, v)
+		})
+
+		It("ont ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
+				return key == "abc"
+			})
+			assert.False(GinkgoT(), ok)
+		})
+	})
+
+	Describe("GetValues", func() {
 		It("ok", func() {
 			expectedValues := []interface{}{1, "ab", 3}
 			c := baseCondition{
@@ -104,11 +205,11 @@ var _ = Describe("BaseCondition", func() {
 		})
 
 		It("single, hit one", func() {
-			assert.True(GinkgoT(), condition.forOr(ctx(1), fn))
-			assert.True(GinkgoT(), condition.forOr(ctx(2), fn))
+			assert.True(GinkgoT(), condition.forOr(intCtx(1), fn))
+			assert.True(GinkgoT(), condition.forOr(intCtx(2), fn))
 		})
 		It("single, missing ", func() {
-			assert.False(GinkgoT(), condition.forOr(ctx(3), fn))
+			assert.False(GinkgoT(), condition.forOr(intCtx(3), fn))
 		})
 
 		It("list, hit one", func() {
@@ -116,18 +217,6 @@ var _ = Describe("BaseCondition", func() {
 		})
 		It("list, missing", func() {
 			assert.False(GinkgoT(), condition.forOr(listCtx{3, 4}, fn))
-		})
-
-	})
-	Describe("GetKeys", func() {
-		It("ok", func() {
-			expectedKey := "test"
-
-			c := baseCondition{
-				Key:   expectedKey,
-				Value: nil,
-			}
-			assert.Equal(GinkgoT(), []string{expectedKey}, c.GetKeys())
 		})
 
 	})

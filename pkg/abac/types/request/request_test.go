@@ -11,7 +11,7 @@
 package request_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
@@ -29,56 +29,6 @@ var _ = Describe("request", func() {
 			}
 			assert.Equal(GinkgoT(), expected, r)
 		})
-	})
-
-	Describe("HasSingleLocalResource", func() {
-		var expectedSystem = "bk_test"
-		var r *request.Request
-		BeforeEach(func() {
-			r = request.NewRequest()
-			r.System = expectedSystem
-		})
-
-		It("true", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{{
-						System: expectedSystem,
-						Type:   "job",
-					}},
-				},
-			}
-
-			assert.True(GinkgoT(), r.HasSingleLocalResource())
-		})
-
-		It("false, two resourceTypes", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{{
-						System: expectedSystem,
-						Type:   "type1",
-					}, {
-						System: expectedSystem,
-						Type:   "type2",
-					}},
-				},
-			}
-			assert.False(GinkgoT(), r.HasSingleLocalResource())
-		})
-
-		It("false, not my system", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{{
-						System: "bk_iam",
-						Type:   "job",
-					}},
-				},
-			}
-			assert.False(GinkgoT(), r.HasSingleLocalResource())
-		})
-
 	})
 
 	Describe("HasRemoteResources", func() {
@@ -193,57 +143,6 @@ var _ = Describe("request", func() {
 			assert.Len(GinkgoT(), d, 2)
 		})
 
-	})
-	Describe("GetSortedResources", func() {
-		var expectedSystem = "bk_test"
-		var r *request.Request
-		BeforeEach(func() {
-			r = request.NewRequest()
-			r.System = expectedSystem
-		})
-
-		It("single hit", func() {
-			r.Resources = []types.Resource{
-				{
-					System: "bk_test",
-					Type:   "job",
-				},
-			}
-
-			d := r.GetSortedResources()
-			assert.Len(GinkgoT(), d, 1)
-			assert.Equal(GinkgoT(), expectedSystem, d[0].System)
-		})
-
-		It("single not hit", func() {
-			r.Resources = []types.Resource{
-				{
-					System: "bk_iam",
-					Type:   "job3",
-				},
-			}
-
-			d := r.GetSortedResources()
-			assert.Len(GinkgoT(), d, 1)
-			assert.Equal(GinkgoT(), "bk_iam", d[0].System)
-		})
-
-		It("two hit", func() {
-			r.Resources = []types.Resource{
-				{
-					System: "bk_iam",
-					Type:   "job3",
-				},
-				{
-					System: "bk_test",
-					Type:   "job",
-				},
-			}
-
-			d := r.GetSortedResources()
-			assert.Len(GinkgoT(), d, 2)
-			assert.Equal(GinkgoT(), expectedSystem, d[0].System)
-		})
 	})
 
 	Describe("ValidateActionResource", func() {
@@ -366,86 +265,4 @@ var _ = Describe("request", func() {
 			assert.False(GinkgoT(), r.ValidateActionRemoteResource())
 		})
 	})
-	Describe("GetQueryResourceTypes", func() {
-		var expectedSystem = "bk_test"
-		var r *request.Request
-		BeforeEach(func() {
-			r = request.NewRequest()
-			r.System = expectedSystem
-			r.Resources = []types.Resource{
-				{
-					System: "bk_test",
-					Type:   "job",
-				},
-			}
-		})
-
-		It("empty", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{{
-						System: "bk_test",
-						Type:   "job",
-					}},
-				},
-			}
-
-			d, err := r.GetQueryResourceTypes()
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), d, 0)
-		})
-
-		It("ok", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{
-						{
-							System: "bk_test",
-							Type:   "job",
-						},
-						{
-							System: "bk_iam",
-							Type:   "obj",
-						},
-					},
-				},
-			}
-
-			d, err := r.GetQueryResourceTypes()
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), d, 1)
-
-			expectedQueryResourceTypes := []types.ActionResourceType{
-				{
-					System: "bk_iam",
-					Type:   "obj",
-				},
-			}
-			assert.Equal(GinkgoT(), expectedQueryResourceTypes, d)
-		})
-
-		It("error", func() {
-			r.Action.Attribute = &types.ActionAttribute{
-				Attribute: map[string]interface{}{},
-			}
-
-			_, err := r.GetQueryResourceTypes()
-			assert.Error(GinkgoT(), err)
-		})
-
-	})
-	//Describe("genResourceTypeKey", func() {
-	//	var r *request.Request
-	//	BeforeEach(func() {
-	//		r = request.NewRequest()
-	//	})
-	//
-	//	It("ok", func() {
-	//
-	//	})
-	//})
-	//Describe("getActionResourceTypeIDSet", func() {
-	//	It("", func() {
-	//	})
-	//})
 })

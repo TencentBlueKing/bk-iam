@@ -13,12 +13,12 @@ package handler
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/errorx"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -191,7 +191,7 @@ func BatchQueryByActions(c *gin.Context) {
 	util.SuccessJSONResponseWithDebug(c, "ok", policies, entry)
 }
 
-// Query godoc
+// QueryByExtResources godoc
 // @Summary policy query by ext resources/批量第三方依赖策略查询
 // @Description query the policy by conditions: system/subject/action and resources[optional]
 // @ID api-policy-query-by-ext-resources

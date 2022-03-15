@@ -11,14 +11,12 @@
 package prp_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 )
 
 var _ = Describe("Policy", func() {
-
-	//It("NewPolicyManager", func() {
+	// It("NewPolicyManager", func() {
 	//	p := prp.NewPolicyManager()
 	//	assert.NotNil(GinkgoT(), p)
-	//})
-
+	// })
 })

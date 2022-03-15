@@ -11,38 +11,14 @@
 package util
 
 import (
-	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 )
 
-// ErrNotArray ...
-var ErrNotArray = errors.New("validate array fail, only support array")
-
-// ToSlice ...
-func ToSlice(array interface{}) ([]interface{}, error) {
-	v := reflect.ValueOf(array)
-	if v.Kind() != reflect.Slice {
-		return nil, ErrNotArray
-	}
-	l := v.Len()
-	ret := make([]interface{}, l)
-	for i := 0; i < l; i++ {
-		ret[i] = v.Index(i).Interface()
-	}
-	return ret, nil
-}
-
 // Int64SliceToString ...
 func Int64SliceToString(s []int64, sep string) string {
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(s)), sep), "[]")
-}
-
-// StringToInt64 ...
-func StringToInt64(i string) (int64, error) {
-	return strconv.ParseInt(i, 10, 64)
 }
 
 // StringToInt64Slice ...

@@ -51,7 +51,7 @@ func InitDBClients(defaultDBConfig, bkPaaSDBConfig *config.Database) {
 	}
 
 	// NOTE: change to app_code/app_secret verify api in the future
-	if BKPaaSDBClient == nil {
+	if BKPaaSDBClient == nil && bkPaaSDBConfig != nil {
 		bkPaaSDBClientOnce.Do(func() {
 			BKPaaSDBClient = NewDBClient(bkPaaSDBConfig)
 			if err := BKPaaSDBClient.Connect(); err != nil {
@@ -71,7 +71,7 @@ func GetBKPaaSDBClient() *DBClient {
 	return BKPaaSDBClient
 }
 
-// 生成一个事务链接
+// GenerateDefaultDBTx 生成一个事务链接
 func GenerateDefaultDBTx() (*sqlx.Tx, error) {
 	return GetDefaultDBClient().DB.Beginx()
 }

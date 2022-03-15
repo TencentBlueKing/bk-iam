@@ -13,16 +13,16 @@ package service
 import (
 	"errors"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 var _ = Describe("PolicyService", func() {
@@ -351,7 +351,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "test",
 					Signature:  "098f6bcd4621d373cade4e832627b4f6",
 				},
-			}).Return(int64(1), nil)
+			}).Return([]int64{1, 2}, nil)
 
 			mockPolicyManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Policy{
 				{
@@ -431,14 +431,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			_, err := svc.AlterCustomPolicies(1, createPolicies, updatePolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -632,7 +632,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "expression",
 					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
 				},
-			}).Return(int64(2), nil)
+			}).Return([]int64{2}, nil)
 
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
 			mockPolicyManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Policy{
@@ -687,14 +687,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			err := svc.CreateAndDeleteTemplatePolicies(1, 1, createPolicies, []int64{}, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})
@@ -726,7 +726,7 @@ var _ = Describe("PolicyService", func() {
 					Expression: "expression",
 					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
 				},
-			}).Return(int64(2), nil)
+			}).Return([]int64{2}, nil)
 
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListBySubjectPKAndPKs(int64(1), []int64{1, 2}).Return(
@@ -803,14 +803,14 @@ var _ = Describe("PolicyService", func() {
 				},
 			}
 
-			set := util.NewInt64Set()
+			set := set.NewInt64Set()
 			set.Add(1)
 			set.Add(2)
 
 			err := svc.UpdateTemplatePolicies(1, updatePolicies, set)
 			assert.NoError(GinkgoT(), err)
 
-			//_, err = dbMock.ExpectationsWereMet()
+			// _, err = dbMock.ExpectationsWereMet()
 			err = dbMock.ExpectationsWereMet()
 			assert.NoError(GinkgoT(), err)
 		})

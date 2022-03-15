@@ -14,13 +14,14 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/mock"
@@ -88,88 +89,29 @@ var _ = Describe("Helper", func() {
 
 	})
 
-	Describe("filterPoliciesByEvalResources", func() {
+	Describe("queryAndPartialEvalConditions", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		var req *request.Request
+		var entry *debug.Entry
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 			req = &request.Request{
 				System: "test",
+				Action: types.Action{},
 				Resources: []types.Resource{{
 					System: "test",
 				}},
 			}
-		})
-		AfterEach(func() {
-			ctl.Finish()
-			patches.Reset()
-		})
-
-		It("fillRemoteResourceAttrs error", func() {
-			patches = gomonkey.ApplyFunc(fillRemoteResourceAttrs,
-				func(r *request.Request, policies []types.AuthPolicy) error {
-					return errors.New("test")
-				})
-
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Nil(GinkgoT(), policies)
-			assert.Error(GinkgoT(), err, "test1")
-
-		})
-
-		It("filter error", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return nil, errors.New("test")
-				})
-
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Nil(GinkgoT(), policies)
-			assert.Error(GinkgoT(), err, "test1")
-
-		})
-
-		It("filter empty", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return []types.AuthPolicy{}, nil
-				})
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Len(GinkgoT(), policies, 0)
-			assert.Error(GinkgoT(), err, "no")
-		})
-
-		It("ok", func() {
-			patches = gomonkey.ApplyFunc(evaluation.FilterPolicies,
-				func(ctx *pdptypes.ExprContext, policies []types.AuthPolicy) ([]types.AuthPolicy, error) {
-					return []types.AuthPolicy{{}}, nil
-				})
-			policies, err := filterPoliciesByEvalResources(req, []types.AuthPolicy{})
-			assert.Len(GinkgoT(), policies, 1)
-			assert.NoError(GinkgoT(), err)
-		})
-
-	})
-
-	Describe("queryFilterPolicies", func() {
-		var ctl *gomock.Controller
-		var patches *gomonkey.Patches
-		var req *request.Request
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-			req = &request.Request{
-				System: "test",
-				Resources: []types.Resource{{
-					System: "test",
-				}},
+			entry = &debug.Entry{
+				// Default is three fields, plus one optional.  Give a little extra room.
+				Context:   make(debug.Fields, 6),
+				Steps:     make([]debug.Step, 0, 5),
+				SubDebugs: make([]*debug.Entry, 0, 5),
+				Evals:     make(map[int64]string, 3),
 			}
 
 			patches = gomonkey.NewPatches()
-			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
-				func(_ *request.Request) bool {
-					return true
-				})
 
 		})
 		AfterEach(func() {
@@ -182,7 +124,7 @@ var _ = Describe("Helper", func() {
 				return errors.New("fill action fail")
 			})
 
-			policies, err := queryFilterPolicies(req, nil, false, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, false, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill action fail")
@@ -197,7 +139,7 @@ var _ = Describe("Helper", func() {
 					return false
 				})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 		})
@@ -206,11 +148,15 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
@@ -220,6 +166,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -231,16 +181,20 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return nil, errors.New("query policies fail")
 			})
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "query policies fail")
 		})
 
-		It("filter error", func() {
+		It("PartialEvalPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -252,22 +206,26 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
-				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return nil, errors.New("filter error")
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
+				policie []types.AuthPolicy,
+			) ([]condition.Condition, []int64, error) {
+				return nil, nil, errors.New("filter error")
 			})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Nil(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "filter error")
 		})
 
-		It("filter empty", func() {
+		It("PartialEvalPolicies empty", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -279,21 +237,25 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return nil, ErrNoPolicies
+			) ([]condition.Condition, []int64, error) {
+				return []condition.Condition{}, []int64{}, nil
 			})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, nil, true, false)
 			assert.Len(GinkgoT(), policies, 0)
 			assert.NoError(GinkgoT(), err)
 		})
 
-		It("filter ok", func() {
+		It("PartialEvalPolicies ok", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -305,13 +267,15 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(filterPoliciesByEvalResources, func(r *request.Request,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
-			) (filteredPolicies []types.AuthPolicy, err error) {
-				return []types.AuthPolicy{{}}, nil
+			) ([]condition.Condition, []int64, error) {
+				return []condition.Condition{
+					condition.NewAnyCondition(),
+				}, []int64{1}, nil
 			})
 
-			policies, err := queryFilterPolicies(req, nil, true, false)
+			policies, err := queryAndPartialEvalConditions(req, entry, true, false)
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})

@@ -15,22 +15,19 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
-
-	"iam/pkg/service/types"
-
-	"github.com/agiledragon/gomonkey"
 	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/middleware"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
+	"iam/pkg/service/types"
 	"iam/pkg/util"
-
-	. "github.com/onsi/ginkgo"
 )
 
 // https://golang.org/pkg/testing/#hdr-Subtests_and_Sub_benchmarks
@@ -91,6 +88,8 @@ func TestCreateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:invalid id")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
 	r.Use(middleware.ClientAuthMiddleware([]byte("")))
@@ -101,11 +100,8 @@ func TestCreateSystem(t *testing.T) {
 	appCode := "test_app"
 	appSecret := "123"
 
-	impls.InitCaches(false)
-	impls.LocalAppCodeAppSecretCache.Set(impls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.InitCaches(false)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller
@@ -288,6 +284,8 @@ func TestUpdateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
 	r.Use(middleware.ClientAuthMiddleware([]byte("")))
@@ -298,11 +296,8 @@ func TestUpdateSystem(t *testing.T) {
 	appCode := "test_app"
 	appSecret := "123"
 
-	impls.InitCaches(false)
-	impls.LocalAppCodeAppSecretCache.Set(impls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.InitCaches(false)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller
@@ -409,7 +404,7 @@ func TestUpdateSystem(t *testing.T) {
 		patches.ApplyFunc(service.NewSystemService, func() service.SystemService {
 			return mockService
 		})
-		patches.ApplyFunc(impls.DeleteSystemCache, func(systemID string) error {
+		patches.ApplyFunc(cacheimpls.DeleteSystemCache, func(systemID string) error {
 			return nil
 		})
 

@@ -15,8 +15,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/TencentBlueKing/gopkg/stringx"
 	jsoniter "github.com/json-iterator/go"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"
@@ -131,7 +132,7 @@ func TestParseUpdateStruct(t *testing.T) {
 
 func truncateInterface(v interface{}) string {
 	s := fmt.Sprintf("%v", v)
-	return util.TruncateString(s, 10)
+	return stringx.Truncate(s, 10)
 }
 
 func truncateInterfaceViaJSON(v interface{}) string {
@@ -139,7 +140,7 @@ func truncateInterfaceViaJSON(v interface{}) string {
 	if err != nil {
 		s = fmt.Sprintf("%v", v)
 	}
-	return util.TruncateString(s, 10)
+	return stringx.Truncate(s, 10)
 }
 func truncateInterfaceViaJSONToBytes(v interface{}) string {
 	s, err := jsoniter.Marshal(v)

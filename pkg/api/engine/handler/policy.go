@@ -14,14 +14,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
-	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -191,6 +190,7 @@ func convertEngineQueryPoliciesToEnginePolicies(
 		if !ok {
 			log.Errorf("policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
 				p.ExpressionPK)
+
 			continue
 		}
 
@@ -210,20 +210,20 @@ func convertEngineQueryPoliciesToEnginePolicies(
 	return enginePolicies, nil
 }
 
-// AnyExpresionPK is the pk for expression=any
-const AnyExpresionPK = -1
+// AnyExpressionPK is the pk for expression=any
+const AnyExpressionPK = -1
 
 func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]string, error) {
 	expressionPKs := make([]int64, 0, len(policies))
 	for _, p := range policies {
-		if p.ExpressionPK != AnyExpresionPK {
+		if p.ExpressionPK != AnyExpressionPK {
 			expressionPKs = append(expressionPKs, p.ExpressionPK)
 		}
 	}
 
 	pkExpressionStrMap := map[int64]string{
 		// NOTE: -1 for the `any`
-		AnyExpresionPK: "",
+		AnyExpressionPK: "",
 	}
 	if len(expressionPKs) > 0 {
 		manager := prp.NewPolicyManager()
@@ -245,30 +245,22 @@ func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]stri
 func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy enginePolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.constructEnginePolicy")
 
-	action, err := impls.GetAction(p.ActionPK)
+	action, err := cacheimpls.GetAction(p.ActionPK)
 	if err != nil {
-		err = errorWrapf(err, "impls.GetAction actionPK=`%d` fail", p.ActionPK)
+		err = errorWrapf(err, "cacheimpls.GetAction actionPK=`%d` fail", p.ActionPK)
 		return
 	}
 
-	resourceTypeSet, err := common.GetActionResourceTypeSet(action.System, action.ID)
+	translatedExpr, err := translate.PolicyExpressionTranslate(expr)
 	if err != nil {
-		err = errorWrapf(err, "common.GetActionResourceTypeSet systemID=`%s`, actionID=`%s` fail",
-			action.System, action.ID)
-		return
-	}
-
-	translatedExpr, err := translate.PolicyTranslate(expr, resourceTypeSet)
-	if err != nil {
-		err = errorWrapf(err, "translate.PolicyTranslate expr=`%s`, resourceTypeSet=`%+v` fail",
-			resourceTypeSet, expr)
+		err = errorWrapf(err, "translate.PolicyExpressionTranslate expr=`%s` fail", expr)
 		return
 	}
 
 	// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
-	subj, err := impls.GetSubjectByPK(p.SubjectPK)
+	subj, err := cacheimpls.GetSubjectByPK(p.SubjectPK)
 	if err != nil {
-		err = errorWrapf(err, "impls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
+		err = errorWrapf(err, "cacheimpls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
 		log.Info(err)
 		return policy, errSubjectNotExist
 	}

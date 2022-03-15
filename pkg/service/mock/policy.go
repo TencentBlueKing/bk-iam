@@ -5,9 +5,9 @@
 package mock
 
 import (
+	set "github.com/TencentBlueKing/gopkg/collection/set"
 	gomock "github.com/golang/mock/gomock"
 	types "iam/pkg/service/types"
-	util "iam/pkg/util"
 	reflect "reflect"
 )
 
@@ -124,7 +124,7 @@ func (mr *MockPolicyServiceMockRecorder) UpdateExpiredAt(policies interface{}) *
 }
 
 // AlterCustomPolicies mocks base method
-func (m *MockPolicyService) AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64, actionPKWithResourceTypeSet *util.Int64Set) (map[int64][]int64, error) {
+func (m *MockPolicyService) AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64, actionPKWithResourceTypeSet *set.Int64Set) (map[int64][]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AlterCustomPolicies", subjectPK, createPolicies, updatePolicies, deletePolicyIDs, actionPKWithResourceTypeSet)
 	ret0, _ := ret[0].(map[int64][]int64)
@@ -167,7 +167,7 @@ func (mr *MockPolicyServiceMockRecorder) DeleteByActionPK(actionPK interface{}) 
 }
 
 // CreateAndDeleteTemplatePolicies mocks base method
-func (m *MockPolicyService) CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64, actionPKWithResourceTypeSet *util.Int64Set) error {
+func (m *MockPolicyService) CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64, actionPKWithResourceTypeSet *set.Int64Set) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAndDeleteTemplatePolicies", subjectPK, templateID, createPolicies, deletePolicyIDs, actionPKWithResourceTypeSet)
 	ret0, _ := ret[0].(error)
@@ -181,7 +181,7 @@ func (mr *MockPolicyServiceMockRecorder) CreateAndDeleteTemplatePolicies(subject
 }
 
 // UpdateTemplatePolicies mocks base method
-func (m *MockPolicyService) UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *util.Int64Set) error {
+func (m *MockPolicyService) UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTemplatePolicies", subjectPK, policies, actionPKWithResourceTypeSet)
 	ret0, _ := ret[0].(error)
@@ -281,4 +281,18 @@ func (m *MockPolicyService) HasAnyByActionPK(actionPK int64) (bool, error) {
 func (mr *MockPolicyServiceMockRecorder) HasAnyByActionPK(actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAnyByActionPK", reflect.TypeOf((*MockPolicyService)(nil).HasAnyByActionPK), actionPK)
+}
+
+// DeleteUnreferencedExpressions mocks base method
+func (m *MockPolicyService) DeleteUnreferencedExpressions() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnreferencedExpressions")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnreferencedExpressions indicates an expected call of DeleteUnreferencedExpressions
+func (mr *MockPolicyServiceMockRecorder) DeleteUnreferencedExpressions() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressions", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnreferencedExpressions))
 }

@@ -13,9 +13,10 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
 )
 
@@ -39,8 +40,8 @@ type SubjectService interface {
 
 	// in subject_group.go
 
-	GetThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)
-	ListSubjectEffectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error)
+	GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)
+	ListEffectThinSubjectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error)
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]types.SubjectGroup, error)
 
 	// in subject_member.go

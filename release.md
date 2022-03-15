@@ -1,3 +1,82 @@
+# 1.10.2
+
+- bugfix: API /api/v1/engine/credentials/verify use auth
+
+# 1.10.1
+
+- add: API /api/v1/web//unreferenced-expressions
+- upgrade: go version 1.17
+
+# 1.10.0
+
+- upgrade: permission model supports environment attributes
+
+# 1.9.5
+
+- bugfix: healthz check fail if enable bkauth
+- bugfix: ModelChangeEvent when action(no policy related) be deleted
+
+
+# 1.9.4
+
+- add: bkauth support
+
+# 1.9.3
+
+- update: replace some lib with https://github.com/TencentBlueKing/gopkg
+- move: API /api/v1/systems/ to /api/v1/open/systems/
+- add: API /api/v1/open/users/:user_id/groups
+
+# 1.9.2
+
+- hotfix: condition StringPrefix eval wrong when key is _bk_iam_path_
+- bugfix: remove redundant policy index
+
+# 1.9.1
+
+- bugfix: partialEval out of index while the any condition key is empty
+
+# 1.9.0
+
+- refactor: pdp 模块重构, 完备的表达式, 支持两阶段计算
+- add: 支持新老版本表达式unmarshal
+- add: 支持gt/gte/lt/lte操作符
+
+# 1.8.11
+
+- upgrade: metrics name add prefix bkiam
+
+
+# 1.8.10
+
+- upgrade: config template update cmdb resource limit
+
+# 1.8.9
+
+- bugfix: AlterCustomPolicies create batch policies with action without resource return 500
+
+# 1.8.8
+
+- upgrade: change local subject pk get from redis first, instead of db first
+- bugfix: modify sqlxBulkInsertReturnIDWithTx return id in batches
+
+# 1.8.7
+
+- bugfix: role group member renew cache clean issue
+- bugfix: model api asynchronous delete action empty issue
+
+# 1.8.6
+
+- add: local cache expire with a random duration
+
+# 1.8.5
+
+- upgrade: update the expression table structure, delete useless columns
+
+# 1.8.4
+
+- bugfix: ratelimit middleware use wrong first param Limit, should be float number, not 1 every second
+
 # 1.8.3
 
 - add: zap buffered logger

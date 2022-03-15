@@ -55,6 +55,8 @@ customQuotas:
     quota:
       model:
         max_actions_limit: 1500
+        max_resource_types_limit: 500
+        max_instance_selections_limit: 500
 
 logger:
   system:

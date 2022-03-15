@@ -14,13 +14,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
-	"iam/pkg/errorx"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -34,6 +35,8 @@ const PolicySVC = "PolicySVC"
 const (
 	expressionTypeCustom   int64 = 0 // 自定义的expression类型
 	expressionTypeTemplate int64 = 1 // 模板的expression类型
+
+	expressionTypeUnreferenced int64 = -1 // 未被引用的模板expression类型
 
 	expressionPKActionWithoutResource = -1 // 操作不关联资源时的expression pk
 
@@ -60,15 +63,15 @@ type PolicyService interface {
 
 	UpdateExpiredAt(policies []types.QueryPolicy) error
 	AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
-		actionPKWithResourceTypeSet *util.Int64Set) (map[int64][]int64, error)
+		actionPKWithResourceTypeSet *set.Int64Set) (map[int64][]int64, error)
 
 	DeleteByPKs(subjectPK int64, pks []int64) error
 
 	DeleteByActionPK(actionPK int64) error
 
 	CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64,
-		actionPKWithResourceTypeSet *util.Int64Set) error
-	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *util.Int64Set) error
+		actionPKWithResourceTypeSet *set.Int64Set) error
+	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error
 	DeleteTemplatePolicies(subjectPK int64, templateID int64) error
 
 	// for query
@@ -83,6 +86,9 @@ type PolicyService interface {
 	// for model update
 
 	HasAnyByActionPK(actionPK int64) (bool, error)
+
+	// for expression clean task
+	DeleteUnreferencedExpressions() error
 }
 
 type policyService struct {
@@ -230,7 +236,7 @@ func (s *policyService) AlterCustomPolicies(
 	subjectPK int64,
 	createPolicies, updatePolicies []types.Policy,
 	deletePolicyIDs []int64,
-	actionPKWithResourceTypeSet *util.Int64Set,
+	actionPKWithResourceTypeSet *set.Int64Set,
 ) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
 	// 自定义权限每个policy对应一个expression
 	// 创建policy的同时创建expression
@@ -239,19 +245,31 @@ func (s *policyService) AlterCustomPolicies(
 
 	daoCreateExpressions := make([]dao.Expression, 0, len(createPolicies))
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
+
+	// 记录需要创建的policy与expression的索引关系
+	type policyExpressionIndex struct {
+		policyIndex     int
+		expressionIndex int
+	}
+	policyExpressionIndexes := make([]policyExpressionIndex, 0, len(createPolicies))
 	for _, p := range createPolicies {
 		// 操作有关联资源类型
 		if actionPKWithResourceTypeSet.Has(p.ActionPK) {
 			daoCreateExpressions = append(daoCreateExpressions, dao.Expression{
 				Type:       expressionTypeCustom,
 				Expression: p.Expression,
-				Signature:  util.GetMD5Hash(p.Expression), // 计算Hash
+				Signature:  stringx.MD5Hash(p.Expression), // 计算Hash
 			})
 
 			daoCreatePolicies = append(daoCreatePolicies, dao.Policy{
 				SubjectPK: p.SubjectPK,
 				ActionPK:  p.ActionPK,
 				ExpiredAt: p.ExpiredAt,
+			})
+
+			policyExpressionIndexes = append(policyExpressionIndexes, policyExpressionIndex{
+				policyIndex:     len(daoCreatePolicies) - 1,
+				expressionIndex: len(daoCreateExpressions) - 1,
 			})
 		} else {
 			// 无关联资源的自定义权限, expression 为 -1, 不创建expression对象
@@ -288,7 +306,7 @@ func (s *policyService) AlterCustomPolicies(
 				PK:         p.ExpressionPK,
 				Type:       expressionTypeCustom,
 				Expression: up.Expression,
-				Signature:  util.GetMD5Hash(up.Expression),
+				Signature:  stringx.MD5Hash(up.Expression),
 			})
 
 			// 更新过期时间
@@ -311,16 +329,14 @@ func (s *policyService) AlterCustomPolicies(
 		return
 	}
 
-	expressionPK, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
+	expressionPKs, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
 	if err != nil {
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
 		return
 	}
-	for i := range daoCreatePolicies {
-		if daoCreatePolicies[i].ExpressionPK == 0 {
-			daoCreatePolicies[i].ExpressionPK = expressionPK
-			expressionPK++
-		}
+	// 根据已记录的索引关系填充policy的expressionPK
+	for _, index := range policyExpressionIndexes {
+		daoCreatePolicies[index.policyIndex].ExpressionPK = expressionPKs[index.expressionIndex]
 	}
 
 	err = s.manager.BulkCreateWithTx(tx, daoCreatePolicies)
@@ -544,13 +560,13 @@ func (s *policyService) HasAnyByActionPK(actionPK int64) (bool, error) {
 
 // generateSignatureExpressionPKMap generate signature expressionPK map if expression does not exist create it
 func (s *policyService) generateSignatureExpressionPKMap(
-	tx *sqlx.Tx, policies []types.Policy, actionPKWithResourceTypeSet *util.Int64Set,
+	tx *sqlx.Tx, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set,
 ) (signatureExpressionPKMap map[string]int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "generateSignatureExpressionPKMap")
 
 	signatures := make([]string, 0, len(policies))
 	for i := range policies {
-		signature := util.GetMD5Hash(policies[i].Expression)
+		signature := stringx.MD5Hash(policies[i].Expression)
 		signatures = append(signatures, signature)
 	}
 
@@ -562,7 +578,7 @@ func (s *policyService) generateSignatureExpressionPKMap(
 		return nil, err
 	}
 	signatureExpressionPKMap = make(map[string]int64, len(expressions))
-	existSignatures := util.NewStringSet()
+	existSignatures := set.NewStringSet()
 	for _, e := range expressions {
 		signatureExpressionPKMap[e.Signature] = e.PK
 		existSignatures.Add(e.Signature)
@@ -591,14 +607,14 @@ func (s *policyService) generateSignatureExpressionPKMap(
 
 	// 创建引用不到的expression
 	if len(daoExpressions) != 0 {
-		var expressionPK int64
-		expressionPK, err = s.expressionManger.BulkCreateWithTx(tx, daoExpressions)
+		var expressionPKs []int64
+		expressionPKs, err = s.expressionManger.BulkCreateWithTx(tx, daoExpressions)
 		if err != nil {
 			err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoExpressions)
 			return
 		}
 		for i, e := range daoExpressions {
-			signatureExpressionPKMap[e.Signature] = expressionPK + int64(i)
+			signatureExpressionPKMap[e.Signature] = expressionPKs[i]
 		}
 	}
 
@@ -610,7 +626,7 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 	subjectPK, templateID int64,
 	createPolicies []types.Policy,
 	deletePolicyIDs []int64,
-	actionPKWithResourceTypeSet *util.Int64Set,
+	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "CreateAndDeleteTemplatePolicies")
 
@@ -625,10 +641,14 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 	// 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
 		tx, createPolicies, actionPKWithResourceTypeSet)
+	if err != nil {
+		err = errorWrapf(err, "generateSignatureExpressionPKMap fail")
+		return
+	}
 
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
 	for _, p := range createPolicies {
-		signature := util.GetMD5Hash(p.Expression)
+		signature := stringx.MD5Hash(p.Expression)
 		// 操作有关联资源类型
 		if actionPKWithResourceTypeSet.Has(p.ActionPK) {
 			expressionPK, ok := signatureExpressionPKMap[signature]
@@ -676,7 +696,7 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 func (s *policyService) UpdateTemplatePolicies(
 	subjectPK int64,
 	policies []types.Policy,
-	actionPKWithResourceTypeSet *util.Int64Set,
+	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePolicies")
 
@@ -706,6 +726,10 @@ func (s *policyService) UpdateTemplatePolicies(
 	// 2. 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
 		tx, policies, actionPKWithResourceTypeSet)
+	if err != nil {
+		err = errorWrapf(err, "generateSignatureExpressionPKMap fail")
+		return
+	}
 
 	// 3. 生成需要更新的policies
 	daoUpdatePolicies := make([]dao.Policy, 0, len(policies))
@@ -729,7 +753,7 @@ func (s *policyService) UpdateTemplatePolicies(
 			continue
 		}
 
-		signature := util.GetMD5Hash(p.Expression)
+		signature := stringx.MD5Hash(p.Expression)
 		daoPolicy.ExpressionPK, ok = signatureExpressionPKMap[signature]
 		if !ok {
 			err = errorWrapf(errPolicy, "generate policy expression error ID=`%d`", p.ID)
@@ -790,4 +814,35 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 		return errorWrapf(err, "tx.Commit fail")
 	}
 	return err
+}
+
+// DeleteUnquotedExpressions 删除未被引用的expression
+func (s *policyService) DeleteUnreferencedExpressions() error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
+	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
+
+	// 1. 更新被引用但是标记为未引用的expression
+	err := s.expressionManger.ChangeReferencedExpressionTypeBeforeUpdateAt(
+		expressionTypeUnreferenced, expressionTypeTemplate, updateAt)
+	if err != nil {
+		return errorWrapf(err, "expressionManger.ChangeReferencedExpressionTypeBeforeUpdateAt "+
+			"fromType=`%d`, toType=`%d`, updateAt=`%d`",
+			expressionTypeUnreferenced, expressionTypeTemplate, updateAt)
+	}
+
+	// 2. 删除标记未被引用的expression
+	err = s.expressionManger.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(expressionTypeUnreferenced, updateAt)
+	if err != nil {
+		return errorWrapf(err, "expressionManger.DeleteByTypeBeforeUpdateAt type=`%d`, updateAt=`%d`",
+			expressionTypeUnreferenced, updateAt)
+	}
+
+	// 3. 标记未被引用的expression
+	err = s.expressionManger.ChangeUnreferencedExpressionType(expressionTypeTemplate, expressionTypeUnreferenced)
+	if err != nil {
+		return errorWrapf(err, "expressionManger.ChangeUnreferencedExpressionType fromType=`%d`, toType=`%d`",
+			expressionTypeTemplate, expressionTypeUnreferenced)
+	}
+
+	return nil
 }

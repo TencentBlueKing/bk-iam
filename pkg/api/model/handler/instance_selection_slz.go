@@ -13,8 +13,9 @@ package handler
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/api/common"
-	"iam/pkg/util"
 )
 
 type instanceSelectionSerializer struct {
@@ -61,9 +62,9 @@ func (r *instanceSelectionUpdateSerializer) validate(keys map[string]interface{}
 }
 
 func validateInstanceSelectionsRepeat(instanceSelections []instanceSelectionSerializer) error {
-	idSet := util.NewStringSet()
-	nameSet := util.NewStringSet()
-	nameEnSet := util.NewStringSet()
+	idSet := set.NewStringSet()
+	nameSet := set.NewStringSet()
+	nameEnSet := set.NewStringSet()
 	for _, is := range instanceSelections {
 		if idSet.Has(is.ID) {
 			return fmt.Errorf("instance selection id[%s] repeat", is.ID)

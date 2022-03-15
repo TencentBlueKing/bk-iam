@@ -15,12 +15,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang-jwt/jwt/v4"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/cache/impls"
+	"iam/pkg/cacheimpls"
 )
 
 var _ = Describe("client_jwt", func() {
@@ -35,7 +35,7 @@ var _ = Describe("client_jwt", func() {
 			}
 		})
 		It("hit cache", func() {
-			patches = gomonkey.ApplyFunc(impls.GetJWTTokenClientID, func(string) (string, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
 				return "abc", nil
 			})
 
@@ -45,7 +45,7 @@ var _ = Describe("client_jwt", func() {
 		})
 
 		It("miss cache, error in verify", func() {
-			patches = gomonkey.ApplyFunc(impls.GetJWTTokenClientID, func(string) (string, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
 				return "", errors.New("an error")
 			})
 
@@ -54,10 +54,10 @@ var _ = Describe("client_jwt", func() {
 		})
 
 		It("miss cache, verify ok", func() {
-			patches = gomonkey.ApplyFunc(impls.GetJWTTokenClientID, func(string) (string, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
 				return "", errors.New("an error")
 			})
-			patches.ApplyFunc(impls.SetJWTTokenClientID, func(string, string) {
+			patches.ApplyFunc(cacheimpls.SetJWTTokenClientID, func(string, string) {
 			})
 			patches.ApplyFunc(verifyClientID, func(string, []byte) (string, error) {
 				return "abc", nil
@@ -67,9 +67,9 @@ var _ = Describe("client_jwt", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "abc", clientID)
 
-			//clientID, err = impls.GetJWTTokenClientID("aaa")
-			//assert.NoError(GinkgoT(), err)
-			//assert.Equal(GinkgoT(), "abc", clientID)
+			// clientID, err = cacheimpls.GetJWTTokenClientID("aaa")
+			// assert.NoError(GinkgoT(), err)
+			// assert.Equal(GinkgoT(), "abc", clientID)
 		})
 
 	})

@@ -18,14 +18,14 @@ import (
 	"github.com/spf13/viper"
 
 	"iam/pkg/api/common"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/component"
 	"iam/pkg/config"
 	"iam/pkg/database"
-	"iam/pkg/errorx"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
+	"iam/pkg/util"
 )
 
 var globalConfig *config.Config
@@ -62,7 +62,7 @@ func initSentry() {
 		log.Info("Sentry is not enabled, will not init it")
 	}
 
-	errorx.InitErrorReport(globalConfig.Sentry.Enable)
+	util.InitErrorReport(globalConfig.Sentry.Enable)
 }
 
 func initMetrics() {
@@ -76,13 +76,19 @@ func initDatabase() {
 		panic("database bk-iam should be configured")
 	}
 
+	if globalConfig.EnableBkAuth {
+		database.InitDBClients(&defaultDBConfig, nil)
+		log.Info("init Database success")
+		return
+	}
+
 	// TODO: 不应该成为强依赖
 	bkPaaSDBConfig, ok := globalConfig.DatabaseMap["open_paas"]
 	if !ok {
-		panic("database open_paas should be configured")
+		panic("bkauth is not enabled, so database open_paas should be configured")
 	}
-
 	database.InitDBClients(&defaultDBConfig, &bkPaaSDBConfig)
+
 	log.Info("init Database success")
 }
 
@@ -122,11 +128,15 @@ func initLogger() {
 }
 
 func initCaches() {
-	impls.InitCaches(false)
+	cacheimpls.InitCaches(false)
 }
 
 func initPolicyCacheSettings() {
-	impls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
+	cacheimpls.InitPolicyCacheSettings(globalConfig.PolicyCache.Disabled, globalConfig.PolicyCache.ExpirationDays)
+}
+
+func initVerifyAppCodeAppSecret() {
+	cacheimpls.InitVerifyAppCodeAppSecret(globalConfig.EnableBkAuth)
 }
 
 func initSuperAppCode() {
@@ -142,7 +152,21 @@ func initSupportShieldFeatures() {
 }
 
 func initComponents() {
-	component.InitComponentClients()
+	component.InitBkRemoteResourceClient()
+
+	if globalConfig.EnableBkAuth {
+		bkAuthHost, ok := globalConfig.HostMap["bkauth"]
+		if !ok {
+			panic("bkauth is enabled, so host bkauth should be configured")
+		}
+
+		if globalConfig.BkAppCode == "" || globalConfig.BkAppSecret == "" {
+			panic("bkauth is enabled, but iam's bkAppCode and bkAppSecret is not configured")
+		}
+
+		component.InitBkAuthClient(bkAuthHost.Addr, globalConfig.BkAppCode, globalConfig.BkAppSecret)
+		log.Infof("init bkauth client success, host = %s", bkAuthHost.Addr)
+	}
 }
 
 func initQuota() {

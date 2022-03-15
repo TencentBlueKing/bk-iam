@@ -11,11 +11,13 @@
 package handler
 
 import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cache/impls"
-	"iam/pkg/errorx"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
@@ -88,6 +90,7 @@ func BatchCreateActions(c *gin.Context) {
 			RelatedActions: ac.RelatedActions,
 		}
 		action.RelatedResourceTypes = convertToRelatedResourceTypes(ac.RelatedResourceTypes)
+		action.RelatedEnvironments = convertToRelatedEnvironments(ac.RelatedEnvironments)
 
 		actions = append(actions, action)
 	}
@@ -179,6 +182,9 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["related_actions"]; ok {
 		allowEmptyFields.AddKey("RelatedActions")
 	}
+	if _, ok := data["related_environments"]; ok {
+		allowEmptyFields.AddKey("RelatedEnvironments")
+	}
 	if _, ok := data["description"]; ok {
 		allowEmptyFields.AddKey("Description")
 	}
@@ -195,6 +201,7 @@ func UpdateAction(c *gin.Context) {
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
+		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),
 
 		AllowEmptyFields: allowEmptyFields,
 	}
@@ -209,7 +216,7 @@ func UpdateAction(c *gin.Context) {
 	}
 
 	// delete from cache
-	impls.BatchDeleteActionCache(systemID, []string{actionID})
+	cacheimpls.BatchDeleteActionCache(systemID, []string{actionID})
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -289,7 +296,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		eventSvc := service.NewModelChangeService()
 		events := make([]svctypes.ModelChangeEvent, 0, len(needAsyncDeletedActionIDs))
 		for _, id := range needAsyncDeletedActionIDs {
-			actionPK, err1 := impls.GetActionPK(systemID, id)
+			actionPK, err1 := cacheimpls.GetActionPK(systemID, id)
 			if err1 != nil {
 				err1 = errorx.Wrapf(err1, "Handler", "batchDeleteActions",
 					"query action pk fail, systemID=`%s`, ids=`%v`", systemID, ids)
@@ -316,17 +323,19 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				ModelPK:   actionPK,
 			})
 		}
-		err = eventSvc.BulkCreate(events)
-		if err != nil {
-			err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
-				"eventSvc.BulkCreate events=`%+v` fail", events)
-			util.SystemErrorJSONResponse(c, err)
-			return
+		if len(events) != 0 {
+			err = eventSvc.BulkCreate(events)
+			if err != nil {
+				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
+					"eventSvc.BulkCreate events=`%+v` fail", events)
+				util.SystemErrorJSONResponse(c, err)
+				return
+			}
 		}
 	}
 
 	// 从同步删除的操作里剔除掉需要异步删除的
-	asyncDeletedIDs := util.NewStringSetWithValues(needAsyncDeletedActionIDs)
+	asyncDeletedIDs := set.NewStringSetWithValues(needAsyncDeletedActionIDs)
 	newIDs := make([]string, 0, len(ids))
 	for _, id := range ids {
 		if !asyncDeletedIDs.Has(id) {
@@ -334,6 +343,32 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		}
 	}
 	if len(newIDs) > 0 {
+		// Note: 同步删除的Action，若存在其对应的delete_policy事件，那么需要标记为结束（因为Action是真删除了，代表其一定没有关联Policy）
+		// 对于处理Event失败，并非核心逻辑，不能影响正常删除Action，所以失败时只能记录日志
+		for _, id := range newIDs {
+			actionPK, err := cacheimpls.GetActionPK(systemID, id)
+			if err != nil {
+				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
+					"query action pk fail, cacheimpls.GetActionPK systemID=`%s`, ids=`%v`", systemID, ids)
+				log.Error(err)
+				continue
+			}
+			// 直接更新掉 delete_policy事件的状态
+			eventSvc := service.NewModelChangeService()
+			err = eventSvc.UpdateStatusByModel(
+				ModelChangeEventTypeActionPolicyDeleted,
+				ModelChangeEventModelTypeAction,
+				actionPK,
+				ModelChangeEventStatusFinished,
+			)
+			if err != nil {
+				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
+					"eventSvc.UpdateStatusByModel fail, actionPK=`%d`", actionPK)
+				log.Error(err)
+				continue
+			}
+		}
+
 		svc := service.NewActionService()
 		err = svc.BulkDelete(systemID, newIDs)
 		if err != nil {
@@ -344,7 +379,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		}
 
 		// delete from cache
-		impls.BatchDeleteActionCache(systemID, newIDs)
+		cacheimpls.BatchDeleteActionCache(systemID, newIDs)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)

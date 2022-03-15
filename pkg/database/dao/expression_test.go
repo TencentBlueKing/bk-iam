@@ -51,6 +51,7 @@ func Test_expressionManager_ListAuthByPKs(t *testing.T) {
 func Test_expressionManager_BulkCreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
+		mock.ExpectPrepare(`INSERT INTO expression`)
 		mock.ExpectExec(`INSERT INTO expression`).WithArgs(
 			int64(1), "expression", "test",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -66,12 +67,12 @@ func Test_expressionManager_BulkCreateWithTx(t *testing.T) {
 		}
 
 		manager := &expressionManager{DB: db}
-		id, err := manager.BulkCreateWithTx(tx, []Expression{expr})
+		ids, err := manager.BulkCreateWithTx(tx, []Expression{expr})
 
 		tx.Commit()
 
 		assert.NoError(t, err)
-		assert.Equal(t, id, int64(1))
+		assert.Equal(t, ids, []int64{1})
 	})
 }
 
@@ -151,5 +152,65 @@ func Test_expressionManager_ListDistinctBySignaturesType(t *testing.T) {
 		assert.Equal(t, len(expressions), 2)
 		assert.Equal(t, mockData[0].(Expression), expressions[0])
 		assert.Equal(t, mockData[1].(Expression), expressions[1])
+	})
+}
+
+func Test_expressionManager_ChangeUnreferencedExpressionType(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE expression SET type=`).WithArgs(
+			int64(-1), int64(1),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.ChangeUnreferencedExpressionType(1, -1)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}
+
+func Test_expressionManager_ChangeReferencedExpressionTypeBeforeUpdateAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE expression SET type=`).WithArgs(
+			int64(1), int64(-1), int64(0),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.ChangeReferencedExpressionTypeBeforeUpdateAt(-1, 1, 0)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}
+
+func Test_expressionManager_DeleteUnreferencedExpressionByTypeBeforeUpdateAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`DELETE FROM expression WHERE type=`).WithArgs(
+			int64(-1), int64(0),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &expressionManager{DB: db}
+		err = manager.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(-1, 0)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
 	})
 }

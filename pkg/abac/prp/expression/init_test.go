@@ -13,15 +13,15 @@ package expression_test
 import (
 	"time"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/prp/expression"
-	"iam/pkg/cache/impls"
 	"iam/pkg/cache/redis"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
@@ -29,9 +29,9 @@ import (
 
 var _ = Describe("Init", func() {
 	BeforeEach(func() {
-		impls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
-		impls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
-		impls.ExpressionCache = redis.NewMockCache("expression", 1*time.Minute)
+		cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
+		cacheimpls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
+		cacheimpls.ExpressionCache = redis.NewMockCache("expression", 1*time.Minute)
 	})
 
 	It("GetExpressionsFromCache", func() {
