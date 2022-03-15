@@ -61,12 +61,13 @@ type subjectCacheDeleter struct{}
 
 // Execute ...
 func (d subjectCacheDeleter) Execute(key cache.Key) (err error) {
-	// err = multierr.Combine(
-	// NOTE: moved into pip/subject.go
-	// SubjectGroupCache.Delete(key),
-	// SubjectDetailCache.Delete(key),
-	// )
-	return SubjectDetailCache.Delete(key)
+	err = multierr.Combine(
+		// NOTE: moved into pip/subject.go
+		// SubjectGroupCache.Delete(key),
+		SubjectDetailCache.Delete(key),
+		SubjectDepartmentCache.Delete(key),
+	)
+	return err
 }
 
 type systemCacheDeleter struct{}

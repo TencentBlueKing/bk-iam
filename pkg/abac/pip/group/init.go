@@ -28,7 +28,7 @@ var ErrSubjectTypeNotSupported = errors.New("subject type not supported, current
 // GetSubjectGroupsFromCache will retrieve subject groups from cache, the order is memory->redis->database
 func GetSubjectGroupsFromCache(subjectType string, subjectPKs []int64) (map[int64][]types.ThinSubjectGroup, error) {
 	// NOTE: if we modify here, should modify the BatchDeleteSubjectGroupsFromCache too
-	if subjectType != svctypes.DepartmentType {
+	if subjectType != svctypes.DepartmentType && subjectType != svctypes.UserType {
 		return nil, ErrSubjectTypeNotSupported
 	}
 
@@ -46,7 +46,7 @@ func GetSubjectGroupsFromCache(subjectType string, subjectPKs []int64) (map[int6
 // BatchDeleteSubjectGroupsFromCache will delete cache from memory and redis
 func BatchDeleteSubjectGroupsFromCache(subjectType string, subjectPKs []int64) error {
 	// NOTE: if we modify here, should modify the GetSubjectGroupsFromCache too
-	if subjectType != svctypes.DepartmentType {
+	if subjectType != svctypes.DepartmentType && subjectType != svctypes.UserType {
 		return nil
 	}
 

@@ -40,13 +40,14 @@ var (
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache memory.Cache
 
-	RemoteResourceCache *redis.Cache
-	ResourceTypeCache   *redis.Cache
-	SubjectDetailCache  *redis.Cache
-	SubjectPKCache      *redis.Cache
-	SystemCache         *redis.Cache
-	ActionPKCache       *redis.Cache
-	ActionDetailCache   *redis.Cache
+	RemoteResourceCache    *redis.Cache
+	ResourceTypeCache      *redis.Cache
+	SubjectDetailCache     *redis.Cache
+	SubjectDepartmentCache *redis.Cache
+	SubjectPKCache         *redis.Cache
+	SystemCache            *redis.Cache
+	ActionPKCache          *redis.Cache
+	ActionDetailCache      *redis.Cache
 
 	PolicyCache       *redis.Cache
 	ExpressionCache   *redis.Cache
@@ -208,6 +209,11 @@ func InitCaches(disabled bool) {
 
 	SubjectDetailCache = redis.NewCache(
 		"sub_dtl",
+		30*time.Minute,
+	)
+
+	SubjectDepartmentCache = redis.NewCache(
+		"sub_dept",
 		30*time.Minute,
 	)
 

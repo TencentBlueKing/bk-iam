@@ -19,13 +19,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pip"
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("Subject", func() {
-
 	Describe("GetSubjectPK", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -56,7 +56,6 @@ var _ = Describe("Subject", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(123), pk)
 		})
-
 	})
 
 	Describe("GetSubjectDetail", func() {
@@ -71,8 +70,11 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("GetSubjectDetail fail", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-				return svctypes.SubjectDetail{}, errors.New("get GetSubjectDetail fail")
+			// patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
+			// 	return svctypes.SubjectDetail{}, errors.New("get GetSubjectDetail fail")
+			// })
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartment, func(pk int64) ([]int64, error) {
+				return nil, errors.New("get GetSubjectDetail fail")
 			})
 
 			_, _, err := pip.GetSubjectDetail(123)
@@ -95,11 +97,17 @@ var _ = Describe("Subject", func() {
 				},
 			}
 
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-				return svctypes.SubjectDetail{
-					DepartmentPKs: []int64{1, 2, 3},
-					SubjectGroups: returned,
-				}, nil
+			// patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
+			// 	return svctypes.SubjectDetail{
+			// 		DepartmentPKs: []int64{1, 2, 3},
+			// 		SubjectGroups: returned,
+			// 	}, nil
+			// })
+			patches = gomonkey.ApplyFunc(group.GetSubjectGroupsFromCache, func(subjectType string, pks []int64) (map[int64][]svctypes.ThinSubjectGroup, error) {
+				return map[int64][]svctypes.ThinSubjectGroup{123: returned}, nil
+			})
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartment, func(pk int64) ([]int64, error) {
+				return []int64{1, 2, 3}, nil
 			})
 
 			depts, groups, err := pip.GetSubjectDetail(123)
@@ -107,7 +115,39 @@ var _ = Describe("Subject", func() {
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, depts)
 			assert.Equal(GinkgoT(), want, groups)
 		})
-
 	})
 
+	Describe("GetSubjectDepartment", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			patches.Reset()
+		})
+
+		It("GetSubjectDepartment fail", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartment, func(pk int64) ([]int64, error) {
+				return nil, errors.New("get subject_dept fail")
+			})
+
+			_, err := pip.GetSubjectDepartment(123)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "get subject_dept fail")
+		})
+
+		It("ok", func() {
+			want := []int64{1, 2, 3}
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartment, func(pk int64) ([]int64, error) {
+				return want, nil
+			})
+
+			d, err := pip.GetSubjectDepartment(123)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), want, d)
+		})
+	})
 })
