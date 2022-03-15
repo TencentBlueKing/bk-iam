@@ -49,7 +49,7 @@ func GetSubjectPK(_type, id string) (int64, error) {
 }
 
 // GetSubjectDetail ...
-func GetSubjectDetail(pk int64) (departments []int64, groups []types.SubjectGroup, err error) {
+func GetSubjectDetail(pk int64) (departmentPKs []int64, groups []types.SubjectGroup, err error) {
 	detail, err := cacheimpls.GetSubjectDetail(pk)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDetail",
@@ -57,9 +57,9 @@ func GetSubjectDetail(pk int64) (departments []int64, groups []types.SubjectGrou
 		return
 	}
 
-	departments = detail.DepartmentPKs
+	departmentPKs = detail.DepartmentPKs
 	groups = convertSubjectGroups(detail.SubjectGroups)
-	return departments, groups, nil
+	return departmentPKs, groups, nil
 }
 
 func BatchDeleteSubjectCache(pks []int64) error {
@@ -82,11 +82,11 @@ func BatchDeleteSubjectCache(pks []int64) error {
 	// delete subject detail cache
 	cacheimpls.SubjectCacheCleaner.BatchDelete(keys)
 	// delete subject groups
-	for subjectType, pks := range subjectTypePKs {
-		err := group.BatchDeleteSubjectGroupsFromCache(subjectType, pks)
+	for subjectType, subjectPKs := range subjectTypePKs {
+		err := group.BatchDeleteSubjectGroupsFromCache(subjectType, subjectPKs)
 		if err != nil {
 			log.WithError(err).Errorf("group.BatchDeleteSubjectGroupsFromCache subjectType=`%s`, pks=`%v` fail",
-				subjectType, pks)
+				subjectType, subjectPKs)
 			continue
 		}
 	}

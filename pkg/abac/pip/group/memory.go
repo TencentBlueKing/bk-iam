@@ -147,17 +147,18 @@ func (r *memoryRetriever) setMissing(subjectGroups map[int64][]types.ThinSubject
 	return nil
 }
 
-func batchDeleteSubjectGroupsFromMemory(subjectType string, updatedSubjectPKs []int64) error {
-	if len(updatedSubjectPKs) == 0 {
+func batchDeleteSubjectGroupsFromMemory(subjectType string, subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
 		return nil
 	}
 
-	members := make([]string, 0, len(updatedSubjectPKs))
-	for _, subjectPK := range updatedSubjectPKs {
-		members = append(members, strconv.FormatInt(subjectPK, 10))
+	members := make([]string, 0, len(subjectPKs))
+	for _, subjectPK := range subjectPKs {
+		subjectPKStr := strconv.FormatInt(subjectPK, 10)
+		members = append(members, subjectPKStr)
 
 		// delete from local cache
-		cacheimpls.LocalSubjectGroupsCache.Delete(strconv.FormatInt(subjectPK, 10))
+		cacheimpls.LocalSubjectGroupsCache.Delete(subjectPKStr)
 	}
 
 	keyMembers := map[string][]string{

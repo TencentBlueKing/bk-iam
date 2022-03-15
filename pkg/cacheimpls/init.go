@@ -80,7 +80,7 @@ func InitCaches(disabled bool) {
 	// auth app_code/app_secret cache
 	LocalAuthAppAccessKeyCache = gocache.New(12*time.Hour, 5*time.Minute)
 
-	// 影响: engine增量同步
+	// 影响: engine增量同步, subjectGroups缓存删除
 
 	LocalSubjectCache = memory.NewCache(
 		"local_subject",
@@ -201,11 +201,6 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
-	SubjectGroupCache = redis.NewCache(
-		"sub_grp",
-		30*time.Minute,
-	)
-
 	SubjectPKCache = redis.NewCache(
 		"sub_pk",
 		30*time.Minute,
@@ -228,6 +223,11 @@ func InitCaches(disabled bool) {
 
 	ExpressionCache = redis.NewCache(
 		"ex",
+		30*time.Minute,
+	)
+
+	SubjectGroupCache = redis.NewCache(
+		"sub_grp",
 		30*time.Minute,
 	)
 

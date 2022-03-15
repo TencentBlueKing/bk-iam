@@ -21,6 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pip"
 	"iam/pkg/abac/pip/group"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
@@ -71,7 +72,7 @@ func DepartmentGroups(c *gin.Context) {
 func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit bool) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "subject_groups")
 
-	subjectPK, err := cacheimpls.GetLocalSubjectPK(subjectType, subjectID)
+	subjectPK, err := pip.GetSubjectPK(subjectType, subjectID)
 	if err != nil {
 		// 不存在的情况, 404
 		if errors.Is(err, sql.ErrNoRows) {
@@ -84,7 +85,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	}
 
 	// NOTE: group被删除的时候, subjectDetail引用的并不会清理
-	subjectDetail, err := cacheimpls.GetSubjectDetail(subjectPK)
+	deptPKs, groups, err := pip.GetSubjectDetail(subjectPK)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -93,7 +94,6 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	nowUnix := time.Now().Unix()
 
 	// 1. get the subject's groups
-	groups := subjectDetail.SubjectGroups
 	groupPKs := set.NewFixedLengthInt64Set(len(groups))
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
@@ -103,7 +103,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	}
 
 	// 2. get the subject-department's groups
-	deptPKs := subjectDetail.DepartmentPKs
+	// deptPKs := subjectDetail.DepartmentPKs
 	if inherit && len(deptPKs) > 0 {
 		subjectGroups, newErr := group.GetSubjectGroupsFromCache(types.DepartmentType, deptPKs)
 		if newErr != nil {

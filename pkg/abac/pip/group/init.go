@@ -44,16 +44,17 @@ func GetSubjectGroupsFromCache(subjectType string, subjectPKs []int64) (map[int6
 }
 
 // BatchDeleteSubjectGroupsFromCache will delete cache from memory and redis
-func BatchDeleteSubjectGroupsFromCache(subjectType string, updatedSubjectPKs []int64) error {
+func BatchDeleteSubjectGroupsFromCache(subjectType string, subjectPKs []int64) error {
+	// NOTE: if we modify here, should modify the GetSubjectGroupsFromCache too
 	if subjectType != svctypes.DepartmentType {
 		return nil
 	}
 
 	err := multierr.Combine(
 		// delete from redis
-		batchDeleteSubjectGroupsFromRedis(updatedSubjectPKs),
+		batchDeleteSubjectGroupsFromRedis(subjectPKs),
 		// delete from memory
-		batchDeleteSubjectGroupsFromMemory(subjectType, updatedSubjectPKs),
+		batchDeleteSubjectGroupsFromMemory(subjectType, subjectPKs),
 	)
 	return err
 }

@@ -52,7 +52,8 @@ func retrieveSubjectDetail(key cache.Key) (interface{}, error) {
 	return detail, nil
 }
 
-// GetSubjectDetail ...
+// GetSubjectDetail will retrieve subject details from cache
+// you should use pip.GetSubjectDetail, not cacheimpls.GetSubjectDetail
 func GetSubjectDetail(pk int64) (detail types.SubjectDetail, err error) {
 	key := SubjectPKCacheKey{
 		PK: pk,

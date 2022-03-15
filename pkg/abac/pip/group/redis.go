@@ -169,9 +169,9 @@ func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
 	}
 
 	keys := make([]cache.Key, 0, len(subjectPKs))
-	for _, pk := range subjectPKs {
+	for _, subjectPK := range subjectPKs {
 		key := cacheimpls.SubjectPKCacheKey{
-			PK: pk,
+			PK: subjectPK,
 		}
 		keys = append(keys, key)
 	}
@@ -194,11 +194,11 @@ func (r *redisRetriever) batchDelete(subjectPKs []int64) error {
 	return nil
 }
 
-func batchDeleteSubjectGroupsFromRedis(updatedSubjectPKs []int64) error {
-	if len(updatedSubjectPKs) == 0 {
+func batchDeleteSubjectGroupsFromRedis(subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
 		return nil
 	}
 
 	r := &redisRetriever{}
-	return r.batchDelete(updatedSubjectPKs)
+	return r.batchDelete(subjectPKs)
 }
