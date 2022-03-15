@@ -15,10 +15,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/assert"
 
@@ -88,9 +88,11 @@ func TestCreateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:invalid id")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
-	r.Use(middleware.ClientAuthMiddleware([]byte(""), false))
+	r.Use(middleware.ClientAuthMiddleware([]byte("")))
 	url := "/api/v1/systems"
 	r.POST(url, CreateSystem)
 
@@ -99,10 +101,7 @@ func TestCreateSystem(t *testing.T) {
 	appSecret := "123"
 
 	cacheimpls.InitCaches(false)
-	cacheimpls.LocalAppCodeAppSecretCache.Set(cacheimpls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller
@@ -285,9 +284,11 @@ func TestUpdateSystem(t *testing.T) {
 			}).BadRequestContainsMessage("bad request:")
 	})
 
+	cacheimpls.InitVerifyAppCodeAppSecret(false)
+
 	// init the router
 	r := util.SetupRouter()
-	r.Use(middleware.ClientAuthMiddleware([]byte(""), false))
+	r.Use(middleware.ClientAuthMiddleware([]byte("")))
 	url := "/api/v1/systems/test"
 	r.POST(url, UpdateSystem)
 
@@ -296,10 +297,7 @@ func TestUpdateSystem(t *testing.T) {
 	appSecret := "123"
 
 	cacheimpls.InitCaches(false)
-	cacheimpls.LocalAppCodeAppSecretCache.Set(cacheimpls.AppCodeAppSecretCacheKey{
-		AppCode:   appCode,
-		AppSecret: appSecret,
-	}, true)
+	cacheimpls.LocalAppCodeAppSecretCache.Set(appCode+":"+appSecret, true, 0)
 
 	// for mock
 	var ctl *gomock.Controller

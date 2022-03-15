@@ -14,14 +14,14 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition"
+	"iam/pkg/abac/pdp/evalctx"
 	"iam/pkg/abac/pdp/evaluation"
-	types2 "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/pip"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/mock"
@@ -112,10 +112,6 @@ var _ = Describe("Helper", func() {
 			}
 
 			patches = gomonkey.NewPatches()
-			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
-				func(_ *request.Request) bool {
-					return true
-				})
 
 		})
 		AfterEach(func() {
@@ -152,6 +148,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
@@ -166,6 +166,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -187,6 +191,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -198,7 +206,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policie []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return nil, nil, errors.New("filter error")
@@ -214,6 +222,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -225,7 +237,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{}, []int64{}, nil
@@ -240,6 +252,10 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
+				func(_ *request.Request) bool {
+					return true
+				})
 			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
 				return nil
 			})
@@ -251,7 +267,7 @@ var _ = Describe("Helper", func() {
 			) (policies []types.AuthPolicy, err error) {
 				return []types.AuthPolicy{{}}, nil
 			})
-			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *types2.EvalContext,
+			patches.ApplyFunc(evaluation.PartialEvalPolicies, func(ctx *evalctx.EvalContext,
 				policies []types.AuthPolicy,
 			) ([]condition.Condition, []int64, error) {
 				return []condition.Condition{

@@ -38,7 +38,10 @@
 package eval
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 )
 
 // github.com/stretchr/testify/assert/assertion_compare.go
@@ -342,6 +345,17 @@ func compare(obj1, obj2 interface{}, kind reflect.Kind) (CompareType, bool) {
 	return compareEqual, false
 }
 
+// ValueEqual asserts that the first element is value-equal to the second
+// only care about the value, will cast the type to the same type before do compare
+//
+//    assert.ValueEqual(t, 2, 1)
+//    assert.ValueEqual(t, 2, float64(2.0))
+//    assert.ValueEqual(t, "b", "a")
+// it's different to the `Equals` which use reflect.DeepEqual will check the type and value are the same
+func ValueEqual(e1 interface{}, e2 interface{}) bool {
+	return compareTwoValues(e1, e2, []CompareType{compareEqual})
+}
+
 // Greater asserts that the first element is greater than the second
 //
 //    assert.Greater(t, 2, 1)
@@ -380,10 +394,177 @@ func LessOrEqual(e1 interface{}, e2 interface{}) bool {
 	return compareTwoValues(e1, e2, []CompareType{compareLess, compareEqual})
 }
 
-func compareTwoValues(e1 interface{}, e2 interface{}, allowedComparesResults []CompareType) bool {
+// the max precision is int64, so uint64 not supported => or only part of uint64 supported?
 
+// uint8       the set of all unsigned  8-bit integers (0 to 255)
+// uint16      the set of all unsigned 16-bit integers (0 to 65535)
+// uint32      the set of all unsigned 32-bit integers (0 to 4294967295)
+// uint64      the set of all unsigned 64-bit integers (0 to 18446744073709551615)
+//
+// int8        the set of all signed  8-bit integers (-128 to 127)
+// int16       the set of all signed 16-bit integers (-32768 to 32767)
+// int32       the set of all signed 32-bit integers (-2147483648 to 2147483647)
+// int64       the set of all signed 64-bit integers (-9223372036854775808 to 9223372036854775807)
+
+// float32     the set of all IEEE-754 32-bit floating-point numbers
+// float64     the set of all IEEE-754 64-bit floating-point numbers
+
+func isNumberKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Int64, reflect.Float64, reflect.Int, reflect.Float32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Int8, reflect.Int16, reflect.Int32:
+		return true
+	default:
+		return false
+	}
+}
+
+func isFloatKind(kind reflect.Kind) bool {
+	switch kind {
+	case reflect.Float64, reflect.Float32:
+		return true
+	default:
+		return false
+	}
+
+}
+
+func toInt64(i interface{}) (int64, error) {
+	switch s := i.(type) {
+	case int:
+		return int64(s), nil
+	case int64:
+		return s, nil
+	case int32:
+		return int64(s), nil
+	case int16:
+		return int64(s), nil
+	case int8:
+		return int64(s), nil
+	case uint:
+		return int64(s), nil
+	case uint64:
+		// NOTE: precision lost
+		return int64(s), nil
+	case uint32:
+		return int64(s), nil
+	case uint16:
+		return int64(s), nil
+	case uint8:
+		return int64(s), nil
+		// NOTE: only cast between int*, no float32/float64
+	default:
+		return 0, fmt.Errorf("unable to cast %#v of type %T to int64", i, i)
+	}
+}
+
+func toFloat64(i interface{}) (float64, error) {
+	switch s := i.(type) {
+	case float64:
+		return s, nil
+	case float32:
+		return float64(s), nil
+	case int:
+		return float64(s), nil
+	case int64:
+		// NOTE: precision lost
+		return float64(s), nil
+	case int32:
+		return float64(s), nil
+	case int16:
+		return float64(s), nil
+	case int8:
+		return float64(s), nil
+	case uint:
+		return float64(s), nil
+	case uint64:
+		// NOTE: precision lost
+		return float64(s), nil
+	case uint32:
+		return float64(s), nil
+	case uint16:
+		return float64(s), nil
+	case uint8:
+		return float64(s), nil
+	default:
+		return 0, fmt.Errorf("unable to cast %#v of type %T to float64", i, i)
+	}
+}
+
+func castJsonNumber(i interface{}) (interface{}, reflect.Kind, error) {
+	n, ok := i.(json.Number)
+	if !ok {
+		return nil, reflect.Invalid, fmt.Errorf("cast interface to json.Number fail")
+	}
+
+	// NOTE: precision lost
+	if strings.IndexByte(n.String(), '.') != -1 {
+		value, err := n.Float64()
+		if err != nil {
+			return nil, reflect.Invalid, err
+		}
+		return value, reflect.Float64, nil
+	}
+
+	value, err := n.Int64()
+	if err != nil {
+		return nil, reflect.Invalid, err
+	}
+	return value, reflect.Int64, nil
+}
+
+func compareTwoValues(e1 interface{}, e2 interface{}, allowedComparesResults []CompareType) bool {
 	e1Kind := reflect.ValueOf(e1).Kind()
 	e2Kind := reflect.ValueOf(e2).Kind()
+
+	if e1 != nil && e2 != nil {
+		// if got json.Number => cast to the int64 or float64
+		if reflect.TypeOf(e1).String() == "json.Number" {
+			newE1, newE1Kind, err := castJsonNumber(e1)
+			if err == nil {
+				e1 = newE1
+				e1Kind = newE1Kind
+			}
+		}
+		if reflect.TypeOf(e2).String() == "json.Number" {
+			newE2, newE2Kind, err := castJsonNumber(e2)
+			if err == nil {
+				e2 = newE2
+				e2Kind = newE2Kind
+			}
+		}
+
+		// here, we support number types: int64/float64 compare
+		// check and cast to same type: int64 or float64 and do compare later
+		// but, here got a precision lost, which may case the eval result wrong
+		if e1Kind != e2Kind && isNumberKind(e1Kind) && isNumberKind(e2Kind) {
+			if isFloatKind(e1Kind) || isFloatKind(e2Kind) {
+				// both cast to float64
+				newE1, err := toFloat64(e1)
+				if err == nil {
+					e1 = newE1
+					e1Kind = reflect.Float64
+				}
+				newE2, err2 := toFloat64(e2)
+				if err2 == nil {
+					e2 = newE2
+					e2Kind = reflect.Float64
+				}
+			} else {
+				// both cast to int64
+				newE1, err := toInt64(e1)
+				if err == nil {
+					e1 = newE1
+					e1Kind = reflect.Int64
+				}
+				newE2, err2 := toInt64(e2)
+				if err2 == nil {
+					e2 = newE2
+					e2Kind = reflect.Int64
+				}
+			}
+		}
+	}
+
 	if e1Kind != e2Kind {
 		// Elements should be the same type
 		return false
@@ -397,7 +578,7 @@ func compareTwoValues(e1 interface{}, e2 interface{}, allowedComparesResults []C
 
 	if !containsValue(allowedComparesResults, compareResult) {
 		return false
-		//return Fail(t, fmt.Sprintf(failMessage, e1, e2), msgAndArgs...)
+		// return Fail(t, fmt.Sprintf(failMessage, e1, e2), msgAndArgs...)
 	}
 
 	return true

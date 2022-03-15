@@ -11,7 +11,7 @@
 package condition
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pdp/condition/operator"
@@ -19,30 +19,33 @@ import (
 
 var _ = Describe("And", func() {
 	wantAndCondition := &AndCondition{
-		content: []Condition{
-			&StringEqualsCondition{
-				baseCondition: baseCondition{
-					Key:   "system",
-					Value: []interface{}{"linux"},
+		baseLogicalCondition{
+			content: []Condition{
+				&StringEqualsCondition{
+					baseCondition: baseCondition{
+						Key:   "system",
+						Value: []interface{}{"linux"},
+					},
 				},
-			},
-			&StringPrefixCondition{
-				baseCondition: baseCondition{
-					Key:   "path",
-					Value: []interface{}{"/biz,1/"},
+				&StringPrefixCondition{
+					baseCondition: baseCondition{
+						Key:   "path",
+						Value: []interface{}{"/biz,1/"},
+					},
 				},
-			},
-		},
+			}},
 	}
 
 	var c *AndCondition
 	BeforeEach(func() {
 		c1, _ := newStringEqualsCondition("k1", []interface{}{"a", "b"})
-		c2, _ := newNumericEqualsCondition("k1", []interface{}{"b", "c"})
+		c2, _ := newNumericEqualsCondition("k2", []interface{}{"b", "c"})
 		c = &AndCondition{
-			[]Condition{
-				c1,
-				c2,
+			baseLogicalCondition{
+				content: []Condition{
+					c1,
+					c2,
+				},
 			},
 		}
 	})
@@ -84,22 +87,6 @@ var _ = Describe("And", func() {
 
 	It("GetName", func() {
 		assert.Equal(GinkgoT(), operator.AND, c.GetName())
-	})
-
-	It("GetKeys", func() {
-		oc := AndCondition{
-			content: []Condition{
-				&StringEqualsCondition{
-					baseCondition{
-						Key: "hello",
-					},
-				},
-			},
-		}
-
-		keys := oc.GetKeys()
-		assert.Len(GinkgoT(), keys, 1)
-		assert.Equal(GinkgoT(), "hello", keys[0])
 	})
 
 	It("Eval", func() {

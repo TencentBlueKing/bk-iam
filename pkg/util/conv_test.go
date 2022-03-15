@@ -15,8 +15,7 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"
@@ -32,21 +31,6 @@ var _ = Describe("Conv", func() {
 			Entry("slice with 1 value", "1", []int64{1}, ","),
 			Entry("slice with 3 values", "1,2,3", []int64{1, 2, 3}, ","),
 		)
-	})
-
-	Describe("StringToInt64", func() {
-
-		It("ok", func() {
-			i, err := util.StringToInt64("123")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), int64(123), i)
-		})
-
-		It("fail", func() {
-			_, err := util.StringToInt64("abc")
-			assert.Error(GinkgoT(), err)
-		})
-
 	})
 
 	Describe("StringToInt64Slice", func() {

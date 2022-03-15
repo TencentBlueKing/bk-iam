@@ -90,6 +90,7 @@ func BatchCreateActions(c *gin.Context) {
 			RelatedActions: ac.RelatedActions,
 		}
 		action.RelatedResourceTypes = convertToRelatedResourceTypes(ac.RelatedResourceTypes)
+		action.RelatedEnvironments = convertToRelatedEnvironments(ac.RelatedEnvironments)
 
 		actions = append(actions, action)
 	}
@@ -181,6 +182,9 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["related_actions"]; ok {
 		allowEmptyFields.AddKey("RelatedActions")
 	}
+	if _, ok := data["related_environments"]; ok {
+		allowEmptyFields.AddKey("RelatedEnvironments")
+	}
 	if _, ok := data["description"]; ok {
 		allowEmptyFields.AddKey("Description")
 	}
@@ -197,6 +201,7 @@ func UpdateAction(c *gin.Context) {
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
+		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),
 
 		AllowEmptyFields: allowEmptyFields,
 	}

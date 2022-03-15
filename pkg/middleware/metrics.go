@@ -36,12 +36,17 @@ func Metrics() gin.HandlerFunc {
 		clientID := util.GetClientID(c)
 		status := strconv.Itoa(c.Writer.Status())
 
+		e := "0"
+		if _, hasError := util.GetError(c); hasError {
+			e = "1"
+		}
+
 		// request count
 		metric.RequestCount.With(prometheus.Labels{
 			"method":    c.Request.Method,
 			"path":      c.Request.URL.Path,
 			"status":    status,
-			"error":     "0",
+			"error":     e,
 			"client_id": clientID,
 		}).Inc()
 

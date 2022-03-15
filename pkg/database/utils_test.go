@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/stringx"
 	jsoniter "github.com/json-iterator/go"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"

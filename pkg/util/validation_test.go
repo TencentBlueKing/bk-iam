@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"
@@ -24,7 +24,7 @@ import (
 
 var _ = Describe("Validation", func() {
 
-	//Describe("ValidationFieldError", func() {
+	// Describe("ValidationFieldError", func() {
 	//	DescribeTable("ValidationFieldError cases", func(expected string, err util.ValidationFieldError) {
 	//		assert.True(GinkgoT(), strings.Contains(err.String(), expected))
 	//	},
@@ -32,7 +32,7 @@ var _ = Describe("Validation", func() {
 	//		Entry("slice with 1 value", "1", []int64{1}, ","),
 	//		Entry("slice with 3 values", "1,2,3", []int64{1, 2, 3}, ","),
 	//	)
-	//})
+	// })
 
 	Describe("ValidationErrorMessage", func() {
 

@@ -14,9 +14,9 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
-	"github.com/agiledragon/gomonkey"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/database"

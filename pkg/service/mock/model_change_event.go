@@ -34,18 +34,18 @@ func (m *MockModelChangeEventService) EXPECT() *MockModelChangeEventServiceMockR
 }
 
 // ListByStatus mocks base method
-func (m *MockModelChangeEventService) ListByStatus(status string) ([]types.ModelChangeEvent, error) {
+func (m *MockModelChangeEventService) ListByStatus(status string, limit int64) ([]types.ModelChangeEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByStatus", status)
+	ret := m.ctrl.Call(m, "ListByStatus", status, limit)
 	ret0, _ := ret[0].([]types.ModelChangeEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByStatus indicates an expected call of ListByStatus
-func (mr *MockModelChangeEventServiceMockRecorder) ListByStatus(status interface{}) *gomock.Call {
+func (mr *MockModelChangeEventServiceMockRecorder) ListByStatus(status, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByStatus", reflect.TypeOf((*MockModelChangeEventService)(nil).ListByStatus), status)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByStatus", reflect.TypeOf((*MockModelChangeEventService)(nil).ListByStatus), status, limit)
 }
 
 // UpdateStatusByPK mocks base method
@@ -60,6 +60,20 @@ func (m *MockModelChangeEventService) UpdateStatusByPK(pk int64, status string) 
 func (mr *MockModelChangeEventServiceMockRecorder) UpdateStatusByPK(pk, status interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatusByPK", reflect.TypeOf((*MockModelChangeEventService)(nil).UpdateStatusByPK), pk, status)
+}
+
+// UpdateStatusByModel mocks base method
+func (m *MockModelChangeEventService) UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStatusByModel", eventType, modelType, modelPK, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStatusByModel indicates an expected call of UpdateStatusByModel
+func (mr *MockModelChangeEventServiceMockRecorder) UpdateStatusByModel(eventType, modelType, modelPK, status interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatusByModel", reflect.TypeOf((*MockModelChangeEventService)(nil).UpdateStatusByModel), eventType, modelType, modelPK, status)
 }
 
 // BulkCreate mocks base method

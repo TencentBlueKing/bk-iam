@@ -29,6 +29,9 @@ import (
 	// init debug entry pool
 	_ "iam/pkg/logging/debug"
 
+	// init the pdp
+	_ "iam/pkg/abac/pdp/evalctx"
+
 	"iam/pkg/server"
 )
 
@@ -90,6 +93,7 @@ func Start() {
 	// NOTE: should be after initRedis
 	initCaches()
 	initPolicyCacheSettings()
+	initVerifyAppCodeAppSecret()
 	initSuperAppCode()
 	initSuperUser()
 	initSupportShieldFeatures()

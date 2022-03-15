@@ -2,9 +2,11 @@ package ginSwagger
 
 import (
 	"html/template"
+	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
-	"strings"
+	"sync"
 
 	"golang.org/x/net/webdav"
 
@@ -12,17 +14,50 @@ import (
 	"github.com/swaggo/swag"
 )
 
+type swaggerConfig struct {
+	URL                      string
+	DeepLinking              bool
+	DocExpansion             string
+	DefaultModelsExpandDepth int
+	Oauth2RedirectURL        template.JS
+}
+
 // Config stores ginSwagger configuration variables.
 type Config struct {
 	//The url pointing to API definition (normally swagger.json or swagger.yaml). Default is `doc.json`.
-	URL         string
-	DeepLinking bool
+	URL                      string
+	DeepLinking              bool
+	DocExpansion             string
+	DefaultModelsExpandDepth int
+	InstanceName             string
+}
+
+// Convert the config to a swagger one in order to fill unexposed template values.
+func (c Config) ToSwaggerConfig() swaggerConfig {
+	return swaggerConfig{
+		URL:                      c.URL,
+		DeepLinking:              c.DeepLinking,
+		DocExpansion:             c.DocExpansion,
+		DefaultModelsExpandDepth: c.DefaultModelsExpandDepth,
+		Oauth2RedirectURL: template.JS(
+			"`${window.location.protocol}//${window.location.host}$" +
+				"{window.location.pathname.split('/').slice(0, window.location.pathname.split('/').length - 1).join('/')}" +
+				"/oauth2-redirect.html`",
+		),
+	}
 }
 
 // URL presents the url pointing to API definition (normally swagger.json or swagger.yaml).
 func URL(url string) func(c *Config) {
 	return func(c *Config) {
 		c.URL = url
+	}
+}
+
+// DocExpansion list, full, none.
+func DocExpansion(docExpansion string) func(c *Config) {
+	return func(c *Config) {
+		c.DocExpansion = docExpansion
 	}
 }
 
@@ -33,11 +68,30 @@ func DeepLinking(deepLinking bool) func(c *Config) {
 	}
 }
 
+// DefaultModelsExpandDepth set the default expansion depth for models
+// (set to -1 completely hide the models).
+func DefaultModelsExpandDepth(depth int) func(c *Config) {
+	return func(c *Config) {
+		c.DefaultModelsExpandDepth = depth
+	}
+}
+
+// InstanceName set the instance name that was used to generate the swagger documents.
+// Defaults to swag.Name ("swagger").
+func InstanceName(name string) func(c *Config) {
+	return func(c *Config) {
+		c.InstanceName = name
+	}
+}
+
 // WrapHandler wraps `http.Handler` into `gin.HandlerFunc`.
 func WrapHandler(h *webdav.Handler, confs ...func(c *Config)) gin.HandlerFunc {
 	defaultConfig := &Config{
-		URL:         "doc.json",
-		DeepLinking: true,
+		URL:                      "doc.json",
+		DeepLinking:              true,
+		DocExpansion:             "list",
+		DefaultModelsExpandDepth: 1,
+		InstanceName:             swag.Name,
 	}
 
 	for _, c := range confs {
@@ -48,55 +102,59 @@ func WrapHandler(h *webdav.Handler, confs ...func(c *Config)) gin.HandlerFunc {
 }
 
 // CustomWrapHandler wraps `http.Handler` into `gin.HandlerFunc`
-func CustomWrapHandler(config *Config, h *webdav.Handler) gin.HandlerFunc {
-	//create a template with name
+func CustomWrapHandler(config *Config, handler *webdav.Handler) gin.HandlerFunc {
+	var once sync.Once
+
+	if config.InstanceName == "" {
+		config.InstanceName = swag.Name
+	}
+
+	// create a template with name
 	t := template.New("swagger_index.html")
 	index, _ := t.Parse(swagger_index_templ)
 
 	var rexp = regexp.MustCompile(`(.*)(index\.html|doc\.json|favicon-16x16\.png|favicon-32x32\.png|/oauth2-redirect\.html|swagger-ui\.css|swagger-ui\.css\.map|swagger-ui\.js|swagger-ui\.js\.map|swagger-ui-bundle\.js|swagger-ui-bundle\.js\.map|swagger-ui-standalone-preset\.js|swagger-ui-standalone-preset\.js\.map)[\?|.]*`)
 
 	return func(c *gin.Context) {
+		matches := rexp.FindStringSubmatch(c.Request.RequestURI)
 
-		type swaggerUIBundle struct {
-			URL         string
-			DeepLinking bool
-		}
-
-		var matches []string
-		if matches = rexp.FindStringSubmatch(c.Request.RequestURI); len(matches) != 3 {
-			c.Status(404)
-			c.Writer.Write([]byte("404 page not found"))
+		if len(matches) != 3 {
+			c.Status(http.StatusNotFound)
+			_, _ = c.Writer.Write([]byte("404 page not found"))
 			return
 		}
-		path := matches[2]
-		prefix := matches[1]
-		h.Prefix = prefix
 
-		if strings.HasSuffix(path, ".html") {
+		path := matches[2]
+		once.Do(func() {
+			handler.Prefix = matches[1]
+		})
+
+		switch filepath.Ext(path) {
+		case ".html":
 			c.Header("Content-Type", "text/html; charset=utf-8")
-		} else if strings.HasSuffix(path, ".css") {
+		case ".css":
 			c.Header("Content-Type", "text/css; charset=utf-8")
-		} else if strings.HasSuffix(path, ".js") {
+		case ".js":
 			c.Header("Content-Type", "application/javascript")
-		} else if strings.HasSuffix(path, ".json") {
-			c.Header("Content-Type", "application/json")
+		case ".png":
+			c.Header("Content-Type", "image/png")
+		case ".json":
+			c.Header("Content-Type", "application/json; charset=utf-8")
 		}
 
 		switch path {
 		case "index.html":
-			index.Execute(c.Writer, &swaggerUIBundle{
-				URL:         config.URL,
-				DeepLinking: config.DeepLinking,
-			})
+			_ = index.Execute(c.Writer, config.ToSwaggerConfig())
 		case "doc.json":
-			doc, err := swag.ReadDoc()
+			doc, err := swag.ReadDoc(config.InstanceName)
 			if err != nil {
-				panic(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+
+				return
 			}
-			c.Writer.Write([]byte(doc))
-			return
+			_, _ = c.Writer.Write([]byte(doc))
 		default:
-			h.ServeHTTP(c.Writer, c.Request)
+			handler.ServeHTTP(c.Writer, c.Request)
 		}
 	}
 }
@@ -109,7 +167,7 @@ func DisablingWrapHandler(h *webdav.Handler, envName string) gin.HandlerFunc {
 		return func(c *gin.Context) {
 			// Simulate behavior when route unspecified and
 			// return 404 HTTP code
-			c.String(404, "")
+			c.String(http.StatusNotFound, "")
 		}
 	}
 
@@ -124,7 +182,7 @@ func DisablingCustomWrapHandler(config *Config, h *webdav.Handler, envName strin
 		return func(c *gin.Context) {
 			// Simulate behavior when route unspecified and
 			// return 404 HTTP code
-			c.String(404, "")
+			c.String(http.StatusNotFound, "")
 		}
 	}
 
@@ -209,6 +267,7 @@ window.onload = function() {
     url: "{{.URL}}",
     dom_id: '#swagger-ui',
     validatorUrl: null,
+    oauth2RedirectUrl: {{.Oauth2RedirectURL}},
     presets: [
       SwaggerUIBundle.presets.apis,
       SwaggerUIStandalonePreset
@@ -217,7 +276,9 @@ window.onload = function() {
       SwaggerUIBundle.plugins.DownloadUrl
     ],
 	layout: "StandaloneLayout",
-	deepLinking: {{.DeepLinking}}
+    docExpansion: "{{.DocExpansion}}",
+	deepLinking: {{.DeepLinking}},
+	defaultModelsExpandDepth: {{.DefaultModelsExpandDepth}}
   })
 
   window.ui = ui

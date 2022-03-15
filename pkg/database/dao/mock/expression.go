@@ -107,3 +107,45 @@ func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
+
+// ChangeUnreferencedExpressionType mocks base method
+func (m *MockExpressionManager) ChangeUnreferencedExpressionType(fromType, toType int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeUnreferencedExpressionType", fromType, toType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeUnreferencedExpressionType indicates an expected call of ChangeUnreferencedExpressionType
+func (mr *MockExpressionManagerMockRecorder) ChangeUnreferencedExpressionType(fromType, toType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUnreferencedExpressionType", reflect.TypeOf((*MockExpressionManager)(nil).ChangeUnreferencedExpressionType), fromType, toType)
+}
+
+// ChangeReferencedExpressionTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeReferencedExpressionTypeBeforeUpdateAt", fromType, toType, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeReferencedExpressionTypeBeforeUpdateAt indicates an expected call of ChangeReferencedExpressionTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeReferencedExpressionTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).ChangeReferencedExpressionTypeBeforeUpdateAt), fromType, toType, updatedAt)
+}
+
+// DeleteUnreferencedExpressionByTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", _type, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnreferencedExpressionByTypeBeforeUpdateAt indicates an expected call of DeleteUnreferencedExpressionByTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnreferencedExpressionByTypeBeforeUpdateAt), _type, updatedAt)
+}

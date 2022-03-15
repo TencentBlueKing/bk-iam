@@ -14,7 +14,7 @@ import (
 	"errors"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -124,6 +124,51 @@ var _ = Describe("BaseCondition", func() {
 				Value: nil,
 			}
 			assert.Equal(GinkgoT(), []string{expectedKey}, c.GetKeys())
+		})
+	})
+
+	Describe("HasKey", func() {
+		It("ok", func() {
+			expectedKey := "test"
+
+			c := baseCondition{
+				Key:   expectedKey,
+				Value: nil,
+			}
+
+			assert.True(GinkgoT(), c.HasKey(func(key string) bool {
+				return key == expectedKey
+			}))
+		})
+	})
+
+	Describe("GetFirstMatchKeyValues", func() {
+		It("ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			v, ok := c.GetFirstMatchKeyValues(func(key string) bool {
+				return key == "test"
+			})
+			assert.True(GinkgoT(), ok)
+
+			assert.Equal(GinkgoT(), expectedValues, v)
+		})
+
+		It("ont ok", func() {
+			expectedValues := []interface{}{1, "ab", 3}
+			c := baseCondition{
+				Key:   "test",
+				Value: expectedValues,
+			}
+
+			_, ok := c.GetFirstMatchKeyValues(func(key string) bool {
+				return key == "abc"
+			})
+			assert.False(GinkgoT(), ok)
 		})
 	})
 

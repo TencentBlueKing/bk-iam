@@ -5,12 +5,10 @@
 package mock
 
 import (
-	reflect "reflect"
-
-	"github.com/TencentBlueKing/gopkg/collection/set"
+	set "github.com/TencentBlueKing/gopkg/collection/set"
 	gomock "github.com/golang/mock/gomock"
-
 	types "iam/pkg/service/types"
+	reflect "reflect"
 )
 
 // MockPolicyService is a mock of PolicyService interface
@@ -283,4 +281,18 @@ func (m *MockPolicyService) HasAnyByActionPK(actionPK int64) (bool, error) {
 func (mr *MockPolicyServiceMockRecorder) HasAnyByActionPK(actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAnyByActionPK", reflect.TypeOf((*MockPolicyService)(nil).HasAnyByActionPK), actionPK)
+}
+
+// DeleteUnreferencedExpressions mocks base method
+func (m *MockPolicyService) DeleteUnreferencedExpressions() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnreferencedExpressions")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnreferencedExpressions indicates an expected call of DeleteUnreferencedExpressions
+func (mr *MockPolicyServiceMockRecorder) DeleteUnreferencedExpressions() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressions", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnreferencedExpressions))
 }
