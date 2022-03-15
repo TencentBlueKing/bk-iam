@@ -1,3 +1,7 @@
+# 1.10.3
+
+- upgrade: release environment attributes
+
 # 1.10.2
 
 - bugfix: API /api/v1/engine/credentials/verify use auth
