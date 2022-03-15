@@ -29,7 +29,6 @@ import (
 )
 
 var _ = Describe("Memory", func() {
-
 	It("newMemoryRetriever", func() {
 		r := newMemoryRetriever(123, nil)
 		assert.NotNil(GinkgoT(), r)
@@ -85,7 +84,8 @@ var _ = Describe("Memory", func() {
 			}
 			cached2 = &cachedExpression{
 				timestamp: now,
-				expression: types.AuthExpression{PK: 456,
+				expression: types.AuthExpression{
+					PK:         456,
 					Expression: "456",
 					Signature:  "250cf8b51c773f3f8dc8b4be867a9a02",
 				},
@@ -104,7 +104,6 @@ var _ = Describe("Memory", func() {
 				"456": cached2,
 				"789": cached3,
 			}
-
 		})
 		AfterEach(func() {
 			// ctl.Finish()
@@ -121,7 +120,6 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Empty(GinkgoT(), expressions)
 			assert.Nil(GinkgoT(), missingPKs)
-
 		})
 		It("all missing, no changed list", func() {
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
@@ -160,7 +158,6 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), expressions, 3)
 			assert.Empty(GinkgoT(), missingPKs)
-
 		})
 		It("all hit, has change list", func() {
 			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
@@ -236,7 +233,6 @@ var _ = Describe("Memory", func() {
 			assert.Nil(GinkgoT(), missingPKs)
 			assert.Error(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("setMissing", func() {
@@ -244,7 +240,6 @@ var _ = Describe("Memory", func() {
 		BeforeEach(func() {
 			r = newMemoryRetriever(123, nil)
 			cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
-
 		})
 
 		It("ok", func() {
@@ -272,7 +267,6 @@ var _ = Describe("Memory", func() {
 	})
 
 	Describe("batchDeleteExpressionsFromMemory", func() {
-
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
 			cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
@@ -371,7 +365,5 @@ var _ = Describe("Memory", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "truncate fail", err.Error())
 		})
-
 	})
-
 })

@@ -49,7 +49,7 @@ func (r *redisRetriever) retrieve(pks []int64) (map[int64][]types.ThinSubjectGro
 		log.WithError(err).Errorf("[%s] batchGet fail subjectPKs=`%+v`, will fallthrough to database",
 			RedisLayer, pks)
 		missSubjectPKs = pks
-		hitSubjectGroups = nil
+		hitSubjectGroups = map[int64][]types.ThinSubjectGroup{}
 	}
 
 	// if all hit, return

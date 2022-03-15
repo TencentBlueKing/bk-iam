@@ -19,53 +19,59 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/prp/expression"
+	"iam/pkg/abac/pip/group"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("Init", func() {
 	BeforeEach(func() {
-		cacheimpls.LocalExpressionCache = gocache.New(1*time.Minute, 1*time.Minute)
+		cacheimpls.LocalSubjectGroupsCache = gocache.New(1*time.Minute, 1*time.Minute)
 		cacheimpls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
-		cacheimpls.ExpressionCache = redis.NewMockCache("expression", 1*time.Minute)
+		cacheimpls.SubjectGroupCache = redis.NewMockCache("subject_group", 1*time.Minute)
 	})
 
-	It("GetExpressionsFromCache", func() {
+	It("GetSubjectGroupsFromCache", func() {
 		ctl := gomock.NewController(GinkgoT())
 		patches := gomonkey.NewPatches()
 
-		mockPolicyService := mock.NewMockPolicyService(ctl)
-		patches.ApplyFunc(service.NewPolicyService, func() service.PolicyService {
-			return mockPolicyService
+		mockSubjectService := mock.NewMockSubjectService(ctl)
+		patches.ApplyFunc(service.NewSubjectService, func() service.SubjectService {
+			return mockSubjectService
 		})
-		mockPolicyService.EXPECT().ListExpressionByPKs([]int64{123, 456}).Return(
-			[]types.AuthExpression{
-				{
-					PK: 123,
+		mockSubjectService.EXPECT().ListEffectThinSubjectGroups([]int64{123, 456, 789}).Return(
+			map[int64][]types.ThinSubjectGroup{
+				123: {
+					{
+						PK:              1,
+						PolicyExpiredAt: 4102444800,
+					},
 				},
-				{
-					PK: 456,
+				789: {
+					{
+						PK:              2,
+						PolicyExpiredAt: 4102444800,
+					},
 				},
 			},
 			nil,
 		).AnyTimes()
 
-		expressions, err := expression.GetExpressionsFromCache(1, []int64{123, 456})
+		subjectGroups, err := group.GetSubjectGroupsFromCache(svctypes.DepartmentType, []int64{123, 456, 789})
 		assert.NoError(GinkgoT(), err)
-		assert.Len(GinkgoT(), expressions, 2)
+		// NOTE: here is 3, the 456 will map to empty slice
+		assert.Len(GinkgoT(), subjectGroups, 3)
 
 		patches.Reset()
 		ctl.Finish()
 	})
 
-	It("BatchDeleteExpressionsFromCache", func() {
-		err := expression.BatchDeleteExpressionsFromCache(map[int64][]int64{
-			1: {123, 456},
-		})
+	It("BatchDeleteSubjectGroupsFromCache", func() {
+		err := group.BatchDeleteSubjectGroupsFromCache(svctypes.DepartmentType, []int64{123})
 		assert.NoError(GinkgoT(), err)
 	})
 })

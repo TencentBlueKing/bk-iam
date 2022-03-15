@@ -12,18 +12,22 @@ package group
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/agiledragon/gomonkey/v2"
 	rds "github.com/go-redis/redis/v8"
 	. "github.com/onsi/ginkgo/v2"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/common"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("Memory", func() {
@@ -242,6 +246,93 @@ var _ = Describe("Memory", func() {
 			assert.True(GinkgoT(), ok)
 			_, ok = cacheimpls.LocalSubjectGroupsCache.Get("111")
 			assert.False(GinkgoT(), ok)
+		})
+	})
+
+	Describe("batchDeleteSubjectGroupsFromMemory", func() {
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			cacheimpls.LocalSubjectGroupsCache = gocache.New(1*time.Minute, 1*time.Minute)
+			cacheimpls.ChangeListCache = redis.NewMockCache("changelist", 1*time.Minute)
+
+			patches = gomonkey.NewPatches()
+		})
+
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("empty", func() {
+			err := batchDeleteSubjectGroupsFromMemory(svctypes.DepartmentType, []int64{})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("ok", func() {
+			// init local cache
+			cacheimpls.LocalSubjectGroupsCache.Set("123", "abc", 0)
+			_, ok := cacheimpls.LocalSubjectGroupsCache.Get("123")
+			assert.True(GinkgoT(), ok)
+
+			max := time.Now().Unix()
+			min := max - subjectGroupsLocalCacheTTL
+
+			// init redis cache
+			changeListKey := fmt.Sprintf("subject_group:%s", svctypes.DepartmentType)
+			err := cacheimpls.ChangeListCache.BatchZAdd([]redis.ZData{
+				{
+					Key: changeListKey,
+					Zs: []*rds.Z{
+						{
+							Score:  float64(min + 50),
+							Member: "0000",
+						},
+						{
+							Score:  float64(min - 300), // will be removed
+							Member: "1111",
+						},
+					},
+				},
+			})
+			assert.NoError(GinkgoT(), err)
+
+			// do delete
+			err = batchDeleteSubjectGroupsFromMemory(svctypes.DepartmentType, []int64{123, 456})
+			assert.NoError(GinkgoT(), err)
+
+			// check the local cache
+			_, ok = cacheimpls.LocalSubjectGroupsCache.Get("123")
+			assert.False(GinkgoT(), ok)
+
+			// check the change list
+			// _type=expression,  actionPK=1
+			assert.True(GinkgoT(), cacheimpls.ChangeListCache.Exists(cache.NewStringKey(changeListKey)))
+
+			zs, err := cacheimpls.ChangeListCache.ZRevRangeByScore(changeListKey, min, max, 0, maxChangeListCount)
+			assert.NoError(GinkgoT(), err)
+			// 0000 + 1111 + 123 + 456 - 1111 = 3
+			assert.Len(GinkgoT(), zs, 3)
+		})
+
+		It("addToChangeList fail", func() {
+			patches.ApplyMethod(reflect.TypeOf(changeList), "AddToChangeList",
+				func(*common.ChangeList, map[string][]string) error {
+					return errors.New("addToChangeList fail")
+				})
+
+			err := batchDeleteSubjectGroupsFromMemory(svctypes.DepartmentType, []int64{123})
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "addToChangeList fail", err.Error())
+		})
+
+		It("Truncate fail", func() {
+			patches.ApplyMethod(reflect.TypeOf(changeList), "Truncate",
+				func(*common.ChangeList, []string) error {
+					return errors.New("truncate fail")
+				})
+
+			err := batchDeleteSubjectGroupsFromMemory(svctypes.DepartmentType, []int64{123})
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "truncate fail", err.Error())
 		})
 	})
 })

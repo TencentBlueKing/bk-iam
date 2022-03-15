@@ -351,4 +351,88 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(cache.NewInt64Key(456)))
 		})
 	})
+
+	Describe("batchDelete", func() {
+		var r *redisRetriever
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			patches = gomonkey.NewPatches()
+
+			cacheimpls.SubjectGroupCache = redis.NewMockCache("test", 5*time.Minute)
+			r = &redisRetriever{}
+		})
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("empty pks", func() {
+			err := r.batchDelete([]int64{})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("not exists, delete ok", func() {
+			err := r.batchDelete([]int64{123})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("cache BatchSetWithTx fail", func() {
+			patches.ApplyMethod(reflect.TypeOf(cacheimpls.SubjectGroupCache), "BatchDelete",
+				func(c *redis.Cache, keys []cache.Key) error {
+					return errors.New("batchDelete fail")
+				})
+			defer patches.Reset()
+
+			err := r.batchDelete([]int64{123})
+			assert.Error(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "batchDelete fail", err.Error())
+		})
+
+		It("ok", func() {
+			key := cache.NewInt64Key(123)
+			cacheimpls.SubjectGroupCache.Set(key, 1, 0)
+			assert.True(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(key))
+
+			err := r.batchDelete([]int64{123})
+			assert.NoError(GinkgoT(), err)
+
+			assert.False(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(key))
+		})
+	})
+
+	Describe("batchDeleteSubjectGroupsFromRedis", func() {
+		var r *redisRetriever
+		BeforeEach(func() {
+			cacheimpls.SubjectGroupCache = redis.NewMockCache("test", 5*time.Minute)
+			r = &redisRetriever{}
+		})
+
+		It("empty pks", func() {
+			err := batchDeleteSubjectGroupsFromRedis([]int64{})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("all missing", func() {
+			err := batchDeleteSubjectGroupsFromRedis([]int64{123, 456})
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("ok", func() {
+			subjectGroups := map[int64][]types.ThinSubjectGroup{
+				123: {},
+				456: {},
+			}
+
+			err := r.batchSet(subjectGroups)
+			assert.NoError(GinkgoT(), err)
+
+			assert.True(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(cache.NewInt64Key(456)))
+
+			// delete
+			err = batchDeleteSubjectGroupsFromRedis([]int64{123})
+			assert.NoError(GinkgoT(), err)
+			assert.False(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(cache.NewInt64Key(123)))
+			assert.True(GinkgoT(), cacheimpls.SubjectGroupCache.Exists(cache.NewInt64Key(456)))
+		})
+	})
 })
