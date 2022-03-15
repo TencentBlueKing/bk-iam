@@ -37,6 +37,13 @@ type SubjectGroup struct {
 	CreateAt        time.Time `json:"created_at"`
 }
 
+// ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at
+type ThinSubjectGroup struct {
+	// PK is the subject_pk of group
+	PK              int64 `json:"pk" msgpack:"p"`
+	PolicyExpiredAt int64 `json:"policy_expired_at" msgpack:"pe"`
+}
+
 // SubjectDepartment 用户的部门ID列表
 type SubjectDepartment struct {
 	SubjectID     string   `json:"id"`

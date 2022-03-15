@@ -50,17 +50,6 @@ func GetSubjectPK(_type, id string) (int64, error) {
 
 // GetSubjectDetail ...
 func GetSubjectDetail(pk int64) (departmentPKs []int64, groups []types.SubjectGroup, err error) {
-	// detail, err := cacheimpls.GetSubjectDetail(pk)
-	// if err != nil {
-	// 	err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDetail",
-	// 		"cacheimpls.GetSubjectDetail pk=`%d` fail", pk)
-	// 	return
-	// }
-
-	// departmentPKs = detail.DepartmentPKs
-	// groups = convertSubjectGroups(detail.SubjectGroups)
-	// return departmentPKs, groups, nil
-
 	departmentPKs, err = GetSubjectDepartment(pk)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDetail", "GetSubjectDepartment pk=`%d` fail", pk)

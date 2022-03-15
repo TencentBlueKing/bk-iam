@@ -70,9 +70,6 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("GetSubjectDetail fail", func() {
-			// patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-			// 	return svctypes.SubjectDetail{}, errors.New("get GetSubjectDetail fail")
-			// })
 			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartment, func(pk int64) ([]int64, error) {
 				return nil, errors.New("get GetSubjectDetail fail")
 			})
@@ -97,12 +94,6 @@ var _ = Describe("Subject", func() {
 				},
 			}
 
-			// patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-			// 	return svctypes.SubjectDetail{
-			// 		DepartmentPKs: []int64{1, 2, 3},
-			// 		SubjectGroups: returned,
-			// 	}, nil
-			// })
 			patches = gomonkey.ApplyFunc(group.GetSubjectGroupsFromCache, func(subjectType string, pks []int64) (map[int64][]svctypes.ThinSubjectGroup, error) {
 				return map[int64][]svctypes.ThinSubjectGroup{123: returned}, nil
 			})

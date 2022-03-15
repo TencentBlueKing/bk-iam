@@ -42,7 +42,6 @@ var (
 
 	RemoteResourceCache    *redis.Cache
 	ResourceTypeCache      *redis.Cache
-	SubjectDetailCache     *redis.Cache
 	SubjectDepartmentCache *redis.Cache
 	SubjectPKCache         *redis.Cache
 	SystemCache            *redis.Cache
@@ -204,11 +203,6 @@ func InitCaches(disabled bool) {
 
 	SubjectPKCache = redis.NewCache(
 		"sub_pk",
-		30*time.Minute,
-	)
-
-	SubjectDetailCache = redis.NewCache(
-		"sub_dtl",
 		30*time.Minute,
 	)
 
