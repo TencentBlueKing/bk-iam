@@ -131,6 +131,7 @@ func (r *memoryRetriever) setMissing(subjectGroups map[int64][]types.ThinSubject
 			subjectGroups: sgs,
 		}, 0)
 	}
+
 	for _, pk := range missingPKs {
 		key := r.genKey(pk)
 

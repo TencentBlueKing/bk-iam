@@ -19,7 +19,17 @@ import (
 	svctypes "iam/pkg/service/types"
 )
 
-// currently, only support `department-groups`, so we add a condition here, incase someone use it in a wrong way
+// get from memory cache first, if missing will retrieve from redis, if missing will retrieve from database.
+// and if the key is really not present, redis and memory will store the empty list
+
+// how the memory knows the key in redis has changed the value
+// each time the modify will add a  key-timestamp into the changelist
+// and, each time we read form the memory, we do fetch the changed keys in changelist
+// - if the key not present in changelist, it's newest
+// - if the key present in changelist
+//    - local cache's timestamp is greater than the timestamp in changelist not newest
+//    - but local cache's timestamp is less than the timestamp in changelist, not newest
+
 // NOTE: memory and redis cache all operations like set/get should only show in `group`
 
 // TODO: 目前不支持debug, 将会导致不知道 memory - redis - database的所有行为
