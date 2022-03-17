@@ -17,8 +17,8 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/cache/memory"
 	"github.com/TencentBlueKing/gopkg/cache/memory/backend"
-	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/cache/cleaner"
 	"iam/pkg/cache/redis"
@@ -38,7 +38,7 @@ var (
 	LocalSubjectPKCache             memory.Cache
 	LocalAPIGatewayJWTClientIDCache memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
-	LocalUnmarshaledExpressionCache memory.Cache
+	LocalUnmarshaledExpressionCache *gocache.Cache
 
 	RemoteResourceCache *redis.Cache
 	ResourceTypeCache   *redis.Cache
@@ -151,13 +151,7 @@ func InitCaches(disabled bool) {
 
 	// 无影响, 重算而已不查db
 
-	LocalUnmarshaledExpressionCache = memory.NewCache(
-		"local_unmarshaled_expression",
-		disabled,
-		UnmarshalExpression,
-		30*time.Minute,
-		nil,
-	)
+	LocalUnmarshaledExpressionCache = gocache.New(30*time.Minute, 5*time.Minute)
 
 	//  ==========================
 

@@ -20,15 +20,14 @@ import (
 	pdptypes "iam/pkg/abac/pdp/types"
 
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 )
 
 var _ = Describe("Context", func() {
-
 	var req *request.Request
 	var c *EvalContext
 	BeforeEach(func() {
@@ -43,7 +42,6 @@ var _ = Describe("Context", func() {
 			},
 			Resources: []types.Resource{
 				{
-
 					System:    "iam",
 					Type:      "job",
 					ID:        "job1",
@@ -78,7 +76,6 @@ var _ = Describe("Context", func() {
 			ec := NewEvalContext(req)
 			assert.NotNil(GinkgoT(), ec)
 		})
-
 	})
 
 	Describe("GetAttr", func() {
@@ -102,7 +99,6 @@ var _ = Describe("Context", func() {
 
 		It("miss", func() {
 			assert.False(GinkgoT(), c.HasResource("bk_cmdb.job"))
-
 		})
 	})
 
@@ -139,7 +135,6 @@ var _ = Describe("Context", func() {
 	})
 
 	Describe("InitEnvironments", func() {
-
 		var noEnvCond condition.Condition
 		var notEnvTimeCond condition.Condition
 		var envTimeCond condition.Condition
@@ -262,7 +257,6 @@ var _ = Describe("Context", func() {
 	})
 
 	Describe("envs time", func() {
-
 		var tz string
 		var t time.Time
 		var hms int64
@@ -310,11 +304,8 @@ var _ = Describe("Context", func() {
 				_, err := genTimeEnvs(tz, time.Now())
 				assert.Error(GinkgoT(), err)
 			})
-
 		})
-
 	})
-
 })
 
 func BenchmarkGenEnvsInReal(b *testing.B) {
@@ -325,6 +316,7 @@ func BenchmarkGenEnvsInReal(b *testing.B) {
 		genTimeEnvs(tz, currentTime)
 	}
 }
+
 func BenchmarkGenEnvsFromSyncMap(b *testing.B) {
 	tz := "Asia/Shanghai"
 	currentTime := time.Now()

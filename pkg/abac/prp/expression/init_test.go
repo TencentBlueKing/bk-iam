@@ -16,8 +16,8 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/cache/redis"
@@ -68,5 +68,4 @@ var _ = Describe("Init", func() {
 		})
 		assert.NoError(GinkgoT(), err)
 	})
-
 })

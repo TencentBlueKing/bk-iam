@@ -316,6 +316,9 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
+# github.com/wklken/go-cache v2.2.0+incompatible
+## explicit
+github.com/wklken/go-cache
 # github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9
 ## explicit; go 1.14
 github.com/yuin/gopher-lua
