@@ -50,10 +50,10 @@ func Register(r *gin.RouterGroup) {
 
 		// actions
 		s.POST("/actions", handler.BatchCreateActions)
-		s.DELETE("/actions", handler.Batchs)
+		s.DELETE("/actions", handler.BatchDeleteActions)
 
 		s.PUT("/actions/:action_id", handler.UpdateAction)
-		s.DELETE("/actions/:action_id", handler.)
+		s.DELETE("/actions/:action_id", handler.DeleteAction)
 
 		// system config
 		s.POST("/configs/:name", handler.CreateOrUpdateConfigDispatch)
