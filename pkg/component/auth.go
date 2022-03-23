@@ -24,6 +24,8 @@ import (
 	"iam/pkg/logging"
 )
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 // AuthResponse is the struct of iam backend response
 type AuthResponse struct {
 	Code    int                    `json:"code"`
