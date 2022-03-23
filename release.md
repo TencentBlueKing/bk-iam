@@ -1,3 +1,7 @@
+# 1.11.0
+
+- add: temporary policy
+
 # 1.10.3
 
 - upgrade: release environment attributes
