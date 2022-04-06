@@ -110,7 +110,7 @@ func (c *remoteResourceClient) QueryResources(
 		Send(data).
 		EndStruct(&result, callbackFunc)
 
-	logFailHTTPRequest(start, request, resp, respBody, errs, &result)
+	logHTTPRequest(start, request, resp, respBody, errs, &result)
 
 	if len(errs) != 0 {
 		// 敏感信息泄漏 ip+端口号, 替换为 *.*.*.*
