@@ -77,7 +77,7 @@ func AsCurlCommand(request *gorequest.SuperAgent) (string, error) {
 	return cmd.String(), nil
 }
 
-func logFailHTTPRequest(
+func logHTTPRequest(
 	start time.Time,
 	request *gorequest.SuperAgent,
 	response gorequest.Response,
@@ -87,17 +87,18 @@ func logFailHTTPRequest(
 ) {
 	logger := logging.GetComponentLogger()
 
+	duration := time.Since(start)
+	// to ms
+	latency := float64(duration / time.Millisecond)
+
 	responseBodyErr := data.Error()
 	// check will log or not?
-	willLog := logger.GetLevel() == log.DebugLevel ||
-		len(errs) != 0 || response.StatusCode != http.StatusOK || responseBodyErr != nil
+	willLog := latency > 200 || (logger.GetLevel() == log.DebugLevel ||
+		len(errs) != 0 || response.StatusCode != http.StatusOK || responseBodyErr != nil)
 
 	if !willLog {
 		return
 	}
-
-	// duration
-	duration := time.Since(start)
 
 	// curl dump
 	dump, err := AsCurlCommand(request)

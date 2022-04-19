@@ -1,6 +1,11 @@
-# 1.11.0
+# 1.11.1
 
 - add: temporary policy
+
+# 1.10.4
+
+- bugfix: /api/v1/web/unreferenced-expressions timeout
+- upgrade: component log request if latency is greater than 200ms
 
 # 1.10.3
 

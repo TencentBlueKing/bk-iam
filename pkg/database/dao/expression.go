@@ -193,8 +193,10 @@ func (m *expressionManager) bulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int
 func (m *expressionManager) updateUnreferencedExpressionType(fromType int64, toType int64) error {
 	sql := `UPDATE expression SET 
 		type=? 
-		WHERE type=? 
-		AND pk NOT IN (SELECT expression_pk FROM policy)`
+		WHERE pk IN (SELECT pk FROM 
+			(SELECT pk FROM expression 
+				WHERE type=? AND pk NOT IN (SELECT expression_pk FROM policy)
+			) AS e)`
 	return database.SqlxExec(m.DB, sql, toType, fromType)
 }
 
