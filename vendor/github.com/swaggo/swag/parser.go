@@ -34,10 +34,25 @@ const (
 	// SnakeCase indicates using SnakeCase strategy for struct field.
 	SnakeCase = "snakecase"
 
-	acceptAttr       = "@accept"
-	produceAttr      = "@produce"
-	xCodeSamplesAttr = "@x-codesamples"
-	scopeAttrPrefix  = "@scope."
+	idAttr                  = "@id"
+	acceptAttr              = "@accept"
+	produceAttr             = "@produce"
+	paramAttr               = "@param"
+	successAttr             = "@success"
+	failureAttr             = "@failure"
+	responseAttr            = "@response"
+	headerAttr              = "@header"
+	tagsAttr                = "@tags"
+	routerAttr              = "@router"
+	summaryAttr             = "@summary"
+	deprecatedAttr          = "@deprecated"
+	securityAttr            = "@security"
+	titleAttr               = "@title"
+	versionAttr             = "@version"
+	descriptionAttr         = "@description"
+	descriptionMarkdownAttr = "@description.markdown"
+	xCodeSamplesAttr        = "@x-codesamples"
+	scopeAttrPrefix         = "@scope."
 )
 
 var (
@@ -49,6 +64,9 @@ var (
 
 	// ErrFailedConvertPrimitiveType Failed to convert for swag to interpretable type.
 	ErrFailedConvertPrimitiveType = errors.New("swag property: failed convert primitive type")
+
+	// ErrSkippedField .swaggo specifies field should be skipped
+	ErrSkippedField = errors.New("field is skipped by global overrides")
 )
 
 var allMethod = map[string]struct{}{
@@ -112,13 +130,16 @@ type Parser struct {
 	collectionFormatInQuery string
 
 	// excludes excludes dirs and files in SearchDir
-	excludes map[string]bool
+	excludes map[string]struct{}
 
 	// debugging output goes here
 	debug Debugger
 
 	// fieldParserFactory create FieldParser
 	fieldParserFactory FieldParserFactory
+
+	// Overrides allows global replacements of types. A blank replacement will be skipped.
+	Overrides map[string]string
 }
 
 // FieldParserFactory create FieldParser
@@ -167,8 +188,9 @@ func New(options ...func(*Parser)) *Parser {
 		outputSchemas:      make(map[*TypeSpecDef]*Schema),
 		existSchemaNames:   make(map[string]*Schema),
 		toBeRenamedSchemas: make(map[string]string),
-		excludes:           make(map[string]bool),
+		excludes:           make(map[string]struct{}),
 		fieldParserFactory: newTagBaseFieldParser,
+		Overrides:          make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -199,7 +221,7 @@ func SetExcludedDirsAndFiles(excludes string) func(*Parser) {
 			f = strings.TrimSpace(f)
 			if f != "" {
 				f = filepath.Clean(f)
-				p.excludes[f] = true
+				p.excludes[f] = struct{}{}
 			}
 		}
 	}
@@ -223,6 +245,15 @@ func SetDebugger(logger Debugger) func(parser *Parser) {
 func SetFieldParserFactory(factory FieldParserFactory) func(parser *Parser) {
 	return func(p *Parser) {
 		p.fieldParserFactory = factory
+	}
+}
+
+// SetOverrides allows the use of user-defined global type overrides.
+func SetOverrides(overrides map[string]string) func(parser *Parser) {
+	return func(p *Parser) {
+		for k, v := range overrides {
+			p.Overrides[k] = v
+		}
 	}
 }
 
@@ -285,7 +316,7 @@ func (parser *Parser) ParseAPIMultiSearchDir(searchDirs []string, mainAPIFile st
 		return err
 	}
 
-	err = parser.packages.RangeFiles(parser.ParseRouterAPIInfo)
+	err = rangeFiles(parser.packages.files, parser.ParseRouterAPIInfo)
 	if err != nil {
 		return err
 	}
@@ -360,11 +391,11 @@ func parseGeneralAPIInfo(parser *Parser, comments []string) error {
 			multilineBlock = true
 		}
 		switch strings.ToLower(attribute) {
-		case "@version":
+		case versionAttr:
 			parser.swagger.Info.Version = value
-		case "@title":
+		case titleAttr:
 			parser.swagger.Info.Title = value
-		case "@description":
+		case descriptionAttr:
 			if multilineBlock {
 				parser.swagger.Info.Description += "\n" + value
 
@@ -533,7 +564,7 @@ func isGeneralAPIComment(comments []string) bool {
 		attribute := strings.ToLower(strings.Split(commentLine, " ")[0])
 		switch attribute {
 		// The @summary, @router, @success, @failure annotation belongs to Operation
-		case "@summary", "@router", "@success", "@failure", "@response":
+		case summaryAttr, routerAttr, successAttr, failureAttr, responseAttr:
 			return false
 		}
 	}
@@ -778,6 +809,24 @@ func (parser *Parser) getTypeSchema(typeName string, file *ast.File, ref bool) (
 		return nil, fmt.Errorf("cannot find type definition: %s", typeName)
 	}
 
+	if override, ok := parser.Overrides[typeSpecDef.FullPath()]; ok {
+		if override == "" {
+			parser.debug.Printf("Override detected for %s: ignoring", typeSpecDef.FullPath())
+			return nil, ErrSkippedField
+		}
+
+		parser.debug.Printf("Override detected for %s: using %s instead", typeSpecDef.FullPath(), override)
+
+		separator := strings.LastIndex(override, ".")
+		if separator == -1 {
+			// treat as a swaggertype tag
+			parts := strings.Split(override, ",")
+			return BuildCustomSchema(parts)
+		}
+
+		typeSpecDef = parser.packages.findTypeSpec(override[0:separator], override[separator+1:])
+	}
+
 	schema, ok := parser.parsedSchemas[typeSpecDef]
 	if !ok {
 		var err error
@@ -905,6 +954,10 @@ func (parser *Parser) ParseDefinition(typeSpecDef *TypeSpecDef) (*Schema, error)
 		return nil, err
 	}
 
+	if definition.Description == "" {
+		fillDefinitionDescription(definition, typeSpecDef.File, typeSpecDef)
+	}
+
 	s := Schema{
 		Name:    refTypeName,
 		PkgPath: typeSpecDef.PkgPath,
@@ -927,6 +980,56 @@ func fullTypeName(pkgName, typeName string) string {
 	}
 
 	return typeName
+}
+
+// fillDefinitionDescription additionally fills fields in definition (spec.Schema)
+// TODO: If .go file contains many types, it may work for a long time
+func fillDefinitionDescription(definition *spec.Schema, file *ast.File, typeSpecDef *TypeSpecDef) {
+	for _, astDeclaration := range file.Decls {
+		generalDeclaration, ok := astDeclaration.(*ast.GenDecl)
+		if !ok || generalDeclaration.Tok != token.TYPE {
+			continue
+		}
+
+		for _, astSpec := range generalDeclaration.Specs {
+			typeSpec, ok := astSpec.(*ast.TypeSpec)
+			if !ok || typeSpec != typeSpecDef.TypeSpec {
+				continue
+			}
+
+			definition.Description =
+				extractDeclarationDescription(typeSpec.Doc, typeSpec.Comment, generalDeclaration.Doc)
+		}
+	}
+}
+
+// extractDeclarationDescription gets first description
+// from attribute descriptionAttr in commentGroups (ast.CommentGroup)
+func extractDeclarationDescription(commentGroups ...*ast.CommentGroup) string {
+	var description string
+
+	for _, commentGroup := range commentGroups {
+		if commentGroup == nil {
+			continue
+		}
+
+		isHandlingDescription := false
+		for _, comment := range commentGroup.List {
+			commentText := strings.TrimSpace(strings.TrimLeft(comment.Text, "/"))
+			attribute := strings.Split(commentText, " ")[0]
+			if strings.ToLower(attribute) != descriptionAttr {
+				if !isHandlingDescription {
+					continue
+				}
+				break
+			}
+
+			isHandlingDescription = true
+			description += " " + strings.TrimSpace(commentText[len(attribute):])
+		}
+	}
+
+	return strings.TrimLeft(description, " ")
 }
 
 // parseTypeExpr parses given type expression that corresponds to the type under
@@ -990,7 +1093,7 @@ func (parser *Parser) parseStruct(file *ast.File, fields *ast.FieldList) (*spec.
 	for _, field := range fields.List {
 		fieldProps, requiredFromAnon, err := parser.parseStructField(file, field)
 		if err != nil {
-			if err == ErrFuncTypeField {
+			if err == ErrFuncTypeField || err == ErrSkippedField {
 				continue
 			}
 
@@ -1337,21 +1440,27 @@ func (parser *Parser) checkOperationIDUniqueness() error {
 
 // Skip returns filepath.SkipDir error if match vendor and hidden folder.
 func (parser *Parser) Skip(path string, f os.FileInfo) error {
-	if f.IsDir() {
-		if !parser.ParseVendor && f.Name() == "vendor" || // ignore "vendor"
-			f.Name() == "docs" || // exclude docs
-			len(f.Name()) > 1 && f.Name()[0] == '.' { // exclude all hidden folder
-			return filepath.SkipDir
-		}
+	return walkWith(parser.excludes, parser.ParseVendor)(path, f)
+}
 
-		if parser.excludes != nil {
-			if _, ok := parser.excludes[path]; ok {
+func walkWith(excludes map[string]struct{}, parseVendor bool) func(path string, fileInfo os.FileInfo) error {
+	return func(path string, f os.FileInfo) error {
+		if f.IsDir() {
+			if !parseVendor && f.Name() == "vendor" || // ignore "vendor"
+				f.Name() == "docs" || // exclude docs
+				len(f.Name()) > 1 && f.Name()[0] == '.' { // exclude all hidden folder
 				return filepath.SkipDir
 			}
-		}
-	}
 
-	return nil
+			if excludes != nil {
+				if _, ok := excludes[path]; ok {
+					return filepath.SkipDir
+				}
+			}
+		}
+
+		return nil
+	}
 }
 
 // GetSwagger returns *spec.Swagger which is the root document object for the API specification.

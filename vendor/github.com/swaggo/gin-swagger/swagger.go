@@ -20,6 +20,8 @@ type swaggerConfig struct {
 	DocExpansion             string
 	DefaultModelsExpandDepth int
 	Oauth2RedirectURL        template.JS
+	Title                    string
+	PersistAuthorization     bool
 }
 
 // Config stores ginSwagger configuration variables.
@@ -30,6 +32,8 @@ type Config struct {
 	DocExpansion             string
 	DefaultModelsExpandDepth int
 	InstanceName             string
+	Title                    string
+	PersistAuthorization     bool
 }
 
 // Convert the config to a swagger one in order to fill unexposed template values.
@@ -44,6 +48,8 @@ func (c Config) ToSwaggerConfig() swaggerConfig {
 				"{window.location.pathname.split('/').slice(0, window.location.pathname.split('/').length - 1).join('/')}" +
 				"/oauth2-redirect.html`",
 		),
+		Title:                c.Title,
+		PersistAuthorization: c.PersistAuthorization,
 	}
 }
 
@@ -84,6 +90,14 @@ func InstanceName(name string) func(c *Config) {
 	}
 }
 
+// If set to true, it persists authorization data and it would not be lost on browser close/refresh
+// Defaults to false
+func PersistAuthorization(persistAuthorization bool) func(c *Config) {
+	return func(c *Config) {
+		c.PersistAuthorization = persistAuthorization
+	}
+}
+
 // WrapHandler wraps `http.Handler` into `gin.HandlerFunc`.
 func WrapHandler(h *webdav.Handler, confs ...func(c *Config)) gin.HandlerFunc {
 	defaultConfig := &Config{
@@ -92,6 +106,7 @@ func WrapHandler(h *webdav.Handler, confs ...func(c *Config)) gin.HandlerFunc {
 		DocExpansion:             "list",
 		DefaultModelsExpandDepth: 1,
 		InstanceName:             swag.Name,
+		Title:                    "Swagger UI",
 	}
 
 	for _, c := range confs {
@@ -108,6 +123,9 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) gin.HandlerFunc 
 	if config.InstanceName == "" {
 		config.InstanceName = swag.Name
 	}
+	if config.Title == "" {
+		config.Title = "Swagger UI"
+	}
 
 	// create a template with name
 	t := template.New("swagger_index.html")
@@ -116,6 +134,11 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) gin.HandlerFunc 
 	var rexp = regexp.MustCompile(`(.*)(index\.html|doc\.json|favicon-16x16\.png|favicon-32x32\.png|/oauth2-redirect\.html|swagger-ui\.css|swagger-ui\.css\.map|swagger-ui\.js|swagger-ui\.js\.map|swagger-ui-bundle\.js|swagger-ui-bundle\.js\.map|swagger-ui-standalone-preset\.js|swagger-ui-standalone-preset\.js\.map)[\?|.]*`)
 
 	return func(c *gin.Context) {
+		if c.Request.Method != http.MethodGet {
+			c.AbortWithStatus(http.StatusMethodNotAllowed)
+			return
+		}
+
 		matches := rexp.FindStringSubmatch(c.Request.RequestURI)
 
 		if len(matches) != 3 {
@@ -194,7 +217,7 @@ const swagger_index_templ = `<!-- HTML for static distribution bundle build -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Swagger UI</title>
+  <title>{{.Title}}</title>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
   <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
@@ -268,6 +291,7 @@ window.onload = function() {
     dom_id: '#swagger-ui',
     validatorUrl: null,
     oauth2RedirectUrl: {{.Oauth2RedirectURL}},
+    persistAuthorization: {{.PersistAuthorization}},
     presets: [
       SwaggerUIBundle.presets.apis,
       SwaggerUIStandalonePreset

@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -25,16 +26,16 @@ type Formater struct {
 	debug Debugger
 
 	// excludes excludes dirs and files in SearchDir
-	excludes map[string]bool
+	excludes map[string]struct{}
 
 	mainFile string
 }
 
-// NewFormater create a new formater
+// NewFormater create a new formater instance.
 func NewFormater() *Formater {
 	formater := &Formater{
 		debug:    log.New(os.Stdout, "", log.LstdFlags),
-		excludes: make(map[string]bool),
+		excludes: make(map[string]struct{}),
 	}
 	return formater
 }
@@ -51,7 +52,7 @@ func (f *Formater) FormatAPI(searchDir, excludeDir, mainFile string) error {
 		fi = strings.TrimSpace(fi)
 		if fi != "" {
 			fi = filepath.Clean(fi)
-			f.excludes[fi] = true
+			f.excludes[fi] = struct{}{}
 		}
 	}
 
@@ -87,7 +88,7 @@ func (f *Formater) formatMultiSearchDir(searchDirs []string) error {
 }
 
 func (f *Formater) visit(path string, fileInfo os.FileInfo, err error) error {
-	if err := f.skip(path, fileInfo); err != nil {
+	if err := walkWith(f.excludes, false)(path, fileInfo); err != nil {
 		return err
 	} else if fileInfo.IsDir() {
 		// skip if file is folder
@@ -110,25 +111,7 @@ func (f *Formater) visit(path string, fileInfo os.FileInfo, err error) error {
 	return nil
 }
 
-// skip skip folder in ('vendor' 'docs' 'excludes' 'hidden folder')
-func (f *Formater) skip(path string, fileInfo os.FileInfo) error {
-	if fileInfo.IsDir() {
-		if fileInfo.Name() == "vendor" || // ignore "vendor"
-			fileInfo.Name() == "docs" || // exclude docs
-			len(fileInfo.Name()) > 1 && fileInfo.Name()[0] == '.' { // exclude all hidden folder
-			return filepath.SkipDir
-		}
-
-		if f.excludes != nil {
-			if _, ok := f.excludes[path]; ok {
-				return filepath.SkipDir
-			}
-		}
-	}
-	return nil
-}
-
-// FormatMain format the main.go comment
+// FormatMain format the main.go comment.
 func (f *Formater) FormatMain(mainFilepath string) error {
 	fileSet := token.NewFileSet()
 	astFile, err := goparser.ParseFile(fileSet, mainFilepath, nil, goparser.ParseComments)
@@ -189,17 +172,14 @@ func writeFormatedComments(filepath string, formatedComments bytes.Buffer, oldCo
 			commentHash, commentContent := commentSplit[0], commentSplit[1]
 
 			if !isBlankComment(commentContent) {
-				oldComment := oldCommentsMap[commentHash]
-				if strings.Contains(replaceSrc, oldComment) {
-					replaceSrc = strings.Replace(replaceSrc, oldComment, commentContent, 1)
-				}
+				replaceSrc = strings.Replace(replaceSrc, oldCommentsMap[commentHash], commentContent, 1)
 			}
 		}
 	}
 	return writeBack(filepath, []byte(replaceSrc), srcBytes)
 }
 
-func formatFuncDoc(commentList []*ast.Comment, formatedComments *bytes.Buffer, oldCommentsMap map[string]string) {
+func formatFuncDoc(commentList []*ast.Comment, formatedComments io.Writer, oldCommentsMap map[string]string) {
 	tabw := tabwriter.NewWriter(formatedComments, 0, 0, 2, ' ', 0)
 
 	for _, comment := range commentList {
@@ -222,11 +202,11 @@ func formatFuncDoc(commentList []*ast.Comment, formatedComments *bytes.Buffer, o
 
 // Check of @Param @Success @Failure @Response @Header
 var specialTagForSplit = map[string]byte{
-	"@param":    1,
-	"@success":  1,
-	"@failure":  1,
-	"@response": 1,
-	"@header":   1,
+	paramAttr:    1,
+	successAttr:  1,
+	failureAttr:  1,
+	responseAttr: 1,
+	headerAttr:   1,
 }
 
 var skipChar = map[byte]byte{
@@ -294,9 +274,10 @@ func replaceRange(s []byte, start, end int, new byte) []byte {
 	return s
 }
 
+var swagCommentExpression = regexp.MustCompile("@[A-z]+")
+
 func isSwagComment(comment string) bool {
-	lc := strings.ToLower(comment)
-	return regexp.MustCompile("@[A-z]+").MatchString(lc)
+	return swagCommentExpression.MatchString(strings.ToLower(comment))
 }
 
 func isBlankComment(comment string) bool {
@@ -332,7 +313,6 @@ func backupFile(filename string, data []byte, perm os.FileMode) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	bakname := f.Name()
 	if chmodSupported {
 		_ = f.Chmod(perm)
 	}
@@ -342,5 +322,5 @@ func backupFile(filename string, data []byte, perm os.FileMode) (string, error) 
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
-	return bakname, err
+	return f.Name(), err
 }

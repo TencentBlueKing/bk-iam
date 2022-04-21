@@ -1,6 +1,26 @@
 ## Changelog
 
 
+### v2.20.0
+
+- back to support Go >= 1.14 (thanks @ajatprabha and @marcind)
+
+
+### v2.19.0
+
+- support for TYPE in SCAN (thanks @0xDiddi)
+- update BITPOS (thanks @dirkm)
+- fix a lua redis.call() return value (thanks @mpetronic)
+- update ZRANGE (thanks @valdemarpereira)
+
+
+### v2.18.0
+
+- support for ZUNION (thanks @propan)
+- support for COPY (thanks @matiasinsaurralde and @rockitbaby)
+- support for LMOVE (thanks @btwear)
+
+
 ### v2.17.0
 
 - added miniredis.RunT(t)
