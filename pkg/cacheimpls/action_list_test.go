@@ -4,15 +4,15 @@ import (
 	"errors"
 	"time"
 
-	"iam/pkg/cache/redis"
-	"iam/pkg/service"
-	"iam/pkg/service/mock"
-	"iam/pkg/service/types"
-
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/cache/redis"
+	"iam/pkg/service"
+	"iam/pkg/service/mock"
+	"iam/pkg/service/types"
 )
 
 var _ = Describe("ActionListCache", func() {

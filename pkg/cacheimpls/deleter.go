@@ -104,8 +104,6 @@ func BatchDeleteActionCache(systemID string, actionIDs []string) error {
 	}
 
 	ActionCacheCleaner.BatchDelete(keys)
-	// 任何Action 的变更都需要将 ActionList缓存清除
-	DeleteActionListCache(systemID)
 	return nil
 }
 

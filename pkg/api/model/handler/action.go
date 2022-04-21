@@ -220,6 +220,7 @@ func UpdateAction(c *gin.Context) {
 
 	// delete from cache
 	cacheimpls.BatchDeleteActionCache(systemID, []string{actionID})
+	cacheimpls.DeleteActionListCache(systemID)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -383,6 +384,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 
 		// delete from cache
 		cacheimpls.BatchDeleteActionCache(systemID, newIDs)
+		cacheimpls.DeleteActionListCache(systemID)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)
