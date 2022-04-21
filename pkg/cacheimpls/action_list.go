@@ -11,38 +11,29 @@
 package cacheimpls
 
 import (
-	"strconv"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/service"
+	"iam/pkg/service/types"
 )
 
-// 公共的 CacheKey; struct中内容相同的, 不应该重复key
-
-// SystemIDCacheKey ...
-type SystemIDCacheKey struct {
-	SystemID string
+func retrieveActionList(key cache.Key) (interface{}, error) {
+	k := key.(SystemIDCacheKey)
+	svc := service.NewActionService()
+	return svc.ListBySystem(k.SystemID)
 }
 
-// Key ...
-func (k SystemIDCacheKey) Key() string {
-	return k.SystemID
-}
+func ListActionBySystem(systemID string) (actions []types.Action, err error) {
+	key := SystemIDCacheKey{
+		SystemID: systemID,
+	}
 
-// ActionIDCacheKey ...
-type ActionIDCacheKey struct {
-	SystemID string
-	ActionID string
-}
+	err = ActionListCache.GetInto(key, &actions, retrieveActionList)
+	if err != nil {
+		err = errorx.Wrapf(err, CacheLayer, "ListActionBySystem",
+			"ActionListCache.GetInto key=`%s` fail", key.Key())
+	}
 
-// Key ...
-func (k ActionIDCacheKey) Key() string {
-	return k.SystemID + ":" + k.ActionID
-}
-
-// SubjectPKCacheKey ...
-type SubjectPKCacheKey struct {
-	PK int64
-}
-
-// Key ...
-func (k SubjectPKCacheKey) Key() string {
-	return strconv.FormatInt(k.PK, 10)
+	return
 }

@@ -100,6 +100,9 @@ func BatchCreateActions(c *gin.Context) {
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
+	// delete from cache
+	cacheimpls.DeleteActionListCache(systemID)
+
 	util.SuccessJSONResponse(c, "ok", nil)
 }
 

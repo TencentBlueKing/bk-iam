@@ -48,6 +48,7 @@ var (
 	SystemCache         *redis.Cache
 	ActionPKCache       *redis.Cache
 	ActionDetailCache   *redis.Cache
+	ActionListCache     *redis.Cache
 
 	PolicyCache     *redis.Cache
 	ExpressionCache *redis.Cache
@@ -57,6 +58,7 @@ var (
 	ChangeListCache      *redis.Cache
 
 	ActionCacheCleaner       *cleaner.CacheCleaner
+	ActionListCacheCleaner   *cleaner.CacheCleaner
 	ResourceTypeCacheCleaner *cleaner.CacheCleaner
 	SubjectCacheCleaner      *cleaner.CacheCleaner
 	SystemCacheCleaner       *cleaner.CacheCleaner
@@ -214,6 +216,10 @@ func InitCaches(disabled bool) {
 		"sub_dtl",
 		30*time.Minute,
 	)
+	ActionListCache = redis.NewCache(
+		"all_act",
+		30*time.Minute,
+	)
 
 	LocalPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	LocalExpressionCache = gocache.New(5*time.Minute, 5*time.Minute)
@@ -231,6 +237,9 @@ func InitCaches(disabled bool) {
 
 	ActionCacheCleaner = cleaner.NewCacheCleaner("ActionCacheCleaner", actionCacheDeleter{})
 	go ActionCacheCleaner.Run()
+
+	ActionListCacheCleaner = cleaner.NewCacheCleaner("ActionListCacheCleaner", actionListCacheDeleter{})
+	go ActionListCacheCleaner.Run()
 
 	ResourceTypeCacheCleaner = cleaner.NewCacheCleaner("ResourceTypeCacheCleaner", resourceTypeCacheDeleter{})
 	go ResourceTypeCacheCleaner.Run()
