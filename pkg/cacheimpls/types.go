@@ -16,16 +16,6 @@ import (
 
 // 公共的 CacheKey; struct中内容相同的, 不应该重复key
 
-// SystemIDCacheKey ...
-type SystemIDCacheKey struct {
-	SystemID string
-}
-
-// Key ...
-func (k SystemIDCacheKey) Key() string {
-	return k.SystemID
-}
-
 // ActionIDCacheKey ...
 type ActionIDCacheKey struct {
 	SystemID string

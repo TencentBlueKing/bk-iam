@@ -19,15 +19,14 @@ import (
 )
 
 func retrieveActionList(key cache.Key) (interface{}, error) {
-	k := key.(SystemIDCacheKey)
+	k := key.(cache.StringKey)
+	systemID := k.Key()
 	svc := service.NewActionService()
-	return svc.ListBySystem(k.SystemID)
+	return svc.ListBySystem(systemID)
 }
 
 func ListActionBySystem(systemID string) (actions []types.Action, err error) {
-	key := SystemIDCacheKey{
-		SystemID: systemID,
-	}
+	key := cache.NewStringKey(systemID)
 
 	err = ActionListCache.GetInto(key, &actions, retrieveActionList)
 	if err != nil {
