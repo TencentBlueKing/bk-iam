@@ -1,6 +1,7 @@
 # 1.11.1
 
 - add: temporary policy
+- upgrade: go 1.18
 
 # 1.10.4
 
