@@ -20,4 +20,4 @@ FROM debian:bullseye-slim
 COPY --from=builder /tmp/app /app
 COPY --from=migrator /usr/local/bin/sql-migrate /app/sql-migrate
 
-ENTRYPOINT ["/bin/bash"]
+CMD ["/app/iam", "-c", "/app/config.yaml"]
