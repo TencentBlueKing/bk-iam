@@ -846,38 +846,40 @@ func (m *Miniredis) cmdBitcount(c *server.Peer, cmd string, args []string) {
 		return
 	}
 
-	var (
-		useRange   = false
-		start, end = 0, 0
-		key        = args[0]
-	)
-	args = args[1:]
+	var opts struct {
+		useRange   bool
+		start, end int
+		key        string
+	}
+	opts.key, args = args[0], args[1:]
 	if len(args) >= 2 {
-		useRange = true
+		opts.useRange = true
 		var err error
-		start, err = strconv.Atoi(args[0])
+		n, err := strconv.Atoi(args[0])
 		if err != nil {
 			setDirty(c)
 			c.WriteError(msgInvalidInt)
 			return
 		}
-		end, err = strconv.Atoi(args[1])
+		opts.start = n
+		n, err = strconv.Atoi(args[1])
 		if err != nil {
 			setDirty(c)
 			c.WriteError(msgInvalidInt)
 			return
 		}
+		opts.end = n
 		args = args[2:]
 	}
 
 	withTx(m, c, func(c *server.Peer, ctx *connCtx) {
 		db := m.db(ctx.selectedDB)
 
-		if !db.exists(key) {
+		if !db.exists(opts.key) {
 			c.WriteInt(0)
 			return
 		}
-		if db.t(key) != "string" {
+		if db.t(opts.key) != "string" {
 			c.WriteError(msgWrongType)
 			return
 		}
@@ -888,9 +890,9 @@ func (m *Miniredis) cmdBitcount(c *server.Peer, cmd string, args []string) {
 			return
 		}
 
-		v := db.stringKeys[key]
-		if useRange {
-			v = withRange(v, start, end)
+		v := db.stringKeys[opts.key]
+		if opts.useRange {
+			v = withRange(v, opts.start, opts.end)
 		}
 
 		c.WriteInt(countBits([]byte(v)))
@@ -991,50 +993,48 @@ func (m *Miniredis) cmdBitpos(c *server.Peer, cmd string, args []string) {
 		return
 	}
 
-	key := args[0]
-	bit, err := strconv.Atoi(args[1])
-	if err != nil {
-		setDirty(c)
-		c.WriteError(msgInvalidInt)
+	var opts struct {
+		Key     string
+		Bit     int
+		Start   int
+		End     int
+		WithEnd bool
+	}
+
+	opts.Key = args[0]
+	if ok := optInt(c, args[1], &opts.Bit); !ok {
 		return
 	}
-	var start, end int
-	withEnd := false
 	if len(args) > 2 {
-		start, err = strconv.Atoi(args[2])
-		if err != nil {
-			setDirty(c)
-			c.WriteError(msgInvalidInt)
+		if ok := optInt(c, args[2], &opts.Start); !ok {
 			return
 		}
 	}
 	if len(args) > 3 {
-		end, err = strconv.Atoi(args[3])
-		if err != nil {
-			setDirty(c)
-			c.WriteError(msgInvalidInt)
+		if ok := optInt(c, args[3], &opts.End); !ok {
 			return
 		}
-		withEnd = true
+		opts.WithEnd = true
 	}
 
 	withTx(m, c, func(c *server.Peer, ctx *connCtx) {
 		db := m.db(ctx.selectedDB)
 
-		if t, ok := db.keys[key]; ok && t != "string" {
+		if t, ok := db.keys[opts.Key]; ok && t != "string" {
 			c.WriteError(msgWrongType)
 			return
 		} else if !ok {
 			// non-existing key behaves differently
-			if bit == 0 {
+			if opts.Bit == 0 {
 				c.WriteInt(0)
 			} else {
 				c.WriteInt(-1)
 			}
 			return
 		}
-		value := db.stringKeys[key]
-
+		value := db.stringKeys[opts.Key]
+		start := opts.Start
+		end := opts.End
 		if start < 0 {
 			start += len(value)
 			if start < 0 {
@@ -1045,7 +1045,7 @@ func (m *Miniredis) cmdBitpos(c *server.Peer, cmd string, args []string) {
 			start = len(value)
 		}
 
-		if withEnd {
+		if opts.WithEnd {
 			if end < 0 {
 				end += len(value)
 			}
@@ -1060,20 +1060,20 @@ func (m *Miniredis) cmdBitpos(c *server.Peer, cmd string, args []string) {
 			end = len(value)
 		}
 
-		if start != 0 || withEnd {
+		if start != 0 || opts.WithEnd {
 			if end < start {
 				value = ""
 			} else {
 				value = value[start:end]
 			}
 		}
-		pos := bitPos([]byte(value), bit == 1)
+		pos := bitPos([]byte(value), opts.Bit == 1)
 		if pos >= 0 {
 			pos += start * 8
 		}
 		// Special case when looking for 0, but not when start and end are
 		// given.
-		if bit == 0 && pos == -1 && !withEnd && len(value) > 0 {
+		if opts.Bit == 0 && pos == -1 && !opts.WithEnd && len(value) > 0 {
 			pos = start*8 + len(value)*8
 		}
 		c.WriteInt(pos)
