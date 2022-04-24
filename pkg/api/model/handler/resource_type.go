@@ -86,6 +86,7 @@ func BatchCreateResourceTypes(c *gin.Context) {
 			NameEn:         rt.NameEn,
 			Description:    rt.Description,
 			DescriptionEn:  rt.DescriptionEn,
+			Sensitivity:    rt.Sensitivity,
 			Parents:        parents,
 			ProviderConfig: structs.Map(rt.ProviderConfig),
 			Version:        rt.Version,
@@ -174,11 +175,15 @@ func UpdateResourceType(c *gin.Context) {
 	if _, ok := data["description_en"]; ok {
 		allowEmptyFields.AddKey("DescriptionEn")
 	}
+	if _, ok := data["sensitivity"]; ok {
+		allowEmptyFields.AddKey("Sensitivity")
+	}
 	resourceType := svctypes.ResourceType{
 		Name:           body.Name,
 		NameEn:         body.NameEn,
 		Description:    body.Description,
 		DescriptionEn:  body.DescriptionEn,
+		Sensitivity:    body.Sensitivity,
 		Version:        body.Version,
 		Parents:        parents,
 		ProviderConfig: providerConfig,

@@ -30,6 +30,7 @@ type resourceTypeSerializer struct {
 
 	Description   string `json:"description" binding:"omitempty" example:"biz_set is a"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_set is a"`
+	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	// can be empty
 	Parents []referenceResourceType `json:"parents"`
@@ -45,6 +46,7 @@ type resourceTypeUpdateSerializer struct {
 	NameEn        string `json:"name_en" binding:"omitempty" example:"biz_set"`
 	Description   string `json:"description" binding:"omitempty" example:"biz_set is a"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_set is a"`
+	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	// can be empty
 	Parents []referenceResourceType `json:"parents"`
