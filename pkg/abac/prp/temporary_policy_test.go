@@ -21,8 +21,8 @@ import (
 	red "github.com/go-redis/redis/v8"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 )
 
 var _ = Describe("Redis", func() {

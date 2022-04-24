@@ -3,7 +3,7 @@ package evalctx
 import (
 	"time"
 
-	gocache "github.com/patrickmn/go-cache"
+	gocache "github.com/wklken/go-cache"
 )
 
 var localTimeEnvsCache *gocache.Cache

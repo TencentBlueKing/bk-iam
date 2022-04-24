@@ -12,6 +12,7 @@ package cacheimpls
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/sirupsen/logrus"
@@ -43,6 +44,7 @@ func UnmarshalExpression(key cache.Key) (interface{}, error) {
 func GetUnmarshalledResourceExpression(
 	expression string,
 	signature string,
+	timestampNano int64,
 ) (c condition.Condition, err error) {
 	key := ResourceExpressionCacheKey{
 		expression: expression,
@@ -50,9 +52,14 @@ func GetUnmarshalledResourceExpression(
 	}
 
 	var value interface{}
-	value, err = LocalUnmarshaledExpressionCache.Get(key)
-	if err != nil {
-		return
+	value, exists := LocalUnmarshaledExpressionCache.GetAfterExpirationAnchor(key.Key(), timestampNano)
+	if !exists {
+		value, err = UnmarshalExpression(key)
+		if err != nil {
+			return nil, err
+		}
+
+		LocalUnmarshaledExpressionCache.Set(key.Key(), value, 0)
 	}
 
 	var ok bool
@@ -66,9 +73,11 @@ func GetUnmarshalledResourceExpression(
 }
 
 func PoliciesTranslate(policies []types.AuthPolicy) (map[string]interface{}, error) {
+	timestampNano := time.Now().UnixNano()
+
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
-		cond, err := GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		cond, err := GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature, timestampNano)
 		if err != nil {
 			logrus.Debugf("pdp EvalPolicy policy id: %d expression: %s format error: %v",
 				policy.ID, policy.Expression, err)

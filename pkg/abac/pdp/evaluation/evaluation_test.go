@@ -13,9 +13,9 @@ package evaluation
 import (
 	"time"
 
-	"github.com/TencentBlueKing/gopkg/cache/memory"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/evalctx"
@@ -25,7 +25,6 @@ import (
 )
 
 var _ = Describe("Evaluation", func() {
-
 	var c *evalctx.EvalContext
 	var policy types.AuthPolicy
 	willPassPolicy := types.AuthPolicy{
@@ -36,7 +35,7 @@ var _ = Describe("Evaluation", func() {
 							"type": "job",
 							"expression": {
 								"AND": {
-									"content": [	
+									"content": [
 										{
 											"StringEquals": {
 												"system": ["linux"]
@@ -61,7 +60,7 @@ var _ = Describe("Evaluation", func() {
 							"type": "job",
 							"expression": {
 								"AND": {
-									"content": [	
+									"content": [
 										{
 											"StringEquals": {
 												"system": ["windows"]
@@ -129,7 +128,7 @@ var _ = Describe("Evaluation", func() {
 			Expression: "",
 		}
 
-		cacheimpls.LocalUnmarshaledExpressionCache = memory.NewMockCache(cacheimpls.UnmarshalExpression)
+		cacheimpls.LocalUnmarshaledExpressionCache = gocache.New(1*time.Minute, 5*time.Minute)
 	})
 
 	Describe("EvalPolicies", func() {
@@ -195,7 +194,6 @@ var _ = Describe("Evaluation", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
-
 	})
 
 	Describe("evalPolicy", func() {
@@ -211,7 +209,6 @@ var _ = Describe("Evaluation", func() {
 			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.False(GinkgoT(), allowed)
 			assert.Contains(GinkgoT(), err.Error(), "get not resource in request")
-
 		})
 
 		It("cacheimpls.GetUnmarshalledResourceExpression fail", func() {
@@ -231,7 +228,7 @@ var _ = Describe("Evaluation", func() {
 							"type": "job",
 							"expression": {
 								"AND": {
-									"content": [	
+									"content": [
 										{
 											"StringEquals": {
 												"system": ["linux"]
@@ -263,7 +260,7 @@ var _ = Describe("Evaluation", func() {
 							"type": "job",
 							"expression": {
 								"AND": {
-									"content": [	
+									"content": [
 										{
 											"StringEquals": {
 												"system": ["windows"]
@@ -286,7 +283,6 @@ var _ = Describe("Evaluation", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), allowed)
 		})
-
 	})
 
 	Describe("PartialEvalPolicies", func() {
@@ -374,7 +370,6 @@ var _ = Describe("Evaluation", func() {
 		})
 
 		Describe("single condition", func() {
-
 			It("true", func() {
 				policy := types.AuthPolicy{
 					ID: 100,
@@ -443,9 +438,6 @@ var _ = Describe("Evaluation", func() {
 				assert.True(GinkgoT(), allowed)
 				assert.NotNil(GinkgoT(), cond)
 			})
-
 		})
-
 	})
-
 })
