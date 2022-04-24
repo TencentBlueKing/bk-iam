@@ -8,26 +8,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package cacheimpls
 
 import (
-	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/errorx"
+
+	"iam/pkg/service"
+	"iam/pkg/service/types"
 )
 
-const (
-	actionSupportFields = "id,name,name_en,related_resource_types,version,type," +
-		"description,description_en,related_actions,related_environments"
-	actionDefaultFields = "id,name,name_en"
-)
-
-var (
-	actionSupportFieldSet = set.SplitStringToSet(actionSupportFields, ",")
-)
-
-type actionQuerySerializer struct {
-	queryViaFields
+func retrieveActionList(key cache.Key) (interface{}, error) {
+	k := key.(cache.StringKey)
+	systemID := k.Key()
+	svc := service.NewActionService()
+	return svc.ListBySystem(systemID)
 }
 
-func (s *actionQuerySerializer) validate() (bool, string) {
-	return s.validateFields(actionSupportFields, actionDefaultFields)
+func ListActionBySystem(systemID string) (actions []types.Action, err error) {
+	key := cache.NewStringKey(systemID)
+
+	err = ActionListCache.GetInto(key, &actions, retrieveActionList)
+	if err != nil {
+		err = errorx.Wrapf(err, CacheLayer, "ListActionBySystem",
+			"ActionListCache.GetInto key=`%s` fail", key.Key())
+	}
+
+	return
 }
