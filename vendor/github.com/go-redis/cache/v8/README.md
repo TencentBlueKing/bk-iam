@@ -1,18 +1,16 @@
-<p align="center">
-  <a href="https://uptrace.dev/?utm_source=gh-redis-cache&utm_campaign=gh-redis-cache-banner1">
-    <img src="https://raw.githubusercontent.com/uptrace/roadmap/master/banner1.png" alt="All-in-one tool to optimize performance and monitor errors & logs">
-  </a>
-</p>
-
 # Redis cache library for Golang
 
 [![Build Status](https://travis-ci.org/go-redis/cache.svg)](https://travis-ci.org/go-redis/cache)
 [![GoDoc](https://godoc.org/github.com/go-redis/cache?status.svg)](https://pkg.go.dev/github.com/go-redis/cache/v8?tab=doc)
 
-go-redis/cache library implements a cache using Redis as a
-key/value storage. It uses [MessagePack](https://github.com/vmihailenco/msgpack) to marshal values.
+go-redis/cache library implements a cache using Redis as a key/value storage. It uses
+[MessagePack](https://github.com/vmihailenco/msgpack) to marshal values.
 
-Optinally you can use [TinyLFU](https://github.com/dgryski/go-tinylfu) or any other [cache algorithm](https://github.com/vmihailenco/go-cache-benchmark) as a local in-process cache.
+Optionally, you can use [TinyLFU](https://github.com/dgryski/go-tinylfu) or any other
+[cache algorithm](https://github.com/vmihailenco/go-cache-benchmark) as a local in-process cache.
+
+If you are interested in monitoring cache hit rate, see the guide for
+[Monitoring using OpenTelemetry Metrics](https://blog.uptrace.dev/posts/opentelemetry-metrics-cache-stats/).
 
 ## Installation
 

@@ -34,6 +34,7 @@ Implemented commands:
    - SWAPDB
    - QUIT
  - Key
+   - COPY
    - DEL
    - EXISTS
    - EXPIRE
@@ -122,6 +123,7 @@ Implemented commands:
    - RPOPLPUSH
    - RPUSH
    - RPUSHX
+   - LMOVE
  - Pub/Sub (complete)
    - PSUBSCRIBE
    - PUBLISH
@@ -168,6 +170,7 @@ Implemented commands:
    - ZREVRANGEBYSCORE
    - ZREVRANK
    - ZSCORE
+   - ZUNION
    - ZUNIONSTORE
    - ZSCAN
  - Stream keys
@@ -310,7 +313,7 @@ Commands which will probably not be implemented:
 
 ## &c.
 
-Integration tests are run against Redis 6.2.4. The [./integration](./integration/) subdir
+Integration tests are run against Redis 6.2.6. The [./integration](./integration/) subdir
 compares miniredis against a real redis instance.
 
 The Redis 6 RESP3 protocol is supported. If there are problems, please open

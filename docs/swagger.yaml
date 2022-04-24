@@ -74,6 +74,10 @@ definitions:
         items:
           type: string
         type: array
+      related_environments:
+        items:
+          $ref: '#/definitions/handler.relatedEnvironment'
+        type: array
       related_resource_types:
         items:
           $ref: '#/definitions/handler.relatedResourceType'
@@ -105,6 +109,10 @@ definitions:
       related_actions:
         items:
           type: string
+        type: array
+      related_environments:
+        items:
+          $ref: '#/definitions/handler.relatedEnvironment'
         type: array
       related_resource_types:
         items:
@@ -656,6 +664,16 @@ definitions:
     - id
     - system_id
     type: object
+  handler.relatedEnvironment:
+    properties:
+      type:
+        description: |-
+          NOTE: currently only support period_daily, will support current_timestamp later
+                and no operators now!
+                only one field, but should be a struct! keep extensible in the future
+        example: period_daily
+        type: string
+    type: object
   handler.relatedResourceType:
     properties:
       id:
@@ -711,37 +729,12 @@ definitions:
     type: object
   handler.resourceTypeSerializer:
     properties:
-      description:
-        example: biz_set is a
+      fields:
         type: string
-      description_en:
-        example: biz_set is a
+      systems:
         type: string
-      id:
-        example: biz_set
-        type: string
-      name:
-        example: biz_set
-        type: string
-      name_en:
-        example: biz_set
-        type: string
-      parents:
-        description: can be empty
-        items:
-          $ref: '#/definitions/handler.referenceResourceType'
-        type: array
-      provider_config:
-        $ref: '#/definitions/handler.resourceProviderConfig'
-        type: object
-      version:
-        example: 1
-        type: integer
     required:
-    - id
-    - name
-    - name_en
-    - provider_config
+    - systems
     type: object
   handler.resourceTypeUpdateSerializer:
     properties:
@@ -785,8 +778,10 @@ definitions:
   handler.subject:
     properties:
       id:
+        example: admin
         type: string
       type:
+        example: user
         type: string
     required:
     - id
@@ -923,6 +918,37 @@ definitions:
         $ref: '#/definitions/handler.systemProviderConfig'
         type: object
     type: object
+  handler.temporaryPoliciesDeleteSerializer:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      system_id:
+        type: string
+    required:
+    - ids
+    - subject_id
+    - subject_type
+    - system_id
+    type: object
+  handler.temporaryPoliciesSerializer:
+    properties:
+      policies:
+        items:
+          $ref: '#/definitions/handler.policy'
+        type: array
+      subject:
+        $ref: '#/definitions/handler.subject'
+        type: object
+    required:
+    - policies
+    - subject
+    type: object
   handler.tokenResponse:
     properties:
       token:
@@ -1056,21 +1082,17 @@ paths:
       description: list policies of ids or between min-max ids
       operationId: api-engine-policies-list
       parameters:
-      - example: 1,2,3
-        in: query
-        name: ids
-        type: string
-      - example: 10001
-        in: query
+      - in: query
         name: max_id
         type: integer
-      - example: 1
-        in: query
-        name: min_id
-        type: integer
-      - example: 1592899208
-        in: query
+      - in: query
+        name: ids
+        type: string
+      - in: query
         name: timestamp
+        type: integer
+      - in: query
+        name: min_id
         type: integer
       produces:
       - application/json
@@ -1101,13 +1123,11 @@ paths:
       description: list policy pks by condition
       operationId: api-engine-policy-id-list
       parameters:
-      - example: 1592899208
-        in: query
-        name: begin_updated_at
-        type: integer
-      - example: 1592899208
-        in: query
+      - in: query
         name: end_updated_at
+        type: integer
+      - in: query
+        name: begin_updated_at
         type: integer
       produces:
       - application/json
@@ -1138,8 +1158,7 @@ paths:
       description: get max policy id by condition
       operationId: api-engine-policy-id-max
       parameters:
-      - example: 1592899208
-        in: query
+      - in: query
         name: updated_at
         type: integer
       produces:
@@ -1192,7 +1211,7 @@ paths:
       summary: system info
       tags:
       - engine
-  /api/v1/open/departments/{user_id}/groups:
+  /api/v1/open/departments/{department_id}/groups:
     get:
       consumes:
       - application/json
@@ -1943,21 +1962,17 @@ paths:
         name: system_id
         required: true
         type: string
-      - example: edit_host
-        in: query
+      - in: query
         name: actionID
         required: true
         type: string
-      - example: 1
-        in: query
-        name: page
-        type: integer
-      - example: 100
-        in: query
+      - in: query
         name: pageSize
         type: integer
-      - example: 1592899208
-        in: query
+      - in: query
+        name: page
+        type: integer
+      - in: query
         name: timestamp
         type: integer
       produces:
@@ -1994,8 +2009,7 @@ paths:
         name: system_id
         required: true
         type: string
-      - example: 1,2,3
-        in: query
+      - in: query
         name: ids
         required: true
         type: string
@@ -2606,6 +2620,100 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: Alter policies/变更用户自定义申请策略
+      tags:
+      - web
+  /api/v1/web/systems/{system_id}/temporary-policies:
+    post:
+      consumes:
+      - application/json
+      description: create temporary policies by application
+      operationId: api-web-create-temporary-policies
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: create temporary policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.temporaryPoliciesSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Create Temporary policies/创建临时权限策略
+      tags:
+      - web
+  /api/v1/web/temporary-policies:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete temporary policies
+      operationId: api-web-batch-delete-temporary-policies
+      parameters:
+      - description: delete temporary policy info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.temporaryPoliciesDeleteSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Batch delete temporary policies/删除临时权限策略
+      tags:
+      - web
+  /api/v1/web/temporary-policies/before_expired_at:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete temporary policies before expired_at
+      operationId: api-web-batch-delete-temporary-policies-before-expired-at
+      parameters:
+      - description: expired_at
+        in: query
+        name: expired_at
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Batch delete temporary policies before expired_at/删除指定过期时间之前临时权限策略
       tags:
       - web
   /healthz:

@@ -43,7 +43,7 @@ var _ = Describe("Init", func() {
 
 		time.Sleep(20 * time.Millisecond)
 
-		logFailHTTPRequest(start, request, resp, respBody, errs, &result)
+		logHTTPRequest(start, request, resp, respBody, errs, &result)
 	})
 
 })
