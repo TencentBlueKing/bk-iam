@@ -27,6 +27,7 @@ const (
 	AllowConfigNames = "action_groups,resource_creator_actions,common_actions,feature_shield_rules"
 
 	ConfigNameActionGroups           = "action_groups"
+	ConfigNameActionRelations        = "action_relations"
 	ConfigNameResourceCreatorActions = "resource_creator_actions"
 	ConfigCommonActions              = "common_actions"
 	ConfigNameFeatureShieldRules     = "feature_shield_rules"
@@ -61,6 +62,9 @@ func CreateOrUpdateConfigDispatch(c *gin.Context) {
 	switch name {
 	case ConfigNameActionGroups:
 		actionGroupHandler(systemID, c)
+		return
+	case ConfigNameActionRelations:
+		actionRelationHandler(systemID, c)
 		return
 	case ConfigNameResourceCreatorActions:
 		resourceCreatorActionHandler(systemID, c)
@@ -117,6 +121,39 @@ func actionGroupHandler(systemID string, c *gin.Context) {
 	err := svc.CreateOrUpdateActionGroups(systemID, ags)
 	if err != nil {
 		err = errorWrapf(err, "svc.CreateOrUpdateActionGroups systemID=`%s` fail", systemID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", nil)
+}
+
+func actionRelationHandler(systemID string, c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "configActionRelationHandler")
+	var body []actionRelationSerializer
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	if len(body) == 0 {
+		util.BadRequestErrorJSONResponse(c, "the array should contain at least 1 item")
+		return
+	}
+
+	if valid, message := validateActionRelations(systemID, body); !valid {
+		util.BadRequestErrorJSONResponse(c, message)
+		return
+	}
+
+	// do create
+	ars := make([]interface{}, 0, len(body))
+	for _, ar := range body {
+		ars = append(ars, ar)
+	}
+	svc := service.NewSystemConfigService()
+	err := svc.CreateOrUpdateActionRelations(systemID, ars)
+	if err != nil {
+		err = errorWrapf(err, "svc.CreateOrUpdateActionRelations systemID=`%s` fail", systemID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

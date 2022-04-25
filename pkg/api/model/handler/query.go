@@ -26,6 +26,7 @@ const (
 	SystemQueryFieldActions                = "actions"
 	SystemQueryFieldInstanceSelections     = "instance_selections"
 	SystemQueryFieldActionGroups           = "action_groups"
+	SystemQueryFieldActionRelations        = "action_relations"
 	SystemQueryFieldResourceCreatorActions = "resource_creator_actions"
 	SystemQueryFieldCommonActions          = "common_actions"
 	SystemQueryFieldFeatureShieldRules     = "feature_shield_rules"
@@ -132,6 +133,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 	}
 
 	if fieldSet.Has(SystemQueryFieldActionGroups) ||
+		fieldSet.Has(SystemQueryFieldActionRelations) ||
 		fieldSet.Has(SystemQueryFieldResourceCreatorActions) ||
 		fieldSet.Has(SystemQueryFieldCommonActions) ||
 		fieldSet.Has(SystemQueryFieldFeatureShieldRules) {
@@ -140,9 +142,17 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 		if fieldSet.Has(SystemQueryFieldActionGroups) {
 			ag, err := svc.GetActionGroups(systemID)
 			if err != nil {
-				data[SystemQueryFieldActionGroups] = map[string]interface{}{}
+				data[SystemQueryFieldActionGroups] = []interface{}{}
 			}
 			data[SystemQueryFieldActionGroups] = ag
+		}
+
+		if fieldSet.Has(SystemQueryFieldActionRelations) {
+			ar, err := svc.GetActionRelations(systemID)
+			if err != nil {
+				data[SystemQueryFieldActionRelations] = []interface{}{}
+			}
+			data[SystemQueryFieldActionRelations] = ar
 		}
 
 		if fieldSet.Has(SystemQueryFieldResourceCreatorActions) {
@@ -156,7 +166,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 		if fieldSet.Has(SystemQueryFieldCommonActions) {
 			ac, err := svc.GetCommonActions(systemID)
 			if err != nil {
-				data[SystemQueryFieldCommonActions] = map[string]interface{}{}
+				data[SystemQueryFieldCommonActions] = []interface{}{}
 			}
 			data[SystemQueryFieldCommonActions] = ac
 		}
