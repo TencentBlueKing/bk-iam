@@ -61,12 +61,12 @@ func SystemInfoQuery(c *gin.Context) {
 	}
 	fieldSet := set.SplitStringToSet(fields, ",")
 
-	BuildSystemInfoQueryResponse(c, systemID, fieldSet)
+	BuildSystemInfoQueryResponse(c, systemID, fieldSet, false)
 }
 
 //nolint:gocognit
 // BuildSystemInfoQueryResponse will only the data requested
-func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet) {
+func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet, forModelShare bool) {
 	// make the return data
 	data := gin.H{}
 
@@ -80,10 +80,12 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 			return
 		}
 
-		// delete the token from provider_config
-		_, ok := systemInfo.ProviderConfig["token"]
-		if ok {
-			delete(systemInfo.ProviderConfig, "token")
+		// delete the token from provider_config, model share should keep the token
+		if !forModelShare {
+			_, ok := systemInfo.ProviderConfig["token"]
+			if ok {
+				delete(systemInfo.ProviderConfig, "token")
+			}
 		}
 
 		data[SystemQueryFieldBaseInfo] = systemInfo

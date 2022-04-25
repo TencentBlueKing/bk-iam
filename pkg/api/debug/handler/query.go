@@ -36,7 +36,7 @@ func QueryModel(c *gin.Context) {
 	fields := "base_info,resource_types,actions,action_groups,instance_selections,resource_creator_actions," +
 		"common_actions,feature_shield_rules"
 	fieldSet := set.SplitStringToSet(fields, ",")
-	modelHandler.BuildSystemInfoQueryResponse(c, systemID, fieldSet)
+	modelHandler.BuildSystemInfoQueryResponse(c, systemID, fieldSet, false)
 }
 
 // QueryActions ...
@@ -170,7 +170,7 @@ func QueryPolicies(c *gin.Context) {
 	_, isForce := c.GetQuery("force")
 
 	// make a request
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	req.System = body.System
 	req.Subject.Type = body.SubjectType
 	req.Subject.ID = body.SubjectID

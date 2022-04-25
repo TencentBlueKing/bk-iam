@@ -151,6 +151,10 @@ func initSupportShieldFeatures() {
 	config.InitSupportShieldFeatures(globalConfig.SupportShieldFeatures)
 }
 
+func initShareAppCode() {
+	config.InitShareAppCode(globalConfig.ShareAppCode)
+}
+
 func initComponents() {
 	component.InitBkRemoteResourceClient()
 
