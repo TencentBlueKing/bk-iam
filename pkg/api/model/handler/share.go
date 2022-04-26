@@ -21,7 +21,7 @@ import (
 // @Summary list system
 // @Description get the list of systems
 // @ID api-model-share-systems-list
-// @Tags share_model
+// @Tags model_share
 // @Accept json
 // @Produce json
 // @Success 200 {object} util.Response{data=systemClientsResponse}
@@ -54,7 +54,7 @@ func ShareListSystem(c *gin.Context) {
 // @Summary system info query
 // @Description query the system
 // @ID api-model-share-system-query
-// @Tags model
+// @Tags model_share
 // @Accept json
 // @Produce json
 // @Param system_id path string true "System ID"
