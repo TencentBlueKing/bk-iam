@@ -23,6 +23,13 @@ const (
 	SelectionModeAttribute = "attribute"
 )
 
+func convertActionDefaultUsage(usage string) string {
+	if usage == "" {
+		return svctypes.ActionUsageAll
+	}
+	return usage
+}
+
 func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.ActionResourceType {
 	arts := make([]svctypes.ActionResourceType, 0, len(rrts))
 	for _, rrt := range rrts {

@@ -108,7 +108,9 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 	// field: action => actions
 	if fieldSet.Has(SystemQueryFieldActions) {
 		acSvc := service.NewActionService()
-		actions, err := acSvc.ListBySystem(systemID)
+
+		// NOTE: 接入方及模型共享方, 都需要看到全部; 只有 IAM 内部配置权限, 才限制只能看到部分
+		actions, err := acSvc.ListAllBySystem(systemID)
 		if err != nil {
 			err = errorx.Wrapf(err, "Handler", "SystemInfoQuery",
 				"acSvc.ListBySystem system_id=`%s` fail", systemID)

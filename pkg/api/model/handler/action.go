@@ -86,6 +86,7 @@ func BatchCreateActions(c *gin.Context) {
 			DescriptionEn: ac.DescriptionEn,
 			Sensitivity:   ac.Sensitivity,
 			Type:          ac.Type,
+			Usage:         convertActionDefaultUsage(ac.Usage),
 			Version:       ac.Version,
 
 			RelatedActions: ac.RelatedActions,
@@ -207,6 +208,7 @@ func UpdateAction(c *gin.Context) {
 		Sensitivity:          body.Sensitivity,
 		Version:              body.Version,
 		Type:                 body.Type,
+		Usage:                body.Usage,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
 		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),

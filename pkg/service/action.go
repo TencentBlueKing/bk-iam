@@ -41,7 +41,11 @@ type ActionService interface {
 	GetActionPK(system, id string) (int64, error)
 
 	Get(system, id string) (types.Action, error)
+
+	// ListBySystem will return only the usage of `all` and `iam`
 	ListBySystem(system string) ([]types.Action, error)
+	// ListAllBySystem will return all actions, with other usage like `audit`
+	ListAllBySystem(system string) ([]types.Action, error)
 
 	BulkCreate(system string, actions []types.Action) error
 	Update(system, actionID string, action types.Action) error
@@ -159,8 +163,16 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	return action, nil
 }
 
-// ListBySystem ...
 func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
+	return l.listBySystem(system, false)
+}
+
+func (l *actionService) ListAllBySystem(system string) ([]types.Action, error) {
+	return l.listBySystem(system, true)
+}
+
+// ListBySystem ...
+func (l *actionService) listBySystem(system string, allUsage bool) ([]types.Action, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListBySystem")
 
 	actions := []types.Action{}
@@ -196,6 +208,11 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 	}
 
 	for _, ac := range dbActions {
+		// allUsage = True, will get all; otherwise, only get the action who's usage is `all` or `iam`
+		if !allUsage && ac.Usage != types.ActionUsageAll && ac.Usage != types.ActionUsageIAM {
+			continue
+		}
+
 		action := types.Action{
 			ID:            ac.ID,
 			Name:          ac.Name,
@@ -203,6 +220,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
 			Type:          ac.Type,
+			Usage:         ac.Usage,
 			Version:       ac.Version,
 		}
 		if ac.RelatedActions != "" {
@@ -325,6 +343,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			RelatedActions:      relatedActions,
 			RelatedEnvironments: relatedEnvironments,
 			Type:                ac.Type,
+			Usage:               ac.Usage,
 			Version:             ac.Version,
 		})
 
@@ -459,6 +478,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		DescriptionEn:       action.DescriptionEn,
 		Sensitivity:         action.Sensitivity,
 		Type:                action.Type,
+		Usage:               action.Usage,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,
 		RelatedEnvironments: relatedEnvironments,

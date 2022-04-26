@@ -10,6 +10,12 @@
 
 package types
 
+const (
+	ActionUsageAll   = "all"
+	ActionUsageIAM   = "iam"
+	ActionUsageAudit = "audit"
+)
+
 // ActionResourceType ...
 type ActionResourceType struct {
 	System      string `json:"system_id" structs:"system_id"`
@@ -48,6 +54,7 @@ type Action struct {
 	DescriptionEn        string               `json:"description_en" structs:"description_en"`
 	Sensitivity          int64                `json:"sensitivity" structs:"sensitivity"`
 	Type                 string               `json:"type" structs:"type"`
+	Usage                string               `json:"usage" structs:"usage"`
 	Version              int64                `json:"version" structs:"version"`
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`
 	RelatedActions       []string             `json:"related_actions" structs:"related_actions"`
