@@ -176,6 +176,8 @@ func UpdateAction(c *gin.Context) {
 		}
 	}
 
+	// FIXME: if origin usage is all/iam and has policies, should not be changed to other types
+
 	// build the data
 	allowEmptyFields := svctypes.NewAllowEmptyFields()
 	if _, ok := data["type"]; ok {

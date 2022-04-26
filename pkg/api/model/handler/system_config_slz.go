@@ -131,7 +131,15 @@ func validateActionRelations(systemID string, actionRelations []actionRelationSe
 	// 2. no duplicated
 	for _, ar := range actionRelations {
 		uniqIDs := set.NewStringSet()
+		if len(ar.Parents) == 0 {
+			return false, fmt.Sprintf("the parents of action %s should not be empty", ar.ID)
+		}
+
 		for _, a := range ar.Parents {
+			if a.ID == ar.ID {
+				return false, fmt.Sprintf("the parent of action %s should not be himself", ar.ID)
+			}
+
 			uniqIDs.Add(a.ID)
 		}
 

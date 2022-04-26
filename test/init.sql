@@ -133,10 +133,10 @@ INSERT INTO `system_info` VALUES ('demo','2021-06-24 07:23:13','2021-06-24 07:23
 INSERT INTO `resource_type` VALUES (1,'demo','app','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `action` VALUES (1,'demo','access_developer_center','2021-06-24 07:23:13','2021-06-24 07:23:13'),(2,'demo','develop_app','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `action_resource_type` VALUES (1,'demo','develop_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28');
-INSERT INTO `saas_action` VALUES (1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','create',1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','',1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
+INSERT INTO `saas_action` VALUES (1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','create', 0, 'all',1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','', 0, 'all',1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
 INSERT INTO `saas_action_resource_type` VALUES (1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `saas_instance_selection` VALUES (1,'demo','app_view','应用视图','app_view',0,'[{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13');
-INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
+INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',0,1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
 INSERT INTO `saas_system_info` VALUES ('demo','Demo平台','Demo','A demo SaaS for quick start','A demo SaaS for quick start.','demo,bk_iam_app','{\"token\":\"63yr6hs11bsqa8u4d9i0acbpjuuyizaw\",\"host\":\"http://127.0.0.1:5000\",\"auth\":\"basic\",\"healthz\":\"/healthz/\"}','2021-06-24 07:23:13','2021-06-24 07:31:28');
 
 INSERT INTO `system_info` VALUES ('demo2','2021-06-24 07:23:13','2021-06-24 07:23:13');

@@ -37,8 +37,9 @@ type SaaSAction struct {
 	RelatedActions      string `db:"related_actions"`
 	RelatedEnvironments string `db:"related_environments"`
 	Type                string `db:"type"`
-	Usage               string `db:"usage"`
-	Version             int64  `db:"version"`
+	// NOTE: the usage is a keyword in mysql, so, translate to `used_for` here
+	Usage   string `db:"used_for"`
+	Version int64  `db:"version"`
 }
 
 // SaaSActionManager ...
@@ -123,10 +124,10 @@ func (m *saasActionManager) bulkInsertWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 		related_actions,
 		related_environments,
 		type,
-		usage,
+		used_for,
 		version
 	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :sensitivity,
-			:related_actions, :related_environments, :type, :usage, :version)`
+			:related_actions, :related_environments, :type, :used_for, :version)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasActions)
 }
 
@@ -156,7 +157,7 @@ func (m *saasActionManager) selectBySystem(saasAction *[]SaaSAction, system stri
 		related_actions,
 		related_environments,
 		type,
-		usage,
+		used_for,
 		version
 		FROM saas_action
 		WHERE system_id = ?
@@ -172,7 +173,7 @@ func (m *saasActionManager) getByActionID(saasAction *SaaSAction, system, action
 		name,
 		name_en,
 		type,
-		usage,
+		used_for,
 		version
 		FROM saas_action
 		WHERE system_id = ?
