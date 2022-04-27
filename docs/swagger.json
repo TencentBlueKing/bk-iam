@@ -3180,15 +3180,6 @@
                         "use"
                     ]
                 },
-                "usage": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "iam",
-                        "audit"
-                    ],
-                    "example": "all"
-                },
                 "version": {
                     "type": "integer",
                     "minimum": 1,
@@ -3252,15 +3243,6 @@
                         "debug",
                         "use"
                     ]
-                },
-                "usage": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "iam",
-                        "audit"
-                    ],
-                    "example": "all"
                 },
                 "version": {
                     "type": "integer",

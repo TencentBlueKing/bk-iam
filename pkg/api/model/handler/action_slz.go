@@ -52,8 +52,7 @@ type actionSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
 	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
-	Type  string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Usage string `json:"usage" binding:"omitempty,oneof=all iam audit" example:"all"`
+	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
@@ -69,8 +68,7 @@ type actionUpdateSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
 	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
-	Type  string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Usage string `json:"usage" binding:"omitempty,oneof=all iam audit" example:"all"`
+	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`

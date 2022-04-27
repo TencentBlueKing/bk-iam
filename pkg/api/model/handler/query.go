@@ -26,7 +26,6 @@ const (
 	SystemQueryFieldActions                = "actions"
 	SystemQueryFieldInstanceSelections     = "instance_selections"
 	SystemQueryFieldActionGroups           = "action_groups"
-	SystemQueryFieldActionRelations        = "action_relations"
 	SystemQueryFieldResourceCreatorActions = "resource_creator_actions"
 	SystemQueryFieldCommonActions          = "common_actions"
 	SystemQueryFieldFeatureShieldRules     = "feature_shield_rules"
@@ -109,8 +108,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 	if fieldSet.Has(SystemQueryFieldActions) {
 		acSvc := service.NewActionService()
 
-		// NOTE: 接入方及模型共享方, 都需要看到全部; 只有 IAM 内部配置权限, 才限制只能看到部分
-		actions, err := acSvc.ListAllBySystem(systemID)
+		actions, err := acSvc.ListBySystem(systemID)
 		if err != nil {
 			err = errorx.Wrapf(err, "Handler", "SystemInfoQuery",
 				"acSvc.ListBySystem system_id=`%s` fail", systemID)
@@ -135,7 +133,6 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 	}
 
 	if fieldSet.Has(SystemQueryFieldActionGroups) ||
-		fieldSet.Has(SystemQueryFieldActionRelations) ||
 		fieldSet.Has(SystemQueryFieldResourceCreatorActions) ||
 		fieldSet.Has(SystemQueryFieldCommonActions) ||
 		fieldSet.Has(SystemQueryFieldFeatureShieldRules) {
@@ -147,14 +144,6 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 				data[SystemQueryFieldActionGroups] = []interface{}{}
 			}
 			data[SystemQueryFieldActionGroups] = ag
-		}
-
-		if fieldSet.Has(SystemQueryFieldActionRelations) {
-			ar, err := svc.GetActionRelations(systemID)
-			if err != nil {
-				data[SystemQueryFieldActionRelations] = []interface{}{}
-			}
-			data[SystemQueryFieldActionRelations] = ar
 		}
 
 		if fieldSet.Has(SystemQueryFieldResourceCreatorActions) {

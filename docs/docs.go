@@ -3189,15 +3189,6 @@ const docTemplate = `{
                         "use"
                     ]
                 },
-                "usage": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "iam",
-                        "audit"
-                    ],
-                    "example": "all"
-                },
                 "version": {
                     "type": "integer",
                     "minimum": 1,
@@ -3261,15 +3252,6 @@ const docTemplate = `{
                         "debug",
                         "use"
                     ]
-                },
-                "usage": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "iam",
-                        "audit"
-                    ],
-                    "example": "all"
                 },
                 "version": {
                     "type": "integer",

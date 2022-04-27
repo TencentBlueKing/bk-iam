@@ -13,7 +13,6 @@ package handler
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/config"
@@ -91,60 +90,6 @@ func validateActionGroup(actionGroups []actionGroupSerializer, name string) (boo
 					return false, "more than 2-levels action_groups, currently only support 2-levels"
 				}
 			}
-		}
-	}
-
-	return true, "valid"
-}
-
-type actionRelationActionSerializer struct {
-	ID string `json:"id" binding:"required" example:"edit"`
-}
-
-type actionRelationSerializer struct {
-	ID      string                           `json:"id" binding:"required" example:"edit"`
-	Parents []actionRelationActionSerializer `json:"parents" binding:"required"`
-}
-
-func getAllActionIDsFromActionRelations(actionRelations []actionRelationSerializer) []string {
-	actions := []string{}
-
-	for _, data := range actionRelations {
-		actions = append(actions, data.ID)
-		if len(data.Parents) > 0 {
-			for _, a := range data.Parents {
-				actions = append(actions, a.ID)
-			}
-		}
-	}
-
-	return actions
-}
-
-func validateActionRelations(systemID string, actionRelations []actionRelationSerializer) (bool, string) {
-	// 1. all action_id should exists
-	actionIDs := getAllActionIDsFromActionRelations(actionRelations)
-	if err := checkActionIDsExist(systemID, actionIDs); err != nil {
-		return false, util.ValidationErrorMessage(err)
-	}
-
-	// 2. no duplicated
-	for _, ar := range actionRelations {
-		uniqIDs := set.NewStringSet()
-		if len(ar.Parents) == 0 {
-			return false, fmt.Sprintf("the parents of action %s should not be empty", ar.ID)
-		}
-
-		for _, a := range ar.Parents {
-			if a.ID == ar.ID {
-				return false, fmt.Sprintf("the parent of action %s should not be himself", ar.ID)
-			}
-
-			uniqIDs.Add(a.ID)
-		}
-
-		if len(ar.Parents) != uniqIDs.Size() {
-			return false, fmt.Sprintf("action %s's parents has duplicate action", ar.ID)
 		}
 	}
 

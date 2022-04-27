@@ -32,7 +32,6 @@ const (
 	// 操作组
 
 	ConfigKeyActionGroups           = "action_groups"
-	ConfigKeyActionRelations        = "action_relations"
 	ConfigKeyResourceCreatorActions = "resource_creator_actions"
 	ConfigKeyCommonActions          = "common_actions"
 	ConfigKeyFeatureShieldRules     = "feature_shield_rules"
@@ -49,11 +48,6 @@ type SystemConfigService interface {
 
 	GetActionGroups(system string) ([]interface{}, error)
 	CreateOrUpdateActionGroups(system string, actionGroup []interface{}) error
-
-	// actionRelation
-
-	GetActionRelations(system string) ([]interface{}, error)
-	CreateOrUpdateActionRelations(system string, actionRelations []interface{}) error
 
 	// resourceCreatorAction
 
@@ -219,16 +213,6 @@ func (s *systemConfigService) GetActionGroups(system string) (ag []interface{}, 
 // CreateOrUpdateActionGroups ...
 func (s *systemConfigService) CreateOrUpdateActionGroups(system string, actionGroup []interface{}) (err error) {
 	return s.createOrUpdate(system, ConfigKeyActionGroups, ConfigTypeJSON, actionGroup)
-}
-
-// GetActionRelations retrive and parse the action relations
-func (s *systemConfigService) GetActionRelations(system string) (ar []interface{}, err error) {
-	return s.getSliceConfig(system, ConfigKeyActionRelations)
-}
-
-// CreateOrUpdateActionRelations will create or update config actions_relations
-func (s *systemConfigService) CreateOrUpdateActionRelations(system string, actionRelations []interface{}) (err error) {
-	return s.createOrUpdate(system, ConfigKeyActionRelations, ConfigTypeJSON, actionRelations)
 }
 
 // GetResourceCreatorActions ...

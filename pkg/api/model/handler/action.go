@@ -86,7 +86,6 @@ func BatchCreateActions(c *gin.Context) {
 			DescriptionEn: ac.DescriptionEn,
 			Sensitivity:   ac.Sensitivity,
 			Type:          ac.Type,
-			Usage:         convertActionDefaultUsage(ac.Usage),
 			Version:       ac.Version,
 
 			RelatedActions: ac.RelatedActions,
@@ -176,8 +175,6 @@ func UpdateAction(c *gin.Context) {
 		}
 	}
 
-	// FIXME: if origin usage is all/iam and has policies, should not be changed to other types
-
 	// build the data
 	allowEmptyFields := svctypes.NewAllowEmptyFields()
 	if _, ok := data["type"]; ok {
@@ -210,7 +207,6 @@ func UpdateAction(c *gin.Context) {
 		Sensitivity:          body.Sensitivity,
 		Version:              body.Version,
 		Type:                 body.Type,
-		Usage:                body.Usage,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
 		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),
