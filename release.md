@@ -1,3 +1,7 @@
+# 1.11.2
+
+- add: model share api support
+
 # 1.11.1
 
 - add: temporary policy

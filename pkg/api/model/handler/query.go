@@ -66,7 +66,7 @@ func SystemInfoQuery(c *gin.Context) {
 
 //nolint:gocognit
 // BuildSystemInfoQueryResponse will only the data requested
-func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet, forModelShare bool) {
+func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet, isModelSharing bool) {
 	// make the return data
 	data := gin.H{}
 
@@ -80,8 +80,8 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 			return
 		}
 
-		// delete the token from provider_config, model share should keep the token
-		if !forModelShare {
+		// default, delete the token from provider_config, model sharing should keep the token
+		if !isModelSharing {
 			_, ok := systemInfo.ProviderConfig["token"]
 			if ok {
 				delete(systemInfo.ProviderConfig, "token")
