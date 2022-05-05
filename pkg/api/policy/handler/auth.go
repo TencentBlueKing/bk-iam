@@ -43,8 +43,9 @@ import (
 func Auth(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Auth")
 
-	var body authRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = authRequestPool.get()
+	defer authRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -71,8 +72,9 @@ func Auth(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
-	copyRequestFromAuthBody(req, &body)
+	var req = request.RequestPool.Get()
+	defer request.RequestPool.Put(req)
+	copyRequestFromAuthBody(req, body)
 
 	// 鉴权
 	var entry *debug.Entry
@@ -118,8 +120,9 @@ func Auth(c *gin.Context) {
 func BatchAuthByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByActions")
 
-	var body authByActionsRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = authByActionsRequestPool.get()
+	defer authByActionsRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -161,8 +164,9 @@ func BatchAuthByActions(c *gin.Context) {
 
 	// 查询  subject-system-action的policies, 然后执行鉴权!
 	for _, action := range body.Actions {
-		req := request.NewRequest()
-		copyRequestFromAuthByActionsBody(req, &body)
+		var req = request.RequestPool.Get()
+		defer request.RequestPool.Put(req)
+		copyRequestFromAuthByActionsBody(req, body)
 		req.Action.ID = action.ID
 
 		var subEntry *debug.Entry
@@ -208,8 +212,9 @@ func BatchAuthByActions(c *gin.Context) {
 func BatchAuthByResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByResources")
 
-	var body authByResourcesRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = authByResourcesRequestPool.get()
+	defer authByResourcesRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -241,8 +246,9 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
-	copyRequestFromAuthByResourcesBody(req, &body)
+	var req = request.RequestPool.Get()
+	defer request.RequestPool.Put(req)
+	copyRequestFromAuthByResourcesBody(req, body)
 
 	// 鉴权
 	var entry *debug.Entry
@@ -291,6 +297,7 @@ func BatchAuthByResources(c *gin.Context) {
 		// copy the req, reset and assign the resources
 		r := req
 		r.Resources = make([]types.Resource, 0, len(resources))
+		defer request.RequestPool.Put(r)
 		for _, resource := range resources {
 			r.Resources = append(r.Resources, types.Resource{
 				System:    resource.System,

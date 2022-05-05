@@ -11,6 +11,8 @@
 package request
 
 import (
+	"sync"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 
 	"iam/pkg/abac/types"
@@ -19,6 +21,31 @@ import (
 /*
 PDP模块鉴权上下文
 */
+
+type requestPool struct {
+	pool *sync.Pool
+}
+
+func newRequestPool() *requestPool {
+	return &requestPool{
+		pool: &sync.Pool{
+			New: func() interface{} {
+				return NewRequest()
+			},
+		},
+	}
+}
+
+// Get ...
+func (p *requestPool) Get() *Request {
+	return p.pool.Get().(*Request)
+}
+
+// Put ...
+func (p *requestPool) Put(r *Request) {
+	r.Reset()
+	p.pool.Put(r)
+}
 
 // Request 鉴权请求
 type Request struct {
@@ -125,4 +152,12 @@ func (r *Request) getActionResourceTypeIDSet() *set.StringSet {
 
 func (r *Request) genResourceTypeKey(system, _type string) string {
 	return system + ":" + _type
+}
+
+// Reset 重置数据
+func (r *Request) Reset() {
+	r.System = ""
+	r.Action.Reset()
+	r.Subject.Reset()
+	r.Resources = []types.Resource{}
 }

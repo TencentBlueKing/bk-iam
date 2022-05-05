@@ -48,3 +48,9 @@ type ActionResourceType struct {
 	System string
 	Type   string
 }
+
+// Reset 重置数据
+func (a *Action) Reset() {
+	a.ID = ""
+	a.Attribute.Reset()
+}

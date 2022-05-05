@@ -65,3 +65,10 @@ func (s *Subject) GetEffectGroupPKs() ([]int64, error) {
 func (s *Subject) GetDepartmentPKs() ([]int64, error) {
 	return s.Attribute.GetDepartments()
 }
+
+// Reset 重置数据
+func (s *Subject) Reset() {
+	s.ID = ""
+	s.Type = ""
+	s.Attribute.Reset()
+}

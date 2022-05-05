@@ -96,6 +96,13 @@ func (a Attribute) GetString(key string) (string, error) {
 	return vStr, nil
 }
 
+// Reset 重置所有的属性
+func (a Attribute) Reset() {
+	for k := range a {
+		delete(a, k)
+	}
+}
+
 // ActionAttribute 操作的属性
 type ActionAttribute struct {
 	Attribute

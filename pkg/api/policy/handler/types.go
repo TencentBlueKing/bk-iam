@@ -12,6 +12,8 @@ package handler
 
 import (
 	"fmt"
+	"reflect"
+	"sync"
 
 	"github.com/TencentBlueKing/gopkg/stringx"
 
@@ -126,4 +128,36 @@ func (q *queryByExtResourcesRequest) Validate() (bool, string) {
 		return false, message
 	}
 	return true, ""
+}
+
+type requestBody interface {
+	authRequest | authByActionsRequest | authByResourcesRequest | queryRequest | queryByActionsRequest | queryByExtResourcesRequest
+}
+
+type requestBodyPool[T requestBody] struct {
+	pool *sync.Pool
+}
+
+func newRequestBodyPool[T requestBody]() *requestBodyPool[T] {
+	return &requestBodyPool[T]{
+		pool: &sync.Pool{
+			New: func() interface{} {
+				return new(T)
+			},
+		},
+	}
+}
+
+func (p *requestBodyPool[T]) get() *T {
+	return p.pool.Get().(*T)
+}
+
+func (p *requestBodyPool[T]) put(v *T) {
+	p.reset(v)
+	p.pool.Put(v)
+}
+
+func (p *requestBodyPool[T]) reset(v *T) {
+	value := reflect.ValueOf(v).Elem()
+	value.Set(reflect.Zero(value.Type()))
 }

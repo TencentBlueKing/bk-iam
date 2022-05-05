@@ -41,8 +41,9 @@ import (
 func Query(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
 
-	var body queryRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = queryRequestPool.get()
+	defer queryRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -67,8 +68,9 @@ func Query(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
-	copyRequestFromQueryBody(req, &body)
+	var req = request.RequestPool.Get()
+	defer request.RequestPool.Put(req)
+	copyRequestFromQueryBody(req, body)
 
 	var entry *debug.Entry
 
@@ -117,8 +119,9 @@ func Query(c *gin.Context) {
 func BatchQueryByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryByActions")
 
-	var body queryByActionsRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = queryByActionsRequestPool.get()
+	defer queryByActionsRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -162,8 +165,9 @@ func BatchQueryByActions(c *gin.Context) {
 
 	// TODO: 这里, subject/resource都是一致的, 只是action是多个, 所以其中pdp.Query会存在重复查询/重复计算?
 	for _, action := range body.Actions {
-		req := request.NewRequest()
-		copyRequestFromQueryByActionsBody(req, &body)
+		var req = request.RequestPool.Get()
+		defer request.RequestPool.Put(req)
+		copyRequestFromQueryByActionsBody(req, body)
 		req.Action.ID = action.ID
 
 		var subEntry *debug.Entry
@@ -207,8 +211,9 @@ func BatchQueryByActions(c *gin.Context) {
 func QueryByExtResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
 
-	var body queryByExtResourcesRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
+	var body = queryByExtResourcesRequestPool.get()
+	defer queryByExtResourcesRequestPool.put(body)
+	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
@@ -258,7 +263,8 @@ func QueryByExtResources(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
+	var req = request.RequestPool.Get()
+	defer request.RequestPool.Put(req)
 	copyRequestFromQueryBody(req, &body.queryRequest)
 
 	var entry *debug.Entry

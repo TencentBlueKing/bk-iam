@@ -170,7 +170,8 @@ func QueryPolicies(c *gin.Context) {
 	_, isForce := c.GetQuery("force")
 
 	// make a request
-	var req = request.NewRequest()
+	var req = request.RequestPool.Get()
+	defer request.RequestPool.Put(req)
 	req.System = body.System
 	req.Subject.Type = body.SubjectType
 	req.Subject.ID = body.SubjectID
