@@ -46,6 +46,7 @@ type Action struct {
 	NameEn               string               `json:"name_en" structs:"name_en"`
 	Description          string               `json:"description" structs:"description"`
 	DescriptionEn        string               `json:"description_en" structs:"description_en"`
+	Sensitivity          int64                `json:"sensitivity" structs:"sensitivity"`
 	Type                 string               `json:"type" structs:"type"`
 	Version              int64                `json:"version" structs:"version"`
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`

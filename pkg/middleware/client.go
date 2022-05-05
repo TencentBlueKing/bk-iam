@@ -112,3 +112,19 @@ func SuperClientMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// ShareClientMiddleware check if the client can access the APIs of the model share
+func ShareClientMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Debug("Middleware: ShareClientMiddleware")
+
+		appCode := util.GetClientID(c)
+		if !config.ShareAppCodeSet.Has(appCode) {
+			util.UnauthorizedJSONResponse(c, "share client app code wrong, app_code is not in the share client whitelist")
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}

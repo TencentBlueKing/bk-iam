@@ -4,7 +4,6 @@
         "description": "蓝鲸权限中心后台服务 API 文档",
         "title": "IAM API",
         "contact": {},
-        "license": {},
         "version": "1.0"
     },
     "paths": {
@@ -93,23 +92,30 @@
                 "operationId": "api-engine-policies-list",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "name": "max_id",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
+                        "example": "1,2,3",
                         "name": "ids",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
-                        "name": "timestamp",
+                        "example": 10001,
+                        "name": "max_id",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "example": 1,
                         "name": "min_id",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "example": 1592899208,
+                        "name": "timestamp",
                         "in": "query"
                     }
                 ],
@@ -125,7 +131,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handler.policyListResponse"
+                                            "$ref": "#/definitions/iam_pkg_api_engine_handler.policyListResponse"
                                         }
                                     }
                                 }
@@ -165,13 +171,17 @@
                 "operationId": "api-engine-policy-id-list",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
-                        "name": "end_updated_at",
+                        "example": 1592899208,
+                        "name": "begin_updated_at",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
-                        "name": "begin_updated_at",
+                        "example": 1592899208,
+                        "name": "end_updated_at",
                         "in": "query"
                     }
                 ],
@@ -227,7 +237,9 @@
                 "operationId": "api-engine-policy-id-max",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
+                        "example": 1592899208,
                         "name": "updated_at",
                         "in": "query"
                     }
@@ -310,6 +322,124 @@
                 }
             }
         },
+        "/api/v1/model/share/systems": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "get the list of systems",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model_share"
+                ],
+                "summary": "list system",
+                "operationId": "api-model-share-systems-list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.systemClientsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/model/share/systems/{system_id}/query": {
+            "get": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model_share"
+                ],
+                "summary": "system info query",
+                "operationId": "api-model-share-system-query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.querySerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/util.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/gin.H"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/open/departments/{department_id}/groups": {
             "get": {
                 "security": [
@@ -353,7 +483,10 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/handler.responseSubject"
+                                            }
                                         }
                                     }
                                 }
@@ -419,7 +552,10 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handler.subjectGroupsResponse"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/handler.responseSubject"
+                                            }
                                         }
                                     }
                                 }
@@ -1542,22 +1678,30 @@
                     },
                     {
                         "type": "string",
+                        "example": "edit_host",
                         "name": "actionID",
                         "in": "query",
                         "required": true
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
+                        "example": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 500,
+                        "minimum": 10,
                         "type": "integer",
+                        "example": 100,
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
                     }
@@ -1574,7 +1718,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handler.policyListResponse"
+                                            "$ref": "#/definitions/iam_pkg_api_open_handler.policyListResponse"
                                         }
                                     }
                                 }
@@ -1622,6 +1766,7 @@
                     },
                     {
                         "type": "string",
+                        "example": "1,2,3",
                         "name": "ids",
                         "in": "query",
                         "required": true
@@ -1639,7 +1784,10 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handler.policySubjectsResponse"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/handler.policyIDSubject"
+                                            }
                                         }
                                     }
                                 }
@@ -2957,7 +3105,6 @@
             "type": "object",
             "properties": {
                 "action": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.actionInResponse"
                 },
                 "condition": {
@@ -2984,6 +3131,7 @@
                 },
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "biz_create"
                 },
                 "name": {
@@ -3012,11 +3160,29 @@
                         "$ref": "#/definitions/handler.relatedResourceType"
                     }
                 },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
+                },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "edit",
+                        "view",
+                        "delete",
+                        "list",
+                        "manage",
+                        "execute",
+                        "debug",
+                        "use"
+                    ]
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3058,11 +3224,29 @@
                         "$ref": "#/definitions/handler.relatedResourceType"
                     }
                 },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
+                },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "edit",
+                        "view",
+                        "delete",
+                        "list",
+                        "manage",
+                        "execute",
+                        "debug",
+                        "use"
+                    ]
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3093,6 +3277,7 @@
             "properties": {
                 "actions": {
                     "type": "array",
+                    "maxItems": 10,
                     "items": {
                         "$ref": "#/definitions/handler.action"
                     }
@@ -3105,8 +3290,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3124,16 +3308,17 @@
             "type": "object",
             "required": [
                 "action",
+                "resources_list",
                 "subject",
                 "system"
             ],
             "properties": {
                 "action": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.action"
                 },
                 "resources_list": {
                     "type": "array",
+                    "maxItems": 100,
                     "items": {
                         "type": "array",
                         "items": {
@@ -3142,8 +3327,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3167,7 +3351,6 @@
             ],
             "properties": {
                 "action": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.action"
                 },
                 "resources": {
@@ -3178,8 +3361,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3219,14 +3401,14 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
                 },
                 "system_id": {
                     "type": "string"
                 },
                 "template_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 1
                 }
             }
         },
@@ -3246,7 +3428,6 @@
             ],
             "properties": {
                 "data": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.appCodeAppSecretSerializer"
                 },
                 "type": {
@@ -3270,8 +3451,7 @@
             "type": "object",
             "properties": {
                 "action": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseAction"
+                    "$ref": "#/definitions/iam_pkg_api_engine_handler.policyResponseAction"
                 },
                 "expired_at": {
                     "type": "integer",
@@ -3286,8 +3466,7 @@
                     "example": 100
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseSubject"
+                    "$ref": "#/definitions/iam_pkg_api_engine_handler.policyResponseSubject"
                 },
                 "system": {
                     "type": "string",
@@ -3338,15 +3517,6 @@
                 }
             }
         },
-        "handler.getMaxPolicyIDSerializer": {
-            "type": "object",
-            "properties": {
-                "updated_at": {
-                    "type": "integer",
-                    "example": 1592899208
-                }
-            }
-        },
         "handler.idExpiredAtSerializer": {
             "type": "object",
             "required": [
@@ -3355,7 +3525,9 @@
             ],
             "properties": {
                 "expired_at": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 4102444800,
+                    "minimum": 0
                 },
                 "id": {
                     "type": "integer"
@@ -3373,6 +3545,7 @@
             "properties": {
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "biz_set"
                 },
                 "is_dynamic": {
@@ -3435,19 +3608,6 @@
                 }
             }
         },
-        "handler.listPolicyIDsSerializer": {
-            "type": "object",
-            "properties": {
-                "begin_updated_at": {
-                    "type": "integer",
-                    "example": 1592899208
-                },
-                "end_updated_at": {
-                    "type": "integer",
-                    "example": 1592899208
-                }
-            }
-        },
         "handler.listPolicySerializer": {
             "type": "object",
             "properties": {
@@ -3457,38 +3617,17 @@
                 },
                 "max_id": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 10001
                 },
                 "min_id": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 },
                 "timestamp": {
                     "type": "integer",
-                    "example": 1592899208
-                }
-            }
-        },
-        "handler.listQuerySerializer": {
-            "type": "object",
-            "required": [
-                "actionID"
-            ],
-            "properties": {
-                "actionID": {
-                    "type": "string",
-                    "example": "edit_host"
-                },
-                "page": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "pageSize": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "timestamp": {
-                    "type": "integer",
+                    "minimum": 1,
                     "example": 1592899208
                 }
             }
@@ -3515,8 +3654,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
                 },
                 "update_policies": {
                     "type": "array",
@@ -3593,7 +3731,9 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 4102444800,
+                    "minimum": 0
                 },
                 "resource_expression": {
                     "type": "string"
@@ -3604,8 +3744,7 @@
             "type": "object",
             "properties": {
                 "action": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseAction"
+                    "$ref": "#/definitions/iam_pkg_api_open_handler.policyResponseAction"
                 },
                 "expired_at": {
                     "type": "integer",
@@ -3620,8 +3759,7 @@
                     "example": 100
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseSubject"
+                    "$ref": "#/definitions/iam_pkg_api_open_handler.policyResponseSubject"
                 },
                 "system": {
                     "type": "string",
@@ -3641,56 +3779,24 @@
                     "example": 100
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.policyResponseSubject"
+                    "$ref": "#/definitions/iam_pkg_api_open_handler.policyResponseSubject"
                 }
             }
         },
-        "handler.policyListResponse": {
+        "handler.policyListResponseMetadata": {
             "type": "object",
             "properties": {
-                "metadata": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.listPolicySerializer"
+                "action": {
+                    "$ref": "#/definitions/iam_pkg_api_open_handler.policyResponseAction"
                 },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.enginePolicyResponse"
-                    }
-                }
-            }
-        },
-        "handler.policyResponseAction": {
-            "type": "object",
-            "properties": {
-                "id": {
+                "system": {
                     "type": "string",
-                    "example": "edit"
-                }
-            }
-        },
-        "handler.policyResponseSubject": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "admin"
+                    "example": "bk_test"
                 },
-                "name": {
-                    "type": "string",
-                    "example": "Administer"
-                },
-                "type": {
-                    "type": "string",
-                    "example": "user"
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1592899208
                 }
-            }
-        },
-        "handler.policySubjectsResponse": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/handler.policyIDSubject"
             }
         },
         "handler.queryByActionsRequest": {
@@ -3715,8 +3821,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3734,11 +3839,11 @@
             ],
             "properties": {
                 "action": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.action"
                 },
                 "ext_resources": {
                     "type": "array",
+                    "maxItems": 1000,
                     "items": {
                         "$ref": "#/definitions/handler.extResource"
                     }
@@ -3751,8 +3856,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3769,7 +3873,6 @@
             ],
             "properties": {
                 "action": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.action"
                 },
                 "resources": {
@@ -3780,8 +3883,7 @@
                     }
                 },
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 },
                 "system": {
                     "type": "string",
@@ -3842,6 +3944,9 @@
                 "type": {
                     "description": "NOTE: currently only support period_daily, will support current_timestamp later\n      and no operators now!\n      only one field, but should be a struct! keep extensible in the future",
                     "type": "string",
+                    "enum": [
+                        "period_daily"
+                    ],
                     "example": "period_daily"
                 }
             }
@@ -3855,13 +3960,16 @@
             "properties": {
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "host"
                 },
                 "name_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "name_alias_en": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "related_instance_selections": {
                     "type": "array",
@@ -3872,6 +3980,11 @@
                 "selection_mode": {
                     "description": "实例选择方式/范围: [\"all\", \"instance\", \"attribute\"]",
                     "type": "string",
+                    "enum": [
+                        "all",
+                        "instance",
+                        "attribute"
+                    ],
                     "example": "instance"
                 },
                 "system_id": {
@@ -3923,14 +4036,53 @@
         "handler.resourceTypeSerializer": {
             "type": "object",
             "required": [
-                "systems"
+                "id",
+                "name",
+                "name_en",
+                "provider_config"
             ],
             "properties": {
-                "fields": {
-                    "type": "string"
+                "description": {
+                    "type": "string",
+                    "example": "biz_set is a"
                 },
-                "systems": {
-                    "type": "string"
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "id": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "example": "biz_set"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "parents": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                },
+                "provider_config": {
+                    "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
                 }
             }
         },
@@ -3962,11 +4114,17 @@
                     }
                 },
                 "provider_config": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3988,29 +4146,6 @@
                 }
             }
         },
-        "handler.subject": {
-            "type": "object",
-            "required": [
-                "id",
-                "type"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "admin"
-                },
-                "type": {
-                    "type": "string",
-                    "example": "user"
-                }
-            }
-        },
-        "handler.subjectGroupsResponse": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/handler.responseSubject"
-            }
-        },
         "handler.subjectTemplateSerializer": {
             "type": "object",
             "required": [
@@ -4030,19 +4165,8 @@
                     "type": "string"
                 },
                 "template_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handler.subjectsSerializer": {
-            "type": "object",
-            "required": [
-                "ids"
-            ],
-            "properties": {
-                "ids": {
-                    "type": "string",
-                    "example": "1,2,3"
+                    "type": "integer",
+                    "minimum": 1
                 }
             }
         },
@@ -4073,6 +4197,10 @@
             "properties": {
                 "auth": {
                     "type": "string",
+                    "enum": [
+                        "none",
+                        "basic"
+                    ],
                     "example": "basic"
                 },
                 "healthz": {
@@ -4143,6 +4271,7 @@
                 },
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "bk_paas"
                 },
                 "name": {
@@ -4154,7 +4283,6 @@
                     "example": "bk_paas"
                 },
                 "provider_config": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.systemProviderConfig"
                 }
             }
@@ -4183,7 +4311,6 @@
                     "example": "bk_paas"
                 },
                 "provider_config": {
-                    "type": "object",
                     "$ref": "#/definitions/handler.systemProviderConfig"
                 }
             }
@@ -4228,8 +4355,31 @@
                     }
                 },
                 "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
+                }
+            }
+        },
+        "handler.thinPolicyResponse": {
+            "type": "object",
+            "properties": {
+                "expired_at": {
+                    "type": "integer",
+                    "example": 4102444800
+                },
+                "expression": {
                     "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_open_handler.policyResponseSubject"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
@@ -4259,7 +4409,9 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 4102444800,
+                    "minimum": 0
                 },
                 "id": {
                     "type": "integer"
@@ -4279,20 +4431,136 @@
             ],
             "properties": {
                 "subject": {
-                    "type": "object",
-                    "$ref": "#/definitions/handler.subject"
+                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
                 },
                 "system_id": {
                     "type": "string"
                 },
                 "template_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 1
                 },
                 "update_policies": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handler.updatePolicy"
                     }
+                }
+            }
+        },
+        "iam_pkg_api_engine_handler.policyListResponse": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "$ref": "#/definitions/handler.listPolicySerializer"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.enginePolicyResponse"
+                    }
+                }
+            }
+        },
+        "iam_pkg_api_engine_handler.policyResponseAction": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "iam_pkg_api_engine_handler.policyResponseSubject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Administer"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "iam_pkg_api_open_handler.policyListResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 120
+                },
+                "metadata": {
+                    "$ref": "#/definitions/handler.policyListResponseMetadata"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.thinPolicyResponse"
+                    }
+                }
+            }
+        },
+        "iam_pkg_api_open_handler.policyResponseAction": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "edit"
+                }
+            }
+        },
+        "iam_pkg_api_open_handler.policyResponseSubject": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Administer"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "iam_pkg_api_policy_handler.subject": {
+            "type": "object",
+            "required": [
+                "id",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "user"
+                }
+            }
+        },
+        "iam_pkg_api_web_handler.subject": {
+            "type": "object",
+            "required": [
+                "id",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -4349,9 +4617,7 @@
                 "code": {
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object"
-                },
+                "data": {},
                 "message": {
                     "type": "string"
                 }

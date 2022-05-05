@@ -84,6 +84,7 @@ func BatchCreateActions(c *gin.Context) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			Sensitivity:   ac.Sensitivity,
 			Type:          ac.Type,
 			Version:       ac.Version,
 
@@ -194,12 +195,16 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["description_en"]; ok {
 		allowEmptyFields.AddKey("DescriptionEn")
 	}
+	if _, ok := data["sensitivity"]; ok {
+		allowEmptyFields.AddKey("Sensitivity")
+	}
 
 	action := svctypes.Action{
 		Name:                 body.Name,
 		NameEn:               body.NameEn,
 		Description:          body.Description,
 		DescriptionEn:        body.DescriptionEn,
+		Sensitivity:          body.Sensitivity,
 		Version:              body.Version,
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),

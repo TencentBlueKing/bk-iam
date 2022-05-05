@@ -33,6 +33,7 @@ type SaaSResourceType struct {
 	NameEn         string `db:"name_en"`
 	Description    string `db:"description"`
 	DescriptionEn  string `db:"description_en"`
+	Sensitivity    int64  `db:"sensitivity"`
 	Parents        string `db:"parents"`         // JSON
 	ProviderConfig string `db:"provider_config"` // JSON 'iam,saas_iam'
 	Version        int64  `db:"version"`
@@ -85,8 +86,7 @@ func (m *saasResourceTypeManager) BulkCreateWithTx(tx *sqlx.Tx, saasResourceType
 }
 
 // Update ...
-func (m *saasResourceTypeManager) Update(system, resourceTypeID string,
-	rt SaaSResourceType) error {
+func (m *saasResourceTypeManager) Update(system, resourceTypeID string, rt SaaSResourceType) error {
 	// 1. parse the set sql string and update data
 	expr, data, err := database.ParseUpdateStruct(rt, rt.AllowBlankFields)
 	if err != nil {
@@ -119,10 +119,22 @@ func (m *saasResourceTypeManager) bulkInsertWithTx(tx *sqlx.Tx, saasResourceType
 		name_en,
 		description,
 		description_en,
+		sensitivity,
 		parents,
 		provider_config,
 		version
-	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :parents, :provider_config, :version)`
+	) VALUES (
+		:system_id,
+		:id,
+		:name,
+		:name_en,
+		:description,
+		:description_en,
+		:sensitivity,
+		:parents,
+		:provider_config,
+		:version
+	)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasResourceTypes)
 }
 
@@ -148,6 +160,7 @@ func (m *saasResourceTypeManager) selectBySystem(saasResourceTypes *[]SaaSResour
 		name_en,
 		description,
 		description_en,
+		sensitivity,
 		parents,
 		provider_config,
 		version
@@ -166,6 +179,7 @@ func (m *saasResourceTypeManager) selectByID(srt *SaaSResourceType, system, id s
 		name_en,
 		description,
 		description_en,
+		sensitivity,
 		parents,
 		provider_config,
 		version
