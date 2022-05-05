@@ -110,6 +110,11 @@ var _ = Describe("attribute", func() {
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, v)
 		})
 
+		It("Rest", func() {
+			a.Reset()
+			assert.Equal(GinkgoT(), 0, len(a))
+		})
+
 	})
 
 	Describe("ActionAttribute", func() {
@@ -176,7 +181,6 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedRt, v)
 		})
-
 	})
 
 	Describe("SubjectAttribute", func() {

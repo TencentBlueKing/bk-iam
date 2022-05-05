@@ -78,6 +78,22 @@ var _ = Describe("action", func() {
 			})
 
 		})
+
+		Describe("Reset", func() {
+			var a types.Action
+			BeforeEach(func() {
+				a = types.NewAction()
+			})
+
+			It("Reset", func() {
+				a.ID = "id"
+				a.Attribute.SetResourceTypes([]types.ActionResourceType{})
+				a.Reset()
+				assert.Equal(GinkgoT(), "", a.ID)
+				assert.Len(GinkgoT(), a.Attribute.Attribute, 0)
+			})
+
+		})
 	})
 
 	Describe("ActionResourceType cases", func() {

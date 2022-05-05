@@ -265,4 +265,44 @@ var _ = Describe("request", func() {
 			assert.False(GinkgoT(), r.ValidateActionRemoteResource())
 		})
 	})
+
+	Describe("Reset", func() {
+		var expectedSystem = "bk_test"
+		var r *request.Request
+		BeforeEach(func() {
+			r = request.NewRequest()
+			r.System = expectedSystem
+			r.Action.Attribute = &types.ActionAttribute{
+				Attribute: map[string]interface{}{
+					"resource_type": []types.ActionResourceType{{
+						System: "bk_test",
+						Type:   "host",
+					}, {
+						System: "bk_job",
+						Type:   "job",
+					},
+					},
+				},
+			}
+		})
+
+		It("Reset", func() {
+
+			r.Resources = []types.Resource{
+				{
+					System: "bk_job",
+					Type:   "job",
+				},
+			}
+			r.Reset()
+			assert.Equal(GinkgoT(), "", r.System)
+			assert.Len(GinkgoT(), r.Resources, 0)
+			assert.Len(GinkgoT(), r.Action.Attribute.Attribute, 0)
+			assert.Equal(GinkgoT(), "", r.Action.ID)
+			assert.Len(GinkgoT(), r.Subject.Attribute.Attribute, 0)
+			assert.Equal(GinkgoT(), "", r.Subject.ID)
+			assert.Equal(GinkgoT(), "", r.Subject.Type)
+
+		})
+	})
 })

@@ -9,3 +9,95 @@
  */
 
 package handler
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
+)
+
+var _ = Describe("types", func() {
+
+	Describe("clearStructFields", func() {
+		It("clearStructFields", func() {
+			body := &authRequest{
+				baseRequest: baseRequest{
+					System: "bk_test",
+					Subject: subject{
+						Type: "test",
+						ID:   "test",
+					},
+				},
+				Resources: []resource{
+					{
+						System:    "bk_test",
+						ID:        "test",
+						Type:      "test",
+						Attribute: map[string]interface{}{},
+					},
+				},
+				Action: action{
+					ID: "test",
+				},
+			}
+			clearStructFields(body)
+			assert.Equal(GinkgoT(), "", body.System)
+			assert.Equal(GinkgoT(), "", body.Subject.ID)
+			assert.Equal(GinkgoT(), "", body.Subject.Type)
+			assert.Len(GinkgoT(), body.Resources, 0)
+			assert.Equal(GinkgoT(), "", body.Action.ID)
+		})
+	})
+
+	Describe("requestBodyPool", func() {
+		var p *requestBodyPool[authRequest]
+		BeforeEach(func() {
+			p = newRequestBodyPool[authRequest]()
+		})
+
+		It("newRequestBodyPool", func() {
+			assert.NotNil(GinkgoT(), p)
+		})
+
+		It("get", func() {
+			body := p.get()
+			assert.Equal(GinkgoT(), "", body.System)
+			assert.Equal(GinkgoT(), "", body.Subject.ID)
+			assert.Equal(GinkgoT(), "", body.Subject.Type)
+			assert.Len(GinkgoT(), body.Resources, 0)
+			assert.Equal(GinkgoT(), "", body.Action.ID)
+		})
+
+		It("set", func() {
+			body := &authRequest{
+				baseRequest: baseRequest{
+					System: "bk_test",
+					Subject: subject{
+						Type: "test",
+						ID:   "test",
+					},
+				},
+				Resources: []resource{
+					{
+						System:    "bk_test",
+						ID:        "test",
+						Type:      "test",
+						Attribute: map[string]interface{}{},
+					},
+				},
+				Action: action{
+					ID: "test",
+				},
+			}
+			p.put(body)
+			body1 := p.get()
+
+			assert.True(GinkgoT(), body == body1)
+
+			assert.Equal(GinkgoT(), "", body1.System)
+			assert.Equal(GinkgoT(), "", body1.Subject.ID)
+			assert.Equal(GinkgoT(), "", body1.Subject.Type)
+			assert.Len(GinkgoT(), body1.Resources, 0)
+			assert.Equal(GinkgoT(), "", body1.Action.ID)
+		})
+	})
+})

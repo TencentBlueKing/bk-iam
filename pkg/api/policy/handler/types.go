@@ -153,11 +153,11 @@ func (p *requestBodyPool[T]) get() *T {
 }
 
 func (p *requestBodyPool[T]) put(v *T) {
-	p.reset(v)
+	clearStructFields(v)
 	p.pool.Put(v)
 }
 
-func (p *requestBodyPool[T]) reset(v *T) {
-	value := reflect.ValueOf(v).Elem()
-	value.Set(reflect.Zero(value.Type()))
+func clearStructFields(v interface{}) {
+	p := reflect.ValueOf(v).Elem()
+	p.Set(reflect.Zero(p.Type()))
 }

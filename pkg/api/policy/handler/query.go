@@ -41,8 +41,8 @@ import (
 func Query(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
 
-	var body = queryRequestPool.get()
-	defer queryRequestPool.put(body)
+	var body = queryRequestBodyPool.get()
+	defer queryRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -119,8 +119,8 @@ func Query(c *gin.Context) {
 func BatchQueryByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryByActions")
 
-	var body = queryByActionsRequestPool.get()
-	defer queryByActionsRequestPool.put(body)
+	var body = queryByActionsRequestBodyPool.get()
+	defer queryByActionsRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -211,8 +211,8 @@ func BatchQueryByActions(c *gin.Context) {
 func QueryByExtResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
 
-	var body = queryByExtResourcesRequestPool.get()
-	defer queryByExtResourcesRequestPool.put(body)
+	var body = queryByExtResourcesRequestBodyPool.get()
+	defer queryByExtResourcesRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return

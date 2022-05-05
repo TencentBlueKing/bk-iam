@@ -43,8 +43,8 @@ import (
 func Auth(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Auth")
 
-	var body = authRequestPool.get()
-	defer authRequestPool.put(body)
+	var body = authRequestBodyPool.get()
+	defer authRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -120,8 +120,8 @@ func Auth(c *gin.Context) {
 func BatchAuthByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByActions")
 
-	var body = authByActionsRequestPool.get()
-	defer authByActionsRequestPool.put(body)
+	var body = authByActionsRequestBodyPool.get()
+	defer authByActionsRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -212,8 +212,8 @@ func BatchAuthByActions(c *gin.Context) {
 func BatchAuthByResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByResources")
 
-	var body = authByResourcesRequestPool.get()
-	defer authByResourcesRequestPool.put(body)
+	var body = authByResourcesRequestBodyPool.get()
+	defer authByResourcesRequestBodyPool.put(body)
 	if err := c.ShouldBindJSON(body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return

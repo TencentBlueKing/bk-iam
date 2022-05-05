@@ -140,6 +140,26 @@ var _ = Describe("subject", func() {
 				assert.Equal(GinkgoT(), expectedDepts, pks)
 			})
 		})
+
+		Describe("Reset", func() {
+			var s types.Subject
+			BeforeEach(func() {
+				s = types.NewSubject()
+			})
+
+			It("Reset", func() {
+				expectedDepts := []int64{1, 2, 3}
+				expectedGroups := []types.SubjectGroup{}
+				s.FillAttributes(123, expectedGroups, expectedDepts)
+
+				s.ID = "id"
+				s.Type = "type"
+				s.Reset()
+				assert.Equal(GinkgoT(), "", s.ID)
+				assert.Equal(GinkgoT(), "", s.Type)
+				assert.Len(GinkgoT(), s.Attribute.Attribute, 0)
+			})
+		})
 	})
 
 })
