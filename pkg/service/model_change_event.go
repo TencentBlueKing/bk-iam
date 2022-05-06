@@ -19,7 +19,17 @@ import (
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
-const ModelChangeEventSVC = "ModelChangeEventSVC"
+const (
+	ModelChangeEventSVC = "ModelChangeEventSVC"
+
+	ModelChangeEventTypeActionDeleted       = "action_deleted"
+	ModelChangeEventTypeActionPolicyDeleted = "action_policy_deleted"
+
+	ModelChangeEventModelTypeAction = "action"
+
+	ModelChangeEventStatusPending  = "pending"
+	ModelChangeEventStatusFinished = "finished"
+)
 
 // ModelChangeEventService define the interface for model change
 type ModelChangeEventService interface {
@@ -150,7 +160,7 @@ func (l *modelChangeEventService) DeleteByStatus(status string, limit, beforeUpd
 		rowsAffected, err := l.manager.DeleteByStatusWithTx(tx, status, currentLimit, beforeUpdatedAt)
 		if err != nil {
 			return errorWrapf(err,
-				"manager.DeleteByStatus status=`%s` limit=`%d` beforeUpdatedAt=`%d`", status, limit, beforeUpdatedAt)
+				"manager.DeleteByStatusWithTx status=`%s` limit=`%d` beforeUpdatedAt=`%d` failed", status, limit, beforeUpdatedAt)
 		}
 		// 如果已经没有需要删除的了，就停止
 		if rowsAffected == 0 {

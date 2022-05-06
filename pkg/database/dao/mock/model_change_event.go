@@ -6,6 +6,7 @@ package mock
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 	dao "iam/pkg/database/dao"
 	reflect "reflect"
 )
@@ -103,4 +104,19 @@ func (m *MockModelChangeEventManager) UpdateStatusByModel(eventType, modelType s
 func (mr *MockModelChangeEventManagerMockRecorder) UpdateStatusByModel(eventType, modelType, modelPK, status interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatusByModel", reflect.TypeOf((*MockModelChangeEventManager)(nil).UpdateStatusByModel), eventType, modelType, modelPK, status)
+}
+
+// DeleteByStatusWithTx mocks base method
+func (m *MockModelChangeEventManager) DeleteByStatusWithTx(tx *sqlx.Tx, status string, limit, beforeUpdatedAt int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByStatusWithTx", tx, status, limit, beforeUpdatedAt)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteByStatusWithTx indicates an expected call of DeleteByStatusWithTx
+func (mr *MockModelChangeEventManagerMockRecorder) DeleteByStatusWithTx(tx, status, limit, beforeUpdatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByStatusWithTx", reflect.TypeOf((*MockModelChangeEventManager)(nil).DeleteByStatusWithTx), tx, status, limit, beforeUpdatedAt)
 }

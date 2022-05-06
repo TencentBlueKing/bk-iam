@@ -312,8 +312,12 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				util.SystemErrorJSONResponse(c, err1)
 				return
 			}
-			exist, err1 := eventSvc.ExistByTypeModel(ModelChangeEventTypeActionDeleted, ModelChangeEventStatusPending,
-				ModelChangeEventModelTypeAction, actionPK)
+			exist, err1 := eventSvc.ExistByTypeModel(
+				service.ModelChangeEventTypeActionDeleted,
+				service.ModelChangeEventStatusPending,
+				service.ModelChangeEventModelTypeAction,
+				actionPK,
+			)
 			if err1 != nil {
 				err1 = errorx.Wrapf(err1, "Handler", "batchDeleteActions",
 					"eventSvc.ExistByTypeModel fail, systemID=`%s`, ids=`%v`", systemID, ids)
@@ -324,10 +328,10 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				continue
 			}
 			events = append(events, svctypes.ModelChangeEvent{
-				Type:      ModelChangeEventTypeActionDeleted,
-				Status:    ModelChangeEventStatusPending,
+				Type:      service.ModelChangeEventTypeActionDeleted,
+				Status:    service.ModelChangeEventStatusPending,
 				SystemID:  systemID,
-				ModelType: ModelChangeEventModelTypeAction,
+				ModelType: service.ModelChangeEventModelTypeAction,
 				ModelID:   id,
 				ModelPK:   actionPK,
 			})
@@ -365,10 +369,10 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			// 直接更新掉 delete_policy事件的状态
 			eventSvc := service.NewModelChangeService()
 			err = eventSvc.UpdateStatusByModel(
-				ModelChangeEventTypeActionPolicyDeleted,
-				ModelChangeEventModelTypeAction,
+				service.ModelChangeEventTypeActionPolicyDeleted,
+				service.ModelChangeEventModelTypeAction,
 				actionPK,
-				ModelChangeEventStatusFinished,
+				service.ModelChangeEventStatusFinished,
 			)
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
