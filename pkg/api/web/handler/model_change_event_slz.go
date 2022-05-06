@@ -10,6 +10,27 @@
 
 package handler
 
+import (
+	"time"
+)
+
 type updateModelChangeEventStatusSerializer struct {
 	Status string `json:"status" binding:"required"`
+}
+
+type deleteModelChangeEventSerializer struct {
+	Status          string `form:"status" binding:"required"`
+	BeforeUpdatedAt int64  `form:"before_updated_at" binding:"omitempty,min=1,max=4102444800" example:"1592899208"`
+	Limit           int64  `form:"limit" binding:"omitempty,min=1,max=100000"`
+}
+
+func (s *deleteModelChangeEventSerializer) initDefault() {
+	if s.BeforeUpdatedAt == 0 {
+		// 对于删除，默认可删除一个月前数据
+		s.BeforeUpdatedAt = time.Now().AddDate(0, -1, 0).Unix()
+	}
+	if s.Limit == 0 {
+		// 默认最多删除1000条数据
+		s.Limit = 1000
+	}
 }

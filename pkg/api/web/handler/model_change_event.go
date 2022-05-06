@@ -63,3 +63,25 @@ func UpdateModelChangeEvent(c *gin.Context) {
 	}
 	util.SuccessJSONResponse(c, "ok", nil)
 }
+
+// BatchDeleteModelChangeEvent 批量删除模型变更事件，目前主要用于清理结束事件
+func BatchDeleteModelChangeEvent(c *gin.Context) {
+	var query deleteModelChangeEventSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	// 对于允许为空的参数，设置默认值
+	query.initDefault()
+
+	svc := service.NewModelChangeService()
+	err := svc.DeleteByStatus(query.Status, query.Limit, query.BeforeUpdatedAt)
+	if err != nil {
+		err = errorx.Wrapf(err, "Handler", "BatchDeleteModelChangeEvent",
+			"status=`%s` limit=`%d` beforeUpdatedAt=`%d`",
+			query.Status, query.Limit, query.BeforeUpdatedAt)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+	util.SuccessJSONResponse(c, "ok", nil)
+}

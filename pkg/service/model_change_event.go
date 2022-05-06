@@ -12,7 +12,7 @@ package service
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
-
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 )
@@ -28,6 +28,7 @@ type ModelChangeEventService interface {
 	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
 	BulkCreate(modelChangeEvents []types.ModelChangeEvent) error
 	ExistByTypeModel(eventType, status, modelType string, modelPK int64) (bool, error)
+	DeleteByStatus(status string, limit, beforeUpdatedAt int64) error
 }
 
 type modelChangeEventService struct {
@@ -125,4 +126,42 @@ func (l *modelChangeEventService) UpdateStatusByModel(eventType, modelType strin
 		)
 	}
 	return nil
+}
+
+func (l *modelChangeEventService) DeleteByStatus(status string, limit, beforeUpdatedAt int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "DeleteByStatus")
+	tx, err := database.GenerateDefaultDBTx()
+	if err != nil {
+		return errorWrapf(err, "define tx fail")
+	}
+	defer database.RollBackWithLog(tx)
+
+	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
+	preLimit := int64(10000) // 每次限制删除最多1万条
+	maxAttempts := int((limit + preLimit) / preLimit)
+	affectedNumber := int64(0) // 已经删除的记录数量
+	for i := 0; i < maxAttempts; i++ {
+		// 若剩余数量不足preLimit，则只删除剩余的即可，否则会导致多删除了
+		currentLimit := preLimit
+		if limit-affectedNumber < preLimit {
+			currentLimit = limit - affectedNumber
+		}
+
+		rowsAffected, err := l.manager.DeleteByStatusWithTx(tx, status, currentLimit, beforeUpdatedAt)
+		if err != nil {
+			return errorWrapf(err,
+				"manager.DeleteByStatus status=`%s` limit=`%d` beforeUpdatedAt=`%d`", status, limit, beforeUpdatedAt)
+		}
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected == 0 {
+			break
+		}
+		affectedNumber += rowsAffected
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx.Commit fail")
+	}
+	return err
 }
