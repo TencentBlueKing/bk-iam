@@ -1,3 +1,7 @@
+# 1.11.3
+
+- add: model change event delete api
+
 # 1.11.2
 
 - add: model share api support
