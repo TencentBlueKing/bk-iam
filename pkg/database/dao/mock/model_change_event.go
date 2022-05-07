@@ -107,16 +107,16 @@ func (mr *MockModelChangeEventManagerMockRecorder) UpdateStatusByModel(eventType
 }
 
 // DeleteByStatusWithTx mocks base method
-func (m *MockModelChangeEventManager) DeleteByStatusWithTx(tx *sqlx.Tx, status string, limit, beforeUpdatedAt int64) (int64, error) {
+func (m *MockModelChangeEventManager) DeleteByStatusWithTx(tx *sqlx.Tx, status string, beforeUpdatedAt, limit int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByStatusWithTx", tx, status, limit, beforeUpdatedAt)
+	ret := m.ctrl.Call(m, "DeleteByStatusWithTx", tx, status, beforeUpdatedAt, limit)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteByStatusWithTx indicates an expected call of DeleteByStatusWithTx
-func (mr *MockModelChangeEventManagerMockRecorder) DeleteByStatusWithTx(tx, status, limit, beforeUpdatedAt interface{}) *gomock.Call {
+func (mr *MockModelChangeEventManagerMockRecorder) DeleteByStatusWithTx(tx, status, beforeUpdatedAt, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByStatusWithTx", reflect.TypeOf((*MockModelChangeEventManager)(nil).DeleteByStatusWithTx), tx, status, limit, beforeUpdatedAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByStatusWithTx", reflect.TypeOf((*MockModelChangeEventManager)(nil).DeleteByStatusWithTx), tx, status, beforeUpdatedAt, limit)
 }

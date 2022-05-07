@@ -42,7 +42,7 @@ type ModelChangeEventManager interface {
 	UpdateStatusByPK(pk int64, status string) error
 	BulkCreate(modelChangeEvents []ModelChangeEvent) error
 	UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error
-	DeleteByStatusWithTx(tx *sqlx.Tx, status string, limit, beforeUpdatedAt int64) (int64, error)
+	DeleteByStatusWithTx(tx *sqlx.Tx, status string, beforeUpdatedAt, limit int64) (int64, error)
 }
 
 type modelChangeEventManager struct {
@@ -121,8 +121,12 @@ func (m *modelChangeEventManager) UpdateStatusByModel(eventType, modelType strin
 func (m *modelChangeEventManager) DeleteByStatusWithTx(
 	tx *sqlx.Tx,
 	status string,
-	limit, beforeUpdatedAt int64,
+	beforeUpdatedAt, limit int64,
 ) (int64, error) {
+	return m.delete(tx, status, beforeUpdatedAt, limit)
+}
+
+func (m *modelChangeEventManager) delete(tx *sqlx.Tx, status string, beforeUpdatedAt, limit int64) (int64, error) {
 	query := `DELETE FORM model_change_event WHERE status = ? AND updated_at <= FROM_UNIXTIME(?) LIMIT ?`
 	return database.SqlxDeleteReturnRowsWithTx(tx, query, status, beforeUpdatedAt, limit)
 }

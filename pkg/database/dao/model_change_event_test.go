@@ -32,7 +32,7 @@ var _ = Describe("ModelEventManager", func() {
 		tx, err := db.Beginx()
 		assert.NoError(GinkgoT(), err)
 
-		rowsAffected, err := manager.DeleteByStatusWithTx(tx, "finished", int64(10), int64(4102444800))
+		rowsAffected, err := manager.DeleteByStatusWithTx(tx, "finished", int64(4102444800), int64(10))
 		tx.Commit()
 
 		assert.NoError(GinkgoT(), err)

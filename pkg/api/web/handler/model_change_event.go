@@ -75,11 +75,11 @@ func BatchDeleteModelChangeEvent(c *gin.Context) {
 	body.initDefault()
 
 	svc := service.NewModelChangeService()
-	err := svc.DeleteByStatus(body.Status, body.Limit, body.BeforeUpdatedAt)
+	err := svc.DeleteByStatus(body.Status, body.BeforeUpdatedAt, body.Limit)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "BatchDeleteModelChangeEvent",
-			"status=`%s` limit=`%d` beforeUpdatedAt=`%d`",
-			body.Status, body.Limit, body.BeforeUpdatedAt)
+			"status=`%s` beforeUpdatedAt=`%d` limit=`%d`",
+			body.Status, body.BeforeUpdatedAt, body.Limit)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
