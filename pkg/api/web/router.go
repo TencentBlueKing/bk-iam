@@ -127,6 +127,7 @@ func Register(r *gin.RouterGroup) {
 	// 模型变更事件
 	r.GET("/model-change-event", handler.ListModelChangeEvent)
 	r.PUT("/model-change-event/:event_pk", handler.UpdateModelChangeEvent)
+	r.DELETE("/model-change-event", handler.BatchDeleteModelChangeEvent)
 
 	// 清理未引用的expression
 	r.DELETE("/unreferenced-expressions", handler.DeleteUnreferencedExpressions)

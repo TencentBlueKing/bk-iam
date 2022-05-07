@@ -38,9 +38,9 @@ func DeleteActionPolicies(c *gin.Context) {
 	// 检查是否已经存在，若存在，则直接返回，避免重复添加事件
 	// TODO: 由于DB没有相关约束，并发可能有问题
 	exist, err := eventSvc.ExistByTypeModel(
-		ModelChangeEventTypeActionPolicyDeleted,
-		ModelChangeEventStatusPending,
-		ModelChangeEventModelTypeAction,
+		service.ModelChangeEventTypeActionPolicyDeleted,
+		service.ModelChangeEventStatusPending,
+		service.ModelChangeEventModelTypeAction,
 		actionPK,
 	)
 	if err != nil {
@@ -52,10 +52,10 @@ func DeleteActionPolicies(c *gin.Context) {
 	// 不存在pending的事件，则添加
 	if !exist {
 		event := svctypes.ModelChangeEvent{
-			Type:      ModelChangeEventTypeActionPolicyDeleted,
-			Status:    ModelChangeEventStatusPending,
+			Type:      service.ModelChangeEventTypeActionPolicyDeleted,
+			Status:    service.ModelChangeEventStatusPending,
 			SystemID:  systemID,
-			ModelType: ModelChangeEventModelTypeAction,
+			ModelType: service.ModelChangeEventModelTypeAction,
 			ModelID:   actionID,
 			ModelPK:   actionPK,
 		}

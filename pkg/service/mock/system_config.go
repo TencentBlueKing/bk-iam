@@ -90,35 +90,6 @@ func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateActionGroups(system
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateActionGroups", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateActionGroups), system, actionGroup)
 }
 
-// GetActionRelations mocks base method
-func (m *MockSystemConfigService) GetActionRelations(system string) ([]interface{}, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActionRelations", system)
-	ret0, _ := ret[0].([]interface{})
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetActionRelations indicates an expected call of GetActionRelations
-func (mr *MockSystemConfigServiceMockRecorder) GetActionRelations(system interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActionRelations", reflect.TypeOf((*MockSystemConfigService)(nil).GetActionRelations), system)
-}
-
-// CreateOrUpdateActionRelations mocks base method
-func (m *MockSystemConfigService) CreateOrUpdateActionRelations(system string, actionRelations []interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrUpdateActionRelations", system, actionRelations)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateOrUpdateActionRelations indicates an expected call of CreateOrUpdateActionRelations
-func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateActionRelations(system, actionRelations interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateActionRelations", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateActionRelations), system, actionRelations)
-}
-
 // GetResourceCreatorActions mocks base method
 func (m *MockSystemConfigService) GetResourceCreatorActions(system string) (map[string]interface{}, error) {
 	m.ctrl.T.Helper()

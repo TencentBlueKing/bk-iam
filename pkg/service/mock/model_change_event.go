@@ -104,3 +104,17 @@ func (mr *MockModelChangeEventServiceMockRecorder) ExistByTypeModel(eventType, s
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByTypeModel", reflect.TypeOf((*MockModelChangeEventService)(nil).ExistByTypeModel), eventType, status, modelType, modelPK)
 }
+
+// DeleteByStatus mocks base method
+func (m *MockModelChangeEventService) DeleteByStatus(status string, beforeUpdatedAt, limit int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByStatus", status, beforeUpdatedAt, limit)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByStatus indicates an expected call of DeleteByStatus
+func (mr *MockModelChangeEventServiceMockRecorder) DeleteByStatus(status, beforeUpdatedAt, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByStatus", reflect.TypeOf((*MockModelChangeEventService)(nil).DeleteByStatus), status, beforeUpdatedAt, limit)
+}
