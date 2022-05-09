@@ -23,7 +23,7 @@ var _ = Describe("ModelEventManager", func() {
 	It("DeleteByStatusWithTx", func() {
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			`^DELETE FORM model_change_event WHERE status = (.*) AND updated_at <= FROM_UNIXTIME((.*)) LIMIT (.*)$`,
+			`^DELETE FROM model_change_event WHERE status = (.*) AND updated_at <= FROM_UNIXTIME((.*)) LIMIT (.*)$`,
 		).WithArgs(
 			"finished", int64(4102444800), int64(10),
 		).WillReturnResult(sqlmock.NewResult(0, 10))

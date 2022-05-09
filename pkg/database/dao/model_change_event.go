@@ -127,7 +127,7 @@ func (m *modelChangeEventManager) DeleteByStatusWithTx(
 }
 
 func (m *modelChangeEventManager) delete(tx *sqlx.Tx, status string, beforeUpdatedAt, limit int64) (int64, error) {
-	query := `DELETE FORM model_change_event WHERE status = ? AND updated_at <= FROM_UNIXTIME(?) LIMIT ?`
+	query := `DELETE FROM model_change_event WHERE status = ? AND updated_at <= FROM_UNIXTIME(?) LIMIT ?`
 	return database.SqlxDeleteReturnRowsWithTx(tx, query, status, beforeUpdatedAt, limit)
 }
 
