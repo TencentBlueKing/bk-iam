@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/prp/expression"
@@ -343,10 +344,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	polices = make([]types.AuthPolicy, 0, len(temporaryPolicies))
 	for _, p := range temporaryPolicies {
 		polices = append(polices, types.AuthPolicy{
-			Version:    service.PolicyVersion,
-			ID:         p.PK,
-			Expression: p.Expression,
-			ExpiredAt:  p.ExpiredAt,
+			Version:             service.PolicyVersion,
+			ID:                  p.PK,
+			Expression:          p.Expression,
+			ExpiredAt:           p.ExpiredAt,
+			ExpressionSignature: stringx.MD5Hash(p.Expression),
 		})
 	}
 
