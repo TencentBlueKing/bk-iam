@@ -162,7 +162,7 @@ func (l *subjectService) ListExistSubjectsBeforeExpiredAt(
 	existGroupPKs, err := l.relationManager.ListParentPKsBeforeExpiredAt(parentPKs, expiredAt)
 	if err != nil {
 		return []types.Subject{}, errorWrapf(
-			err, "ListParentIDsBeforeExpiredAt _type=`%s`, parentPKs=`%+v`, expiredAt=`%d` fail",
+			err, "ListParentPKsBeforeExpiredAt _type=`%s`, parentPKs=`%+v`, expiredAt=`%d` fail",
 			parentPKs, expiredAt,
 		)
 	}

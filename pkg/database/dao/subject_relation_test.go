@@ -23,7 +23,7 @@ import (
 
 func Test_subjectRelationManager_GetCount(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT COUNT(.*) FROM subject_relation WHERE parent_pk = `
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
@@ -37,7 +37,8 @@ func Test_subjectRelationManager_GetCount(t *testing.T) {
 
 func Test_subjectRelationManager_List(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT pk, subject_pk, parent_pk, policy_expired_at, created_at FROM subject_relation
+		WHERE parent_pk = (.*) ORDER BY pk DESC LIMIT (.*) OFFSET (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{"pk", "subject_pk", "parent_pk", "policy_expired_at"},
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
@@ -53,7 +54,8 @@ func Test_subjectRelationManager_List(t *testing.T) {
 
 func Test_subjectRelationManager_ListRelation(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT pk, subject_pk, parent_pk, policy_expired_at, created_at FROM subject_relation
+		WHERE subject_pk =`
 		mockRows := sqlmock.NewRows(
 			[]string{
 				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
@@ -70,7 +72,8 @@ func Test_subjectRelationManager_ListRelation(t *testing.T) {
 
 func Test_subjectRelationManager_ListEffectRelationBySubjectPKs(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT subject_pk, parent_pk, policy_expired_at FROM subject_relation
+		WHERE subject_pk in (.*) AND policy_expired_at > (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{"subject_pk", "parent_pk", "policy_expired_at"},
 		).AddRow(int64(1), int64(1), int64(0))
@@ -87,7 +90,7 @@ func Test_subjectRelationManager_ListEffectRelationBySubjectPKs(t *testing.T) {
 func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`DELETE FROM subject_relation WHERE parent_pk=`).WithArgs(
+		mock.ExpectExec(`DELETE FROM subject_relation WHERE parent_pk=(.*) AND subject_pk in (.*)`).WithArgs(
 			int64(1), int64(2),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -106,7 +109,16 @@ func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 
 func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT
+		pk,
+		subject_pk,
+		parent_pk,
+		policy_expired_at,
+		created_at
+		FROM subject_relation
+		WHERE subject_pk = (.*)
+		AND policy_expired_at < (.*)
+		ORDER BY policy_expired_at DESC`
 		mockRows := sqlmock.NewRows(
 			[]string{
 				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
@@ -123,7 +135,7 @@ func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 
 func Test_subjectRelationManager_GetMemberCountBeforeExpiredAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT (.*) FROM subject_relation`
+		mockQuery := `^SELECT COUNT(.*) FROM subject_relation WHERE parent_pk = (.*) AND policy_expired_at < (.*)`
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
 
