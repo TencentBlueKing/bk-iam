@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/condition"
@@ -46,6 +47,11 @@ func GetUnmarshalledResourceExpression(
 	signature string,
 	timestampNano int64,
 ) (c condition.Condition, err error) {
+	// 预防signature为空导致缓存数据冲突
+	if signature == "" {
+		signature = stringx.MD5Hash(expression)
+	}
+
 	key := ResourceExpressionCacheKey{
 		expression: expression,
 		signature:  signature,
