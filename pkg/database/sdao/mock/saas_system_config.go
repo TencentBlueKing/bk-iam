@@ -5,35 +5,50 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	sdao "iam/pkg/database/sdao"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockSaaSSystemConfigManager is a mock of SaaSSystemConfigManager interface
+// MockSaaSSystemConfigManager is a mock of SaaSSystemConfigManager interface.
 type MockSaaSSystemConfigManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockSaaSSystemConfigManagerMockRecorder
 }
 
-// MockSaaSSystemConfigManagerMockRecorder is the mock recorder for MockSaaSSystemConfigManager
+// MockSaaSSystemConfigManagerMockRecorder is the mock recorder for MockSaaSSystemConfigManager.
 type MockSaaSSystemConfigManagerMockRecorder struct {
 	mock *MockSaaSSystemConfigManager
 }
 
-// NewMockSaaSSystemConfigManager creates a new mock instance
+// NewMockSaaSSystemConfigManager creates a new mock instance.
 func NewMockSaaSSystemConfigManager(ctrl *gomock.Controller) *MockSaaSSystemConfigManager {
 	mock := &MockSaaSSystemConfigManager{ctrl: ctrl}
 	mock.recorder = &MockSaaSSystemConfigManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSaaSSystemConfigManager) EXPECT() *MockSaaSSystemConfigManagerMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// Create mocks base method.
+func (m *MockSaaSSystemConfigManager) Create(systemConfig sdao.SaaSSystemConfig) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", systemConfig)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockSaaSSystemConfigManagerMockRecorder) Create(systemConfig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSaaSSystemConfigManager)(nil).Create), systemConfig)
+}
+
+// Get mocks base method.
 func (m *MockSaaSSystemConfigManager) Get(system, name string) (sdao.SaaSSystemConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", system, name)
@@ -42,27 +57,13 @@ func (m *MockSaaSSystemConfigManager) Get(system, name string) (sdao.SaaSSystemC
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockSaaSSystemConfigManagerMockRecorder) Get(system, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSaaSSystemConfigManager)(nil).Get), system, name)
 }
 
-// Create mocks base method
-func (m *MockSaaSSystemConfigManager) Create(systemConfig sdao.SaaSSystemConfig) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", systemConfig)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create
-func (mr *MockSaaSSystemConfigManagerMockRecorder) Create(systemConfig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSaaSSystemConfigManager)(nil).Create), systemConfig)
-}
-
-// Update mocks base method
+// Update mocks base method.
 func (m *MockSaaSSystemConfigManager) Update(systemConfig sdao.SaaSSystemConfig) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", systemConfig)
@@ -70,7 +71,7 @@ func (m *MockSaaSSystemConfigManager) Update(systemConfig sdao.SaaSSystemConfig)
 	return ret0
 }
 
-// Update indicates an expected call of Update
+// Update indicates an expected call of Update.
 func (mr *MockSaaSSystemConfigManagerMockRecorder) Update(systemConfig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSaaSSystemConfigManager)(nil).Update), systemConfig)

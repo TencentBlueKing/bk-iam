@@ -25,10 +25,10 @@ func Test_subjectRelationManager_GetCount(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_relation`
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs("type", "id").WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		cnt, err := manager.GetMemberCount("type", "id")
+		cnt, err := manager.GetMemberCount(int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, cnt, int64(1))
@@ -39,12 +39,12 @@ func Test_subjectRelationManager_List(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_relation`
 		mockRows := sqlmock.NewRows(
-			[]string{"pk", "subject_type", "subject_id", "parent_type", "parent_id", "policy_expired_at"},
-		).AddRow(int64(1), "subject_type", "subject_id", "parent_type", "parent_id", int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs("type", "id", 0, 10).WillReturnRows(mockRows)
+			[]string{"pk", "subject_pk", "parent_pk", "policy_expired_at"},
+		).AddRow(int64(1), int64(2), int64(3), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), 0, 10).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListPagingMember("type", "id", 0, 10)
+		relations, err := manager.ListPagingMember(int64(1), 0, 10)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -56,13 +56,12 @@ func Test_subjectRelationManager_ListRelation(t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_relation`
 		mockRows := sqlmock.NewRows(
 			[]string{
-				"pk", "subject_pk", "subject_type", "subject_id", "parent_pk",
-				"parent_type", "parent_id", "policy_expired_at"},
-		).AddRow(int64(1), int64(1), "subject_type", "subject_id", int64(1), "parent_type", "parent_id", int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs("type", "id").WillReturnRows(mockRows)
+				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
+		).AddRow(int64(1), int64(2), int64(3), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListRelation("type", "id")
+		relations, err := manager.ListRelation(int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -88,8 +87,8 @@ func Test_subjectRelationManager_ListEffectRelationBySubjectPKs(t *testing.T) {
 func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`DELETE FROM subject_relation WHERE parent_type=`).WithArgs(
-			"type", "id", "subject_type", "subject_id",
+		mock.ExpectExec(`DELETE FROM subject_relation WHERE parent_pk=`).WithArgs(
+			int64(1), int64(2),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -97,7 +96,7 @@ func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectRelationManager{DB: db}
-		cnt, err := manager.BulkDeleteByMembersWithTx(tx, "type", "id", "subject_type", []string{"subject_id"})
+		cnt, err := manager.BulkDeleteByMembersWithTx(tx, int64(1), []int64{2})
 
 		tx.Commit()
 		assert.NoError(t, err)
@@ -110,13 +109,12 @@ func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_relation`
 		mockRows := sqlmock.NewRows(
 			[]string{
-				"pk", "subject_pk", "subject_type", "subject_id", "parent_pk",
-				"parent_type", "parent_id", "policy_expired_at"},
-		).AddRow(int64(1), int64(1), "subject_type", "subject_id", int64(1), "parent_type", "parent_id", int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs("type", "id", int64(1000)).WillReturnRows(mockRows)
+				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
+		).AddRow(int64(1), int64(2), int64(3), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListRelationBeforeExpiredAt("type", "id", int64(1000))
+		relations, err := manager.ListRelationBeforeExpiredAt(int64(1), int64(1000))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -127,10 +125,10 @@ func Test_subjectRelationManager_GetMemberCountBeforeExpiredAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_relation`
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs("type", "id", int64(1)).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		cnt, err := manager.GetMemberCountBeforeExpiredAt("type", "id", int64(1))
+		cnt, err := manager.GetMemberCountBeforeExpiredAt(int64(1), int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, cnt, int64(1))

@@ -26,13 +26,9 @@ import (
 type SubjectRelation struct {
 	PK int64 `db:"pk"`
 	// 冗余存储，便于鉴权查询
-	SubjectPK   int64  `db:"subject_pk"`
-	SubjectType string `db:"subject_type"`
-	SubjectID   string `db:"subject_id"`
+	SubjectPK int64 `db:"subject_pk"`
 	// 冗余存储，便于鉴权查询
-	ParentPK   int64  `db:"parent_pk"`
-	ParentType string `db:"parent_type"`
-	ParentID   string `db:"parent_id"`
+	ParentPK int64 `db:"parent_pk"`
 	// 策略有效期，unix time，单位秒(s)
 	PolicyExpiredAt int64     `db:"policy_expired_at"`
 	CreateAt        time.Time `db:"created_at"`
@@ -59,24 +55,23 @@ type EffectSubjectRelation struct {
 
 // SubjectRelationManager ...
 type SubjectRelationManager interface {
-	ListRelation(_type, id string) ([]SubjectRelation, error)
-	ListRelationBySubjectPK(subjectPK int64) ([]SubjectRelation, error)
-	ListEffectThinRelationBySubjectPK(subjectPK int64) ([]ThinSubjectRelation, error)
-	ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]EffectSubjectRelation, error)
-	ListRelationBeforeExpiredAt(_type, id string, expiredAt int64) ([]SubjectRelation, error)
+	ListRelation(subjectPK int64) ([]SubjectRelation, error)
+	ListEffectThinRelationBySubjectPK(subjectPK int64) ([]ThinSubjectRelation, error)   // TODO 通过subject_system_group 获取，删除
+	ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]EffectSubjectRelation, error) // TODO 通过subject_system_group 获取，删除
+	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
 
-	ListPagingMember(_type, id string, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingMember(parentPK int64, limit, offset int64) ([]SubjectRelation, error)
 	ListPagingMemberBeforeExpiredAt(
-		_type string, id string, expiredAt int64, limit, offset int64,
+		parentPK int64, expiredAt int64, limit, offset int64,
 	) (members []SubjectRelation, err error)
-	ListMember(_type, id string) ([]SubjectRelation, error)
-	GetMemberCount(_type, id string) (int64, error)
-	GetMemberCountBeforeExpiredAt(_type string, id string, expiredAt int64) (int64, error)
-	ListParentIDsBeforeExpiredAt(_type string, ids []string, expiredAt int64) ([]string, error)
+	ListMember(parentPK int64) ([]SubjectRelation, error)
+	GetMemberCount(parentPK int64) (int64, error)
+	GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt int64) (int64, error)
+	ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
 
 	UpdateExpiredAt(relations []SubjectRelationPKPolicyExpiredAt) error
 
-	BulkDeleteByMembersWithTx(tx *sqlx.Tx, _type, id, subjectType string, subjectIDs []string) (int64, error)
+	BulkDeleteByMembersWithTx(tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error)
 	BulkCreate(relations []SubjectRelation) error
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []int64) error
@@ -94,8 +89,8 @@ func NewSubjectRelationManager() SubjectRelationManager {
 }
 
 // ListRelation ...
-func (m *subjectRelationManager) ListRelation(_type, id string) (relations []SubjectRelation, err error) {
-	err = m.selectRelation(&relations, _type, id)
+func (m *subjectRelationManager) ListRelation(subjectPK int64) (relations []SubjectRelation, err error) {
+	err = m.selectRelation(&relations, subjectPK)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -105,19 +100,9 @@ func (m *subjectRelationManager) ListRelation(_type, id string) (relations []Sub
 
 // ListRelationBeforeExpiredAt ...
 func (m *subjectRelationManager) ListRelationBeforeExpiredAt(
-	_type, id string, expiredAt int64,
+	subjectPK int64, expiredAt int64,
 ) (relations []SubjectRelation, err error) {
-	err = m.selectRelationBeforeExpiredAt(&relations, _type, id, expiredAt)
-	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
-	if errors.Is(err, sql.ErrNoRows) {
-		return relations, nil
-	}
-	return
-}
-
-// ListRelationBySubjectPK ...
-func (m *subjectRelationManager) ListRelationBySubjectPK(subjectPK int64) (relations []SubjectRelation, err error) {
-	err = m.selectRelationBySubjectPK(&relations, subjectPK)
+	err = m.selectRelationBeforeExpiredAt(&relations, subjectPK, expiredAt)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -158,9 +143,9 @@ func (m *subjectRelationManager) ListEffectRelationBySubjectPKs(subjectPKs []int
 }
 
 // ListPagingMember ...
-func (m *subjectRelationManager) ListPagingMember(_type, id string, limit, offset int64) (
+func (m *subjectRelationManager) ListPagingMember(parentPK int64, limit, offset int64) (
 	members []SubjectRelation, err error) {
-	err = m.selectPagingMembers(&members, _type, id, limit, offset)
+	err = m.selectPagingMembers(&members, parentPK, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -168,8 +153,8 @@ func (m *subjectRelationManager) ListPagingMember(_type, id string, limit, offse
 }
 
 // ListMember ...
-func (m *subjectRelationManager) ListMember(_type, id string) (members []SubjectRelation, err error) {
-	err = m.selectMembers(&members, _type, id)
+func (m *subjectRelationManager) ListMember(parentPK int64) (members []SubjectRelation, err error) {
+	err = m.selectMembers(&members, parentPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -177,19 +162,19 @@ func (m *subjectRelationManager) ListMember(_type, id string) (members []Subject
 }
 
 // GetMemberCount ...
-func (m *subjectRelationManager) GetMemberCount(_type, id string) (int64, error) {
+func (m *subjectRelationManager) GetMemberCount(parentPK int64) (int64, error) {
 	var cnt int64
-	err := m.getMemberCount(&cnt, _type, id)
+	err := m.getMemberCount(&cnt, parentPK)
 	return cnt, err
 }
 
 // BulkDeleteByMembersWithTx ...
 func (m *subjectRelationManager) BulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, _type, id, subjectType string, subjectIDs []string) (int64, error) {
-	if len(subjectIDs) == 0 {
+	tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error) {
+	if len(subjectPKs) == 0 {
 		return 0, nil
 	}
-	return m.bulkDeleteByMembersWithTx(tx, _type, id, subjectType, subjectIDs)
+	return m.bulkDeleteByMembersWithTx(tx, parentPK, subjectPKs)
 }
 
 // BulkCreate ...
@@ -223,88 +208,62 @@ func (m *subjectRelationManager) UpdateExpiredAt(relations []SubjectRelationPKPo
 
 // GetMemberCountBeforeExpiredAt ...
 func (m *subjectRelationManager) GetMemberCountBeforeExpiredAt(
-	_type string, id string, expiredAt int64,
+	parentPK int64, expiredAt int64,
 ) (int64, error) {
 	var cnt int64
-	err := m.getMemberCountBeforeExpiredAt(&cnt, _type, id, expiredAt)
+	err := m.getMemberCountBeforeExpiredAt(&cnt, parentPK, expiredAt)
 	return cnt, err
 }
 
 // ListPagingMemberBeforeExpiredAt ...
 func (m *subjectRelationManager) ListPagingMemberBeforeExpiredAt(
-	_type string, id string, expiredAt int64, limit, offset int64,
+	parentPK int64, expiredAt int64, limit, offset int64,
 ) (members []SubjectRelation, err error) {
-	err = m.selectPagingMembersBeforeExpiredAt(&members, _type, id, expiredAt, limit, offset)
+	err = m.selectPagingMembersBeforeExpiredAt(&members, parentPK, expiredAt, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
 	return
 }
 
-// ListParentIDsBeforeExpiredAt get the group ids before timestamp(expiredAt)
-func (m *subjectRelationManager) ListParentIDsBeforeExpiredAt(
-	_type string, ids []string, expiredAt int64,
-) ([]string, error) {
-	expiredParentIDs := []string{}
-	err := m.listParentIDsBeforeExpiredAt(&expiredParentIDs, _type, ids, expiredAt)
+// ListParentPKsBeforeExpiredAt get the group pks before timestamp(expiredAt)
+func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(
+	parentPKs []int64, expiredAt int64,
+) ([]int64, error) {
+	parentPKsWithExpiredMember := []int64{}
+	err := m.listParentPKsBeforeExpiredAt(&parentPKsWithExpiredMember, parentPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return expiredParentIDs, nil
+		return parentPKsWithExpiredMember, nil
 	}
-	return expiredParentIDs, err
+	return parentPKsWithExpiredMember, err
 }
 
-func (m *subjectRelationManager) selectRelation(relations *[]SubjectRelation, _type, id string) error {
+func (m *subjectRelationManager) selectRelation(relations *[]SubjectRelation, subjectPK int64) error {
 	query := `SELECT
 		pk,
 		subject_pk,
-		subject_type,
-		subject_id,
 		parent_pk,
-		parent_type,
-		parent_id,
-		policy_expired_at,
-		created_at
-		FROM subject_relation
-		WHERE subject_type = ?
-		AND subject_id = ?`
-	return database.SqlxSelect(m.DB, relations, query, _type, id)
-}
-
-func (m *subjectRelationManager) selectRelationBeforeExpiredAt(
-	relations *[]SubjectRelation, _type, id string, expiredAt int64,
-) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		subject_type,
-		subject_id,
-		parent_pk,
-		parent_type,
-		parent_id,
-		policy_expired_at,
-		created_at
-		FROM subject_relation
-		WHERE subject_type = ?
-		AND subject_id = ?
-		AND policy_expired_at < ?
-		ORDER BY policy_expired_at DESC`
-	return database.SqlxSelect(m.DB, relations, query, _type, id, expiredAt)
-}
-
-func (m *subjectRelationManager) selectRelationBySubjectPK(relations *[]SubjectRelation, pk int64) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		subject_type,
-		subject_id,
-		parent_pk,
-		parent_type,
-		parent_id,
 		policy_expired_at,
 		created_at
 		FROM subject_relation
 		WHERE subject_pk = ?`
-	return database.SqlxSelect(m.DB, relations, query, pk)
+	return database.SqlxSelect(m.DB, relations, query, subjectPK)
+}
+
+func (m *subjectRelationManager) selectRelationBeforeExpiredAt(
+	relations *[]SubjectRelation, subjectPK int64, expiredAt int64,
+) error {
+	query := `SELECT
+		pk,
+		subject_pk,
+		parent_pk,
+		policy_expired_at,
+		created_at
+		FROM subject_relation
+		WHERE subject_pk = ?
+		AND policy_expired_at < ?
+		ORDER BY policy_expired_at DESC`
+	return database.SqlxSelect(m.DB, relations, query, subjectPK, expiredAt)
 }
 
 func (m *subjectRelationManager) selectEffectThinRelationBySubjectPK(
@@ -337,107 +296,82 @@ func (m *subjectRelationManager) selectEffectRelationBySubjectPKs(
 }
 
 func (m *subjectRelationManager) selectPagingMembers(
-	members *[]SubjectRelation, _type, id string, limit, offset int64) error {
+	members *[]SubjectRelation, parentPK int64, limit, offset int64) error {
 	query := `SELECT
 		pk,
 		subject_pk,
-		subject_type,
-		subject_id,
 		parent_pk,
-		parent_type,
-		parent_id,
 		policy_expired_at,
 		created_at
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id = ?
+		WHERE parent_pk = ?
 		ORDER BY pk DESC
 		LIMIT ? OFFSET ?`
-	return database.SqlxSelect(m.DB, members, query, _type, id, limit, offset)
+	return database.SqlxSelect(m.DB, members, query, parentPK, limit, offset)
 }
 
 func (m *subjectRelationManager) selectPagingMembersBeforeExpiredAt(
-	members *[]SubjectRelation, _type string, id string, expiredAt int64, limit, offset int64) error {
+	members *[]SubjectRelation, parentPK int64, expiredAt int64, limit, offset int64) error {
 	query := `SELECT
 		pk,
 		subject_pk,
-		subject_type,
-		subject_id,
 		parent_pk,
-		parent_type,
-		parent_id,
 		policy_expired_at,
 		created_at
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id = ?
+		WHERE parent_pk = ?
 		AND policy_expired_at < ?
 		ORDER BY policy_expired_at DESC, pk DESC
 		LIMIT ? OFFSET ?`
-	return database.SqlxSelect(m.DB, members, query, _type, id, expiredAt, limit, offset)
+	return database.SqlxSelect(m.DB, members, query, parentPK, expiredAt, limit, offset)
 }
 
 func (m *subjectRelationManager) selectMembers(
-	members *[]SubjectRelation, _type, id string) error {
+	members *[]SubjectRelation, parentPK int64) error {
 	query := `SELECT
 		pk,
 		subject_pk,
-		subject_type,
-		subject_id,
 		parent_pk,
-		parent_type,
-		parent_id,
 		policy_expired_at,
 		created_at
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id = ?`
-	return database.SqlxSelect(m.DB, members, query, _type, id)
+		WHERE parent_pk = ?`
+	return database.SqlxSelect(m.DB, members, query, parentPK)
 }
 
-func (m *subjectRelationManager) getMemberCount(cnt *int64, _type, id string) error {
+func (m *subjectRelationManager) getMemberCount(cnt *int64, parentPK int64) error {
 	query := `SELECT
 		COUNT(*)
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id = ?`
-	return database.SqlxGet(m.DB, cnt, query, _type, id)
+		WHERE parent_pk = ?`
+	return database.SqlxGet(m.DB, cnt, query, parentPK)
 }
 
 func (m *subjectRelationManager) getMemberCountBeforeExpiredAt(
-	cnt *int64, _type string, id string, expiredAt int64,
+	cnt *int64, parentPK int64, expiredAt int64,
 ) error {
 	query := `SELECT
 		COUNT(*)
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id = ?
+		WHERE parent_pk = ?
 		AND policy_expired_at < ?`
-	return database.SqlxGet(m.DB, cnt, query, _type, id, expiredAt)
+	return database.SqlxGet(m.DB, cnt, query, parentPK, expiredAt)
 }
 
 func (m *subjectRelationManager) bulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, _type, id, subjectType string, subjectIDs []string) (int64, error) {
-	sql := `DELETE FROM subject_relation WHERE parent_type=? AND parent_id=? AND subject_type=? AND subject_id in (?)`
-	return database.SqlxDeleteReturnRowsWithTx(tx, sql, _type, id, subjectType, subjectIDs)
+	tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error) {
+	sql := `DELETE FROM subject_relation WHERE parent_pk=? AND subject_pk in (?)`
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, parentPK, subjectPKs)
 }
 
 func (m *subjectRelationManager) bulkInsert(relations []SubjectRelation) error {
 	sql := `INSERT INTO subject_relation (
 		subject_pk,
-		subject_type,
-		subject_id,
 		parent_pk,
-		parent_type,
-		parent_id,
 		policy_expired_at,
 		created_at
 	) VALUES (:subject_pk,
-		:subject_type,
-		:subject_id,
 		:parent_pk,
-		:parent_type,
-		:parent_id,
 		:policy_expired_at,
 		:created_at)`
 	return database.SqlxBulkInsert(m.DB, sql, relations)
@@ -460,14 +394,13 @@ func (m *subjectRelationManager) updateExpiredAt(relations []SubjectRelationPKPo
 	return database.SqlxBulkUpdate(m.DB, sql, relations)
 }
 
-func (m *subjectRelationManager) listParentIDsBeforeExpiredAt(
-	parentIDs *[]string, _type string, ids []string, expiredAt int64,
+func (m *subjectRelationManager) listParentPKsBeforeExpiredAt(
+	parentPKsWithExpiredMember *[]int64, parentPKs []int64, expiredAt int64,
 ) error {
 	query := `SELECT
-		DISTINCT parent_id
+		DISTINCT parent_pk
 		FROM subject_relation
-		WHERE parent_type = ?
-		AND parent_id IN (?)
+		WHERE parent_pk IN (?)
 		AND policy_expired_at < ?`
-	return database.SqlxSelect(m.DB, parentIDs, query, _type, ids, expiredAt)
+	return database.SqlxSelect(m.DB, parentPKsWithExpiredMember, query, parentPKs, expiredAt)
 }

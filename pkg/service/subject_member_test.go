@@ -19,7 +19,6 @@ import (
 
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
-	"iam/pkg/service/types"
 )
 
 var _ = Describe("SubjectService", func() {
@@ -33,14 +32,35 @@ var _ = Describe("SubjectService", func() {
 			ctl.Finish()
 		})
 
+		It("manager.GetPK fail", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().GetPK("group", "test").Return(
+				int64(0), errors.New("error"),
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager: mockSubjectService,
+			}
+
+			_, err := manager.ListMember("group", "test")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "GetPK")
+		})
+
 		It("manager.ListMember fail", func() {
-			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectService.EXPECT().ListMember("group", "test").Return(
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().GetPK("group", "test").Return(
+				int64(1), nil,
+			).AnyTimes()
+
+			mockSubjectRelationService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationService.EXPECT().ListMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
 			manager := &subjectService{
-				relationManager: mockSubjectService,
+				manager:         mockSubjectService,
+				relationManager: mockSubjectRelationService,
 			}
 
 			_, err := manager.ListMember("group", "test")
@@ -48,19 +68,54 @@ var _ = Describe("SubjectService", func() {
 			assert.Contains(GinkgoT(), err.Error(), "ListMember")
 		})
 
-		It("success", func() {
-			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectService.EXPECT().ListMember("group", "test").Return(
-				[]dao.SubjectRelation{}, nil,
+		It("manager.ListByPKs fail", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().GetPK("group", "test").Return(
+				int64(1), nil,
+			).AnyTimes()
+
+			mockSubjectService.EXPECT().ListByPKs([]int64{0}).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			mockSubjectRelationService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationService.EXPECT().ListMember(int64(1)).Return(
+				[]dao.SubjectRelation{{}}, nil,
 			).AnyTimes()
 
 			manager := &subjectService{
-				relationManager: mockSubjectService,
+				manager:         mockSubjectService,
+				relationManager: mockSubjectRelationService,
+			}
+
+			_, err := manager.ListMember("group", "test")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "convertToSubjectMembers")
+		})
+
+		It("success", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().GetPK("group", "test").Return(
+				int64(1), nil,
+			).AnyTimes()
+
+			mockSubjectService.EXPECT().ListByPKs([]int64{0}).Return(
+				[]dao.Subject{}, nil,
+			).AnyTimes()
+
+			mockSubjectRelationService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationService.EXPECT().ListMember(int64(1)).Return(
+				[]dao.SubjectRelation{{}}, nil,
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager:         mockSubjectService,
+				relationManager: mockSubjectRelationService,
 			}
 
 			subjectMembers, err := manager.ListMember("group", "test")
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.SubjectMember{}, subjectMembers)
+			assert.Len(GinkgoT(), subjectMembers, 1)
 		})
 	})
 })
