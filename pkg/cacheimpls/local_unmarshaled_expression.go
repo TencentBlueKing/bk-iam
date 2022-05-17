@@ -75,7 +75,7 @@ func GetUnmarshalledResourceExpression(
 		return
 	}
 
-	return
+	return c, nil
 }
 
 func PoliciesTranslate(policies []types.AuthPolicy) (map[string]interface{}, error) {
