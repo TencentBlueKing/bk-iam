@@ -158,6 +158,7 @@ func (l *resourceTypeService) BulkCreate(system string, resourceTypes []types.Re
 			NameEn:         rt.NameEn,
 			Description:    rt.Description,
 			DescriptionEn:  rt.DescriptionEn,
+			Sensitivity:    rt.Sensitivity,
 			Parents:        parents,
 			ProviderConfig: providerConfig,
 		})
@@ -214,6 +215,9 @@ func (l *resourceTypeService) Update(
 	if resourceType.AllowEmptyFields.HasKey("DescriptionEn") {
 		allowBlank.AddKey("DescriptionEn")
 	}
+	if resourceType.AllowEmptyFields.HasKey("Sensitivity") {
+		allowBlank.AddKey("Sensitivity")
+	}
 
 	data := sdao.SaaSResourceType{
 		// PK:             0,
@@ -223,6 +227,7 @@ func (l *resourceTypeService) Update(
 		NameEn:         resourceType.NameEn,
 		Description:    resourceType.Description,
 		DescriptionEn:  resourceType.DescriptionEn,
+		Sensitivity:    resourceType.Sensitivity,
 		Version:        resourceType.Version,
 		Parents:        parents,
 		ProviderConfig: providerConfig,

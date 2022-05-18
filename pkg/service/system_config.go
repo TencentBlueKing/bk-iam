@@ -120,7 +120,8 @@ func (s *systemConfigService) getSliceConfig(system string, configKey string) (d
 }
 
 func (s *systemConfigService) getMapConfig(system string, configKey string) (dataI map[string]interface{},
-	err error) {
+	err error,
+) {
 	var data interface{}
 	data, err = s.get(system, configKey)
 	if err != nil {
@@ -135,6 +136,7 @@ func (s *systemConfigService) getMapConfig(system string, configKey string) (dat
 	}
 	return
 }
+
 func (s *systemConfigService) create(system, key, _type string, data interface{}) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SystemConfigSVC, "create")
 	var (

@@ -85,6 +85,14 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	model.Register(permModelRouter)
 
+	// perm-model for some internal platforms/systems, like audit_system
+	permModelShareRouter := router.Group("/api/v1/model/share")
+	permModelShareRouter.Use(middleware.Metrics())
+	permModelShareRouter.Use(middleware.Audit())
+	permModelShareRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	permModelShareRouter.Use(middleware.ShareClientMiddleware())
+	model.RegisterShare(permModelShareRouter)
+
 	// debug api
 	debugRouter := router.Group("/api/v1/debug")
 	debugRouter.Use(middleware.NewClientAuthMiddleware(cfg))

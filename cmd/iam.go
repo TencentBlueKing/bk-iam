@@ -97,6 +97,7 @@ func Start() {
 	initSuperAppCode()
 	initSuperUser()
 	initSupportShieldFeatures()
+	initShareAppCode()
 	initComponents()
 	initQuota()
 	initSwitch()

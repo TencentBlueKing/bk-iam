@@ -69,3 +69,16 @@ func Register(r *gin.RouterGroup) {
 		s.DELETE("/actions/:action_id/policies", handler.DeleteActionPolicies)
 	}
 }
+
+func RegisterShare(r *gin.RouterGroup) {
+	// GET /api/v1/model/share/systems
+	r.GET("/systems", handler.ShareListSystem)
+
+	// all resource in system
+	s := r.Group("/systems/:system_id")
+	s.Use(common.SystemExists())
+	{
+		// GET /api/v1/model/share/systems/:system_id/query
+		s.GET("/query", handler.ShareSystemInfoQuery)
+	}
+}

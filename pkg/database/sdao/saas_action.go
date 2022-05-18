@@ -33,6 +33,7 @@ type SaaSAction struct {
 	NameEn              string `db:"name_en"`
 	Description         string `db:"description"`
 	DescriptionEn       string `db:"description_en"`
+	Sensitivity         int64  `db:"sensitivity"`
 	RelatedActions      string `db:"related_actions"`
 	RelatedEnvironments string `db:"related_environments"`
 	Type                string `db:"type"`
@@ -84,8 +85,7 @@ func (m *saasActionManager) BulkCreateWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 }
 
 // Update ...
-func (m *saasActionManager) Update(tx *sqlx.Tx, system, actionID string,
-	saasAction SaaSAction) error {
+func (m *saasActionManager) Update(tx *sqlx.Tx, system, actionID string, saasAction SaaSAction) error {
 	// 1. parse the set sql string and update data
 	expr, data, err := database.ParseUpdateStruct(saasAction, saasAction.AllowBlankFields)
 	if err != nil {
@@ -118,11 +118,12 @@ func (m *saasActionManager) bulkInsertWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 		name_en,
 		description,
 		description_en,
+		sensitivity,
 		related_actions,
 		related_environments,
 		type,
 		version
-	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en,
+	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :sensitivity,
 			:related_actions, :related_environments, :type, :version)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasActions)
 }
@@ -149,6 +150,7 @@ func (m *saasActionManager) selectBySystem(saasAction *[]SaaSAction, system stri
 		name_en,
 		description,
 		description_en,
+		sensitivity,
 		related_actions,
 		related_environments,
 		type,

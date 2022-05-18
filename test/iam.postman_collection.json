@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "de597774-a23c-4ee6-85b4-e0e190ce4a80",
+		"_postman_id": "e59492ec-3767-4bcd-a439-71a45b84d69b",
 		"name": "iam",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1666,6 +1666,66 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"userxxx\"\n    },\n    \"action\": {\n        \"id\": \"develop_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"001\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/query",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user011 develop app 001 temporary policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.op).to.eql(\"any\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user011\"\n    },\n    \"action\": {\n        \"id\": \"develop_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"001\"\n    }]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3503,74 +3563,6 @@
 								{
 									"key": "action_id",
 									"value": "develop_app"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "policy subjects",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"ok\", function () {",
-									"    var jsonData = pm.response.json();",
-									"",
-									"    pm.expect(jsonData.code).to.eql(0);",
-									"",
-									"    pm.expect(jsonData.data.length).to.eql(4)",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							},
-							{
-								"key": "X-Bk-App-Code",
-								"type": "text",
-								"value": "{{app_code}}"
-							},
-							{
-								"key": "X-Bk-App-Secret",
-								"type": "text",
-								"value": "{{app_secret}}"
-							}
-						],
-						"url": {
-							"raw": "http://{{host}}/api/v1/systems/demo/policies/query/subjects?ids=1,2,3,4",
-							"protocol": "http",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"systems",
-								"demo",
-								"policies",
-								"query",
-								"subjects"
-							],
-							"query": [
-								{
-									"key": "ids",
-									"value": "1,2,3,4"
 								}
 							]
 						}
@@ -8482,6 +8474,180 @@
 								"v1",
 								"web",
 								"subject-roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create_temporary_policies",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"create_subject\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"ok\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"type": "text",
+								"value": "{{app_code}}"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"type": "text",
+								"value": "{{app_secret}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"subject\": {\n\t\t\"type\": \"user\",\n\t\t\"id\": \"admin\"\n\t},\n\t\"policies\": [\n\t\t{\n\t\t\t\"action_id\": \"develop_app\",\n\t\t\t\"resource_expression\": \"[{\\\"system\\\": \\\"demo\\\", \\\"type\\\": \\\"app\\\", \\\"expression\\\": {\\\"OR\\\": {\\\"content\\\": [{\\\"Any\\\": {\\\"id\\\": []}}]}}}]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t}\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/web/systems/demo/temporary-policies",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"web",
+								"systems",
+								"demo",
+								"temporary-policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete_temporary_policie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"create_subject\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"ok\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"type": "text",
+								"value": "{{app_code}}"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"type": "text",
+								"value": "{{app_secret}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"subject_type\": \"user\",\n\t\"subject_id\": \"admin\",\n\t\"system_id\": \"demo\",\n\t\"ids\": [1]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/web/temporary-policies",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"web",
+								"temporary-policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete_temporary_policie_before_expired_at",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"create_subject\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql(\"ok\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"type": "text",
+								"value": "{{app_code}}"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"type": "text",
+								"value": "{{app_secret}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/web/temporary-policies/before_expired_at?expired_at=100",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"web",
+								"temporary-policies",
+								"before_expired_at"
+							],
+							"query": [
+								{
+									"key": "expired_at",
+									"value": "100"
+								}
 							]
 						}
 					},

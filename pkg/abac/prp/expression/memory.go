@@ -79,9 +79,10 @@ func (r *memoryRetriever) retrieve(pks []int64) ([]types.AuthExpression, []int64
 		// 全部重查, 不重查可能有脏数据
 		missExpressionPKs = pks
 	} else {
+		timestampNano := time.Now().UnixNano()
 		for _, expressionPK := range pks {
 			key := r.genKey(expressionPK)
-			value, found := cacheimpls.LocalExpressionCache.Get(key)
+			value, found := cacheimpls.LocalExpressionCache.GetAfterExpirationAnchor(key, timestampNano)
 			if !found {
 				missExpressionPKs = append(missExpressionPKs, expressionPK)
 

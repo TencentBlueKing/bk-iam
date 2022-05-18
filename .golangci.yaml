@@ -25,10 +25,10 @@ linters:
     - nakedret
     - lll
     - gofmt
-    - bodyclose
     - gocritic
     - gocyclo
     - whitespace
+    # - bodyclose
     # - nestif
     # - gofumpt
     # - godox

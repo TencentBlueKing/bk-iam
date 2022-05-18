@@ -182,9 +182,9 @@ func checkActionIDsHasAnyPolicies(systemID string, ids []string) ([]string, erro
 			// 如果策略存在，需要再检查是否已经发起异步删除策略的事件
 			// TODO: 可以重构，提供一个定制部分参数的ExistByTypeModel方法，因为该方法使用的地方挺多，但是status/modelType是一样的
 			eventExist, err := eventSvc.ExistByTypeModel(
-				ModelChangeEventTypeActionPolicyDeleted,
-				ModelChangeEventStatusPending,
-				ModelChangeEventModelTypeAction,
+				service.ModelChangeEventTypeActionPolicyDeleted,
+				service.ModelChangeEventStatusPending,
+				service.ModelChangeEventModelTypeAction,
 				actionPK,
 			)
 			if err != nil {

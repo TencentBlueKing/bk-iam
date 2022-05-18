@@ -10,10 +10,18 @@
 
 package handler
 
+import (
+	"github.com/TencentBlueKing/gopkg/collection/set"
+)
+
 const (
 	actionSupportFields = "id,name,name_en,related_resource_types,version,type," +
 		"description,description_en,related_actions,related_environments"
 	actionDefaultFields = "id,name,name_en"
+)
+
+var (
+	actionSupportFieldSet = set.SplitStringToSet(actionSupportFields, ",")
 )
 
 type actionQuerySerializer struct {

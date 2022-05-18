@@ -41,6 +41,7 @@ type ActionService interface {
 	GetActionPK(system, id string) (int64, error)
 
 	Get(system, id string) (types.Action, error)
+
 	ListBySystem(system string) ([]types.Action, error)
 
 	BulkCreate(system string, actions []types.Action) error
@@ -321,6 +322,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			NameEn:              ac.NameEn,
 			Description:         ac.Description,
 			DescriptionEn:       ac.DescriptionEn,
+			Sensitivity:         ac.Sensitivity,
 			RelatedActions:      relatedActions,
 			RelatedEnvironments: relatedEnvironments,
 			Type:                ac.Type,
@@ -425,6 +427,9 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 	if action.AllowEmptyFields.HasKey("DescriptionEn") {
 		allowBlank.AddKey("DescriptionEn")
 	}
+	if action.AllowEmptyFields.HasKey("Sensitivity") {
+		allowBlank.AddKey("Sensitivity")
+	}
 
 	var relatedActions string
 	if action.AllowEmptyFields.HasKey("RelatedActions") {
@@ -453,6 +458,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		NameEn:              action.NameEn,
 		Description:         action.Description,
 		DescriptionEn:       action.DescriptionEn,
+		Sensitivity:         action.Sensitivity,
 		Type:                action.Type,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,
@@ -536,7 +542,8 @@ func (l *actionService) toServiceActionResourceType(
 }
 
 func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelections string) (
-	instanceSelections []map[string]interface{}, err error) {
+	instanceSelections []map[string]interface{}, err error,
+) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "fillRelatedInstanceSelections")
 	// rawRelatedInstanceSelections is {"system_id": a, "id": b}
 	if rawRelatedInstanceSelections == "" {

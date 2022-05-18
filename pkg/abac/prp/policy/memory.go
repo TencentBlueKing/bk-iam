@@ -81,11 +81,12 @@ func (r *memoryRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []in
 		// 全部重查, 不重查可能有脏数据
 		missSubjectPKs = subjectPKs
 	} else {
+		timestampNano := time.Now().UnixNano()
 		for _, subjectPK := range subjectPKs {
 			subjectPKStr := strconv.FormatInt(subjectPK, 10)
 
 			key := r.genKey(subjectPKStr)
-			value, found := cacheimpls.LocalPolicyCache.Get(key)
+			value, found := cacheimpls.LocalPolicyCache.GetAfterExpirationAnchor(key, timestampNano)
 			if !found {
 				missSubjectPKs = append(missSubjectPKs, subjectPK)
 

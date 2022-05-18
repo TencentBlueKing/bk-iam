@@ -50,6 +50,7 @@ type actionSerializer struct {
 
 	Description   string `json:"description" binding:"omitempty" example:"biz_create is"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
+	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
@@ -65,6 +66,7 @@ type actionUpdateSerializer struct {
 	NameEn        string `json:"name_en" example:"biz_create"`
 	Description   string `json:"description" binding:"omitempty" example:"biz_create is"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
+	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
@@ -119,8 +121,10 @@ func (a *actionUpdateSerializer) validate(keys map[string]interface{}) (bool, st
 	return true, "valid"
 }
 
-func validateRelatedInstanceSelections(data []referenceInstanceSelection, actionID string,
-	relatedResourceTypeID string) (bool, string) {
+func validateRelatedInstanceSelections(
+	data []referenceInstanceSelection, actionID string,
+	relatedResourceTypeID string,
+) (bool, string) {
 	for index, data := range data {
 		if err := binding.Validator.ValidateStruct(data); err != nil {
 			message := fmt.Sprintf("data of action_id=%s releated_resource_type[%s] instance_selections[%d], %s",

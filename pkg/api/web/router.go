@@ -49,6 +49,10 @@ func Register(r *gin.RouterGroup) {
 		s.GET("/custom-policy", handler.GetCustomPolicy)
 		// 根据Action删除策略
 		s.DELETE("/actions/:action_id/policies", handler.DeleteActionPolicies)
+
+		// temporary policy
+		// 创建临时权限
+		s.POST("/temporary-policies", handler.CreateTemporaryPolicies)
 	}
 
 	// 资源类型列表
@@ -62,6 +66,10 @@ func Register(r *gin.RouterGroup) {
 
 	// Policy 删除
 	r.DELETE("/policies", handler.BatchDeletePolicies)
+
+	// temporary-policies 删除
+	r.DELETE("/temporary-policies", handler.BatchDeleteTemporaryPolicies)
+	r.DELETE("/temporary-policies/before_expired_at", handler.DeleteTemporaryBeforeExpiredAt)
 
 	// 权限模板相关
 	pt := r.Group("/perm-templates")
@@ -119,6 +127,7 @@ func Register(r *gin.RouterGroup) {
 	// 模型变更事件
 	r.GET("/model-change-event", handler.ListModelChangeEvent)
 	r.PUT("/model-change-event/:event_pk", handler.UpdateModelChangeEvent)
+	r.DELETE("/model-change-event", handler.BatchDeleteModelChangeEvent)
 
 	// 清理未引用的expression
 	r.DELETE("/unreferenced-expressions", handler.DeleteUnreferencedExpressions)
