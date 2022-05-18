@@ -163,9 +163,9 @@ func (m *subjectRelationManager) ListMember(parentPK int64) (members []SubjectRe
 
 // GetMemberCount ...
 func (m *subjectRelationManager) GetMemberCount(parentPK int64) (int64, error) {
-	var cnt int64
-	err := m.getMemberCount(&cnt, parentPK)
-	return cnt, err
+	var count int64
+	err := m.getMemberCount(&count, parentPK)
+	return count, err
 }
 
 // BulkDeleteByMembersWithTx ...
@@ -210,9 +210,9 @@ func (m *subjectRelationManager) UpdateExpiredAt(relations []SubjectRelationPKPo
 func (m *subjectRelationManager) GetMemberCountBeforeExpiredAt(
 	parentPK int64, expiredAt int64,
 ) (int64, error) {
-	var cnt int64
-	err := m.getMemberCountBeforeExpiredAt(&cnt, parentPK, expiredAt)
-	return cnt, err
+	var count int64
+	err := m.getMemberCountBeforeExpiredAt(&count, parentPK, expiredAt)
+	return count, err
 }
 
 // ListPagingMemberBeforeExpiredAt ...
@@ -339,23 +339,23 @@ func (m *subjectRelationManager) selectMembers(
 	return database.SqlxSelect(m.DB, members, query, parentPK)
 }
 
-func (m *subjectRelationManager) getMemberCount(cnt *int64, parentPK int64) error {
+func (m *subjectRelationManager) getMemberCount(count *int64, parentPK int64) error {
 	query := `SELECT
 		COUNT(*)
 		FROM subject_relation
 		WHERE parent_pk = ?`
-	return database.SqlxGet(m.DB, cnt, query, parentPK)
+	return database.SqlxGet(m.DB, count, query, parentPK)
 }
 
 func (m *subjectRelationManager) getMemberCountBeforeExpiredAt(
-	cnt *int64, parentPK int64, expiredAt int64,
+	count *int64, parentPK int64, expiredAt int64,
 ) error {
 	query := `SELECT
 		COUNT(*)
 		FROM subject_relation
 		WHERE parent_pk = ?
 		AND policy_expired_at < ?`
-	return database.SqlxGet(m.DB, cnt, query, parentPK, expiredAt)
+	return database.SqlxGet(m.DB, count, query, parentPK, expiredAt)
 }
 
 func (m *subjectRelationManager) bulkDeleteByMembersWithTx(

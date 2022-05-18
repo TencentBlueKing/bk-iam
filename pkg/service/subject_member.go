@@ -30,12 +30,12 @@ func (l *subjectService) GetMemberCount(_type, id string) (int64, error) {
 		return 0, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	cnt, err := l.relationManager.GetMemberCount(pk)
+	count, err := l.relationManager.GetMemberCount(pk)
 	if err != nil {
 		err = errorWrapf(err, "relationManager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
 		return 0, err
 	}
-	return cnt, nil
+	return count, nil
 }
 
 // ListPagingMember ...
@@ -288,14 +288,14 @@ func (l *subjectService) GetMemberCountBeforeExpiredAt(_type, id string, expired
 		return 0, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	cnt, err := l.relationManager.GetMemberCountBeforeExpiredAt(parentPK, expiredAt)
+	count, err := l.relationManager.GetMemberCountBeforeExpiredAt(parentPK, expiredAt)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectSVC, "GetMemberCountBeforeExpiredAt",
 			"relationManager.GetMemberCountBeforeExpiredAt _type=`%s`, id=`%s`, expiredAt=`%d` fail",
 			_type, id, expiredAt)
 		return 0, err
 	}
-	return cnt, nil
+	return count, nil
 }
 
 // ListPagingMemberBeforeExpiredAt ...
