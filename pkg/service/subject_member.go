@@ -53,12 +53,29 @@ func (l *subjectService) ListPagingMember(_type, id string, limit, offset int64)
 			_type, id, limit, offset)
 	}
 
-	relations, err := l.convertToSubjectMembers(daoRelations)
+	members, err := l.convertToSubjectMembers(daoRelations)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", relations)
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
 	}
 
-	return relations, nil
+	return members, nil
+}
+
+func (l *subjectService) getSubjectMapByPKs(pks []int64) (map[int64]dao.Subject, error) {
+	if len(pks) == 0 {
+		return nil, nil
+	}
+
+	subjects, err := l.manager.ListByPKs(pks)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]dao.Subject, len(subjects))
+	for _, s := range subjects {
+		subjectMap[s.PK] = s
+	}
+	return subjectMap, nil
 }
 
 func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelation) ([]types.SubjectMember, error) {
@@ -71,17 +88,12 @@ func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelat
 		subjectPKs = append(subjectPKs, r.SubjectPK)
 	}
 
-	subjects, err := l.manager.ListByPKs(subjectPKs)
+	subjectMap, err := l.getSubjectMapByPKs(subjectPKs)
 	if err != nil {
 		return nil, err
 	}
 
-	subjectMap := make(map[int64]dao.Subject, len(subjects))
-	for _, s := range subjects {
-		subjectMap[s.PK] = s
-	}
-
-	relations := make([]types.SubjectMember, 0, len(daoRelations))
+	members := make([]types.SubjectMember, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		var _type, id string
 		subject, ok := subjectMap[r.SubjectPK]
@@ -90,7 +102,7 @@ func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelat
 			id = subject.ID
 		}
 
-		relations = append(relations, types.SubjectMember{
+		members = append(members, types.SubjectMember{
 			PK:              r.PK,
 			Type:            _type,
 			ID:              id,
@@ -98,7 +110,7 @@ func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelat
 			CreateAt:        r.CreateAt,
 		})
 	}
-	return relations, nil
+	return members, nil
 }
 
 // ListMember ...
@@ -116,12 +128,12 @@ func (l *subjectService) ListMember(_type, id string) ([]types.SubjectMember, er
 			"ListMember", "relationManager.ListMember _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	relations, err := l.convertToSubjectMembers(daoRelations)
+	members, err := l.convertToSubjectMembers(daoRelations)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", relations)
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
 	}
 
-	return relations, nil
+	return members, nil
 }
 
 // UpdateMembersExpiredAt ...
@@ -316,10 +328,10 @@ func (l *subjectService) ListPagingMemberBeforeExpiredAt(
 			"ListPagingMemberBeforeExpiredAt", "_type=`%s`, id=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
 			_type, id, expiredAt, limit, offset)
 	}
-	relations, err := l.convertToSubjectMembers(daoRelations)
+	members, err := l.convertToSubjectMembers(daoRelations)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", relations)
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
 	}
 
-	return relations, nil
+	return members, nil
 }

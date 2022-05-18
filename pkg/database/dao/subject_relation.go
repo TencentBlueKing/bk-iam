@@ -24,11 +24,9 @@ import (
 
 // SubjectRelation  用户-组/部门-组关系表
 type SubjectRelation struct {
-	PK int64 `db:"pk"`
-	// 冗余存储，便于鉴权查询
+	PK        int64 `db:"pk"`
 	SubjectPK int64 `db:"subject_pk"`
-	// 冗余存储，便于鉴权查询
-	ParentPK int64 `db:"parent_pk"`
+	ParentPK  int64 `db:"parent_pk"`
 	// 策略有效期，unix time，单位秒(s)
 	PolicyExpiredAt int64     `db:"policy_expired_at"`
 	CreateAt        time.Time `db:"created_at"`
@@ -227,15 +225,13 @@ func (m *subjectRelationManager) ListPagingMemberBeforeExpiredAt(
 }
 
 // ListParentPKsBeforeExpiredAt get the group pks before timestamp(expiredAt)
-func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(
-	parentPKs []int64, expiredAt int64,
-) ([]int64, error) {
-	parentPKsWithExpiredMember := []int64{}
-	err := m.listParentPKsBeforeExpiredAt(&parentPKsWithExpiredMember, parentPKs, expiredAt)
+func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
+	expiredParentPKs := []int64{}
+	err := m.listParentPKsBeforeExpiredAt(&expiredParentPKs, parentPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return parentPKsWithExpiredMember, nil
+		return expiredParentPKs, nil
 	}
-	return parentPKsWithExpiredMember, err
+	return expiredParentPKs, err
 }
 
 func (m *subjectRelationManager) selectRelation(relations *[]SubjectRelation, subjectPK int64) error {
@@ -395,12 +391,12 @@ func (m *subjectRelationManager) updateExpiredAt(relations []SubjectRelationPKPo
 }
 
 func (m *subjectRelationManager) listParentPKsBeforeExpiredAt(
-	parentPKsWithExpiredMember *[]int64, parentPKs []int64, expiredAt int64,
+	expiredParentPKs *[]int64, parentPKs []int64, expiredAt int64,
 ) error {
 	query := `SELECT
 		DISTINCT parent_pk
 		FROM subject_relation
 		WHERE parent_pk IN (?)
 		AND policy_expired_at < ?`
-	return database.SqlxSelect(m.DB, parentPKsWithExpiredMember, query, parentPKs, expiredAt)
+	return database.SqlxSelect(m.DB, expiredParentPKs, query, parentPKs, expiredAt)
 }

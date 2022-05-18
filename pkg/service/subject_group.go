@@ -102,28 +102,23 @@ func (l *subjectService) convertToSubjectGroup(daoRelations []dao.SubjectRelatio
 		return nil, nil
 	}
 
-	subjectPKs := make([]int64, 0, len(daoRelations))
+	parentPKs := make([]int64, 0, len(daoRelations))
 	for _, r := range daoRelations {
-		subjectPKs = append(subjectPKs, r.ParentPK)
+		parentPKs = append(parentPKs, r.ParentPK)
 	}
 
-	subjects, err := l.manager.ListByPKs(subjectPKs)
+	parentMap, err := l.getSubjectMapByPKs(parentPKs)
 	if err != nil {
 		return nil, err
-	}
-
-	subjectMap := make(map[int64]dao.Subject, len(subjects))
-	for _, s := range subjects {
-		subjectMap[s.PK] = s
 	}
 
 	groups := make([]types.SubjectGroup, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		var _type, id string
-		subject, ok := subjectMap[r.SubjectPK]
+		parent, ok := parentMap[r.ParentPK]
 		if ok {
-			_type = subject.Type
-			id = subject.ID
+			_type = parent.Type
+			id = parent.ID
 		}
 
 		groups = append(groups, types.SubjectGroup{

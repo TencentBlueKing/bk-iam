@@ -285,6 +285,57 @@ var _ = Describe("SubjectService", func() {
 		})
 	})
 
+	Describe("getSubjectMapByPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("empty", func() {
+			manager := &subjectService{}
+
+			subjects, err := manager.getSubjectMapByPKs([]int64{})
+			assert.NoError(GinkgoT(), err)
+			assert.Nil(GinkgoT(), subjects)
+		})
+
+		It("manager.ListByPKs fail", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().ListByPKs([]int64{1}).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager: mockSubjectService,
+			}
+
+			subjects, err := manager.getSubjectMapByPKs([]int64{1})
+			assert.Error(GinkgoT(), err)
+			assert.Nil(GinkgoT(), subjects)
+		})
+
+		It("success", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().ListByPKs([]int64{1}).Return(
+				[]dao.Subject{{PK: 1, Type: "test", ID: "id", Name: "name"}}, nil,
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager: mockSubjectService,
+			}
+
+			subjectMap, err := manager.getSubjectMapByPKs([]int64{1})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), subjectMap, 1)
+			assert.Equal(GinkgoT(), map[int64]dao.Subject{
+				1: {PK: 1, Type: "test", ID: "id", Name: "name"},
+			}, subjectMap)
+		})
+	})
+
 	Describe("convertToSubjectMembers", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
@@ -319,15 +370,15 @@ var _ = Describe("SubjectService", func() {
 
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectManager(ctl)
-			mockSubjectService.EXPECT().ListByPKs([]int64{0}).Return(
-				[]dao.Subject{{Type: "test", ID: "id", Name: "name"}}, nil,
+			mockSubjectService.EXPECT().ListByPKs([]int64{1}).Return(
+				[]dao.Subject{{PK: 1, Type: "test", ID: "id", Name: "name"}}, nil,
 			).AnyTimes()
 
 			manager := &subjectService{
 				manager: mockSubjectService,
 			}
 
-			subjects, err := manager.convertToSubjectMembers([]dao.SubjectRelation{{}})
+			subjects, err := manager.convertToSubjectMembers([]dao.SubjectRelation{{SubjectPK: 1}})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), subjects, 1)
 			assert.Equal(GinkgoT(), "test", subjects[0].Type)
