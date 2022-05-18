@@ -189,7 +189,7 @@ var _ = Describe("SubjectService", func() {
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectManager(ctl)
 			mockSubjectService.EXPECT().ListByPKs([]int64{2}).Return(
-				[]dao.Subject{}, nil,
+				[]dao.Subject{{PK: 2, Type: "group", ID: "test"}}, nil,
 			).AnyTimes()
 
 			manager := &subjectService{
@@ -203,7 +203,7 @@ var _ = Describe("SubjectService", func() {
 				},
 			})
 			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), groups, 1)
+			assert.Equal(GinkgoT(), []types.SubjectGroup{{PK: 2, Type: "group", ID: "test"}}, groups)
 		})
 	})
 
