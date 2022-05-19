@@ -122,6 +122,5 @@ func (m *groupSystemAuthTypeManager) updateWithTx(tx *sqlx.Tx, groupSystemAuthTy
 
 func (m *groupSystemAuthTypeManager) deleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error) {
 	query := `DELETE FROM group_system_auth_type WHERE system_id = ? AND group_pk = ?`
-	rows, err := database.SqlxDeleteReturnRowsWithTx(tx, query, systemID, groupPK)
-	return rows, err
+	return database.SqlxDeleteReturnRowsWithTx(tx, query, systemID, groupPK)
 }

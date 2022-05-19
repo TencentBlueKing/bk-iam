@@ -57,14 +57,6 @@ func (m *subjectSystemGroupManager) GetGroups(systemID string, subjectPK int64) 
 	return
 }
 
-func (m *subjectSystemGroupManager) selectGroups(groups *string, systemID string, subjectPK int64) error {
-	query := `SELECT
-		groups
-		FROM subject_system_group
-		WHERE system_id = ? AND subject_pk = ?`
-	return database.SqlxGet(m.DB, groups, query, systemID, subjectPK)
-}
-
 // GetBySystemSubject ...
 func (m *subjectSystemGroupManager) GetBySystemSubject(systemID string, subjectPK int64) (SubjectSystemGroup, error) {
 	var subjectSystemGroup SubjectSystemGroup
@@ -85,6 +77,14 @@ func (m *subjectSystemGroupManager) UpdateWithTx(tx *sqlx.Tx, subjectSystemGroup
 // DeleteBySystemSubject ...
 func (m *subjectSystemGroupManager) DeleteBySystemSubjectWithTx(tx *sqlx.Tx, systemID string, subjectPK int64) error {
 	return m.deleteBySystemSubjectWithTx(tx, systemID, subjectPK)
+}
+
+func (m *subjectSystemGroupManager) selectGroups(groups *string, systemID string, subjectPK int64) error {
+	query := `SELECT
+		groups
+		FROM subject_system_group
+		WHERE system_id = ? AND subject_pk = ?`
+	return database.SqlxGet(m.DB, groups, query, systemID, subjectPK)
 }
 
 func (m *subjectSystemGroupManager) selectBySystemSubject(
