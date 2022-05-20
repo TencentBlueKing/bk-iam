@@ -97,7 +97,7 @@ func (m *subjectSystemGroupManager) selectBySystemSubject(
 		system_id,
 		subject_pk,
 		groups,
-		updates,
+		reversion,
 		created_at
 		FROM subject_system_group
 		WHERE system_id = ? AND subject_pk = ?`
@@ -122,7 +122,7 @@ func (m *subjectSystemGroupManager) insertWithTx(tx *sqlx.Tx, subjectSystemGroup
 func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) (int64, error) {
 	sql := `UPDATE subject_system_group SET
 		groups = :groups,
-		updates = reversion + 1 
+		reversion = reversion + 1 
 		WHERE system_id = :system_id
 		AND subject_pk = :subject_pk
 		AND reversion = :reversion`

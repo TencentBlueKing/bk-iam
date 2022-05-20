@@ -62,11 +62,11 @@ func Test_subjectSystemGroupManager_GetBySystemSubject(t *testing.T) {
 		system_id,
 		subject_pk,
 		groups,
-		updates,
+		reversion,
 		created_at
 		FROM subject_system_group
 		WHERE system_id = (.*) AND subject_pk = (.*)`
-		mockRows := sqlmock.NewRows([]string{"system_id", "subject_pk", "groups", "updates"}).AddRow("test", int64(1), "[]", int64(2))
+		mockRows := sqlmock.NewRows([]string{"system_id", "subject_pk", "groups", "reversion"}).AddRow("test", int64(1), "[]", int64(2))
 		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectSystemGroupManager{DB: db}
