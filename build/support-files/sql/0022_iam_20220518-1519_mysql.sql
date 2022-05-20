@@ -3,7 +3,7 @@ CREATE TABLE `bkiam`.`subject_system_group` (
   `system_id` varchar(32) NOT NULL,
   `subject_pk` int(10) unsigned NOT NULL,
   `groups` mediumtext NOT NULL, -- JSON
-  `updates` int(10) unsigned NOT NULL DEFAULT 0,
+  `reversion` int(10) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk`),

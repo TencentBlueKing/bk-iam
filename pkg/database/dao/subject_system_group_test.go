@@ -77,7 +77,7 @@ func Test_subjectSystemGroupManager_GetBySystemSubject(t *testing.T) {
 			SystemID:  "test",
 			SubjectPK: int64(1),
 			Groups:    "[]",
-			Updates:   int64(2),
+			Reversion: int64(2),
 		}, groups)
 	})
 }
@@ -120,7 +120,7 @@ func Test_subjectSystemGroupManager_UpdateWithTx(t *testing.T) {
 			SystemID:  "system",
 			SubjectPK: int64(1),
 			Groups:    "[]",
-			Updates:   int64(2),
+			Reversion: int64(2),
 		})
 
 		assert.NoError(t, err, "query from db fail.")

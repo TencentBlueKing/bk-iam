@@ -26,7 +26,7 @@ type SubjectSystemGroup struct {
 	SystemID  string    `db:"system_id"`
 	SubjectPK int64     `db:"subject_pk"`
 	Groups    string    `db:"groups"`
-	Updates   int64     `db:"updates"` // 更新版本
+	Reversion int64     `db:"reversion"` // 更新版本
 	CreateAt  time.Time `db:"created_at"`
 }
 
@@ -45,7 +45,7 @@ type subjectSystemGroupManager struct {
 }
 
 // NewSubjectSystemGroup New NewSubjectSystemGroup
-func NewSubjectSystemGroup() SubjectSystemGroupManager {
+func NewSubjectSystemGroupManager() SubjectSystemGroupManager {
 	return &subjectSystemGroupManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
@@ -122,10 +122,10 @@ func (m *subjectSystemGroupManager) insertWithTx(tx *sqlx.Tx, subjectSystemGroup
 func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) (int64, error) {
 	sql := `UPDATE subject_system_group SET
 		groups = :groups,
-		updates = updates + 1 
+		updates = reversion + 1 
 		WHERE system_id = :system_id
 		AND subject_pk = :subject_pk
-		AND updates = :updates`
+		AND reversion = :reversion`
 	return database.SqlxUpdateWithTx(tx, sql, subjectSystemGroup)
 }
 
