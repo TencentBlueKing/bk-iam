@@ -39,6 +39,7 @@ type GroupAuthType struct {
 type GroupSystemAuthTypeManager interface {
 	ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]GroupAuthType, error)
 
+	ListByGroup(groupPK int64) ([]GroupSystemAuthType, error)
 	CreateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) error
 	UpdateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) (int64, error)
 	DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error)
@@ -53,6 +54,12 @@ func NewGroupSystemAuthTypeManager() GroupSystemAuthTypeManager {
 	return &groupSystemAuthTypeManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
+}
+
+func (m *groupSystemAuthTypeManager) ListByGroup(groupPK int64) ([]GroupSystemAuthType, error) {
+	var groupSystemAuthTypes []GroupSystemAuthType
+	err := m.selectByGroup(&groupSystemAuthTypes, groupPK)
+	return groupSystemAuthTypes, err
 }
 
 // ListAuthTypeBySystemGroups ...
@@ -82,6 +89,18 @@ func (m *groupSystemAuthTypeManager) UpdateWithTx(tx *sqlx.Tx, groupSystemAuthTy
 // DeleteByGroupSystem ..
 func (m *groupSystemAuthTypeManager) DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error) {
 	return m.deleteBySystemGroupWithTx(tx, systemID, groupPK)
+}
+
+func (m *groupSystemAuthTypeManager) selectByGroup(authTypes *[]GroupSystemAuthType, groupPK int64) error {
+	query := `SELECT
+		pk,
+		system_id,
+		group_pk,
+		auth_type,
+		created_at
+		FROM group_system_auth_type 
+		WHERE group_pk = ?`
+	return database.SqlxSelect(m.DB, authTypes, query, groupPK)
 }
 
 func (m *groupSystemAuthTypeManager) selectAuthTypeBySystemGroups(

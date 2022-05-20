@@ -41,6 +41,30 @@ func Test_groupSystemAuthTypeManager_ListAuthTypeBySystemGroups(t *testing.T) {
 	})
 }
 
+func Test_groupSystemAuthTypeManager_ListByGroup(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		pk,
+		system_id,
+		group_pk,
+		auth_type,
+		created_at
+		FROM group_system_auth_type
+		WHERE group_pk = (.*)`
+		mockRows := sqlmock.NewRows([]string{"system_id", "group_pk", "auth_type"}).AddRow("1", int64(1), int(2)).AddRow("2", int64(1), int(3))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		manager := &groupSystemAuthTypeManager{DB: db}
+		authTypes, err := manager.ListByGroup(int64(1))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, []GroupSystemAuthType{
+			{SystemID: "1", GroupPK: int64(1), AuthType: int64(2)},
+			{SystemID: "2", GroupPK: int64(1), AuthType: int64(3)},
+		}, authTypes)
+	})
+}
+
 func Test_groupSystemAuthTypeManager_DeleteByGroupSystemWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
