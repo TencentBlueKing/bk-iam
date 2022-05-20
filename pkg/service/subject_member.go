@@ -24,7 +24,7 @@ import (
 // GetMemberCount ...
 func (l *subjectService) GetMemberCount(_type, id string) (int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "GetMemberCount")
-	// 查询subject PK
+	// TODO 后续通过缓存提高性能
 	pk, err := l.manager.GetPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
@@ -88,6 +88,7 @@ func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelat
 		subjectPKs = append(subjectPKs, r.SubjectPK)
 	}
 
+	// TODO 后续通过缓存提高性能
 	subjectMap, err := l.getSubjectMapByPKs(subjectPKs)
 	if err != nil {
 		return nil, err

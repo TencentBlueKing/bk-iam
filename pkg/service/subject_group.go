@@ -165,10 +165,10 @@ func (l *subjectService) ListExistSubjectsBeforeExpiredAt(
 		return []types.Subject{}, nil
 	}
 
-	idSet := set.NewInt64SetWithValues(existGroupPKs)
+	pkSet := set.NewInt64SetWithValues(existGroupPKs)
 	existSubjects := make([]types.Subject, 0, len(existGroupPKs))
 	for _, group := range groups {
-		if idSet.Has(group.PK) {
+		if pkSet.Has(group.PK) {
 			existSubjects = append(existSubjects, types.Subject{
 				Type: group.Type,
 				ID:   group.ID,
