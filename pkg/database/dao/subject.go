@@ -104,9 +104,9 @@ func (m *subjectManager) ListPaging(_type string, limit, offset int64) (subjects
 
 // GetCount ...
 func (m *subjectManager) GetCount(_type string) (int64, error) {
-	var cnt int64
-	err := m.getCount(&cnt, _type)
-	return cnt, err
+	var count int64
+	err := m.getCount(&count, _type)
+	return count, err
 }
 
 // BulkCreate ...
@@ -194,12 +194,12 @@ func (m *subjectManager) selectPagingSubjects(subjects *[]Subject, _type string,
 	return database.SqlxSelect(m.DB, subjects, query, _type, limit, offset)
 }
 
-func (m *subjectManager) getCount(cnt *int64, _type string) error {
+func (m *subjectManager) getCount(count *int64, _type string) error {
 	query := `SELECT
 		COUNT(*)
 		FROM subject
 		WHERE type = ?`
-	return database.SqlxGet(m.DB, cnt, query, _type)
+	return database.SqlxGet(m.DB, count, query, _type)
 }
 
 func (m *subjectManager) bulkInsert(subjects []Subject) error {

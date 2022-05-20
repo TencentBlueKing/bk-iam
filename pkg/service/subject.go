@@ -129,12 +129,12 @@ func (l *subjectService) GetPK(_type, id string) (pk int64, err error) {
 
 // GetCount ...
 func (l *subjectService) GetCount(_type string) (int64, error) {
-	cnt, err := l.manager.GetCount(_type)
+	count, err := l.manager.GetCount(_type)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectSVC, "GetCount", "manager.GetCount _type=`%s` fail", _type)
 		return 0, err
 	}
-	return cnt, nil
+	return count, nil
 }
 
 func convertToSubjects(daoSubjects []dao.Subject) []types.Subject {

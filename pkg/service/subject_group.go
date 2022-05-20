@@ -18,16 +18,6 @@ import (
 	"iam/pkg/service/types"
 )
 
-func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
-	return types.SubjectGroup{
-		PK:              relation.ParentPK,
-		Type:            relation.ParentType,
-		ID:              relation.ParentID,
-		PolicyExpiredAt: relation.PolicyExpiredAt,
-		CreateAt:        relation.CreateAt,
-	}
-}
-
 func convertToThinSubjectGroup(relation dao.ThinSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
 		PK:              relation.ParentPK,
@@ -82,23 +72,64 @@ func (l *subjectService) ListSubjectGroups(
 	_type, id string, beforeExpiredAt int64,
 ) (subjectGroups []types.SubjectGroup, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListSubjectGroups")
+	// 查询subject PK
+	pk, err := l.manager.GetPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
 	var relations []dao.SubjectRelation
 	if beforeExpiredAt == 0 {
-		relations, err = l.relationManager.ListRelation(_type, id)
+		relations, err = l.relationManager.ListRelation(pk)
 	} else {
-		relations, err = l.relationManager.ListRelationBeforeExpiredAt(_type, id, beforeExpiredAt)
+		relations, err = l.relationManager.ListRelationBeforeExpiredAt(pk, beforeExpiredAt)
 	}
 
 	if err != nil {
 		return subjectGroups, errorWrapf(err, "ListSubjectGroups _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
-
-	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+	groups, err := l.convertToSubjectGroup(relations)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectGroup relations=`%s`", relations)
 	}
-	return subjectGroups, err
+
+	return groups, nil
+}
+
+func (l *subjectService) convertToSubjectGroup(daoRelations []dao.SubjectRelation) ([]types.SubjectGroup, error) {
+	if len(daoRelations) == 0 {
+		return nil, nil
+	}
+
+	parentPKs := make([]int64, 0, len(daoRelations))
+	for _, r := range daoRelations {
+		parentPKs = append(parentPKs, r.ParentPK)
+	}
+
+	parentMap, err := l.getSubjectMapByPKs(parentPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make([]types.SubjectGroup, 0, len(daoRelations))
+	for _, r := range daoRelations {
+		var _type, id string
+		parent, ok := parentMap[r.ParentPK]
+		if ok {
+			_type = parent.Type
+			id = parent.ID
+		}
+
+		groups = append(groups, types.SubjectGroup{
+			PK:              r.ParentPK,
+			Type:            _type,
+			ID:              id,
+			PolicyExpiredAt: r.PolicyExpiredAt,
+			CreateAt:        r.CreateAt,
+		})
+	}
+	return groups, nil
 }
 
 // ListExistSubjectsBeforeExpiredAt filter the exists and not expired subjects
@@ -114,22 +145,35 @@ func (l *subjectService) ListExistSubjectsBeforeExpiredAt(
 		}
 	}
 
-	existGroupIDs, err := l.relationManager.ListParentIDsBeforeExpiredAt(types.GroupType, groupIDs, expiredAt)
+	groups, err := l.manager.ListByIDs(types.GroupType, groupIDs)
+	if err != nil {
+		return nil, errorWrapf(err, "manager.ListByIDs _type=`%s`, ids=`%+v` fail", types.GroupType, groupIDs)
+	}
+	parentPKs := make([]int64, 0, len(groups))
+	for _, g := range groups {
+		parentPKs = append(parentPKs, g.PK)
+	}
+
+	existGroupPKs, err := l.relationManager.ListParentPKsBeforeExpiredAt(parentPKs, expiredAt)
 	if err != nil {
 		return []types.Subject{}, errorWrapf(
-			err, "ListParentIDsBeforeExpiredAt _type=`%s`, ids=`%+v`, expiredAt=`%d` fail",
-			types.GroupType, groupIDs, expiredAt,
+			err, "ListParentPKsBeforeExpiredAt _type=`%s`, parentPKs=`%+v`, expiredAt=`%d` fail",
+			parentPKs, expiredAt,
 		)
 	}
-	if len(existGroupIDs) == 0 {
+	if len(existGroupPKs) == 0 {
 		return []types.Subject{}, nil
 	}
 
-	idSet := set.NewStringSetWithValues(existGroupIDs)
-	existSubjects := make([]types.Subject, 0, len(existGroupIDs))
-	for _, subject := range subjects {
-		if subject.Type == types.GroupType && idSet.Has(subject.ID) {
-			existSubjects = append(existSubjects, subject)
+	pkSet := set.NewInt64SetWithValues(existGroupPKs)
+	existSubjects := make([]types.Subject, 0, len(existGroupPKs))
+	for _, group := range groups {
+		if pkSet.Has(group.PK) {
+			existSubjects = append(existSubjects, types.Subject{
+				Type: group.Type,
+				ID:   group.ID,
+				Name: group.Name,
+			})
 		}
 	}
 

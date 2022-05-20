@@ -21,52 +21,120 @@ import (
 	"iam/pkg/service/types"
 )
 
-func convertToSubjectMembers(daoRelations []dao.SubjectRelation) []types.SubjectMember {
-	relations := make([]types.SubjectMember, 0, len(daoRelations))
-	for _, r := range daoRelations {
-		relations = append(relations, types.SubjectMember{
-			PK:              r.PK,
-			Type:            r.SubjectType,
-			ID:              r.SubjectID,
-			PolicyExpiredAt: r.PolicyExpiredAt,
-			CreateAt:        r.CreateAt,
-		})
-	}
-	return relations
-}
-
 // GetMemberCount ...
 func (l *subjectService) GetMemberCount(_type, id string) (int64, error) {
-	cnt, err := l.relationManager.GetMemberCount(_type, id)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "GetMemberCount")
+	// TODO 后续通过缓存提高性能
+	pk, err := l.manager.GetPK(_type, id)
 	if err != nil {
-		err = errorx.Wrapf(err, SubjectSVC, "GetMemberCount",
-			"relationManager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
+		return 0, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	count, err := l.relationManager.GetMemberCount(pk)
+	if err != nil {
+		err = errorWrapf(err, "relationManager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
 		return 0, err
 	}
-	return cnt, nil
+	return count, nil
 }
 
 // ListPagingMember ...
 func (l *subjectService) ListPagingMember(_type, id string, limit, offset int64) ([]types.SubjectMember, error) {
-	daoRelations, err := l.relationManager.ListPagingMember(_type, id, limit, offset)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListPagingMember")
+	// 查询subject PK
+	pk, err := l.manager.GetPK(_type, id)
 	if err != nil {
-		return nil, errorx.Wrapf(err, SubjectSVC,
-			"ListPagingMember", "relationManager.ListPagingMember _type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+		return nil, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	daoRelations, err := l.relationManager.ListPagingMember(pk, limit, offset)
+	if err != nil {
+		return nil, errorWrapf(err, "relationManager.ListPagingMember _type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
 			_type, id, limit, offset)
 	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	members, err := l.convertToSubjectMembers(daoRelations)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
+	}
+
+	return members, nil
+}
+
+func (l *subjectService) getSubjectMapByPKs(pks []int64) (map[int64]dao.Subject, error) {
+	if len(pks) == 0 {
+		return nil, nil
+	}
+
+	subjects, err := l.manager.ListByPKs(pks)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]dao.Subject, len(subjects))
+	for _, s := range subjects {
+		subjectMap[s.PK] = s
+	}
+	return subjectMap, nil
+}
+
+func (l *subjectService) convertToSubjectMembers(daoRelations []dao.SubjectRelation) ([]types.SubjectMember, error) {
+	if len(daoRelations) == 0 {
+		return nil, nil
+	}
+
+	subjectPKs := make([]int64, 0, len(daoRelations))
+	for _, r := range daoRelations {
+		subjectPKs = append(subjectPKs, r.SubjectPK)
+	}
+
+	// TODO 后续通过缓存提高性能
+	subjectMap, err := l.getSubjectMapByPKs(subjectPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	members := make([]types.SubjectMember, 0, len(daoRelations))
+	for _, r := range daoRelations {
+		var _type, id string
+		subject, ok := subjectMap[r.SubjectPK]
+		if ok {
+			_type = subject.Type
+			id = subject.ID
+		}
+
+		members = append(members, types.SubjectMember{
+			PK:              r.PK,
+			Type:            _type,
+			ID:              id,
+			PolicyExpiredAt: r.PolicyExpiredAt,
+			CreateAt:        r.CreateAt,
+		})
+	}
+	return members, nil
 }
 
 // ListMember ...
 func (l *subjectService) ListMember(_type, id string) ([]types.SubjectMember, error) {
-	daoRelations, err := l.relationManager.ListMember(_type, id)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListMember")
+	// 查询subject PK
+	pk, err := l.manager.GetPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	daoRelations, err := l.relationManager.ListMember(pk)
 	if err != nil {
 		return nil, errorx.Wrapf(err, SubjectSVC,
 			"ListMember", "relationManager.ListMember _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	members, err := l.convertToSubjectMembers(daoRelations)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
+	}
+
+	return members, nil
 }
 
 // UpdateMembersExpiredAt ...
@@ -95,6 +163,12 @@ func (l *subjectService) UpdateMembersExpiredAt(members []types.SubjectMember) e
 func (l *subjectService) BulkDeleteSubjectMembers(_type, id string, members []types.Subject) (map[string]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDeleteSubjectMember")
 
+	// 查询subject PK
+	parentPK, err := l.manager.GetPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
 	// 按类型分组
 	userIDs, departmentIDs, _ := groupBySubjectType(members)
 
@@ -113,7 +187,16 @@ func (l *subjectService) BulkDeleteSubjectMembers(_type, id string, members []ty
 
 	var count int64
 	if len(userIDs) != 0 {
-		count, err = l.relationManager.BulkDeleteByMembersWithTx(tx, _type, id, types.UserType, userIDs)
+		users, newErr := l.manager.ListByIDs(types.UserType, userIDs)
+		if newErr != nil {
+			return nil, errorWrapf(newErr, "manager.ListByIDs _type=`%s`, ids=`%+v` fail", types.UserType, userIDs)
+		}
+		subjectPKs := make([]int64, 0, len(users))
+		for _, u := range users {
+			subjectPKs = append(subjectPKs, u.PK)
+		}
+
+		count, err = l.relationManager.BulkDeleteByMembersWithTx(tx, parentPK, subjectPKs)
 		if err != nil {
 			return nil, errorWrapf(err,
 				"relationManager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
@@ -123,7 +206,16 @@ func (l *subjectService) BulkDeleteSubjectMembers(_type, id string, members []ty
 	}
 
 	if len(departmentIDs) != 0 {
-		count, err = l.relationManager.BulkDeleteByMembersWithTx(tx, _type, id, types.DepartmentType, departmentIDs)
+		departments, newErr := l.manager.ListByIDs(types.DepartmentType, departmentIDs)
+		if newErr != nil {
+			return nil, errorWrapf(newErr, "manager.ListByIDs _type=`%s`, ids=`%+v` fail", types.DepartmentType, departmentIDs)
+		}
+		subjectPKs := make([]int64, 0, len(departments))
+		for _, u := range departments {
+			subjectPKs = append(subjectPKs, u.PK)
+		}
+
+		count, err = l.relationManager.BulkDeleteByMembersWithTx(tx, parentPK, subjectPKs)
 		if err != nil {
 			return nil, errorWrapf(
 				err, "relationManager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
@@ -147,7 +239,7 @@ func (l *subjectService) BulkCreateSubjectMembers(
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkCreateSubjectMembers")
 	// 查询subject PK
-	pk, err := l.manager.GetPK(_type, id)
+	parentPK, err := l.manager.GetPK(_type, id)
 	if err != nil {
 		return errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
 	}
@@ -187,11 +279,7 @@ func (l *subjectService) BulkCreateSubjectMembers(
 		}
 		relations = append(relations, dao.SubjectRelation{
 			SubjectPK:       mPK,
-			SubjectType:     m.Type,
-			SubjectID:       m.ID,
-			ParentPK:        pk,
-			ParentType:      _type,
-			ParentID:        id,
+			ParentPK:        parentPK,
 			PolicyExpiredAt: policyExpiredAt,
 			CreateAt:        now,
 		})
@@ -206,27 +294,45 @@ func (l *subjectService) BulkCreateSubjectMembers(
 
 // GetMemberCountBeforeExpiredAt ...
 func (l *subjectService) GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
-	cnt, err := l.relationManager.GetMemberCountBeforeExpiredAt(_type, id, expiredAt)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "GetMemberCountBeforeExpiredAt")
+	// 查询subject PK
+	parentPK, err := l.manager.GetPK(_type, id)
+	if err != nil {
+		return 0, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	count, err := l.relationManager.GetMemberCountBeforeExpiredAt(parentPK, expiredAt)
 	if err != nil {
 		err = errorx.Wrapf(err, SubjectSVC, "GetMemberCountBeforeExpiredAt",
 			"relationManager.GetMemberCountBeforeExpiredAt _type=`%s`, id=`%s`, expiredAt=`%d` fail",
 			_type, id, expiredAt)
 		return 0, err
 	}
-	return cnt, nil
+	return count, nil
 }
 
 // ListPagingMemberBeforeExpiredAt ...
 func (l *subjectService) ListPagingMemberBeforeExpiredAt(
 	_type, id string, expiredAt int64, limit, offset int64,
 ) ([]types.SubjectMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListPagingMemberBeforeExpiredAt")
+	// 查询subject PK
+	parentPK, err := l.manager.GetPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "manager.GetPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
 	daoRelations, err := l.relationManager.ListPagingMemberBeforeExpiredAt(
-		_type, id, expiredAt, limit, offset)
+		parentPK, expiredAt, limit, offset)
 	if err != nil {
 		return nil, errorx.Wrapf(err, SubjectSVC,
 			"ListPagingMemberBeforeExpiredAt", "_type=`%s`, id=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
 			_type, id, expiredAt, limit, offset)
 	}
+	members, err := l.convertToSubjectMembers(daoRelations)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectMembers relations=`%s`", members)
+	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	return members, nil
 }
