@@ -393,6 +393,7 @@ func (m *subjectRelationManager) updateExpiredAt(relations []SubjectRelationPKPo
 func (m *subjectRelationManager) listParentPKsBeforeExpiredAt(
 	expiredParentPKs *[]int64, parentPKs []int64, expiredAt int64,
 ) error {
+	// TODO: DISTINCT 大表很慢
 	query := `SELECT
 		DISTINCT parent_pk
 		FROM subject_relation

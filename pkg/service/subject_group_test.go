@@ -12,13 +12,14 @@ package service
 
 import (
 	"errors"
-	"iam/pkg/database/dao"
-	"iam/pkg/database/dao/mock"
-	"iam/pkg/service/types"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/database/dao"
+	"iam/pkg/database/dao/mock"
+	"iam/pkg/service/types"
 )
 
 var _ = Describe("SubjectService", func() {
