@@ -62,12 +62,10 @@ func (l *subjectService) addOrUpdateSubjectSystemGroup(
 			return err
 
 		} else if err != nil {
-			if err != nil {
-				err = errorWrapf(
-					err, "subjectSystemGroupManager.GetBySystemSubject fail, systemID: %s, subjectPK: %d",
-					systemID, subjectPK,
-				)
-			}
+			err = errorWrapf(
+				err, "subjectSystemGroupManager.GetBySystemSubject fail, systemID: %s, subjectPK: %d",
+				systemID, subjectPK,
+			)
 
 			return err
 		}
