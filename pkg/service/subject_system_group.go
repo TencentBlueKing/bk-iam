@@ -34,14 +34,14 @@ func (l *subjectService) doUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
 	systemID string,
 	subjectPK, groupPK, expiredAt int64,
-	created bool,
+	needCreate bool,
 	updateGroupExpiredAtFunc func([]types.GroupExpiredAt) ([]types.GroupExpiredAt, error),
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "doUpdateSubjectSystemGroup")
 
 	// 查询已有数据
 	subjectSystemGroup, err := l.subjectSystemGroupManager.GetBySystemSubject(systemID, subjectPK)
-	if errors.Is(err, sql.ErrNoRows) && created {
+	if errors.Is(err, sql.ErrNoRows) && needCreate {
 		// 如果需要创建, 则创建
 		err = l.createSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt)
 		if isMysqlDuplicateError(err) {
