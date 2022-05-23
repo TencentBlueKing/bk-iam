@@ -48,22 +48,6 @@ var _ = Describe("SubjectService", func() {
 		})
 	})
 
-	Describe("convertToGroupsString", func() {
-		It("empty", func() {
-			groups, err := convertToGroupsString([]types.GroupExpiredAt{})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "[]", groups)
-		})
-
-		It("ok", func() {
-			groups, err := convertToGroupsString([]types.GroupExpiredAt{
-				{GroupPK: 1, ExpiredAt: 1555555555},
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), `[{"group_pk":1,"expired_at":1555555555}]`, groups)
-		})
-	})
-
 	Describe("findGroupIndex", func() {
 		groups := []types.GroupExpiredAt{
 			{GroupPK: 1, ExpiredAt: 1555555555},
@@ -128,56 +112,6 @@ var _ = Describe("SubjectService", func() {
 
 			err := manager.createSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.NoError(GinkgoT(), err)
-		})
-	})
-
-	Describe("updateSubjectSystemGroup", func() {
-		var ctl *gomock.Controller
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("subjectSystemGroupManager.UpdateWithTx fail", func() {
-			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
-			mockSubjectSystemGroupManager.EXPECT().UpdateWithTx(gomock.Any(), gomock.Any()).Return(
-				int64(0), errors.New("error"),
-			).AnyTimes()
-
-			manager := &subjectService{
-				subjectSystemGroupManager: mockSubjectSystemGroupManager,
-			}
-
-			rows, err := manager.updateSubjectSystemGroup(nil, "system", int64(1), []types.GroupExpiredAt{
-				{
-					GroupPK:   1,
-					ExpiredAt: 1555555555,
-				},
-			})
-			assert.Error(GinkgoT(), err)
-			assert.Equal(GinkgoT(), int64(0), rows)
-		})
-
-		It("groupSystemAuthTypeManager.UpdateWithTx ok", func() {
-			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
-			mockSubjectSystemGroupManager.EXPECT().UpdateWithTx(gomock.Any(), gomock.Any()).Return(
-				int64(1), nil,
-			).AnyTimes()
-
-			manager := &subjectService{
-				subjectSystemGroupManager: mockSubjectSystemGroupManager,
-			}
-
-			rows, err := manager.updateSubjectSystemGroup(nil, "system", int64(1), []types.GroupExpiredAt{
-				{
-					GroupPK:   1,
-					ExpiredAt: 1555555555,
-				},
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), int64(1), rows)
 		})
 	})
 

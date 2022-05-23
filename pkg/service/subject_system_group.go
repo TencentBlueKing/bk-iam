@@ -68,9 +68,14 @@ func (l *subjectService) doUpdateSubjectSystemGroup(
 		err = errorWrapf(err, "updateGroupExpiredAtFunc fail, groupExpiredAts=`%+v`", groupExpiredAts)
 		return err
 	}
+	groups, err := jsoniter.MarshalToString(groupExpiredAts)
+	if err != nil {
+		err = errorWrapf(err, "MarshalToString fail, groupExpiredAts=`%+v`", groupExpiredAts)
+		return err
+	}
 
-	// 更新记录
-	rows, err := l.updateSubjectSystemGroup(tx, systemID, subjectPK, groupExpiredAts)
+	subjectSystemGroup.Groups = groups
+	rows, err := l.subjectSystemGroupManager.UpdateWithTx(tx, subjectSystemGroup)
 	if err != nil {
 		err = errorWrapf(
 			err, "updateSubjectSystemGroup fail, systemID=`%s`, subjectPK=`%d`, groupExpiredAts=`%+v`",
@@ -161,7 +166,7 @@ func (l *subjectService) removeSubjectSystemGroup(
 }
 
 func (l *subjectService) createSubjectSystemGroup(tx *sqlx.Tx, systemID string, subjectPK, groupPK, expiredAt int64) error {
-	groups, err := convertToGroupsString([]types.GroupExpiredAt{{GroupPK: groupPK, ExpiredAt: expiredAt}})
+	groups, err := jsoniter.MarshalToString([]types.GroupExpiredAt{{GroupPK: groupPK, ExpiredAt: expiredAt}})
 	if err != nil {
 		return err
 	}
@@ -176,24 +181,6 @@ func (l *subjectService) createSubjectSystemGroup(tx *sqlx.Tx, systemID string, 
 	return l.subjectSystemGroupManager.CreateWithTx(tx, subjectSystemGroup)
 }
 
-func (l *subjectService) updateSubjectSystemGroup(tx *sqlx.Tx, systemID string, subjectPK int64, groupExpiredAts []types.GroupExpiredAt) (int64, error) {
-	groups, err := convertToGroupsString(groupExpiredAts)
-	if err != nil {
-		return 0, err
-	}
-
-	subjectSystemGroup := dao.SubjectSystemGroup{
-		SystemID:  systemID,
-		SubjectPK: subjectPK,
-		Groups:    groups,
-	}
-	rows, err := l.subjectSystemGroupManager.UpdateWithTx(tx, subjectSystemGroup)
-	if err != nil {
-		return 0, err
-	}
-	return rows, nil
-}
-
 // convertToGroupExpiredAt 转换为结构
 func convertToGroupExpiredAt(groups string) (groupExpiredAts []types.GroupExpiredAt, err error) {
 	if groups == "" {
@@ -202,11 +189,6 @@ func convertToGroupExpiredAt(groups string) (groupExpiredAts []types.GroupExpire
 
 	err = jsoniter.UnmarshalFromString(groups, &groupExpiredAts)
 	return
-}
-
-// convertToGroupExpiredAt 转换为结构
-func convertToGroupsString(groupExpiredAts []types.GroupExpiredAt) (groups string, err error) {
-	return jsoniter.MarshalToString(groupExpiredAts)
 }
 
 func findGroupIndex(groupExpiredAts []types.GroupExpiredAt, groupPK int64) int {
