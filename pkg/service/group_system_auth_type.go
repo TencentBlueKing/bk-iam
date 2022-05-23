@@ -11,11 +11,9 @@
 package service
 
 import (
-	"errors"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database/dao"
@@ -39,8 +37,7 @@ func (l *subjectService) createOrUpdateGroupAuthType(
 	err = l.groupSystemAuthTypeManager.CreateWithTx(tx, groupSystemAuthType)
 
 	// 创建时如果已经存在，则更新
-	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+	if isMysqlDuplicateError(err) {
 		rows, err = l.groupSystemAuthTypeManager.UpdateWithTx(tx, groupSystemAuthType)
 		if err != nil {
 			err = errorWrapf(
@@ -50,9 +47,7 @@ func (l *subjectService) createOrUpdateGroupAuthType(
 			)
 		}
 		return false, rows, err
-	}
-
-	if err != nil {
+	} else if err != nil {
 		err = errorWrapf(
 			err,
 			"groupSystemAuthTypeManager.CreateWithTx groupSystemAuthType=`%+v` fail",
