@@ -86,6 +86,9 @@ type subjectService struct {
 	relationManager   dao.SubjectRelationManager
 	departmentManager dao.SubjectDepartmentManager
 	roleManager       dao.SubjectRoleManager
+
+	groupSystemAuthTypeManager dao.GroupSystemAuthTypeManager
+	subjectSystemGroupManager  dao.SubjectSystemGroupManager
 }
 
 // NewSubjectService SubjectService工厂
@@ -98,6 +101,9 @@ func NewSubjectService() SubjectService {
 		relationManager:   dao.NewSubjectRelationManager(),
 		departmentManager: dao.NewSubjectDepartmentManager(),
 		roleManager:       dao.NewSubjectRoleManager(),
+
+		groupSystemAuthTypeManager: dao.NewGroupSystemAuthTypeManager(),
+		subjectSystemGroupManager:  dao.NewSubjectSystemGroupManager(),
 	}
 }
 

@@ -1,0 +1,65 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package service
+
+import (
+	"errors"
+	"time"
+
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+
+	"iam/pkg/database/dao"
+)
+
+// 用于授权时处理
+func (l *subjectService) createOrUpdateGroupAuthType(
+	tx *sqlx.Tx,
+	systemID string,
+	groupPK, authType int64,
+) (created bool, rows int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "createOrUpdateGroupAuthType")
+
+	groupSystemAuthType := dao.GroupSystemAuthType{
+		GroupPK:  groupPK,
+		SystemID: systemID,
+		AuthType: authType,
+		CreateAt: time.Now(),
+	}
+
+	err = l.groupSystemAuthTypeManager.CreateWithTx(tx, groupSystemAuthType)
+
+	// 创建时如果已经存在，则更新
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+		rows, err = l.groupSystemAuthTypeManager.UpdateWithTx(tx, groupSystemAuthType)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"groupSystemAuthTypeManager.UpdateWithTx groupSystemAuthType=`%+v` fail",
+				groupSystemAuthType,
+			)
+		}
+		return false, rows, err
+	}
+
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupSystemAuthTypeManager.CreateWithTx groupSystemAuthType=`%+v` fail",
+			groupSystemAuthType,
+		)
+		return true, 0, err
+	}
+
+	return true, 1, err
+}

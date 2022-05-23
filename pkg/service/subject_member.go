@@ -156,6 +156,9 @@ func (l *subjectService) UpdateMembersExpiredAt(members []types.SubjectMember) e
 		return err
 	}
 
+	// TODO 更新subject_system_groups表的groups字段
+	// 1. 更新一个subject的group的过期时间
+
 	return nil
 }
 
@@ -224,6 +227,9 @@ func (l *subjectService) BulkDeleteSubjectMembers(_type, id string, members []ty
 		typeCount[types.DepartmentType] = count
 	}
 
+	// TODO 更新subject_system_groups表的groups字段
+	// 提供subject删除group关系的方法
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, errorWrapf(err, "tx commit error")
@@ -289,6 +295,9 @@ func (l *subjectService) BulkCreateSubjectMembers(
 	if err != nil {
 		return errorWrapf(err, "relationManager.BulkCreate relations=`%+v` fail", relations)
 	}
+
+	// TODO 更新或创建 subject_system_groups 数据, 乐观锁
+	// 向subject增加一个group关系
 	return nil
 }
 

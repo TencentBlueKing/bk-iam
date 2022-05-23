@@ -79,6 +79,21 @@ func (mr *MockGroupSystemAuthTypeManagerMockRecorder) ListAuthTypeBySystemGroups
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAuthTypeBySystemGroups", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).ListAuthTypeBySystemGroups), systemID, groupPKs)
 }
 
+// ListByGroup mocks base method.
+func (m *MockGroupSystemAuthTypeManager) ListByGroup(groupPK int64) ([]dao.GroupSystemAuthType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByGroup", groupPK)
+	ret0, _ := ret[0].([]dao.GroupSystemAuthType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByGroup indicates an expected call of ListByGroup.
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) ListByGroup(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).ListByGroup), groupPK)
+}
+
 // UpdateWithTx mocks base method.
 func (m *MockGroupSystemAuthTypeManager) UpdateWithTx(tx *sqlx.Tx, groupSystemAuthType dao.GroupSystemAuthType) (int64, error) {
 	m.ctrl.T.Helper()
