@@ -58,3 +58,25 @@ func (l *subjectService) createOrUpdateGroupAuthType(
 
 	return true, 1, err
 }
+
+// listGroupAuthSystem 查询group已授权的系统
+func (l *subjectService) listGroupAuthSystem(groupPK int64) ([]string, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "listGroupAuthSystem")
+
+	groupSystemAuthTypes, err := l.groupSystemAuthTypeManager.ListByGroup(groupPK)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupSystemAuthTypeManager.ListByGroup groupPK=`%d` fail",
+			groupPK,
+		)
+		return nil, err
+	}
+
+	systems := make([]string, 0, len(groupSystemAuthTypes))
+	for _, groupSystemAuthType := range groupSystemAuthTypes {
+		systems = append(systems, groupSystemAuthType.SystemID)
+	}
+
+	return systems, nil
+}

@@ -112,10 +112,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.createSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.createSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 		})
 
@@ -129,10 +126,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.createSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.createSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -206,10 +200,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
@@ -228,12 +219,9 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "createSubjectSystemGroup")
+			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
 
 		It("updateSubjectSystemGroup fail", func() {
@@ -250,10 +238,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "updateSubjectSystemGroup")
 		})
@@ -282,10 +267,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "updateSubjectSystemGroup")
 		})
@@ -304,10 +286,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "retry")
 		})
@@ -326,10 +305,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), types.GroupExpiredAt{
-				GroupPK:   1,
-				ExpiredAt: 1555555555,
-			})
+			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.NoError(GinkgoT(), err)
 		})
 	})

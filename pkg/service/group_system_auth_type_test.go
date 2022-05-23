@@ -18,6 +18,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 )
 
@@ -108,6 +109,49 @@ var _ = Describe("SubjectService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), created)
 			assert.Equal(GinkgoT(), int64(1), rows)
+		})
+	})
+
+	Describe("listGroupAuthSystem", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("groupSystemAuthTypeManager.ListByGroup fail", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().ListByGroup(int64(1)).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &subjectService{
+				groupSystemAuthTypeManager: mockGroupSystemAuthTypeManager,
+			}
+
+			_, err := manager.listGroupAuthSystem(int64(1))
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListByGroup")
+		})
+
+		It("ok", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().ListByGroup(int64(1)).Return(
+				[]dao.GroupSystemAuthType{
+					{SystemID: "1"},
+					{SystemID: "2"},
+				}, nil,
+			).AnyTimes()
+
+			manager := &subjectService{
+				groupSystemAuthTypeManager: mockGroupSystemAuthTypeManager,
+			}
+
+			systems, err := manager.listGroupAuthSystem(int64(1))
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []string{"1", "2"}, systems)
 		})
 	})
 })
