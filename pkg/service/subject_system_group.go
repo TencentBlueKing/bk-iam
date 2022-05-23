@@ -34,16 +34,16 @@ func (l *subjectService) doUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
 	systemID string,
 	subjectPK, groupPK, expiredAt int64,
+	created bool,
 	updateGroupExpiredAtFunc func([]types.GroupExpiredAt) ([]types.GroupExpiredAt, error),
-	createSubjectSystemGroupFunc func(tx *sqlx.Tx, systemID string, subjectPK, groupPK, expiredAt int64) error,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "doUpdateSubjectSystemGroup")
 
 	// 查询已有数据
 	subjectSystemGroup, err := l.subjectSystemGroupManager.GetBySystemSubject(systemID, subjectPK)
-	if errors.Is(err, sql.ErrNoRows) && createSubjectSystemGroupFunc != nil {
+	if errors.Is(err, sql.ErrNoRows) && created {
 		// 如果需要创建, 则创建
-		err = createSubjectSystemGroupFunc(tx, systemID, subjectPK, groupPK, expiredAt)
+		err = l.createSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt)
 		if isMysqlDuplicateError(err) {
 			return ErrNeedRetry
 		}
@@ -96,7 +96,7 @@ func (l *subjectService) addOrUpdateSubjectSystemGroup(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "addOrUpdateSubjectSystemGroup")
 
 	// 更新或创建新的关系
-	updateGroupExpiredAtFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
+	addOrUpdateFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
 		i := findGroupIndex(groupExpiredAts, groupPK)
 		if i == -1 {
 			groupExpiredAts = append(groupExpiredAts, types.GroupExpiredAt{GroupPK: groupPK, ExpiredAt: expiredAt})
@@ -108,7 +108,7 @@ func (l *subjectService) addOrUpdateSubjectSystemGroup(
 
 	// 乐观锁, 重复提交, 最多3次
 	for i := 0; i < 3; i++ {
-		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, updateGroupExpiredAtFunc, l.createSubjectSystemGroup)
+		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, true, addOrUpdateFunc)
 		if errors.Is(err, ErrNeedRetry) {
 			continue
 		}
@@ -133,7 +133,7 @@ func (l *subjectService) removeSubjectSystemGroup(
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "removeSubjectSystemGroup")
 
-	updateGroupExpiredAtFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
+	removeFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
 		i := findGroupIndex(groupExpiredAts, groupPK)
 		if i == -1 {
 			return nil, ErrNoSubjectSystemGroup
@@ -143,7 +143,7 @@ func (l *subjectService) removeSubjectSystemGroup(
 
 	// 乐观锁, 重复提交, 最多3次
 	for i := 0; i < 3; i++ {
-		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, updateGroupExpiredAtFunc, nil)
+		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, false, removeFunc)
 		if errors.Is(err, ErrNeedRetry) {
 			continue
 		}
