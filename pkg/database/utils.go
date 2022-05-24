@@ -12,12 +12,14 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/stringx"
+	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
@@ -138,4 +140,14 @@ func ParseUpdateStruct(values interface{}, allowBlankFields AllowBlankFields) (s
 	setExpr := strings.Join(setFields, ", ")
 
 	return setExpr, updateData, nil
+}
+
+// IsMysqlDuplicateEntryError ...
+func IsMysqlDuplicateEntryError(err error) bool {
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+		return true
+	}
+
+	return false
 }

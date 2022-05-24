@@ -11,7 +11,8 @@
 package dao
 
 import (
-	"time"
+	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 
@@ -22,12 +23,11 @@ import (
 
 // SubjectSystemGroup  用户-系统组关系
 type SubjectSystemGroup struct {
-	PK        int64     `db:"pk"`
-	SystemID  string    `db:"system_id"`
-	SubjectPK int64     `db:"subject_pk"`
-	Groups    string    `db:"groups"`
-	Reversion int64     `db:"reversion"` // 更新版本
-	CreateAt  time.Time `db:"created_at"`
+	PK        int64  `db:"pk"`
+	SystemID  string `db:"system_id"`
+	SubjectPK int64  `db:"subject_pk"`
+	Groups    string `db:"groups"`
+	Reversion int64  `db:"reversion"` // 更新版本
 }
 
 // SubjectSystemGroup ...
@@ -37,7 +37,7 @@ type SubjectSystemGroupManager interface {
 	GetBySystemSubject(systemID string, subjectPK int64) (SubjectSystemGroup, error)
 	CreateWithTx(tx *sqlx.Tx, subjectSystemGroup SubjectSystemGroup) error
 	UpdateWithTx(tx *sqlx.Tx, subjectSystemGroup SubjectSystemGroup) (int64, error)
-	DeleteBySystemSubjectWithTx(tx *sqlx.Tx, systemID string, subjectPK int64) error
+	DeleteBySubjectWithTx(tx *sqlx.Tx, subjectPK int64) error
 }
 
 type subjectSystemGroupManager struct {
@@ -54,6 +54,10 @@ func NewSubjectSystemGroupManager() SubjectSystemGroupManager {
 // GetGroups ...
 func (m *subjectSystemGroupManager) GetGroups(systemID string, subjectPK int64) (groups string, err error) {
 	err = m.selectGroups(&groups, systemID, subjectPK)
+	// 不存在直接返回空
+	if errors.Is(err, sql.ErrNoRows) {
+		return groups, nil
+	}
 	return
 }
 
@@ -75,8 +79,8 @@ func (m *subjectSystemGroupManager) UpdateWithTx(tx *sqlx.Tx, subjectSystemGroup
 }
 
 // DeleteBySystemSubject ...
-func (m *subjectSystemGroupManager) DeleteBySystemSubjectWithTx(tx *sqlx.Tx, systemID string, subjectPK int64) error {
-	return m.deleteBySystemSubjectWithTx(tx, systemID, subjectPK)
+func (m *subjectSystemGroupManager) DeleteBySubjectWithTx(tx *sqlx.Tx, subjectPK int64) error {
+	return m.deleteBySubjectWithTx(tx, subjectPK)
 }
 
 func (m *subjectSystemGroupManager) selectGroups(groups *string, systemID string, subjectPK int64) error {
@@ -97,8 +101,7 @@ func (m *subjectSystemGroupManager) selectBySystemSubject(
 		system_id,
 		subject_pk,
 		groups,
-		reversion,
-		created_at
+		reversion
 		FROM subject_system_group
 		WHERE system_id = ? AND subject_pk = ?`
 	return database.SqlxGet(m.DB, subjectSystemGroup, query, systemID, subjectPK)
@@ -108,13 +111,11 @@ func (m *subjectSystemGroupManager) insertWithTx(tx *sqlx.Tx, subjectSystemGroup
 	sql := `INSERT INTO subject_system_group (
 		system_id, 
 		subject_pk, 
-		groups, 
-		created_at
+		groups
 	) VALUES (
 		:system_id,
 		:subject_pk,
-		:groups,
-		:created_at
+		:groups
 	)`
 	return database.SqlxInsertWithTx(tx, sql, subjectSystemGroup)
 }
@@ -129,7 +130,7 @@ func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup
 	return database.SqlxUpdateWithTx(tx, sql, subjectSystemGroup)
 }
 
-func (m *subjectSystemGroupManager) deleteBySystemSubjectWithTx(tx *sqlx.Tx, systemID string, subjectPK int64) error {
-	sql := `DELETE FROM subject_system_group WHERE system_id = ? AND subject_pk = ?`
-	return database.SqlxDeleteWithTx(tx, sql, systemID, subjectPK)
+func (m *subjectSystemGroupManager) deleteBySubjectWithTx(tx *sqlx.Tx, subjectPK int64) error {
+	sql := `DELETE FROM subject_system_group WHERE subject_pk = ?`
+	return database.SqlxDeleteWithTx(tx, sql, subjectPK)
 }

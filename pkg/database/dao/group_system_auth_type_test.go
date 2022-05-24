@@ -48,7 +48,7 @@ func Test_groupSystemAuthTypeManager_ListByGroup(t *testing.T) {
 		system_id,
 		group_pk,
 		auth_type,
-		created_at
+		reversion
 		FROM group_system_auth_type
 		WHERE group_pk = (.*)`
 		mockRows := sqlmock.NewRows([]string{"system_id", "group_pk", "auth_type"}).AddRow("1", int64(1), int(2)).AddRow("2", int64(1), int(3))
@@ -62,6 +62,27 @@ func Test_groupSystemAuthTypeManager_ListByGroup(t *testing.T) {
 			{SystemID: "1", GroupPK: int64(1), AuthType: int64(2)},
 			{SystemID: "2", GroupPK: int64(1), AuthType: int64(3)},
 		}, authTypes)
+	})
+}
+
+func Test_groupSystemAuthTypeManager_GetBySystemGroup(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		pk,
+		system_id,
+		group_pk,
+		auth_type,
+		reversion
+		FROM group_system_auth_type
+		WHERE system_id = (.*) AND group_pk = (.*)`
+		mockRows := sqlmock.NewRows([]string{"system_id", "group_pk", "auth_type"}).AddRow("1", int64(1), int(2))
+		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
+
+		manager := &groupSystemAuthTypeManager{DB: db}
+		authType, err := manager.GetBySystemGroup("system", int64(1))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, GroupSystemAuthType{SystemID: "1", GroupPK: int64(1), AuthType: int64(2)}, authType)
 	})
 }
 
@@ -88,7 +109,7 @@ func Test_groupSystemAuthTypeManager_CreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`^INSERT INTO group_system_auth_type`).WithArgs(
-			"system", int64(1), int64(2), sqlmock.AnyArg(),
+			"system", int64(1), int64(2),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -106,7 +127,7 @@ func Test_groupSystemAuthTypeManager_UpdateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`^UPDATE group_system_auth_type SET auth_type =`).WithArgs(
-			int64(2), "system", int64(1), int64(2),
+			int64(2), "system", int64(1), int64(1),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -114,7 +135,7 @@ func Test_groupSystemAuthTypeManager_UpdateWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &groupSystemAuthTypeManager{DB: db}
-		rows, err := manager.UpdateWithTx(tx, GroupSystemAuthType{GroupPK: int64(1), AuthType: int64(2), SystemID: "system"})
+		rows, err := manager.UpdateWithTx(tx, GroupSystemAuthType{GroupPK: int64(1), AuthType: int64(2), SystemID: "system", Reversion: int64(1)})
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, int64(1), rows)

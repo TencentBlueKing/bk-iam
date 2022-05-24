@@ -64,6 +64,21 @@ func (mr *MockGroupSystemAuthTypeManagerMockRecorder) DeleteBySystemGroupWithTx(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySystemGroupWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).DeleteBySystemGroupWithTx), tx, systemID, groupPK)
 }
 
+// GetBySystemGroup mocks base method.
+func (m *MockGroupSystemAuthTypeManager) GetBySystemGroup(systemID string, groupPK int64) (dao.GroupSystemAuthType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBySystemGroup", systemID, groupPK)
+	ret0, _ := ret[0].(dao.GroupSystemAuthType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBySystemGroup indicates an expected call of GetBySystemGroup.
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) GetBySystemGroup(systemID, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySystemGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).GetBySystemGroup), systemID, groupPK)
+}
+
 // ListAuthTypeBySystemGroups mocks base method.
 func (m *MockGroupSystemAuthTypeManager) ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]dao.GroupAuthType, error) {
 	m.ctrl.T.Helper()

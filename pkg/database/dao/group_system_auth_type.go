@@ -11,8 +11,6 @@
 package dao
 
 import (
-	"time"
-
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
@@ -22,11 +20,11 @@ import (
 
 // GroupSystemAuthType 用户组-系统权限类型关系
 type GroupSystemAuthType struct {
-	PK       int64     `db:"pk"`
-	SystemID string    `db:"system_id"`
-	GroupPK  int64     `db:"group_pk"`
-	AuthType int64     `db:"auth_type"`
-	CreateAt time.Time `db:"created_at"`
+	PK        int64  `db:"pk"`
+	SystemID  string `db:"system_id"`
+	GroupPK   int64  `db:"group_pk"`
+	AuthType  int64  `db:"auth_type"`
+	Reversion int64  `db:"reversion"` // 更新版本
 }
 
 // GroupAuthType 用于鉴权查询
@@ -40,6 +38,7 @@ type GroupSystemAuthTypeManager interface {
 	ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]GroupAuthType, error)
 
 	ListByGroup(groupPK int64) ([]GroupSystemAuthType, error)
+	GetBySystemGroup(systemID string, groupPK int64) (GroupSystemAuthType, error)
 	CreateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) error
 	UpdateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) (int64, error)
 	DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error)
@@ -76,6 +75,13 @@ func (m *groupSystemAuthTypeManager) ListAuthTypeBySystemGroups(
 	return authTypes, err
 }
 
+// GetBySystemGroup ...
+func (m *groupSystemAuthTypeManager) GetBySystemGroup(systemID string, groupPK int64) (GroupSystemAuthType, error) {
+	var groupSystemAuthType GroupSystemAuthType
+	err := m.getBySystemGroup(&groupSystemAuthType, systemID, groupPK)
+	return groupSystemAuthType, err
+}
+
 // CreateWithTx ...
 func (m *groupSystemAuthTypeManager) CreateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) error {
 	return m.insertWithTx(tx, &groupSystemAuthType)
@@ -97,10 +103,22 @@ func (m *groupSystemAuthTypeManager) selectByGroup(authTypes *[]GroupSystemAuthT
 		system_id,
 		group_pk,
 		auth_type,
-		created_at
+		reversion
 		FROM group_system_auth_type 
 		WHERE group_pk = ?`
 	return database.SqlxSelect(m.DB, authTypes, query, groupPK)
+}
+
+func (m *groupSystemAuthTypeManager) getBySystemGroup(groupSystemAuthType *GroupSystemAuthType, systemID string, groupPK int64) error {
+	query := `SELECT
+		pk,
+		system_id,
+		group_pk,
+		auth_type,
+		reversion
+		FROM group_system_auth_type 
+		WHERE system_id = ? AND group_pk = ?`
+	return database.SqlxGet(m.DB, groupSystemAuthType, query, systemID, groupPK)
 }
 
 func (m *groupSystemAuthTypeManager) selectAuthTypeBySystemGroups(
@@ -120,22 +138,22 @@ func (m *groupSystemAuthTypeManager) insertWithTx(tx *sqlx.Tx, groupSystemAuthTy
 	sql := `INSERT INTO group_system_auth_type (
 		system_id,
 		group_pk,
-		auth_type,
-		created_at
+		auth_type
 	) VALUES (
 		:system_id,
 		:group_pk,
-		:auth_type,
-		:created_at)`
+		:auth_type
+	)`
 	return database.SqlxInsertWithTx(tx, sql, groupSystemAuthType)
 }
 
 func (m *groupSystemAuthTypeManager) updateWithTx(tx *sqlx.Tx, groupSystemAuthType *GroupSystemAuthType) (int64, error) {
 	sql := `UPDATE group_system_auth_type SET
-		auth_type = :auth_type 
+		auth_type = :auth_type,
+		reversion = reversion + 1
 		WHERE system_id = :system_id 
 		AND group_pk = :group_pk 
-		AND auth_type <> :auth_type`
+		AND reversion = :reversion`
 	return database.SqlxUpdateWithTx(tx, sql, groupSystemAuthType)
 }
 

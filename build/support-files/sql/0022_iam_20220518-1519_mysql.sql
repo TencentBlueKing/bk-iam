@@ -15,6 +15,7 @@ CREATE TABLE `bkiam`.`group_system_auth_type` (
   `system_id` varchar(32) NOT NULL,
   `group_pk` int(10) unsigned NOT NULL,
   `auth_type` tinyint(3) unsigned NOT NULL, -- 0 none 1 abac 2 rbac 3 rabc and abac, 支持位运算
+  `reversion` int(10) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk`),

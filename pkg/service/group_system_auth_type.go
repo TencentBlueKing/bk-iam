@@ -11,59 +11,101 @@
 package service
 
 import (
-	"time"
+	"database/sql"
+	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 )
 
-// 用于授权时处理
-func (l *subjectService) createOrUpdateGroupAuthType(
+// GroupSVC ...
+const GroupSVC = "GroupSVC"
+
+// GroupService ...
+type GroupService interface {
+	CreateOrUpdateGroupAuthType(
+		tx *sqlx.Tx, systemID string, groupPK, authType int64,
+	) (created bool, rows int64, err error)
+	ListGroupAuthSystem(groupPK int64) ([]string, error)
+}
+
+type groupService struct {
+	manager dao.GroupSystemAuthTypeManager
+}
+
+// NewSubjectService SubjectService工厂
+func NewGroupService() GroupService {
+	return &groupService{
+		manager: dao.NewGroupSystemAuthTypeManager(),
+	}
+}
+
+// CreateOrUpdateGroupAuthType ...
+func (s *groupService) CreateOrUpdateGroupAuthType(
 	tx *sqlx.Tx,
 	systemID string,
 	groupPK, authType int64,
 ) (created bool, rows int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "createOrUpdateGroupAuthType")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "CreateOrUpdateGroupAuthType")
 
-	groupSystemAuthType := dao.GroupSystemAuthType{
-		GroupPK:  groupPK,
-		SystemID: systemID,
-		AuthType: authType,
-		CreateAt: time.Now(),
+	groupSystemAuthType, err := s.manager.GetBySystemGroup(systemID, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		groupSystemAuthType = dao.GroupSystemAuthType{
+			SystemID: systemID,
+			GroupPK:  groupPK,
+			AuthType: authType,
+		}
+		err = s.manager.CreateWithTx(tx, groupSystemAuthType)
+		if err == nil {
+			return true, 1, nil
+		}
+
+		if database.IsMysqlDuplicateEntryError(err) {
+			return true, 0, ErrNeedRetry
+		}
 	}
 
-	err = l.groupSystemAuthTypeManager.CreateWithTx(tx, groupSystemAuthType)
-
-	// 创建时如果已经存在，则更新
-	if isMysqlDuplicateError(err) {
-		rows, err = l.groupSystemAuthTypeManager.UpdateWithTx(tx, groupSystemAuthType)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"groupSystemAuthTypeManager.UpdateWithTx groupSystemAuthType=`%+v` fail",
-				groupSystemAuthType,
-			)
-		}
-		return false, rows, err
-	} else if err != nil {
+	if err != nil {
 		err = errorWrapf(
 			err,
-			"groupSystemAuthTypeManager.CreateWithTx groupSystemAuthType=`%+v` fail",
-			groupSystemAuthType,
+			"groupSystemAuthTypeManager.GetBySystemGroup systemID=`%s` groupPK=`%d` fail",
+			systemID,
+			groupPK,
 		)
-		return true, 0, err
+		return false, 0, err
 	}
 
-	return true, 1, err
+	// 类型相同, 不需要更新
+	if groupSystemAuthType.AuthType == authType {
+		return false, 0, nil
+	}
+
+	groupSystemAuthType.AuthType = authType
+	count, err := s.manager.UpdateWithTx(tx, groupSystemAuthType)
+	if err != nil {
+		err = errorWrapf(
+			err, "groupSystemAuthTypeManager.UpdateWithTx groupSystemAuthType=`%+v` fail",
+			groupSystemAuthType,
+		)
+		return false, 0, err
+	}
+
+	// 并发更新冲突
+	if count == 0 {
+		return false, 0, ErrNeedRetry
+	}
+
+	return false, count, nil
 }
 
-// listGroupAuthSystem 查询group已授权的系统
-func (l *subjectService) listGroupAuthSystem(groupPK int64) ([]string, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "listGroupAuthSystem")
+// ListGroupAuthSystem 查询group已授权的系统
+func (s *groupService) ListGroupAuthSystem(groupPK int64) ([]string, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthSystem")
 
-	groupSystemAuthTypes, err := l.groupSystemAuthTypeManager.ListByGroup(groupPK)
+	groupSystemAuthTypes, err := s.manager.ListByGroup(groupPK)
 	if err != nil {
 		err = errorWrapf(
 			err,

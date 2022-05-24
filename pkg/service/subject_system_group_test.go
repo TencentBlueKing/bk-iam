@@ -21,61 +21,9 @@ import (
 
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
-	"iam/pkg/service/types"
 )
 
 var _ = Describe("SubjectService", func() {
-
-	Describe("convertToGroupExpiredAt", func() {
-		It("empty", func() {
-			groupExpiredAts, err := convertToGroupExpiredAt("")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), 0, len(groupExpiredAts))
-		})
-
-		It("fail", func() {
-			_, err := convertToGroupExpiredAt("abc")
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("ok", func() {
-			groupExpiredAts, err := convertToGroupExpiredAt(`[
-				{"group_pk":1,"expired_at":1555555555},
-				{"group_pk":2,"expired_at":1555555555}
-			]`)
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), 2, len(groupExpiredAts))
-		})
-	})
-
-	Describe("findGroupIndex", func() {
-		groups := []types.GroupExpiredAt{
-			{GroupPK: 1, ExpiredAt: 1555555555},
-			{GroupPK: 2, ExpiredAt: 1555555555},
-		}
-
-		It("no in", func() {
-			i := findGroupIndex(groups, 3)
-			assert.Equal(GinkgoT(), -1, i)
-		})
-
-		It("in", func() {
-			i := findGroupIndex(groups, 2)
-			assert.Equal(GinkgoT(), 1, i)
-		})
-	})
-
-	Describe("isMysqlDuplicateError", func() {
-		It("true", func() {
-			assert.True(GinkgoT(), isMysqlDuplicateError(&mysql.MySQLError{
-				Number: 1062,
-			}))
-		})
-
-		It("false", func() {
-			assert.False(GinkgoT(), isMysqlDuplicateError(errors.New("error")))
-		})
-	})
 
 	Describe("createSubjectSystemGroup", func() {
 		var ctl *gomock.Controller
@@ -112,6 +60,34 @@ var _ = Describe("SubjectService", func() {
 
 			err := manager.createSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.NoError(GinkgoT(), err)
+		})
+	})
+
+	Describe("updateGroupsString", func() {
+		var updateFunc = func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+			groupExpiredAtMap[2] = 1555555555
+			return groupExpiredAtMap, nil
+		}
+
+		It("json.UnmarshalFromString fail", func() {
+			_, err := updateGroupsString("123", updateFunc)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ReadMapCB")
+		})
+
+		It("updateFunc fail", func() {
+			var newUpdateFunc = func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+				return nil, errors.New("update error")
+			}
+			_, err := updateGroupsString(`{"1": 2}`, newUpdateFunc)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "update error")
+		})
+
+		It("ok", func() {
+			groups, err := updateGroupsString(`{"1": 2}`, updateFunc)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), `{"1":2,"2":1555555555}`, groups)
 		})
 	})
 
@@ -158,7 +134,7 @@ var _ = Describe("SubjectService", func() {
 			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
 
-		It("updateSubjectSystemGroup fail", func() {
+		It("subjectSystemGroupManager.UpdateWithTx fail", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{}, nil,
@@ -174,7 +150,7 @@ var _ = Describe("SubjectService", func() {
 
 			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "updateSubjectSystemGroup")
+			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
 
 		It("createSubjectSystemGroup duplicate", func() {
@@ -203,7 +179,7 @@ var _ = Describe("SubjectService", func() {
 
 			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "updateSubjectSystemGroup")
+			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
 
 		It("updateSubjectSystemGroup retry fail", func() {
@@ -257,7 +233,7 @@ var _ = Describe("SubjectService", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{
-					Groups: "[{\"group_pk\":2,\"expired_at\":1555555555}]",
+					Groups: `{"2": 1555555555}`,
 				}, errors.New("error"),
 			).AnyTimes()
 
@@ -274,7 +250,7 @@ var _ = Describe("SubjectService", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{
-					Groups: "[{\"group_pk\":1,\"expired_at\":1555555555}]",
+					Groups: `{"1": 1555555555}`,
 				}, nil,
 			).AnyTimes()
 
@@ -291,7 +267,7 @@ var _ = Describe("SubjectService", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{
-					Groups: "[{\"group_pk\":2,\"expired_at\":1555555555}]",
+					Groups: `{"2": 1555555555}`,
 				}, nil,
 			).AnyTimes()
 
@@ -305,14 +281,14 @@ var _ = Describe("SubjectService", func() {
 
 			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "updateSubjectSystemGroup")
+			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
 
 		It("updateSubjectSystemGroup retry fail", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{
-					Groups: "[{\"group_pk\":2,\"expired_at\":1555555555}]",
+					Groups: `{"2": 1555555555}`,
 				}, nil,
 			).AnyTimes()
 
@@ -333,7 +309,7 @@ var _ = Describe("SubjectService", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
 			mockSubjectSystemGroupManager.EXPECT().GetBySystemSubject("system", int64(1)).Return(
 				dao.SubjectSystemGroup{
-					Groups: "[{\"group_pk\":2,\"expired_at\":1555555555}]",
+					Groups: `{"2": 1555555555}`,
 				}, nil,
 			).AnyTimes()
 
@@ -349,4 +325,5 @@ var _ = Describe("SubjectService", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 	})
+
 })

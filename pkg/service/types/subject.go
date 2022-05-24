@@ -42,9 +42,3 @@ type SubjectDepartment struct {
 	SubjectID     string   `json:"id"`
 	DepartmentIDs []string `json:"departments"`
 }
-
-// GroupExpiredAt 用户组过期时间
-type GroupExpiredAt struct {
-	GroupPK   int64 `json:"group_pk"`
-	ExpiredAt int64 `json:"expired_at"`
-}

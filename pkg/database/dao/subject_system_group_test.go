@@ -40,8 +40,8 @@ func Test_subjectSystemGroupManager_GetGroups(t *testing.T) {
 func Test_subjectSystemGroupManager_DeleteBySystemSubjectWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`^DELETE FROM subject_system_group WHERE system_id = (.*) AND subject_pk = (.*)`).WithArgs(
-			"system", int64(1),
+		mock.ExpectExec(`^DELETE FROM subject_system_group WHERE subject_pk = (.*)`).WithArgs(
+			int64(1),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -49,7 +49,7 @@ func Test_subjectSystemGroupManager_DeleteBySystemSubjectWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectSystemGroupManager{DB: db}
-		err = manager.DeleteBySystemSubjectWithTx(tx, "system", int64(1))
+		err = manager.DeleteBySubjectWithTx(tx, int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
 	})
@@ -62,8 +62,7 @@ func Test_subjectSystemGroupManager_GetBySystemSubject(t *testing.T) {
 		system_id,
 		subject_pk,
 		groups,
-		reversion,
-		created_at
+		reversion
 		FROM subject_system_group
 		WHERE system_id = (.*) AND subject_pk = (.*)`
 		mockRows := sqlmock.NewRows([]string{"system_id", "subject_pk", "groups", "reversion"}).AddRow("test", int64(1), "[]", int64(2))
@@ -86,7 +85,7 @@ func Test_subjectSystemGroupManager_CreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`^INSERT INTO subject_system_group`).WithArgs(
-			"system", int64(1), "[]", sqlmock.AnyArg(),
+			"system", int64(1), "[]",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 

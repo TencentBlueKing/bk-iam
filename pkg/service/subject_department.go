@@ -239,6 +239,15 @@ func (m subjectPKMap) Add(_type, id string, pk int64) {
 	m[key] = pk
 }
 
+// ListPK ...
+func (m subjectPKMap) ListPK() []int64 {
+	pks := make([]int64, 0, len(m))
+	for _, pk := range m {
+		pks = append(pks, pk)
+	}
+	return pks
+}
+
 func convertSubjectsToMap(subjects []dao.Subject) subjectPKMap {
 	subjectMap := make(subjectPKMap, len(subjects))
 	for _, s := range subjects {

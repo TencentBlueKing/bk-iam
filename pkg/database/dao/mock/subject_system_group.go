@@ -49,18 +49,18 @@ func (mr *MockSubjectSystemGroupManagerMockRecorder) CreateWithTx(tx, subjectSys
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).CreateWithTx), tx, subjectSystemGroup)
 }
 
-// DeleteBySystemSubjectWithTx mocks base method.
-func (m *MockSubjectSystemGroupManager) DeleteBySystemSubjectWithTx(tx *sqlx.Tx, systemID string, subjectPK int64) error {
+// DeleteBySubjectWithTx mocks base method.
+func (m *MockSubjectSystemGroupManager) DeleteBySubjectWithTx(tx *sqlx.Tx, subjectPK int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteBySystemSubjectWithTx", tx, systemID, subjectPK)
+	ret := m.ctrl.Call(m, "DeleteBySubjectWithTx", tx, subjectPK)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteBySystemSubjectWithTx indicates an expected call of DeleteBySystemSubjectWithTx.
-func (mr *MockSubjectSystemGroupManagerMockRecorder) DeleteBySystemSubjectWithTx(tx, systemID, subjectPK interface{}) *gomock.Call {
+// DeleteBySubjectWithTx indicates an expected call of DeleteBySubjectWithTx.
+func (mr *MockSubjectSystemGroupManagerMockRecorder) DeleteBySubjectWithTx(tx, subjectPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySystemSubjectWithTx", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).DeleteBySystemSubjectWithTx), tx, systemID, subjectPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySubjectWithTx", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).DeleteBySubjectWithTx), tx, subjectPK)
 }
 
 // GetBySystemSubject mocks base method.

@@ -13,15 +13,13 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
-	"iam/pkg/service/types"
 )
 
 // ErrNoPolicies ...
@@ -30,21 +28,24 @@ var (
 	ErrNeedRetry            = errors.New("need retry")
 )
 
+// RetryCount ...
+const RetryCount = 3
+
 func (l *subjectService) doUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
 	systemID string,
 	subjectPK, groupPK, expiredAt int64,
-	needCreate bool,
-	updateGroupExpiredAtFunc func([]types.GroupExpiredAt) ([]types.GroupExpiredAt, error),
+	createIfNotExists bool,
+	updateGroupExpiredAtFunc func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error),
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "doUpdateSubjectSystemGroup")
 
 	// 查询已有数据
 	subjectSystemGroup, err := l.subjectSystemGroupManager.GetBySystemSubject(systemID, subjectPK)
-	if errors.Is(err, sql.ErrNoRows) && needCreate {
-		// 如果需要创建, 则创建
+	if createIfNotExists && errors.Is(err, sql.ErrNoRows) {
+		// 查不到数据时, 如果需要创建, 则创建
 		err = l.createSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt)
-		if isMysqlDuplicateError(err) {
+		if database.IsMysqlDuplicateEntryError(err) {
 			return ErrNeedRetry
 		}
 	}
@@ -58,34 +59,21 @@ func (l *subjectService) doUpdateSubjectSystemGroup(
 	}
 
 	// 记录存在则更新
-	groupExpiredAts, err := convertToGroupExpiredAt(subjectSystemGroup.Groups)
+	groups, err := updateGroupsString(subjectSystemGroup.Groups, updateGroupExpiredAtFunc)
 	if err != nil {
-		err = errorWrapf(err, "convertToGroupExpiredAt fail, groups=`%s`", subjectSystemGroup.Groups)
-		return err
-	}
-	groupExpiredAts, err = updateGroupExpiredAtFunc(groupExpiredAts)
-	if err != nil {
-		err = errorWrapf(err, "updateGroupExpiredAtFunc fail, groupExpiredAts=`%+v`", groupExpiredAts)
-		return err
-	}
-	groups, err := jsoniter.MarshalToString(groupExpiredAts)
-	if err != nil {
-		err = errorWrapf(err, "MarshalToString fail, groupExpiredAts=`%+v`", groupExpiredAts)
+		err = errorWrapf(err, "updateGroupsString fail, groups=`%s`", subjectSystemGroup.Groups)
 		return err
 	}
 
 	subjectSystemGroup.Groups = groups
-	rows, err := l.subjectSystemGroupManager.UpdateWithTx(tx, subjectSystemGroup)
+	count, err := l.subjectSystemGroupManager.UpdateWithTx(tx, subjectSystemGroup)
 	if err != nil {
-		err = errorWrapf(
-			err, "updateSubjectSystemGroup fail, systemID=`%s`, subjectPK=`%d`, groupExpiredAts=`%+v`",
-			systemID, subjectPK, groupExpiredAts,
-		)
+		err = errorWrapf(err, "subjectSystemGroupManager.UpdateWithTx fail, subjectSystemGroup=`%+v`", subjectSystemGroup)
 		return err
 	}
 
-	// 重试失败直接报错
-	if rows == 0 {
+	// 数据未更新时需要重试
+	if count == 0 {
 		return ErrNeedRetry
 	}
 
@@ -101,19 +89,18 @@ func (l *subjectService) addOrUpdateSubjectSystemGroup(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "addOrUpdateSubjectSystemGroup")
 
 	// 更新或创建新的关系
-	addOrUpdateFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
-		i := findGroupIndex(groupExpiredAts, groupPK)
-		if i == -1 {
-			groupExpiredAts = append(groupExpiredAts, types.GroupExpiredAt{GroupPK: groupPK, ExpiredAt: expiredAt})
-		} else {
-			groupExpiredAts[i].ExpiredAt = expiredAt
-		}
-		return groupExpiredAts, nil
+	addOrUpdateFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+		groupExpiredAtMap[groupPK] = expiredAt
+		return groupExpiredAtMap, nil
 	}
 
 	// 乐观锁, 重复提交, 最多3次
-	for i := 0; i < 3; i++ {
+	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, true, addOrUpdateFunc)
+		if err == nil {
+			return
+		}
+
 		if errors.Is(err, ErrNeedRetry) {
 			continue
 		}
@@ -123,11 +110,11 @@ func (l *subjectService) addOrUpdateSubjectSystemGroup(
 				err, "addOrUpdateSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupPK: %d, expiredAt: %d",
 				systemID, subjectPK, groupPK, expiredAt,
 			)
-			return err
+			return
 		}
 	}
 
-	return err
+	return
 }
 
 // removeSubjectSystemGroup 移除subject-system-group关系
@@ -138,17 +125,22 @@ func (l *subjectService) removeSubjectSystemGroup(
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "removeSubjectSystemGroup")
 
-	removeFunc := func(groupExpiredAts []types.GroupExpiredAt) ([]types.GroupExpiredAt, error) {
-		i := findGroupIndex(groupExpiredAts, groupPK)
-		if i == -1 {
+	removeFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+		_, ok := groupExpiredAtMap[groupPK]
+		if !ok {
 			return nil, ErrNoSubjectSystemGroup
 		}
-		return append(groupExpiredAts[:i], groupExpiredAts[i+1:]...), nil
+		delete(groupExpiredAtMap, groupPK)
+		return groupExpiredAtMap, nil
 	}
 
 	// 乐观锁, 重复提交, 最多3次
-	for i := 0; i < 3; i++ {
+	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, false, removeFunc)
+		if err == nil {
+			return
+		}
+
 		if errors.Is(err, ErrNeedRetry) {
 			continue
 		}
@@ -158,15 +150,15 @@ func (l *subjectService) removeSubjectSystemGroup(
 				err, "removeSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupPK: %d",
 				systemID, subjectPK, groupPK,
 			)
-			return err
+			return
 		}
 	}
 
-	return err
+	return
 }
 
 func (l *subjectService) createSubjectSystemGroup(tx *sqlx.Tx, systemID string, subjectPK, groupPK, expiredAt int64) error {
-	groups, err := jsoniter.MarshalToString([]types.GroupExpiredAt{{GroupPK: groupPK, ExpiredAt: expiredAt}})
+	groups, err := jsoniter.MarshalToString(map[int64]int64{groupPK: expiredAt})
 	if err != nil {
 		return err
 	}
@@ -175,37 +167,28 @@ func (l *subjectService) createSubjectSystemGroup(tx *sqlx.Tx, systemID string, 
 		SystemID:  systemID,
 		SubjectPK: subjectPK,
 		Groups:    groups,
-		CreateAt:  time.Now(),
 	}
 
 	return l.subjectSystemGroupManager.CreateWithTx(tx, subjectSystemGroup)
 }
 
-// convertToGroupExpiredAt 转换为结构
-func convertToGroupExpiredAt(groups string) (groupExpiredAts []types.GroupExpiredAt, err error) {
-	if groups == "" {
-		return []types.GroupExpiredAt{}, nil
-	}
-
-	err = jsoniter.UnmarshalFromString(groups, &groupExpiredAts)
-	return
-}
-
-func findGroupIndex(groupExpiredAts []types.GroupExpiredAt, groupPK int64) int {
-	for i := range groupExpiredAts {
-		if groupExpiredAts[i].GroupPK == groupPK {
-			return i
+// updateGroupsString 更新groups字符串
+func updateGroupsString(groups string, updateGroupExpiredAtFunc func(map[int64]int64) (map[int64]int64, error)) (string, error) {
+	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
+	if groups != "" {
+		err := jsoniter.UnmarshalFromString(groups, &groupExpiredAtMap)
+		if err != nil {
+			return "", err
 		}
 	}
 
-	return -1
-}
-
-func isMysqlDuplicateError(err error) bool {
-	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		return true
+	groupExpiredAtMap, err := updateGroupExpiredAtFunc(groupExpiredAtMap)
+	if err != nil {
+		return "", err
 	}
-
-	return false
+	groups, err = jsoniter.MarshalToString(groupExpiredAtMap)
+	if err != nil {
+		return "", err
+	}
+	return groups, nil
 }
