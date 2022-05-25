@@ -8,11 +8,41 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler_test
+package handler
 
 import (
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
+
+	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("ActionCheck", func() {
+	Describe("AllActions", func() {
+		var actions []svctypes.ActionBaseInfo
+		BeforeEach(func() {
+			actions = []svctypes.ActionBaseInfo{
+				{
+					ID:     "add",
+					Name:   "add",
+					NameEn: "add",
+				},
+				{
+					ID:     "delete",
+					Name:   "delete",
+					NameEn: "delete",
+				},
+			}
+		})
+
+		It("new", func() {
+			aa := NewAllActions(actions)
+			assert.NotNil(GinkgoT(), aa)
+		})
+
+		It("Size", func() {
+			aa := NewAllActions(actions)
+			assert.Equal(GinkgoT(), 2, aa.Size())
+		})
+	})
 })
