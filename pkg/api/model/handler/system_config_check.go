@@ -14,7 +14,7 @@ import (
 	"errors"
 	"fmt"
 
-	"iam/pkg/service"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 )
 
@@ -26,8 +26,7 @@ type ActionIDResourceTypeID struct {
 
 func checkResourceCreatorActionsRelateResourceType(systemID string, rcas resourceCreatorActionSerializer) error {
 	actionResourceTypes := rcas.getAllActionIDResourceTypeIDFromConfig()
-	svc := service.NewActionService()
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		return errors.New("query all action fail")
 	}

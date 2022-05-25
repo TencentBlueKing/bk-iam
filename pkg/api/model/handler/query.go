@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -106,9 +107,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 
 	// field: action => actions
 	if fieldSet.Has(SystemQueryFieldActions) {
-		acSvc := service.NewActionService()
-
-		actions, err := acSvc.ListBySystem(systemID)
+		actions, err := cacheimpls.ListActionBySystem(systemID)
 		if err != nil {
 			err = errorx.Wrapf(err, "Handler", "SystemInfoQuery",
 				"acSvc.ListBySystem system_id=`%s` fail", systemID)

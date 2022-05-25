@@ -51,9 +51,7 @@ func NewAllActions(actions []svctypes.Action) *AllActions {
 }
 
 func checkActionsQuotaAndAllUnique(systemID string, inActions []actionSerializer) error {
-	svc := service.NewActionService()
-
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		return errors.New("query all action fail")
 	}
@@ -124,8 +122,7 @@ func checkActionUpdateResourceTypeAllExists(actionID string, resourceTypes []rel
 }
 
 func checkActionUpdateUnique(systemID, actionID, name, nameEn string) error {
-	svc := service.NewActionService()
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		return errors.New("query all action fail")
 	}
@@ -147,8 +144,7 @@ func checkActionUpdateUnique(systemID, actionID, name, nameEn string) error {
 }
 
 func checkActionIDsExist(systemID string, ids []string) error {
-	svc := service.NewActionService()
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		return errors.New("query all action fail")
 	}

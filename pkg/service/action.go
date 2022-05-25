@@ -42,6 +42,8 @@ type ActionService interface {
 
 	Get(system, id string) (types.Action, error)
 
+	// ListBySystem, 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
+	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
 	ListBySystem(system string) ([]types.Action, error)
 
 	BulkCreate(system string, actions []types.Action) error
