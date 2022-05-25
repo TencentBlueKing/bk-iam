@@ -24,11 +24,14 @@ import (
 // GroupSVC ...
 const GroupSVC = "GroupSVC"
 
+// ErrConcurrencyConflict ...
+var ErrConcurrencyConflict = errors.New("concurrency conflict")
+
 // GroupService ...
 type GroupService interface {
 	CreateOrUpdateGroupAuthType(
 		tx *sqlx.Tx, systemID string, groupPK, authType int64,
-	) (created bool, rows int64, err error)
+	) (created bool, count int64, err error)
 	ListGroupAuthSystem(groupPK int64) ([]string, error)
 }
 
@@ -48,7 +51,7 @@ func (s *groupService) CreateOrUpdateGroupAuthType(
 	tx *sqlx.Tx,
 	systemID string,
 	groupPK, authType int64,
-) (created bool, rows int64, err error) {
+) (created bool, count int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "CreateOrUpdateGroupAuthType")
 
 	groupSystemAuthType, err := s.manager.GetBySystemGroup(systemID, groupPK)
@@ -64,7 +67,7 @@ func (s *groupService) CreateOrUpdateGroupAuthType(
 		}
 
 		if database.IsMysqlDuplicateEntryError(err) {
-			return true, 0, ErrNeedRetry
+			return true, 0, ErrConcurrencyConflict
 		}
 	}
 
@@ -84,7 +87,7 @@ func (s *groupService) CreateOrUpdateGroupAuthType(
 	}
 
 	groupSystemAuthType.AuthType = authType
-	count, err := s.manager.UpdateWithTx(tx, groupSystemAuthType)
+	count, err = s.manager.UpdateWithTx(tx, groupSystemAuthType)
 	if err != nil {
 		err = errorWrapf(
 			err, "groupSystemAuthTypeManager.UpdateWithTx groupSystemAuthType=`%+v` fail",
@@ -95,7 +98,7 @@ func (s *groupService) CreateOrUpdateGroupAuthType(
 
 	// 并发更新冲突
 	if count == 0 {
-		return false, 0, ErrNeedRetry
+		return false, 0, ErrConcurrencyConflict
 	}
 
 	return false, count, nil

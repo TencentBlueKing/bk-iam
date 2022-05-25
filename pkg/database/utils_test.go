@@ -79,6 +79,10 @@ var _ = Describe("Utils", func() {
 		It("false", func() {
 			assert.False(GinkgoT(), IsMysqlDuplicateEntryError(errors.New("error")))
 		})
+
+		It("nil false", func() {
+			assert.False(GinkgoT(), IsMysqlDuplicateEntryError(nil))
+		})
 	})
 
 })
