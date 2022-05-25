@@ -21,7 +21,6 @@ import (
 	modelHandler "iam/pkg/api/model/handler"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -48,8 +47,7 @@ func QueryActions(c *gin.Context) {
 	}
 
 	// 获取action信息
-	svc := service.NewActionService()
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

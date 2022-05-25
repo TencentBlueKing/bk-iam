@@ -25,6 +25,8 @@ func retrieveActionList(key cache.Key) (interface{}, error) {
 	return svc.ListBySystem(systemID)
 }
 
+// ListActionBySystem ActionService.ListBySystem的缓存, 注意, 查 db 由于有填充resourceTypes/InstanceSelections,
+// db 查询量非常大, 例如cmdb可能走近100次查询
 func ListActionBySystem(systemID string) (actions []types.Action, err error) {
 	key := cache.NewStringKey(systemID)
 
