@@ -25,11 +25,15 @@ import (
 type AllActions struct {
 	AllBaseInfo
 
-	Actions []svctypes.Action
+	Actions []svctypes.ActionBaseInfo
+}
+
+func (a *AllActions) Size() int {
+	return len(a.Actions)
 }
 
 // NewAllActions ...
-func NewAllActions(actions []svctypes.Action) *AllActions {
+func NewAllActions(actions []svctypes.ActionBaseInfo) *AllActions {
 	idSet := map[string]string{}
 	nameSet := map[string]string{}
 	nameEnSet := map[string]string{}
@@ -50,13 +54,22 @@ func NewAllActions(actions []svctypes.Action) *AllActions {
 	}
 }
 
-func checkActionsQuotaAndAllUnique(systemID string, inActions []actionSerializer) error {
-	actions, err := cacheimpls.ListActionBySystem(systemID)
+func BuildAllActions(systemID string) (*AllActions, error) {
+	svc := service.NewActionService()
+	actions, err := svc.ListBaseInfoBySystem(systemID)
 	if err != nil {
-		return errors.New("query all action fail")
+		return nil, errors.New("query all action fail")
 	}
 
-	allActions := NewAllActions(actions)
+	return NewAllActions(actions), nil
+}
+
+func checkActionsQuotaAndAllUnique(systemID string, inActions []actionSerializer) error {
+	allActions, err := BuildAllActions(systemID)
+	if err != nil {
+		return err
+	}
+
 	for _, ac := range inActions {
 		if allActions.ContainsID(ac.ID) {
 			return fmt.Errorf("action id[%s] already exists", ac.ID)
@@ -70,9 +83,9 @@ func checkActionsQuotaAndAllUnique(systemID string, inActions []actionSerializer
 	}
 
 	// quota
-	if len(actions)+len(inActions) > common.GetMaxActionsLimit(systemID) {
+	if allActions.Size()+len(inActions) > common.GetMaxActionsLimit(systemID) {
 		return fmt.Errorf("quota error: system %s can only have %d actions.[current %d, want to create %d]",
-			systemID, common.GetMaxActionsLimit(systemID), len(actions), len(inActions))
+			systemID, common.GetMaxActionsLimit(systemID), allActions.Size(), len(inActions))
 	}
 
 	return nil
@@ -122,12 +135,10 @@ func checkActionUpdateResourceTypeAllExists(actionID string, resourceTypes []rel
 }
 
 func checkActionUpdateUnique(systemID, actionID, name, nameEn string) error {
-	actions, err := cacheimpls.ListActionBySystem(systemID)
+	allActions, err := BuildAllActions(systemID)
 	if err != nil {
-		return errors.New("query all action fail")
+		return err
 	}
-
-	allActions := NewAllActions(actions)
 
 	if !allActions.ContainsID(actionID) {
 		return fmt.Errorf("action id[%s] not exists", actionID)
@@ -144,12 +155,10 @@ func checkActionUpdateUnique(systemID, actionID, name, nameEn string) error {
 }
 
 func checkActionIDsExist(systemID string, ids []string) error {
-	actions, err := cacheimpls.ListActionBySystem(systemID)
+	allActions, err := BuildAllActions(systemID)
 	if err != nil {
-		return errors.New("query all action fail")
+		return err
 	}
-
-	allActions := NewAllActions(actions)
 	for _, id := range ids {
 		if !allActions.ContainsID(id) {
 			return fmt.Errorf("action id[%s] not exists", id)

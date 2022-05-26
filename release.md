@@ -1,3 +1,7 @@
+# 1.11.6
+
+- action model change check use []ActionBaseInfo
+
 # 1.11.5
 
 - pref: action_service ListBySystem use cache to do check

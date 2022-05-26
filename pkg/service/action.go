@@ -46,6 +46,9 @@ type ActionService interface {
 	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
 	ListBySystem(system string) ([]types.Action, error)
 
+	// ListBaseInfoBySystem 只包含原生字段, 不包含resource_types/related_actions等字段, 用于模型变更时的检查
+	ListBaseInfoBySystem(system string) ([]types.ActionBaseInfo, error)
+
 	BulkCreate(system string, actions []types.Action) error
 	Update(system, actionID string, action types.Action) error
 	BulkDelete(system string, actionIDs []string) error
@@ -283,6 +286,29 @@ func (l *actionService) convertToDBRelatedResourceTypes(
 	}
 
 	return dbActionResourceTypes, dbSaaSActionResourceTypes, nil
+}
+
+func (l *actionService) ListBaseInfoBySystem(system string) ([]types.ActionBaseInfo, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListBaseInfoBySystem")
+	dbActions, err := l.saasManager.ListBySystem(system)
+	if err != nil {
+		return nil, errorWrapf(err, "saasManager.ListBySystem system=`%s` fail", system)
+	}
+
+	actions := []types.ActionBaseInfo{}
+	for _, ac := range dbActions {
+		action := types.ActionBaseInfo{
+			ID:            ac.ID,
+			Name:          ac.Name,
+			NameEn:        ac.NameEn,
+			Description:   ac.Description,
+			DescriptionEn: ac.DescriptionEn,
+			Type:          ac.Type,
+			Version:       ac.Version,
+		}
+		actions = append(actions, action)
+	}
+	return actions, nil
 }
 
 // BulkCreate ...

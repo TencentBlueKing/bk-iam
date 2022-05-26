@@ -19,6 +19,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 
 	"iam/pkg/database/dao/mock"
+	"iam/pkg/database/sdao"
+	smock "iam/pkg/database/sdao/mock"
+	"iam/pkg/service/types"
 )
 
 var _ = Describe("ActionService", func() {
@@ -49,6 +52,45 @@ var _ = Describe("ActionService", func() {
 			_, err := mockActionManager.GetPK("iam", "execute")
 			assert.Error(GinkgoT(), err)
 		})
+	})
 
+	Describe("ListBaseInfoBySystem", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.ListBySystem fail", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().ListBySystem("test").Return(
+				[]sdao.SaaSAction{}, errors.New("list by system fail"),
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			_, err := manager.ListBaseInfoBySystem("test")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "saasManager.ListBySystem")
+		})
+
+		It("success", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().ListBySystem("test").Return(
+				[]sdao.SaaSAction{}, nil,
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			actions, err := manager.ListBaseInfoBySystem("test")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.ActionBaseInfo{}, actions)
+		})
 	})
 })
