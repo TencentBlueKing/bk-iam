@@ -99,32 +99,32 @@ INSERT INTO `subject_department` (`subject_pk`, `department_pks`, `created_at`, 
 
 
 /* subject-groups: user-group  department-group */
-INSERT INTO `subject_relation` (`subject_pk`,  `subject_type`, `subject_id`, `parent_pk`, `parent_type`, `parent_id`, `policy_expired_at`) VALUES
-(100, 'user', 'user100', 2100, 'group', 'group100', 4102444800),
-(101, 'user', 'user101', 2101, 'group', 'group101', 4102444800),
-(102, 'user', 'user102', 2102, 'group', 'group102', 4102444800),
-(103, 'user', 'user103', 2103, 'group', 'group103', 4102444800),
-(104, 'user', 'user104', 2104, 'group', 'group104', 4102444800),
-(1120, 'department', 'dept120', 2120, 'group', 'group120', 4102444800),
-(1121, 'department', 'dept121', 2121, 'group', 'group121', 4102444800),
-(1122, 'department', 'dept122', 2122, 'group', 'group122', 4102444800),
-(1123, 'department', 'dept123', 2123, 'group', 'group123', 4102444800),
-(1124, 'department', 'dept124', 2124, 'group', 'group124', 4102444800),
+INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `policy_expired_at`) VALUES
+(100, 2100, 4102444800),
+(101, 2101, 4102444800),
+(102, 2102, 4102444800),
+(103, 2103, 4102444800),
+(104, 2104, 4102444800),
+(1120, 2120, 4102444800),
+(1121, 2121, 4102444800),
+(1122, 2122, 4102444800),
+(1123, 2123, 4102444800),
+(1124, 2124, 4102444800),
 -- user - group / user - dept - group
 -- case 1: user140 - dept  1140 - group 2140
 -- case 2: user141 - group 2141  / user141 - dept 1142 - group 2142
 -- case 3: user143 - group 2143  / user143 - dept 1144 - group 2144
 -- case 4: user145 - group 2145  / user145 - dept 1146 - group 2146
 -- case 5: user147 - group 2147  / user147 - dept 1148 - group 2148
-(1140, 'department', 'dept140', 2140, 'group', 'group140', 4102444800),
-(1142, 'department', 'dept142', 2142, 'group', 'group142', 4102444800),
-(1144, 'department', 'dept144', 2144, 'group', 'group144', 4102444800),
-(141, 'user', 'user141', 2141, 'group', 'group141', 4102444800),
-(143, 'user', 'user143', 2143, 'group', 'group143', 4102444800),
-(145, 'user', 'user145', 2145, 'group', 'group145', 4102444800),
-(1146, 'department', 'dept146', 2146, 'group', 'group146', 4102444800),
-(147, 'user', 'user147', 2147, 'group', 'group147', 4102444800),
-(1148, 'department', 'dept148', 2148, 'group', 'group148', 4102444800);
+(1140, 2140, 4102444800),
+(1142, 2142, 4102444800),
+(1144, 2144, 4102444800),
+(141, 2141, 4102444800),
+(143, 2143, 4102444800),
+(145, 2145, 4102444800),
+(1146, 2146, 4102444800),
+(147, 2147, 4102444800),
+(1148, 2148, 4102444800);
 
 
 
