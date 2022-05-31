@@ -154,7 +154,7 @@ func (c *groupController) createOrUpdateSubjectMembers(
 	}
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	return nil, nil
+	return typeCount, nil
 }
 
 func (c *groupController) bulkCreateSubjectMembers(tx *sqlx.Tx, _type, id string, members []SubjectMember) error {

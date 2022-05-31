@@ -11,6 +11,9 @@
 package pap
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/cacheimpls"
@@ -165,6 +168,11 @@ func convertToServiceSubjectDepartments(subjectDepartments []SubjectDepartment) 
 		for _, departmentID := range subjectDepartment.DepartmentIDs {
 			departmentPK, err := cacheimpls.GetSubjectPK(types.DepartmentType, departmentID)
 			if err != nil {
+				// 兼容不存在的情况
+				if errors.Is(err, sql.ErrNoRows) {
+					continue
+				}
+
 				return nil, err
 			}
 			departmentPKs = append(departmentPKs, departmentPK)
