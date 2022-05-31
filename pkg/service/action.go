@@ -488,6 +488,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		Description:         action.Description,
 		DescriptionEn:       action.DescriptionEn,
 		Sensitivity:         action.Sensitivity,
+		AuthType:            action.AuthType,
 		Type:                action.Type,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,

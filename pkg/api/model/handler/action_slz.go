@@ -204,15 +204,15 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 // 1. if len(data.RelatedResourceTypes) == 0, auth_type should be "abac"
 // 2. if len(data.RelatedResourceTypes) > 0, auth_type should be "abac" OR "rbac"
 //     2.1 if auth_type == "rbac", the related_resource_type[selection_mode] should be 'instance'
-func validateActionAuthType(action actionSerializer) (bool, string) {
-	if action.AuthType == AuthTypeRBAC {
+func validateActionAuthType(authType string, relatedResourceTypes []relatedResourceType) (bool, string) {
+	if authType == AuthTypeRBAC {
 		// 1
-		if len(action.RelatedResourceTypes) == 0 {
+		if len(relatedResourceTypes) == 0 {
 			return false, "action without relatedResourceTypes, auth_type should be 'abac'(or empty), can't be 'rbac'"
 		}
 
 		// 2.1 if len(action.RelatedResourceTypes) > 0 {
-		for index, rrt := range action.RelatedResourceTypes {
+		for index, rrt := range relatedResourceTypes {
 			// selectionMode == "" will be set to SelectionModeInstance later
 			if rrt.SelectionMode != "" && rrt.SelectionMode != SelectionModeInstance {
 				return false, fmt.Sprintf(
@@ -237,7 +237,7 @@ func validateAction(body []actionSerializer) (bool, string) {
 			return false, message
 		}
 
-		valid, message := validateActionAuthType(data)
+		valid, message := validateActionAuthType(data.AuthType, data.RelatedResourceTypes)
 		if !valid {
 			message := fmt.Sprintf("data in array[%d] id=%s, %s", index, data.ID, message)
 			return false, message
