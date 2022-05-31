@@ -36,6 +36,7 @@ type SaaSAction struct {
 	Sensitivity         int64  `db:"sensitivity"`
 	RelatedActions      string `db:"related_actions"`
 	RelatedEnvironments string `db:"related_environments"`
+	AuthType            string `db:"auth_type"`
 	Type                string `db:"type"`
 	Version             int64  `db:"version"`
 }
@@ -121,10 +122,11 @@ func (m *saasActionManager) bulkInsertWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 		sensitivity,
 		related_actions,
 		related_environments,
+		auth_type,
 		type,
 		version
 	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :sensitivity,
-			:related_actions, :related_environments, :type, :version)`
+			:related_actions, :related_environments, :auth_type, :type, :version)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasActions)
 }
 
@@ -153,6 +155,7 @@ func (m *saasActionManager) selectBySystem(saasAction *[]SaaSAction, system stri
 		sensitivity,
 		related_actions,
 		related_environments,
+		auth_type,
 		type,
 		version
 		FROM saas_action
@@ -168,6 +171,7 @@ func (m *saasActionManager) getByActionID(saasAction *SaaSAction, system, action
 		id,
 		name,
 		name_en,
+		auth_type,
 		type,
 		version
 		FROM saas_action

@@ -85,6 +85,7 @@ func BatchCreateActions(c *gin.Context) {
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
 			Sensitivity:   ac.Sensitivity,
+			AuthType:      convertAuthType(ac.AuthType),
 			Type:          ac.Type,
 			Version:       ac.Version,
 

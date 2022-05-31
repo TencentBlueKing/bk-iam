@@ -52,7 +52,8 @@ type actionSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
 	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
-	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
+	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
+	Type     string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
@@ -68,7 +69,8 @@ type actionUpdateSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
 	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
 
-	Type string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
+	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
+	Type     string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
@@ -198,6 +200,31 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 	return true, "valid"
 }
 
+// validateActionAuthType will check the auth_type is valid or not
+// 1. if len(data.RelatedResourceTypes) == 0, auth_type should be "abac"
+// 2. if len(data.RelatedResourceTypes) > 0, auth_type should be "abac" OR "rbac"
+//     2.1 if auth_type == "rbac", the related_resource_type[selection_mode] should be 'instance'
+func validateActionAuthType(action actionSerializer) (bool, string) {
+	if action.AuthType == AuthTypeRBAC {
+		// 1
+		if len(action.RelatedResourceTypes) == 0 {
+			return false, "action without relatedResourceTypes, auth_type should be 'abac'(or empty), can't be 'rbac'"
+		}
+
+		// 2.1 if len(action.RelatedResourceTypes) > 0 {
+		for index, rrt := range action.RelatedResourceTypes {
+			// selectionMode == "" will be set to SelectionModeInstance later
+			if rrt.SelectionMode != "" && rrt.SelectionMode != SelectionModeInstance {
+				return false, fmt.Sprintf(
+					"action.auth_type is 'rbac', so the related_resource_types[%d]'s selection_mode should be 'instance'(or empty)",
+					index)
+			}
+		}
+	}
+
+	return true, "valid"
+}
+
 func validateAction(body []actionSerializer) (bool, string) {
 	for index, data := range body {
 		if err := binding.Validator.ValidateStruct(data); err != nil {
@@ -207,6 +234,12 @@ func validateAction(body []actionSerializer) (bool, string) {
 
 		if !common.ValidIDRegex.MatchString(data.ID) {
 			message := fmt.Sprintf("data in array[%d] id=%s, %s", index, data.ID, common.ErrInvalidID)
+			return false, message
+		}
+
+		valid, message := validateActionAuthType(data)
+		if !valid {
+			message := fmt.Sprintf("data in array[%d] id=%s, %s", index, data.ID, message)
 			return false, message
 		}
 
