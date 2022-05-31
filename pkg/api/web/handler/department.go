@@ -67,7 +67,7 @@ func BatchDeleteSubjectDepartments(c *gin.Context) {
 	ctl := pap.NewDepartmentController()
 	err := ctl.BulkDeleteSubjectDepartments(subjectIDs)
 	if err != nil {
-		err = errorWrapf(err, "svc.BulkUpdateSubjectDepartments BulkDeleteSubjectDepartments=`%+v`", subjectIDs)
+		err = errorWrapf(err, "ctl.BulkDeleteSubjectDepartments subjectIDs=`%+v`", subjectIDs)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -96,7 +96,7 @@ func BatchUpdateSubjectDepartments(c *gin.Context) {
 	ctl := pap.NewDepartmentController()
 	err := ctl.BulkUpdateSubjectDepartments(papSubjectDepartments)
 	if err != nil {
-		err = errorWrapf(err, "svc.BulkUpdateSubjectDepartments subjectDepartments=`%+v`", papSubjectDepartments)
+		err = errorWrapf(err, "ctl.BulkUpdateSubjectDepartments subjectDepartments=`%+v`", papSubjectDepartments)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

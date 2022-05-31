@@ -94,7 +94,7 @@ func (l *groupService) GetEffectThinSubjectGroups(pk int64) (thinSubjectGroup []
 
 	relations, err := l.manager.ListEffectThinRelationBySubjectPK(pk)
 	if err != nil {
-		return thinSubjectGroup, errorWrapf(err, "ListEffectThinRelationBySubjectPK pk=`%d` fail", pk)
+		return thinSubjectGroup, errorWrapf(err, "manager.ListEffectThinRelationBySubjectPK pk=`%d` fail", pk)
 	}
 
 	for _, r := range relations {
@@ -113,7 +113,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 	relations, err := l.manager.ListEffectRelationBySubjectPKs(pks)
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "ListRelationByPKs pks=`%+v` fail", pks)
+		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
 	}
 
 	for _, r := range relations {
@@ -136,7 +136,7 @@ func (l *groupService) ListSubjectGroups(
 	}
 
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "ListSubjectGroups _type=`%s`, id=`%s` fail", _type, id)
+		return subjectGroups, errorWrapf(err, "manager.ListSubjectGroups _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
@@ -163,7 +163,7 @@ func (l *groupService) ListExistSubjectsBeforeExpiredAt(
 	existGroupIDs, err := l.manager.ListParentIDsBeforeExpiredAt(types.GroupType, groupIDs, expiredAt)
 	if err != nil {
 		return []types.Subject{}, errorWrapf(
-			err, "ListParentIDsBeforeExpiredAt _type=`%s`, ids=`%+v`, expiredAt=`%d` fail",
+			err, "manager.ListParentIDsBeforeExpiredAt _type=`%s`, ids=`%+v`, expiredAt=`%d` fail",
 			types.GroupType, groupIDs, expiredAt,
 		)
 	}
@@ -203,7 +203,7 @@ func (l *groupService) GetMemberCount(_type, id string) (int64, error) {
 	cnt, err := l.manager.GetMemberCount(_type, id)
 	if err != nil {
 		err = errorx.Wrapf(err, GroupSVC, "GetMemberCount",
-			"relationManager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
+			"manager.GetMemberCount _type=`%s`, id=`%s` fail", _type, id)
 		return 0, err
 	}
 	return cnt, nil
@@ -214,7 +214,7 @@ func (l *groupService) ListPagingMember(_type, id string, limit, offset int64) (
 	daoRelations, err := l.manager.ListPagingMember(_type, id, limit, offset)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListPagingMember", "relationManager.ListPagingMember _type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+			"ListPagingMember", "manager.ListPagingMember _type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
 			_type, id, limit, offset)
 	}
 
@@ -226,7 +226,7 @@ func (l *groupService) ListMember(_type, id string) ([]types.SubjectMember, erro
 	daoRelations, err := l.manager.ListMember(_type, id)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListMember", "relationManager.ListMember _type=`%s`, id=`%s` fail", _type, id)
+			"ListMember", "manager.ListMember _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	return convertToSubjectMembers(daoRelations), nil
@@ -246,8 +246,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, members []types
 
 	err := l.manager.UpdateExpiredAtWithTx(tx, relations)
 	if err != nil {
-		err = errorWrapf(err,
-			"relationManager.UpdateExpiredAtWithTx relations=`%+v` fail", relations)
+		err = errorWrapf(err, "manager.UpdateExpiredAtWithTx relations=`%+v` fail", relations)
 		return err
 	}
 
@@ -279,7 +278,7 @@ func (l *groupService) BulkDeleteSubjectMembers(_type, id string, members []type
 		count, err = l.manager.BulkDeleteByMembersWithTx(tx, _type, id, types.UserType, userIDs)
 		if err != nil {
 			return nil, errorWrapf(err,
-				"relationManager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
+				"manager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
 				_type, id, types.UserType, userIDs)
 		}
 		typeCount[types.UserType] = count
@@ -289,7 +288,7 @@ func (l *groupService) BulkDeleteSubjectMembers(_type, id string, members []type
 		count, err = l.manager.BulkDeleteByMembersWithTx(tx, _type, id, types.DepartmentType, departmentIDs)
 		if err != nil {
 			return nil, errorWrapf(
-				err, "relationManager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
+				err, "manager.BulkDeleteByMembersWithTx _type=`%s`, id=`%s`, subjectType=`%s`, subjectIDs=`%+v` fail",
 				_type, id, types.DepartmentType, departmentIDs)
 		}
 		typeCount[types.DepartmentType] = count
@@ -321,7 +320,7 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []t
 
 	err := l.manager.BulkCreateWithTx(tx, daoRelations)
 	if err != nil {
-		return errorWrapf(err, "relationManager.BulkCreateWithTx relations=`%+v` fail", daoRelations)
+		return errorWrapf(err, "manager.BulkCreateWithTx relations=`%+v` fail", daoRelations)
 	}
 	return nil
 }
@@ -331,7 +330,7 @@ func (l *groupService) GetMemberCountBeforeExpiredAt(_type, id string, expiredAt
 	cnt, err := l.manager.GetMemberCountBeforeExpiredAt(_type, id, expiredAt)
 	if err != nil {
 		err = errorx.Wrapf(err, GroupSVC, "GetMemberCountBeforeExpiredAt",
-			"relationManager.GetMemberCountBeforeExpiredAt _type=`%s`, id=`%s`, expiredAt=`%d` fail",
+			"manager.GetMemberCountBeforeExpiredAt _type=`%s`, id=`%s`, expiredAt=`%d` fail",
 			_type, id, expiredAt)
 		return 0, err
 	}

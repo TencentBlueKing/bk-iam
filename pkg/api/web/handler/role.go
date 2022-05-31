@@ -43,11 +43,8 @@ func CreateSubjectRole(c *gin.Context) {
 
 	if err != nil {
 		err = errorWrapf(
-			err,
-			"svc.BulkCreateSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
-			body.RoleType,
-			body.SystemID,
-			papSubjects,
+			err, "ctl.BulkCreateSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
+			body.RoleType, body.SystemID, papSubjects,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -78,11 +75,8 @@ func DeleteSubjectRole(c *gin.Context) {
 
 	if err != nil {
 		err = errorWrapf(
-			err,
-			"ctl.BulkDeleteSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
-			body.RoleType,
-			body.SystemID,
-			papSubjects,
+			err, "ctl.BulkDeleteSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
+			body.RoleType, body.SystemID, papSubjects,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -111,10 +105,8 @@ func ListSubjectRole(c *gin.Context) {
 	subjects, err := ctl.ListSubjectByRole(query.RoleType, query.SystemID)
 	if err != nil {
 		err = errorWrapf(
-			err,
-			"ctl.ListSubjectByRole roleType=`%s`, system=`%s`",
-			query.RoleType,
-			query.SystemID,
+			err, "ctl.ListSubjectByRole roleType=`%s`, system=`%s`",
+			query.RoleType, query.SystemID,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return

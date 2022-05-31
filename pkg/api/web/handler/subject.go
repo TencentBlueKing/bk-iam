@@ -43,8 +43,10 @@ func ListSubject(c *gin.Context) {
 
 	subjects, err := svc.ListPaging(body.Type, body.Limit, body.Offset)
 	if err != nil {
-		err = errorWrapf(err, "svc.ListPaging type=`%s` limit=`%d` offset=`%d`",
-			body.Type, body.Limit, body.Offset)
+		err = errorWrapf(
+			err, "svc.ListPaging type=`%s` limit=`%d` offset=`%d`",
+			body.Type, body.Limit, body.Offset,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -73,7 +75,7 @@ func BatchCreateSubjects(c *gin.Context) {
 
 	err := ctl.BulkCreate(papSubjects)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "BatchCreateSubjects", "subjects=`%+v`", papSubjects)
+		err = errorx.Wrapf(err, "Handler", "ctl.BulkCreate", "subjects=`%+v`", papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -98,7 +100,7 @@ func BatchDeleteSubjects(c *gin.Context) {
 
 	err := ctl.BulkDelete(papSubjects)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "BatchDeleteSubjects", "subjects=`%+v`", papSubjects)
+		err = errorx.Wrapf(err, "Handler", "ctl.BulkDelete", "subjects=`%+v`", papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -126,7 +128,7 @@ func BatchUpdateSubject(c *gin.Context) {
 
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchUpdateSubject")
 	if err != nil {
-		err = errorWrapf(err, "svc.BulkUpdateName subjects=`%+v`", papSubjects)
+		err = errorWrapf(err, "ctl.BulkUpdateName subjects=`%+v`", papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

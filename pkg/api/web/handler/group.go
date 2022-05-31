@@ -44,8 +44,10 @@ func ListSubjectMember(c *gin.Context) {
 
 	relations, err := svc.ListPagingMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
 	if err != nil {
-		err = errorWrapf(err, "type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
-			subject.Type, subject.ID, subject.Limit, subject.Offset)
+		err = errorWrapf(
+			err, "svc.ListPagingMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+			subject.Type, subject.ID, subject.Limit, subject.Offset,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -67,7 +69,7 @@ func GetSubjectGroup(c *gin.Context) {
 	svc := service.NewGroupService()
 	groups, err := svc.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ListSubjectGroups",
+		err = errorx.Wrapf(err, "Handler", "svc.ListSubjectGroups",
 			"type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -103,7 +105,7 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	err := ctl.UpdateSubjectMembersExpiredAt(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorWrapf(err, "CreateOrUpdateSubjectMembers",
+		err = errorWrapf(err, "ctl.UpdateSubjectMembersExpiredAt",
 			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -130,7 +132,7 @@ func DeleteSubjectMembers(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	typeCount, err := ctl.DeleteSubjectMembers(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "DeleteSubjectMembers",
+		err = errorx.Wrapf(err, "Handler", "ctl.DeleteSubjectMembers",
 			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -165,7 +167,7 @@ func BatchAddSubjectMembers(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	typeCount, err := ctl.CreateOrUpdateSubjectMembers(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorWrapf(err, "CreateOrUpdateSubjectMembers",
+		err = errorWrapf(err, "ctl.CreateOrUpdateSubjectMembers",
 			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -189,7 +191,10 @@ func ListSubjectMemberBeforeExpiredAt(c *gin.Context) {
 	svc := service.NewGroupService()
 	count, err := svc.GetMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
 	if err != nil {
-		err = errorWrapf(err, "type=`%s`, id=`%s`, beforeExpiredAt=`%d`", body.Type, body.ID, body.BeforeExpiredAt)
+		err = errorWrapf(
+			err, "svc.GetMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			body.Type, body.ID, body.BeforeExpiredAt,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -198,7 +203,10 @@ func ListSubjectMemberBeforeExpiredAt(c *gin.Context) {
 		body.Type, body.ID, body.BeforeExpiredAt, body.Limit, body.Offset,
 	)
 	if err != nil {
-		err = errorWrapf(err, "type=`%s`, id=`%s`, beforeExpiredAt=`%d`", body.Type, body.ID, body.BeforeExpiredAt)
+		err = errorWrapf(
+			err, "svc.ListPagingMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			body.Type, body.ID, body.BeforeExpiredAt,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -229,7 +237,10 @@ func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
 	svc := service.NewGroupService()
 	existSubjects, err := svc.ListExistSubjectsBeforeExpiredAt(svcSubjects, body.BeforeExpiredAt)
 	if err != nil {
-		err = errorWrapf(err, "subjects=`%+v`, beforeExpiredAt=`%d`", svcSubjects, body.BeforeExpiredAt)
+		err = errorWrapf(
+			err, "svc.ListExistSubjectsBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
+			svcSubjects, body.BeforeExpiredAt,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

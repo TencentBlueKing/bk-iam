@@ -50,7 +50,7 @@ func (l *roleService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
 
 	systemIDs, err := l.manager.ListSystemIDBySubjectPK(pk)
 	if err != nil {
-		return nil, errorWrapf(err, "roleManager.ListSystemIDBySubjectPK pk=`%d` fail", pk)
+		return nil, errorWrapf(err, "manager.ListSystemIDBySubjectPK pk=`%d` fail", pk)
 	}
 
 	return systemIDs, err
@@ -62,7 +62,7 @@ func (l *roleService) ListSubjectPKByRole(roleType, system string) ([]int64, err
 	subjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
 	if err != nil {
 		err = errorWrapf(
-			err, "roleManager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system,
+			err, "manager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system,
 		)
 		return subjectPKs, err
 	}
@@ -76,7 +76,7 @@ func (l *roleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs
 	// 查询角色已有的subjectPK
 	oldSubjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
 	if err != nil {
-		err = errorWrapf(err, "roleManager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system)
+		err = errorWrapf(err, "manager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system)
 		return err
 	}
 
@@ -97,7 +97,7 @@ func (l *roleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs
 	// 创建SubjectRole
 	err = l.manager.BulkCreate(roles)
 	if err != nil {
-		err = errorWrapf(err, "roleManager.BulkCreate roles=`%+v` fail", roles)
+		err = errorWrapf(err, "manager.BulkCreate roles=`%+v` fail", roles)
 		return err
 	}
 
@@ -116,11 +116,8 @@ func (l *roleService) BulkDeleteSubjectRoles(roleType, system string, subjectPKs
 	err := l.manager.BulkDelete(roleType, system, subjectPKs)
 	if err != nil {
 		err = errorWrapf(
-			err,
-			"roleManager.BulkDelete roleType=`%s`, system=`%s`, subjectPKs=`%+v` fail",
-			roleType,
-			system,
-			subjectPKs,
+			err, "manager.BulkDelete roleType=`%s`, system=`%s`, subjectPKs=`%+v` fail",
+			roleType, system, subjectPKs,
 		)
 		return err
 	}

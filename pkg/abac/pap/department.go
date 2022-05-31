@@ -95,7 +95,7 @@ func (c *departmentController) BulkCreateSubjectDepartments(subjectDepartments [
 
 	err = c.service.BulkCreateSubjectDepartments(serviceSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "BulkCreateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
+		return errorWrapf(err, "service.BulkCreateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func (c *departmentController) BulkUpdateSubjectDepartments(subjectDepartments [
 
 	err = c.service.BulkUpdateSubjectDepartments(serviceSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "BulkUpdateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
+		return errorWrapf(err, "service.BulkUpdateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
 	subjectPKs := make([]int64, 0, len(serviceSubjectDepartments))
@@ -138,12 +138,12 @@ func (c *departmentController) BulkDeleteSubjectDepartments(subjectIDs []string)
 
 	subjectPKs, err := c.subjectService.ListPKsBySubjects(subjects)
 	if err != nil {
-		return errorWrapf(err, "ListPKsBySubjects subjects=`%+v` fail", subjects)
+		return errorWrapf(err, "subjectService.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
 	err = c.service.BulkDeleteSubjectDepartments(subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "BulkDeleteSubjectDepartments subjectIDs=`%s` fail", subjectIDs)
+		return errorWrapf(err, "service.BulkDeleteSubjectDepartments subjectIDs=`%s` fail", subjectIDs)
 	}
 
 	// delete from cache

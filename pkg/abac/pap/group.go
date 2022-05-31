@@ -52,7 +52,7 @@ func (c *groupController) DeleteSubjectMembers(_type, id string, members []Subje
 	typeCount, err = c.service.BulkDeleteSubjectMembers(_type, id, svcSubjects)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "BulkDeleteSubjectMembers _type=`%s`, id=`%s`, subjects=`%+v` failed",
+			err, "service.BulkDeleteSubjectMembers _type=`%s`, id=`%s`, subjects=`%+v` failed",
 			_type, id, svcSubjects,
 		)
 	}

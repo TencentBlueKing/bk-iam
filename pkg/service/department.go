@@ -57,7 +57,7 @@ func (l *departmentService) GetSubjectDepartmentPKs(subjectPK int64) ([]int64, e
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "GetSubjectDepartment")
 	departmentPKStr, err := l.manager.Get(subjectPK)
 	if err != nil {
-		return nil, errorWrapf(err, "departmentManager.Get subjectPK=`%d` fail", subjectPK)
+		return nil, errorWrapf(err, "manager.Get subjectPK=`%d` fail", subjectPK)
 	}
 
 	departmentPKs, err := util.StringToInt64Slice(departmentPKStr, ",")
@@ -85,7 +85,7 @@ func (l *departmentService) BulkCreateSubjectDepartments(subjectDepartments []ty
 
 	err := l.manager.BulkCreate(daoSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "departmentManager.BulkCreate subjectDepartments=`%+v` fail", daoSubjectDepartments)
+		return errorWrapf(err, "manager.BulkCreate subjectDepartments=`%+v` fail", daoSubjectDepartments)
 	}
 	return nil
 }
@@ -95,7 +95,7 @@ func (l *departmentService) BulkDeleteSubjectDepartments(subjectPKs []int64) err
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkDeleteSubjectDepartments")
 	err := l.manager.BulkDelete(subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "departmentManager.BulkDelete pks=`%+v` fail", subjectPKs)
+		return errorWrapf(err, "manager.BulkDelete pks=`%+v` fail", subjectPKs)
 	}
 	return err
 }
@@ -118,7 +118,7 @@ func (l *departmentService) BulkUpdateSubjectDepartments(subjectDepartments []ty
 
 	err := l.manager.BulkUpdate(daoSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "departmentManager.BulkUpdate subjectDepartments=`%+v` fail", daoSubjectDepartments)
+		return errorWrapf(err, "manager.BulkUpdate subjectDepartments=`%+v` fail", daoSubjectDepartments)
 	}
 	return nil
 }
@@ -128,7 +128,7 @@ func (l *departmentService) ListPagingSubjectDepartment(limit, offset int64) ([]
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "ListPagingSubjectDepartment")
 	daoSubjectDepartments, err := l.manager.ListPaging(limit, offset)
 	if err != nil {
-		return nil, errorWrapf(err, "departmentManager.ListPaging limit=`%d`, offset=`%d` fail", limit, offset)
+		return nil, errorWrapf(err, "manager.ListPaging limit=`%d`, offset=`%d` fail", limit, offset)
 	}
 
 	if len(daoSubjectDepartments) == 0 {
@@ -155,7 +155,7 @@ func (l *departmentService) ListPagingSubjectDepartment(limit, offset int64) ([]
 func (l *departmentService) GetSubjectDepartmentCount() (int64, error) {
 	count, err := l.manager.GetCount()
 	if err != nil {
-		return count, errorx.Wrapf(err, DepartmentSVC, "GetSubjectDepartmentCount", "departmentManager.GetCount fail")
+		return count, errorx.Wrapf(err, DepartmentSVC, "GetSubjectDepartmentCount", "manager.GetCount fail")
 	}
 	return count, err
 }
@@ -167,7 +167,7 @@ func (l *departmentService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int6
 	err := l.manager.BulkDeleteWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(
-			err, "departmentManager.BulkDeleteWithTx subject_pks=`%+v` fail", pks)
+			err, "manager.BulkDeleteWithTx subject_pks=`%+v` fail", pks)
 	}
 	return nil
 }

@@ -145,7 +145,7 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 		if s.Type == types.GroupType {
 			gPK, err := cacheimpls.GetSubjectPK(s.Type, s.ID)
 			if err != nil {
-				log.WithError(err).Errorf("BatchDeleteSubjects getSubjectPK fail type=`%s`, id=`%s`", s.Type, s.ID)
+				log.WithError(err).Errorf("cacheimpls.GetSubjectPKfail type=`%s`, id=`%s`", s.Type, s.ID)
 				continue
 			}
 			groupPKs = append(groupPKs, gPK)
