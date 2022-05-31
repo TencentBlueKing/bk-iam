@@ -22,8 +22,7 @@ type Subject struct {
 // SubjectMember ...
 type SubjectMember struct {
 	PK              int64     `json:"pk"`
-	Type            string    `json:"type"`
-	ID              string    `json:"id"`
+	SubjectPK       int64     `json:"subject_pk"`
 	PolicyExpiredAt int64     `json:"policy_expired_at"`
 	CreateAt        time.Time `json:"created_at"`
 }
@@ -31,8 +30,6 @@ type SubjectMember struct {
 // SubjectGroup subject关联的组
 type SubjectGroup struct {
 	PK              int64     `json:"pk"`
-	Type            string    `json:"type"`
-	ID              string    `json:"id"`
 	PolicyExpiredAt int64     `json:"policy_expired_at"`
 	CreateAt        time.Time `json:"created_at"`
 }
@@ -51,11 +48,7 @@ type SubjectRelationPKPolicyExpiredAt struct {
 
 // SubjectRelation ...
 type SubjectRelation struct {
-	SubjectPK       int64  `json:"subject_pk"`
-	SubjectType     string `json:"subject_type"`
-	SubjectID       string `json:"subject_id"`
-	ParentPK        int64  `json:"parent_pk"`
-	ParentType      string `json:"parent_type"`
-	ParentID        string `json:"parent_id"`
-	PolicyExpiredAt int64  `json:"policy_expired_at"`
+	SubjectPK       int64 `json:"subject_pk"`
+	ParentPK        int64 `json:"parent_pk"`
+	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }

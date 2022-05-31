@@ -13,10 +13,13 @@ package service
 import (
 	"errors"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
@@ -34,7 +37,7 @@ var _ = Describe("GroupService", func() {
 
 		It("manager.ListMember fail", func() {
 			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectService.EXPECT().ListMember("group", "test").Return(
+			mockSubjectService.EXPECT().ListMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -42,14 +45,14 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.ListMember("group", "test")
+			_, err := manager.ListMember(1)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListMember")
 		})
 
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectService.EXPECT().ListMember("group", "test").Return(
+			mockSubjectService.EXPECT().ListMember(int64(1)).Return(
 				[]dao.SubjectRelation{}, nil,
 			).AnyTimes()
 
@@ -57,7 +60,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			subjectMembers, err := manager.ListMember("group", "test")
+			subjectMembers, err := manager.ListMember(1)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.SubjectMember{}, subjectMembers)
 		})
@@ -198,11 +201,7 @@ var _ = Describe("GroupService", func() {
 			mockSubjectService.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.SubjectRelation{
 				{
 					SubjectPK:       1,
-					SubjectType:     "subject_type",
-					SubjectID:       "1",
 					ParentPK:        2,
-					ParentType:      "parent_type",
-					ParentID:        "2",
 					PolicyExpiredAt: 3,
 				},
 			}).Return(
@@ -216,11 +215,7 @@ var _ = Describe("GroupService", func() {
 			err := manager.BulkCreateSubjectMembersWithTx(nil, []types.SubjectRelation{
 				{
 					SubjectPK:       1,
-					SubjectType:     "subject_type",
-					SubjectID:       "1",
 					ParentPK:        2,
-					ParentType:      "parent_type",
-					ParentID:        "2",
 					PolicyExpiredAt: 3,
 				},
 			})
@@ -233,11 +228,7 @@ var _ = Describe("GroupService", func() {
 			mockSubjectService.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.SubjectRelation{
 				{
 					SubjectPK:       1,
-					SubjectType:     "subject_type",
-					SubjectID:       "1",
 					ParentPK:        2,
-					ParentType:      "parent_type",
-					ParentID:        "2",
 					PolicyExpiredAt: 3,
 				},
 			}).Return(
@@ -251,15 +242,74 @@ var _ = Describe("GroupService", func() {
 			err := manager.BulkCreateSubjectMembersWithTx(nil, []types.SubjectRelation{
 				{
 					SubjectPK:       1,
-					SubjectType:     "subject_type",
-					SubjectID:       "1",
 					ParentPK:        2,
-					ParentType:      "parent_type",
-					ParentID:        "2",
 					PolicyExpiredAt: 3,
 				},
 			})
 			assert.NoError(GinkgoT(), err)
+		})
+	})
+
+	Describe("BulkDeleteSubjectMembers", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.UpdateExpiredAtWithTx fail", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().BulkDeleteByMembersWithTx(gomock.Any(), int64(1), []int64{2}).Return(
+				int64(0), errors.New("error"),
+			)
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+			defer patches.Reset()
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			_, err := manager.BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByMembersWithTx")
+		})
+
+		It("ok", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().BulkDeleteByMembersWithTx(gomock.Any(), int64(1), []int64{2}).Return(
+				int64(1), nil,
+			)
+			mockSubjectService.EXPECT().BulkDeleteByMembersWithTx(gomock.Any(), int64(1), []int64{3}).Return(
+				int64(1), nil,
+			)
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+			defer patches.Reset()
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			typeCount, err := manager.BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), map[string]int64{"user": 1, "department": 1}, typeCount)
 		})
 	})
 })
