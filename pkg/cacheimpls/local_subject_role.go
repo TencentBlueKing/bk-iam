@@ -56,7 +56,7 @@ func retrieveSubjectRole(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
-	svc := service.NewSubjectService()
+	svc := service.NewRoleService()
 	return svc.ListRoleSystemIDBySubjectPK(pk)
 }
 

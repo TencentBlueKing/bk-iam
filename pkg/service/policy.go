@@ -74,6 +74,9 @@ type PolicyService interface {
 	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error
 	DeleteTemplatePolicies(subjectPK int64, templateID int64) error
 
+	// for pap
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
+
 	// for query
 
 	Get(pk int64) (types.QueryPolicy, error)
@@ -844,5 +847,31 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 			expressionTypeTemplate, expressionTypeUnreferenced)
 	}
 
+	return nil
+}
+
+// BulkDeleteBySubjectPKs ...
+func (s *policyService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "BulkDeleteBySubjectPKs")
+
+	// 查询Policy里的Subject单独的Expression
+	expressionPKs, err := s.manager.ListExpressionBySubjectsTemplate(pks, 0)
+	if err != nil {
+		return errorWrapf(err, "policyManager.ListExpressionBySubjectsTemplate subjectPKs=`%+v` fail", pks)
+	}
+
+	// 删除策略 policy
+	err = s.manager.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(
+			err, "policyManager.BulkDeleteBySubjectPKsWithTx subject_pks=`%+v` fail", pks)
+	}
+
+	// 删除策略对应的非来着权限模板的Expression
+	_, err = s.expressionManger.BulkDeleteByPKsWithTx(tx, expressionPKs)
+	if err != nil {
+		return errorWrapf(
+			err, "expressionManager.BulkDeleteByPKsWithTx pks=`%+v` fail", expressionPKs)
+	}
 	return nil
 }

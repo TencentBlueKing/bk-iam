@@ -74,10 +74,9 @@ type SubjectRelationManager interface {
 	GetMemberCountBeforeExpiredAt(_type string, id string, expiredAt int64) (int64, error)
 	ListParentIDsBeforeExpiredAt(_type string, ids []string, expiredAt int64) ([]string, error)
 
-	UpdateExpiredAt(relations []SubjectRelationPKPolicyExpiredAt) error
-
+	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
 	BulkDeleteByMembersWithTx(tx *sqlx.Tx, _type, id, subjectType string, subjectIDs []string) (int64, error)
-	BulkCreate(relations []SubjectRelation) error
+	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []int64) error
 }
@@ -193,11 +192,11 @@ func (m *subjectRelationManager) BulkDeleteByMembersWithTx(
 }
 
 // BulkCreate ...
-func (m *subjectRelationManager) BulkCreate(relations []SubjectRelation) error {
+func (m *subjectRelationManager) BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error {
 	if len(relations) == 0 {
 		return nil
 	}
-	return m.bulkInsert(relations)
+	return m.bulkInsertWithTx(tx, relations)
 }
 
 // BulkDeleteBySubjectPKs ...
@@ -217,8 +216,8 @@ func (m *subjectRelationManager) BulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []
 }
 
 // UpdateExpiredAt ...
-func (m *subjectRelationManager) UpdateExpiredAt(relations []SubjectRelationPKPolicyExpiredAt) error {
-	return m.updateExpiredAt(relations)
+func (m *subjectRelationManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error {
+	return m.updateExpiredAtWithTx(tx, relations)
 }
 
 // GetMemberCountBeforeExpiredAt ...
@@ -422,7 +421,7 @@ func (m *subjectRelationManager) bulkDeleteByMembersWithTx(
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, _type, id, subjectType, subjectIDs)
 }
 
-func (m *subjectRelationManager) bulkInsert(relations []SubjectRelation) error {
+func (m *subjectRelationManager) bulkInsertWithTx(tx *sqlx.Tx, relations []SubjectRelation) error {
 	sql := `INSERT INTO subject_relation (
 		subject_pk,
 		subject_type,
@@ -430,17 +429,15 @@ func (m *subjectRelationManager) bulkInsert(relations []SubjectRelation) error {
 		parent_pk,
 		parent_type,
 		parent_id,
-		policy_expired_at,
-		created_at
+		policy_expired_at
 	) VALUES (:subject_pk,
 		:subject_type,
 		:subject_id,
 		:parent_pk,
 		:parent_type,
 		:parent_id,
-		:policy_expired_at,
-		:created_at)`
-	return database.SqlxBulkInsert(m.DB, sql, relations)
+		:policy_expired_at)`
+	return database.SqlxBulkInsertWithTx(tx, sql, relations)
 }
 
 func (m *subjectRelationManager) bulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error {
@@ -454,10 +451,9 @@ func (m *subjectRelationManager) bulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []
 	return database.SqlxDeleteWithTx(tx, sql, parentPKs)
 }
 
-func (m *subjectRelationManager) updateExpiredAt(relations []SubjectRelationPKPolicyExpiredAt) error {
+func (m *subjectRelationManager) updateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error {
 	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
-
-	return database.SqlxBulkUpdate(m.DB, sql, relations)
+	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
 func (m *subjectRelationManager) listParentIDsBeforeExpiredAt(

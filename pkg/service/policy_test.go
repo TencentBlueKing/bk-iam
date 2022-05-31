@@ -840,4 +840,96 @@ var _ = Describe("PolicyService", func() {
 		})
 	})
 
+	Describe("BulkDeleteBySubjectPKsWithTx cases", func() {
+		var ctl *gomock.Controller
+
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ListExpressionBySubjectsTemplate fail", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				nil, errors.New("test"),
+			)
+
+			svc := policyService{
+				manager: mockPolicyManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListExpressionBySubjectsTemplate")
+		})
+
+		It("BulkDeleteBySubjectPKsWithTx fail", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				errors.New("test"),
+			)
+
+			svc := policyService{
+				manager: mockPolicyManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteBySubjectPKsWithTx")
+		})
+
+		It("BulkDeleteByPKsWithTx fail", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			)
+
+			mockExpressionManager := mock.NewMockExpressionManager(ctl)
+			mockExpressionManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), []int64{3, 4}).Return(
+				int64(0), errors.New("test"),
+			)
+
+			svc := policyService{
+				manager:          mockPolicyManager,
+				expressionManger: mockExpressionManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByPKsWithTx")
+		})
+
+		It("ok", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			)
+
+			mockExpressionManager := mock.NewMockExpressionManager(ctl)
+			mockExpressionManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), []int64{3, 4}).Return(
+				int64(1), nil,
+			)
+
+			svc := policyService{
+				manager:          mockPolicyManager,
+				expressionManger: mockExpressionManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+		})
+	})
+
 })

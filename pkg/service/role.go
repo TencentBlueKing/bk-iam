@@ -10,18 +10,56 @@
 
 package service
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/database/dao"
-	"iam/pkg/service/types"
 )
 
+// RoleSVC ...
+const RoleSVC = "RoleSVC"
+
+// RoleService ...
+type RoleService interface {
+	// 鉴权
+	ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) // cache subject role system
+
+	// web api
+	ListSubjectPKByRole(roleType, system string) ([]int64, error)
+	BulkCreateSubjectRoles(roleType, system string, subjectPKs []int64) error
+	BulkDeleteSubjectRoles(roleType, system string, subjectPKs []int64) error
+}
+
+type roleService struct {
+	manager dao.SubjectRoleManager
+}
+
+// NewRoleService ...
+func NewRoleService() RoleService {
+	return &roleService{
+		manager: dao.NewSubjectRoleManager(),
+	}
+}
+
+// ListRoleSystemIDBySubjectPK ...
+func (l *roleService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListRoleSystemIDBySubjectPK")
+
+	systemIDs, err := l.manager.ListSystemIDBySubjectPK(pk)
+	if err != nil {
+		return nil, errorWrapf(err, "roleManager.ListSystemIDBySubjectPK pk=`%d` fail", pk)
+	}
+
+	return systemIDs, err
+}
+
 // ListSubjectPKByRole ...
-func (l *subjectService) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListSubjectPKByRole")
-	subjectPKs, err := l.roleManager.ListSubjectPKByRole(roleType, system)
+func (l *roleService) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListSubjectPKByRole")
+	subjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
 	if err != nil {
 		err = errorWrapf(
 			err, "roleManager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system,
@@ -32,18 +70,11 @@ func (l *subjectService) ListSubjectPKByRole(roleType, system string) ([]int64, 
 }
 
 // BulkCreateSubjectRoles ...
-func (l *subjectService) BulkCreateSubjectRoles(roleType, system string, subjects []types.Subject) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkCreateSubjectRoles")
-
-	// 查询用户的subjectPK
-	subjectPKs, err := l.listSubjectPKs(subjects)
-	if err != nil {
-		err = errorWrapf(err, "listSubjectPKs subjects=`%+v` fail", subjects)
-		return err
-	}
+func (l *roleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkCreateSubjectRoles")
 
 	// 查询角色已有的subjectPK
-	oldSubjectPKs, err := l.roleManager.ListSubjectPKByRole(roleType, system)
+	oldSubjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
 	if err != nil {
 		err = errorWrapf(err, "roleManager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system)
 		return err
@@ -53,7 +84,6 @@ func (l *subjectService) BulkCreateSubjectRoles(roleType, system string, subject
 	oldPKs := set.NewInt64SetWithValues(oldSubjectPKs)
 
 	roles := make([]dao.SubjectRole, 0, len(subjectPKs))
-
 	for _, pk := range subjectPKs {
 		if !oldPKs.Has(pk) {
 			roles = append(roles, dao.SubjectRole{
@@ -65,7 +95,7 @@ func (l *subjectService) BulkCreateSubjectRoles(roleType, system string, subject
 	}
 
 	// 创建SubjectRole
-	err = l.roleManager.BulkCreate(roles)
+	err = l.manager.BulkCreate(roles)
 	if err != nil {
 		err = errorWrapf(err, "roleManager.BulkCreate roles=`%+v` fail", roles)
 		return err
@@ -75,22 +105,15 @@ func (l *subjectService) BulkCreateSubjectRoles(roleType, system string, subject
 }
 
 // BulkDeleteSubjectRoles ...
-func (l *subjectService) BulkDeleteSubjectRoles(roleType, system string, subjects []types.Subject) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDeleteSubjectRoles")
-
-	// 查询用户的subjectPK
-	subjectPKs, err := l.listSubjectPKs(subjects)
-	if err != nil {
-		err = errorWrapf(err, "listSubjectPKs subjects`%+v` fail", subjects)
-		return err
-	}
+func (l *roleService) BulkDeleteSubjectRoles(roleType, system string, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkDeleteSubjectRoles")
 
 	if len(subjectPKs) == 0 {
 		return nil
 	}
 
 	// 创建SubjectRole
-	err = l.roleManager.BulkDelete(roleType, system, subjectPKs)
+	err := l.manager.BulkDelete(roleType, system, subjectPKs)
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -103,24 +126,4 @@ func (l *subjectService) BulkDeleteSubjectRoles(roleType, system string, subject
 	}
 
 	return nil
-}
-
-func (l *subjectService) listSubjectPKs(subjects []types.Subject) ([]int64, error) {
-	// 查询用户的subjectPK
-	subjectIDs := make([]string, 0, len(subjects))
-	for _, s := range subjects {
-		subjectIDs = append(subjectIDs, s.ID)
-	}
-
-	users, err := l.manager.ListByIDs(types.UserType, subjectIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	subjectPKs := make([]int64, 0, len(subjectIDs))
-	for _, u := range users {
-		subjectPKs = append(subjectPKs, u.PK)
-	}
-
-	return subjectPKs, err
 }

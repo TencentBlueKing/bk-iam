@@ -21,15 +21,15 @@ import (
 func retrieveSubjectDetail(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
-	svc := service.NewSubjectService()
-
-	depts, err := svc.GetSubjectDepartmentPKs(k.PK)
+	departMentSvc := service.NewDepartmentService()
+	depts, err := departMentSvc.GetSubjectDepartmentPKs(k.PK)
 	if err != nil {
 		return nil, err
 	}
 
+	groupSvc := service.NewGroupService()
 	// NOTE: 这里只获取当前有效的 subject-groups, 之后放入缓存; 使用的时候, 会再次过滤掉已过期的(入缓存时可能还没过期, 使用时过期)
-	groups, err := svc.GetEffectThinSubjectGroups(k.PK)
+	groups, err := groupSvc.GetEffectThinSubjectGroups(k.PK)
 	if err != nil {
 		return nil, err
 	}

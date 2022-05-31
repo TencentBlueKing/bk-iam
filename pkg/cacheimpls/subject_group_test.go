@@ -42,7 +42,7 @@ var _ = Describe("SubjectGroups", func() {
 		ctl := gomock.NewController(GinkgoT())
 		defer ctl.Finish()
 
-		mockService := mock.NewMockSubjectService(ctl)
+		mockService := mock.NewMockGroupService(ctl)
 		mockService.EXPECT().GetEffectThinSubjectGroups(int64(1)).Return([]types.ThinSubjectGroup{
 			{
 				PK:              int64(1),
@@ -50,8 +50,8 @@ var _ = Describe("SubjectGroups", func() {
 			},
 		}, nil).AnyTimes()
 
-		patches := gomonkey.ApplyFunc(service.NewSubjectService,
-			func() service.SubjectService {
+		patches := gomonkey.ApplyFunc(service.NewGroupService,
+			func() service.GroupService {
 				return mockService
 			})
 		defer patches.Reset()
@@ -124,12 +124,12 @@ var _ = Describe("SubjectGroups", func() {
 			})
 
 			It("has no cached, get from database fail", func() {
-				mockService := mock.NewMockSubjectService(ctl)
+				mockService := mock.NewMockGroupService(ctl)
 				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					nil, errors.New("error")).AnyTimes()
 
-				patches.ApplyFunc(service.NewSubjectService,
-					func() service.SubjectService {
+				patches.ApplyFunc(service.NewGroupService,
+					func() service.GroupService {
 						return mockService
 					})
 
@@ -139,7 +139,7 @@ var _ = Describe("SubjectGroups", func() {
 				assert.Contains(GinkgoT(), err.Error(), "SubjectService.ListEffectThinSubjectGroups")
 			})
 			It("has no cached, get from database success", func() {
-				mockService := mock.NewMockSubjectService(ctl)
+				mockService := mock.NewMockGroupService(ctl)
 				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					map[int64][]types.ThinSubjectGroup{
 						int64(1): {
@@ -150,8 +150,8 @@ var _ = Describe("SubjectGroups", func() {
 						},
 					}, nil).AnyTimes()
 
-				patches.ApplyFunc(service.NewSubjectService,
-					func() service.SubjectService {
+				patches.ApplyFunc(service.NewGroupService,
+					func() service.GroupService {
 						return mockService
 					})
 
@@ -162,12 +162,12 @@ var _ = Describe("SubjectGroups", func() {
 			})
 
 			It("has no cached, get from database success, has empty cached", func() {
-				mockService := mock.NewMockSubjectService(ctl)
+				mockService := mock.NewMockGroupService(ctl)
 				mockService.EXPECT().ListEffectThinSubjectGroups([]int64{1}).Return(
 					map[int64][]types.ThinSubjectGroup{}, nil).AnyTimes()
 
-				patches.ApplyFunc(service.NewSubjectService,
-					func() service.SubjectService {
+				patches.ApplyFunc(service.NewGroupService,
+					func() service.GroupService {
 						return mockService
 					})
 
