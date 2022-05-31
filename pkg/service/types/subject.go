@@ -39,23 +39,23 @@ type SubjectGroup struct {
 
 // SubjectDepartment 用户的部门PK列表
 type SubjectDepartment struct {
-	SubjectPK     int64
-	DepartmentPKs []int64
+	SubjectPK     int64   `json:"subject_pk"`
+	DepartmentPKs []int64 `json:"department_pks"`
 }
 
 // SubjectRelationPKPolicyExpiredAt ...
 type SubjectRelationPKPolicyExpiredAt struct {
-	PK              int64
-	PolicyExpiredAt int64
+	PK              int64 `json:"pk"`
+	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }
 
 // SubjectRelation ...
 type SubjectRelation struct {
-	SubjectPK       int64
-	SubjectType     string
-	SubjectID       string
-	ParentPK        int64
-	ParentType      string
-	ParentID        string
-	PolicyExpiredAt int64
+	SubjectPK       int64  `json:"subject_pk"`
+	SubjectType     string `json:"subject_type"`
+	SubjectID       string `json:"subject_id"`
+	ParentPK        int64  `json:"parent_pk"`
+	ParentType      string `json:"parent_type"`
+	ParentID        string `json:"parent_id"`
+	PolicyExpiredAt int64  `json:"policy_expired_at"`
 }

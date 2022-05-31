@@ -55,7 +55,10 @@ func (c *roleController) BulkCreateSubjectRoles(roleType, system string, subject
 
 	err = c.service.BulkCreateSubjectRoles(roleType, system, subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "service.BulkCreateSubjectRoles roleType=`%s` system=`%s` subjectPKs=`%+v` fail", roleType, system, subjectPKs)
+		return errorWrapf(
+			err, "service.BulkCreateSubjectRoles roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
+			roleType, system, subjectPKs,
+		)
 	}
 
 	// clean cache
@@ -78,7 +81,10 @@ func (c *roleController) BulkDeleteSubjectRoles(roleType, system string, subject
 
 	err = c.service.BulkDeleteSubjectRoles(roleType, system, subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "service.BulkDeleteSubjectRoles roleType=`%s` system=`%s` subjectPKs=`%+v` fail", roleType, system, subjectPKs)
+		return errorWrapf(
+			err, "service.BulkDeleteSubjectRoles roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
+			roleType, system, subjectPKs,
+		)
 	}
 
 	// clean cache

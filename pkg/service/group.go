@@ -34,21 +34,21 @@ type GroupService interface {
 
 	// web api
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]types.SubjectGroup, error)
+	ListExistSubjectsBeforeExpiredAt(subjects []types.Subject, expiredAt int64) ([]types.Subject, error)
+
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
+
 	GetMemberCount(_type, id string) (int64, error)
 	GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
 	ListPagingMember(_type, id string, limit, offset int64) ([]types.SubjectMember, error)
 	ListPagingMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
 	) ([]types.SubjectMember, error)
-	ListExistSubjectsBeforeExpiredAt(subjects []types.Subject, expiredAt int64) ([]types.Subject, error)
 	ListMember(_type, id string) ([]types.SubjectMember, error)
 
 	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, members []types.SubjectRelationPKPolicyExpiredAt) error
 	BulkDeleteSubjectMembers(_type, id string, members []types.Subject) (map[string]int64, error)
 	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []types.SubjectRelation) error
-
-	// for pap
-	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 }
 
 type groupService struct {
@@ -233,7 +233,10 @@ func (l *groupService) ListMember(_type, id string) ([]types.SubjectMember, erro
 }
 
 // UpdateMembersExpiredAtWithTx ...
-func (l *groupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, members []types.SubjectRelationPKPolicyExpiredAt) error {
+func (l *groupService) UpdateMembersExpiredAtWithTx(
+	tx *sqlx.Tx,
+	members []types.SubjectRelationPKPolicyExpiredAt,
+) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteSubjectMember")
 
 	relations := make([]dao.SubjectRelationPKPolicyExpiredAt, 0, len(members))

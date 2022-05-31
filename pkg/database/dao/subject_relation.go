@@ -216,7 +216,10 @@ func (m *subjectRelationManager) BulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []
 }
 
 // UpdateExpiredAt ...
-func (m *subjectRelationManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error {
+func (m *subjectRelationManager) UpdateExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []SubjectRelationPKPolicyExpiredAt,
+) error {
 	return m.updateExpiredAtWithTx(tx, relations)
 }
 
@@ -451,7 +454,10 @@ func (m *subjectRelationManager) bulkDeleteByParentPKs(tx *sqlx.Tx, parentPKs []
 	return database.SqlxDeleteWithTx(tx, sql, parentPKs)
 }
 
-func (m *subjectRelationManager) updateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error {
+func (m *subjectRelationManager) updateExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []SubjectRelationPKPolicyExpiredAt,
+) error {
 	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }

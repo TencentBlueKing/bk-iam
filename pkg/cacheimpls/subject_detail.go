@@ -21,8 +21,8 @@ import (
 func retrieveSubjectDetail(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
-	departMentSvc := service.NewDepartmentService()
-	depts, err := departMentSvc.GetSubjectDepartmentPKs(k.PK)
+	departmentSvc := service.NewDepartmentService()
+	departments, err := departmentSvc.GetSubjectDepartmentPKs(k.PK)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func retrieveSubjectDetail(key cache.Key) (interface{}, error) {
 	// NOTE: you should not add new field in SubjectDetail, unless you know how to upgrade
 	// 如果要加新成员, 必须变更cache名字, 防止从已有缓存数据拿不到对应的字段产生bug
 	detail := &types.SubjectDetail{
-		DepartmentPKs: depts,
+		DepartmentPKs: departments,
 		SubjectGroups: thinSubjectGroups,
 	}
 

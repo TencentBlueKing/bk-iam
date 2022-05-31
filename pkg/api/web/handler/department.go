@@ -19,6 +19,17 @@ import (
 	"iam/pkg/util"
 )
 
+func convertToPapSubjectDepartments(subjectDepartments []subjectDepartment) []pap.SubjectDepartment {
+	papSubjectDepartments := make([]pap.SubjectDepartment, 0, len(subjectDepartments))
+	for _, sd := range subjectDepartments {
+		papSubjectDepartments = append(papSubjectDepartments, pap.SubjectDepartment{
+			SubjectID:     sd.SubjectID,
+			DepartmentIDs: sd.DepartmentIDs,
+		})
+	}
+	return papSubjectDepartments
+}
+
 // BatchCreateSubjectDepartments ...
 func BatchCreateSubjectDepartments(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchCreateSubjectDepartments")
@@ -29,14 +40,7 @@ func BatchCreateSubjectDepartments(c *gin.Context) {
 		return
 	}
 
-	papSubjectDepartments := make([]pap.SubjectDepartment, 0, len(subjectDepartments))
-	for _, sd := range subjectDepartments {
-		papSubjectDepartments = append(papSubjectDepartments, pap.SubjectDepartment{
-			SubjectID:     sd.SubjectID,
-			DepartmentIDs: sd.DepartmentIDs,
-		})
-	}
-
+	papSubjectDepartments := convertToPapSubjectDepartments(subjectDepartments)
 	ctl := pap.NewDepartmentController()
 	err := ctl.BulkCreateSubjectDepartments(papSubjectDepartments)
 	if err != nil {
@@ -85,14 +89,7 @@ func BatchUpdateSubjectDepartments(c *gin.Context) {
 		return
 	}
 
-	papSubjectDepartments := make([]pap.SubjectDepartment, 0, len(subjectDepartments))
-	for _, sd := range subjectDepartments {
-		papSubjectDepartments = append(papSubjectDepartments, pap.SubjectDepartment{
-			SubjectID:     sd.SubjectID,
-			DepartmentIDs: sd.DepartmentIDs,
-		})
-	}
-
+	papSubjectDepartments := convertToPapSubjectDepartments(subjectDepartments)
 	ctl := pap.NewDepartmentController()
 	err := ctl.BulkUpdateSubjectDepartments(papSubjectDepartments)
 	if err != nil {

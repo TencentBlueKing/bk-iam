@@ -44,30 +44,6 @@ func NewGroupController() GroupController {
 	}
 }
 
-// DeleteSubjectMembers ...
-func (c *groupController) DeleteSubjectMembers(_type, id string, members []Subject) (typeCount map[string]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "DeleteSubjectMembers")
-	svcSubjects := convertToServiceSubjects(members)
-
-	typeCount, err = c.service.BulkDeleteSubjectMembers(_type, id, svcSubjects)
-	if err != nil {
-		return nil, errorWrapf(
-			err, "service.BulkDeleteSubjectMembers _type=`%s`, id=`%s`, subjects=`%+v` failed",
-			_type, id, svcSubjects,
-		)
-	}
-
-	// 清理缓存
-	subjectPKs := make([]int64, 0, len(members))
-	for _, m := range members {
-		subjectPK, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
-		subjectPKs = append(subjectPKs, subjectPK)
-	}
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
-
-	return typeCount, nil
-}
-
 // CreateOrUpdateSubjectMembers ...
 func (c *groupController) CreateOrUpdateSubjectMembers(
 	_type, id string,
@@ -178,7 +154,7 @@ func (c *groupController) createOrUpdateSubjectMembers(
 	}
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	return
+	return nil, nil
 }
 
 func (c *groupController) bulkCreateSubjectMembers(tx *sqlx.Tx, _type, id string, members []SubjectMember) error {
@@ -192,7 +168,6 @@ func (c *groupController) bulkCreateSubjectMembers(tx *sqlx.Tx, _type, id string
 	// 需要type, id换成pk
 	relations := make([]types.SubjectRelation, 0, len(members))
 	for _, m := range members {
-
 		// TODO 优化批量查询缓存
 		subjectPK, err := cacheimpls.GetSubjectPK(m.Type, m.ID)
 		if err != nil {
@@ -222,4 +197,31 @@ func (c *groupController) bulkCreateSubjectMembers(tx *sqlx.Tx, _type, id string
 func (c *groupController) UpdateSubjectMembersExpiredAt(_type, id string, members []SubjectMember) (err error) {
 	_, err = c.createOrUpdateSubjectMembers(_type, id, members, false)
 	return
+}
+
+// DeleteSubjectMembers ...
+func (c *groupController) DeleteSubjectMembers(
+	_type, id string,
+	members []Subject,
+) (typeCount map[string]int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "DeleteSubjectMembers")
+	svcSubjects := convertToServiceSubjects(members)
+
+	typeCount, err = c.service.BulkDeleteSubjectMembers(_type, id, svcSubjects)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.BulkDeleteSubjectMembers _type=`%s`, id=`%s`, subjects=`%+v` failed",
+			_type, id, svcSubjects,
+		)
+	}
+
+	// 清理缓存
+	subjectPKs := make([]int64, 0, len(members))
+	for _, m := range members {
+		subjectPK, _ := cacheimpls.GetSubjectPK(m.Type, m.ID)
+		subjectPKs = append(subjectPKs, subjectPK)
+	}
+	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+
+	return typeCount, nil
 }
