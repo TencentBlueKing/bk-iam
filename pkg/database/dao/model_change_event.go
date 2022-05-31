@@ -57,8 +57,10 @@ func NewModelChangeEventManager() ModelChangeEventManager {
 }
 
 // GetByTypeModel ...
-func (m *modelChangeEventManager) GetByTypeModel(eventType, status, modelType string,
-	modelPK int64) (modelChangeEvent ModelChangeEvent, err error) {
+func (m *modelChangeEventManager) GetByTypeModel(
+	eventType, status, modelType string,
+	modelPK int64,
+) (modelChangeEvent ModelChangeEvent, err error) {
 	err = m.selectOne(&modelChangeEvent, eventType, status, modelType, modelPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return modelChangeEvent, nil
@@ -85,6 +87,10 @@ func (m *modelChangeEventManager) UpdateStatusByPK(pk int64, status string) erro
 	if err != nil {
 		return fmt.Errorf("parse update struct fail. %w", err)
 	}
+	// if all fields are blank, the parsed expr will be empty string, return, otherwise will SQL syntax error
+	if expr == "" {
+		return nil
+	}
 
 	// 2. build sql
 	updatedSQL := "UPDATE model_change_event SET " + expr + " WHERE pk=:pk"
@@ -104,6 +110,10 @@ func (m *modelChangeEventManager) UpdateStatusByModel(eventType, modelType strin
 	expr, data, err := database.ParseUpdateStruct(modelChangeEvent, modelChangeEvent.AllowBlankFields)
 	if err != nil {
 		return fmt.Errorf("parse update struct fail. %w", err)
+	}
+	// if all fields are blank, the parsed expr will be empty string, return, otherwise will SQL syntax error
+	if expr == "" {
+		return nil
 	}
 
 	// Where Content
@@ -178,6 +188,7 @@ func (m *modelChangeEventManager) update(updatedSQL string, data map[string]inte
 	}
 	return nil
 }
+
 func (m *modelChangeEventManager) insert(modelChangeEvents []ModelChangeEvent) error {
 	query := `INSERT INTO model_change_event (
 		type,
