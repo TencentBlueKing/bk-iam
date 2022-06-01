@@ -5,36 +5,65 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	sqlx "github.com/jmoiron/sqlx"
 	sdao "iam/pkg/database/sdao"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
-// MockSaaSActionManager is a mock of SaaSActionManager interface
+// MockSaaSActionManager is a mock of SaaSActionManager interface.
 type MockSaaSActionManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockSaaSActionManagerMockRecorder
 }
 
-// MockSaaSActionManagerMockRecorder is the mock recorder for MockSaaSActionManager
+// MockSaaSActionManagerMockRecorder is the mock recorder for MockSaaSActionManager.
 type MockSaaSActionManagerMockRecorder struct {
 	mock *MockSaaSActionManager
 }
 
-// NewMockSaaSActionManager creates a new mock instance
+// NewMockSaaSActionManager creates a new mock instance.
 func NewMockSaaSActionManager(ctrl *gomock.Controller) *MockSaaSActionManager {
 	mock := &MockSaaSActionManager{ctrl: ctrl}
 	mock.recorder = &MockSaaSActionManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSaaSActionManager) EXPECT() *MockSaaSActionManagerMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// BulkCreateWithTx mocks base method.
+func (m *MockSaaSActionManager) BulkCreateWithTx(tx *sqlx.Tx, saasActions []sdao.SaaSAction) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, saasActions)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
+func (mr *MockSaaSActionManagerMockRecorder) BulkCreateWithTx(tx, saasActions interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockSaaSActionManager)(nil).BulkCreateWithTx), tx, saasActions)
+}
+
+// BulkDeleteWithTx mocks base method.
+func (m *MockSaaSActionManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, system, ids)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx.
+func (mr *MockSaaSActionManagerMockRecorder) BulkDeleteWithTx(tx, system, ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockSaaSActionManager)(nil).BulkDeleteWithTx), tx, system, ids)
+}
+
+// Get mocks base method.
 func (m *MockSaaSActionManager) Get(system, actionID string) (sdao.SaaSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", system, actionID)
@@ -43,13 +72,13 @@ func (m *MockSaaSActionManager) Get(system, actionID string) (sdao.SaaSAction, e
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockSaaSActionManagerMockRecorder) Get(system, actionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSaaSActionManager)(nil).Get), system, actionID)
 }
 
-// ListBySystem mocks base method
+// ListBySystem mocks base method.
 func (m *MockSaaSActionManager) ListBySystem(system string) ([]sdao.SaaSAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBySystem", system)
@@ -58,27 +87,13 @@ func (m *MockSaaSActionManager) ListBySystem(system string) ([]sdao.SaaSAction, 
 	return ret0, ret1
 }
 
-// ListBySystem indicates an expected call of ListBySystem
+// ListBySystem indicates an expected call of ListBySystem.
 func (mr *MockSaaSActionManagerMockRecorder) ListBySystem(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockSaaSActionManager)(nil).ListBySystem), system)
 }
 
-// BulkCreateWithTx mocks base method
-func (m *MockSaaSActionManager) BulkCreateWithTx(tx *sqlx.Tx, saasActions []sdao.SaaSAction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, saasActions)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreateWithTx indicates an expected call of BulkCreateWithTx
-func (mr *MockSaaSActionManagerMockRecorder) BulkCreateWithTx(tx, saasActions interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockSaaSActionManager)(nil).BulkCreateWithTx), tx, saasActions)
-}
-
-// Update mocks base method
+// Update mocks base method.
 func (m *MockSaaSActionManager) Update(tx *sqlx.Tx, system, actionID string, saasAction sdao.SaaSAction) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", tx, system, actionID, saasAction)
@@ -86,22 +101,8 @@ func (m *MockSaaSActionManager) Update(tx *sqlx.Tx, system, actionID string, saa
 	return ret0
 }
 
-// Update indicates an expected call of Update
+// Update indicates an expected call of Update.
 func (mr *MockSaaSActionManagerMockRecorder) Update(tx, system, actionID, saasAction interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSaaSActionManager)(nil).Update), tx, system, actionID, saasAction)
-}
-
-// BulkDeleteWithTx mocks base method
-func (m *MockSaaSActionManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, system, ids)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx
-func (mr *MockSaaSActionManagerMockRecorder) BulkDeleteWithTx(tx, system, ids interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockSaaSActionManager)(nil).BulkDeleteWithTx), tx, system, ids)
 }

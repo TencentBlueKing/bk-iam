@@ -37,8 +37,25 @@ type SubjectGroup struct {
 	CreateAt        time.Time `json:"created_at"`
 }
 
-// SubjectDepartment 用户的部门ID列表
+// SubjectDepartment 用户的部门PK列表
 type SubjectDepartment struct {
-	SubjectID     string   `json:"id"`
-	DepartmentIDs []string `json:"departments"`
+	SubjectPK     int64   `json:"subject_pk"`
+	DepartmentPKs []int64 `json:"department_pks"`
+}
+
+// SubjectRelationPKPolicyExpiredAt ...
+type SubjectRelationPKPolicyExpiredAt struct {
+	PK              int64 `json:"pk"`
+	PolicyExpiredAt int64 `json:"policy_expired_at"`
+}
+
+// SubjectRelation ...
+type SubjectRelation struct {
+	SubjectPK       int64  `json:"subject_pk"`
+	SubjectType     string `json:"subject_type"`
+	SubjectID       string `json:"subject_id"`
+	ParentPK        int64  `json:"parent_pk"`
+	ParentType      string `json:"parent_type"`
+	ParentID        string `json:"parent_id"`
+	PolicyExpiredAt int64  `json:"policy_expired_at"`
 }

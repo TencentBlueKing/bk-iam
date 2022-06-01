@@ -8,11 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package service
+package pap
 
-import (
-	. "github.com/onsi/ginkgo/v2"
-)
+// Subject ...
+type Subject struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
 
-var _ = Describe("SubjectService", func() {
-})
+// SubjectDepartment ...
+type SubjectDepartment struct {
+	SubjectID     string   `json:"id"`
+	DepartmentIDs []string `json:"departments"`
+}
+
+// SubjectMember ...
+type SubjectMember struct {
+	Type            string `json:"type"`
+	ID              string `json:"id"`
+	PolicyExpiredAt int64  `json:"policy_expired_at"`
+}

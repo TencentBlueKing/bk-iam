@@ -24,7 +24,7 @@ import (
 func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
 	k := key.(SubjectPKCacheKey)
 
-	svc := service.NewSubjectService()
+	svc := service.NewGroupService()
 	return svc.GetEffectThinSubjectGroups(k.PK)
 }
 
@@ -61,7 +61,7 @@ func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
 		return subjectGroups, nil
 	}
 	// 3. ids of no cache, retrieve multiple
-	svc := service.NewSubjectService()
+	svc := service.NewGroupService()
 	// 按照时间过滤, 不应该查已过期的回来
 	notCachedSubjectGroups, err := svc.ListEffectThinSubjectGroups(notExistCachePKs)
 	if err != nil {

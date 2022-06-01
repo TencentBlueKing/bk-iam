@@ -14,8 +14,8 @@ package service
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/jmoiron/sqlx"
 
-	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 )
@@ -25,79 +25,31 @@ const SubjectSVC = "SubjectSVC"
 
 // SubjectService subject加载器
 type SubjectService interface {
-	// in this file
-	// Subject
 
+	// 鉴权
 	Get(pk int64) (types.Subject, error)
 	GetPK(_type, id string) (int64, error)
+
+	// web api
 	GetCount(_type string) (int64, error)
 	ListPaging(_type string, limit, offset int64) ([]types.Subject, error)
 	ListPKsBySubjects(subjects []types.Subject) ([]int64, error)
 	ListByPKs(pks []int64) ([]types.Subject, error)
 	BulkCreate(subjects []types.Subject) error
-	BulkDelete(subjects []types.Subject) ([]int64, error)
 	BulkUpdateName(subjects []types.Subject) error
 
-	// in subject_group.go
-
-	GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)
-	ListEffectThinSubjectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error)
-	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]types.SubjectGroup, error)
-
-	// in subject_member.go
-	// Member:
-
-	GetMemberCount(_type, id string) (int64, error)
-	GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
-	ListPagingMember(_type, id string, limit, offset int64) ([]types.SubjectMember, error)
-	ListPagingMemberBeforeExpiredAt(
-		_type, id string, expiredAt int64, limit, offset int64,
-	) ([]types.SubjectMember, error)
-	ListExistSubjectsBeforeExpiredAt(subjects []types.Subject, expiredAt int64) ([]types.Subject, error)
-	ListMember(_type, id string) ([]types.SubjectMember, error)
-	UpdateMembersExpiredAt(members []types.SubjectMember) error
-	BulkDeleteSubjectMembers(_type, id string, members []types.Subject) (map[string]int64, error)
-	BulkCreateSubjectMembers(_type, id string, members []types.Subject, policyExpiredAt int64) error
-
-	// in subject_department.go
-	// Department
-
-	GetSubjectDepartmentPKs(subjectPK int64) ([]int64, error)
-	GetSubjectDepartmentCount() (int64, error)
-	ListPagingSubjectDepartment(limit, offset int64) ([]types.SubjectDepartment, error)
-	BulkCreateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error
-	BulkUpdateSubjectDepartments(subjectDepartments []types.SubjectDepartment) ([]int64, error)
-	BulkDeleteSubjectDepartments(subjectIDs []string) ([]int64, error)
-
-	// in subject_role.go
-	// Role
-
-	ListSubjectPKByRole(roleType, system string) ([]int64, error)
-	ListRoleSystemIDBySubjectPK(pk int64) ([]string, error)
-	BulkCreateSubjectRoles(roleType, system string, subjects []types.Subject) error
-	BulkDeleteSubjectRoles(roleType, system string, subjects []types.Subject) error
+	// for pap
+	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
 }
 
 type subjectService struct {
-	manager           dao.SubjectManager
-	policyManager     dao.PolicyManager
-	expressionManager dao.ExpressionManager
-
-	relationManager   dao.SubjectRelationManager
-	departmentManager dao.SubjectDepartmentManager
-	roleManager       dao.SubjectRoleManager
+	manager dao.SubjectManager
 }
 
 // NewSubjectService SubjectService工厂
 func NewSubjectService() SubjectService {
 	return &subjectService{
-		manager:           dao.NewSubjectManager(),
-		policyManager:     dao.NewPolicyManager(),
-		expressionManager: dao.NewExpressionManager(),
-
-		relationManager:   dao.NewSubjectRelationManager(),
-		departmentManager: dao.NewSubjectDepartmentManager(),
-		roleManager:       dao.NewSubjectRoleManager(),
+		manager: dao.NewSubjectManager(),
 	}
 }
 
@@ -251,75 +203,15 @@ func (l *subjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
 	return subjects, nil
 }
 
-// BulkDelete ...
-func (l *subjectService) BulkDelete(subjects []types.Subject) (pks []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDelete")
-	pks, err = l.ListPKsBySubjects(subjects)
-	if err != nil {
-		return pks, errorWrapf(err, "subjectService.ListPKsBySubjects subjects=`%+v` fail", subjects)
-	}
+// BulkDeleteByPKsWithTx ...
+func (l *subjectService) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDeleteByPKsWithTx")
 
-	// 查询Policy里的Subject单独的Expression
-	expressionPKs, err := l.policyManager.ListExpressionBySubjectsTemplate(pks, 0)
+	err := l.manager.BulkDeleteByPKsWithTx(tx, pks)
 	if err != nil {
-		return pks, errorWrapf(err, "policyManager.ListExpressionBySubjectsTemplate subjectPKs=`%+v` fail", pks)
+		return errorWrapf(err, "manager.BulkDeleteByPKsWithTx pks=`%+v` fail", pks)
 	}
-
-	// 按照PK删除Subject所有相关的
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		return pks, errorWrapf(err, "define tx error")
-	}
-
-	// 删除策略 policy
-	err = l.policyManager.BulkDeleteBySubjectPKsWithTx(tx, pks)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "policyManager.BulkDeleteBySubjectPKsWithTx subject_pks=`%+v` fail", pks)
-	}
-
-	// 删除策略对应的非来着权限模板的Expression
-	_, err = l.expressionManager.BulkDeleteByPKsWithTx(tx, expressionPKs)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "expressionManager.BulkDeleteByPKsWithTx pks=`%+v` fail", expressionPKs)
-	}
-
-	// 批量用户组删除成员关系 subjectRelation
-	err = l.relationManager.BulkDeleteByParentPKs(tx, pks)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "relationManager.BulkDeleteByParentPKs parent_pks=`%+v` fail", pks)
-	}
-	// 批量其加入的用户组关系 subjectRelation
-	err = l.relationManager.BulkDeleteBySubjectPKs(tx, pks)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "relationManager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", pks)
-	}
-
-	// 对于用户，需要删除subject department
-	err = l.departmentManager.BulkDeleteWithTx(tx, pks)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "departmentManager.BulkDeleteWithTx subject_pks=`%+v` fail", pks)
-	}
-
-	// 删除对象 subject
-	err = l.manager.BulkDeleteByPKsWithTx(tx, pks)
-	if err != nil {
-		return pks, errorWrapf(
-			err, "manager.BulkDeleteByPKsWithTx pks=`%+v` fail", pks)
-	}
-
-	// 提交事务
-	err = tx.Commit()
-	if err != nil {
-		return pks, errorWrapf(err, "tx commit error")
-	}
-	return pks, err
+	return err
 }
 
 // BulkUpdateName ...
@@ -340,16 +232,4 @@ func (l *subjectService) BulkUpdateName(subjects []types.Subject) error {
 		return errorWrapf(err, "manager.BulkUpdate subjects=`%+v`", daoSubjects)
 	}
 	return err
-}
-
-// ListRoleSystemIDBySubjectPK ...
-func (l *subjectService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListRoleSystemIDBySubjectPK")
-
-	systemIDs, err := l.roleManager.ListSystemIDBySubjectPK(pk)
-	if err != nil {
-		return nil, errorWrapf(err, "roleManager.ListSystemIDBySubjectPK pk=`%d` fail", pk)
-	}
-
-	return systemIDs, err
 }

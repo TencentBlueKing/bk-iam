@@ -5,34 +5,35 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockAuthClient is a mock of AuthClient interface
+// MockAuthClient is a mock of AuthClient interface.
 type MockAuthClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuthClientMockRecorder
 }
 
-// MockAuthClientMockRecorder is the mock recorder for MockAuthClient
+// MockAuthClientMockRecorder is the mock recorder for MockAuthClient.
 type MockAuthClientMockRecorder struct {
 	mock *MockAuthClient
 }
 
-// NewMockAuthClient creates a new mock instance
+// NewMockAuthClient creates a new mock instance.
 func NewMockAuthClient(ctrl *gomock.Controller) *MockAuthClient {
 	mock := &MockAuthClient{ctrl: ctrl}
 	mock.recorder = &MockAuthClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthClient) EXPECT() *MockAuthClientMockRecorder {
 	return m.recorder
 }
 
-// Verify mocks base method
+// Verify mocks base method.
 func (m *MockAuthClient) Verify(appCode, appSecret string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Verify", appCode, appSecret)
@@ -41,7 +42,7 @@ func (m *MockAuthClient) Verify(appCode, appSecret string) (bool, error) {
 	return ret0, ret1
 }
 
-// Verify indicates an expected call of Verify
+// Verify indicates an expected call of Verify.
 func (mr *MockAuthClientMockRecorder) Verify(appCode, appSecret interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockAuthClient)(nil).Verify), appCode, appSecret)
