@@ -42,7 +42,7 @@ func BatchCreateSubjectDepartments(c *gin.Context) {
 
 	papSubjectDepartments := convertToPapSubjectDepartments(subjectDepartments)
 	ctl := pap.NewDepartmentController()
-	err := ctl.BulkCreateSubjectDepartments(papSubjectDepartments)
+	err := ctl.BulkCreate(papSubjectDepartments)
 	if err != nil {
 		err = errorWrapf(err, "ctl.BulkCreateSubjectDepartments subjectDepartments=`%+v`", papSubjectDepartments)
 		util.SystemErrorJSONResponse(c, err)
@@ -69,7 +69,7 @@ func BatchDeleteSubjectDepartments(c *gin.Context) {
 	}
 
 	ctl := pap.NewDepartmentController()
-	err := ctl.BulkDeleteSubjectDepartments(subjectIDs)
+	err := ctl.BulkDelete(subjectIDs)
 	if err != nil {
 		err = errorWrapf(err, "ctl.BulkDeleteSubjectDepartments subjectIDs=`%+v`", subjectIDs)
 		util.SystemErrorJSONResponse(c, err)
@@ -91,7 +91,7 @@ func BatchUpdateSubjectDepartments(c *gin.Context) {
 
 	papSubjectDepartments := convertToPapSubjectDepartments(subjectDepartments)
 	ctl := pap.NewDepartmentController()
-	err := ctl.BulkUpdateSubjectDepartments(papSubjectDepartments)
+	err := ctl.BulkUpdate(papSubjectDepartments)
 	if err != nil {
 		err = errorWrapf(err, "ctl.BulkUpdateSubjectDepartments subjectDepartments=`%+v`", papSubjectDepartments)
 		util.SystemErrorJSONResponse(c, err)
@@ -114,14 +114,14 @@ func ListSubjectDepartments(c *gin.Context) {
 	page.Default()
 
 	svc := service.NewDepartmentService()
-	count, err := svc.GetSubjectDepartmentCount()
+	count, err := svc.GetCount()
 	if err != nil {
 		util.SystemErrorJSONResponse(c, errorWrapf(err, "svc.GetSubjectDepartmentCount"))
 		return
 	}
 
 	ctl := pap.NewDepartmentController()
-	subjectDepartments, err := ctl.ListPagingSubjectDepartment(page.Limit, page.Offset)
+	subjectDepartments, err := ctl.ListPaging(page.Limit, page.Offset)
 	if err != nil {
 		err = errorWrapf(err, "ctl.ListPagingSubjectDepartment limit=`%d`, offset=`%d`", page.Limit, page.Offset)
 		util.SystemErrorJSONResponse(c, err)

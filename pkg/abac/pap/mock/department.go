@@ -34,59 +34,59 @@ func (m *MockDepartmentController) EXPECT() *MockDepartmentControllerMockRecorde
 	return m.recorder
 }
 
-// BulkCreateSubjectDepartments mocks base method.
-func (m *MockDepartmentController) BulkCreateSubjectDepartments(subjectDepartments []pap.SubjectDepartment) error {
+// BulkCreate mocks base method.
+func (m *MockDepartmentController) BulkCreate(subjectDepartments []pap.SubjectDepartment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectDepartments", subjectDepartments)
+	ret := m.ctrl.Call(m, "BulkCreate", subjectDepartments)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkCreateSubjectDepartments indicates an expected call of BulkCreateSubjectDepartments.
-func (mr *MockDepartmentControllerMockRecorder) BulkCreateSubjectDepartments(subjectDepartments interface{}) *gomock.Call {
+// BulkCreate indicates an expected call of BulkCreate.
+func (mr *MockDepartmentControllerMockRecorder) BulkCreate(subjectDepartments interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectDepartments", reflect.TypeOf((*MockDepartmentController)(nil).BulkCreateSubjectDepartments), subjectDepartments)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockDepartmentController)(nil).BulkCreate), subjectDepartments)
 }
 
-// BulkDeleteSubjectDepartments mocks base method.
-func (m *MockDepartmentController) BulkDeleteSubjectDepartments(subjectIDs []string) error {
+// BulkDelete mocks base method.
+func (m *MockDepartmentController) BulkDelete(subjectIDs []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectDepartments", subjectIDs)
+	ret := m.ctrl.Call(m, "BulkDelete", subjectIDs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkDeleteSubjectDepartments indicates an expected call of BulkDeleteSubjectDepartments.
-func (mr *MockDepartmentControllerMockRecorder) BulkDeleteSubjectDepartments(subjectIDs interface{}) *gomock.Call {
+// BulkDelete indicates an expected call of BulkDelete.
+func (mr *MockDepartmentControllerMockRecorder) BulkDelete(subjectIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectDepartments", reflect.TypeOf((*MockDepartmentController)(nil).BulkDeleteSubjectDepartments), subjectIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockDepartmentController)(nil).BulkDelete), subjectIDs)
 }
 
-// BulkUpdateSubjectDepartments mocks base method.
-func (m *MockDepartmentController) BulkUpdateSubjectDepartments(subjectDepartments []pap.SubjectDepartment) error {
+// BulkUpdate mocks base method.
+func (m *MockDepartmentController) BulkUpdate(subjectDepartments []pap.SubjectDepartment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateSubjectDepartments", subjectDepartments)
+	ret := m.ctrl.Call(m, "BulkUpdate", subjectDepartments)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkUpdateSubjectDepartments indicates an expected call of BulkUpdateSubjectDepartments.
-func (mr *MockDepartmentControllerMockRecorder) BulkUpdateSubjectDepartments(subjectDepartments interface{}) *gomock.Call {
+// BulkUpdate indicates an expected call of BulkUpdate.
+func (mr *MockDepartmentControllerMockRecorder) BulkUpdate(subjectDepartments interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateSubjectDepartments", reflect.TypeOf((*MockDepartmentController)(nil).BulkUpdateSubjectDepartments), subjectDepartments)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdate", reflect.TypeOf((*MockDepartmentController)(nil).BulkUpdate), subjectDepartments)
 }
 
-// ListPagingSubjectDepartment mocks base method.
-func (m *MockDepartmentController) ListPagingSubjectDepartment(limit, offset int64) ([]pap.SubjectDepartment, error) {
+// ListPaging mocks base method.
+func (m *MockDepartmentController) ListPaging(limit, offset int64) ([]pap.SubjectDepartment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingSubjectDepartment", limit, offset)
+	ret := m.ctrl.Call(m, "ListPaging", limit, offset)
 	ret0, _ := ret[0].([]pap.SubjectDepartment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPagingSubjectDepartment indicates an expected call of ListPagingSubjectDepartment.
-func (mr *MockDepartmentControllerMockRecorder) ListPagingSubjectDepartment(limit, offset interface{}) *gomock.Call {
+// ListPaging indicates an expected call of ListPaging.
+func (mr *MockDepartmentControllerMockRecorder) ListPaging(limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectDepartment", reflect.TypeOf((*MockDepartmentController)(nil).ListPagingSubjectDepartment), limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaging", reflect.TypeOf((*MockDepartmentController)(nil).ListPaging), limit, offset)
 }

@@ -34,32 +34,32 @@ func (m *MockRoleController) EXPECT() *MockRoleControllerMockRecorder {
 	return m.recorder
 }
 
-// BulkCreateSubjectRoles mocks base method.
-func (m *MockRoleController) BulkCreateSubjectRoles(roleType, system string, subjects []pap.Subject) error {
+// BulkCreate mocks base method.
+func (m *MockRoleController) BulkCreate(roleType, system string, subjects []pap.Subject) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectRoles", roleType, system, subjects)
+	ret := m.ctrl.Call(m, "BulkCreate", roleType, system, subjects)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkCreateSubjectRoles indicates an expected call of BulkCreateSubjectRoles.
-func (mr *MockRoleControllerMockRecorder) BulkCreateSubjectRoles(roleType, system, subjects interface{}) *gomock.Call {
+// BulkCreate indicates an expected call of BulkCreate.
+func (mr *MockRoleControllerMockRecorder) BulkCreate(roleType, system, subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectRoles", reflect.TypeOf((*MockRoleController)(nil).BulkCreateSubjectRoles), roleType, system, subjects)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockRoleController)(nil).BulkCreate), roleType, system, subjects)
 }
 
-// BulkDeleteSubjectRoles mocks base method.
-func (m *MockRoleController) BulkDeleteSubjectRoles(roleType, system string, subjects []pap.Subject) error {
+// BulkDelete mocks base method.
+func (m *MockRoleController) BulkDelete(roleType, system string, subjects []pap.Subject) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectRoles", roleType, system, subjects)
+	ret := m.ctrl.Call(m, "BulkDelete", roleType, system, subjects)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkDeleteSubjectRoles indicates an expected call of BulkDeleteSubjectRoles.
-func (mr *MockRoleControllerMockRecorder) BulkDeleteSubjectRoles(roleType, system, subjects interface{}) *gomock.Call {
+// BulkDelete indicates an expected call of BulkDelete.
+func (mr *MockRoleControllerMockRecorder) BulkDelete(roleType, system, subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectRoles", reflect.TypeOf((*MockRoleController)(nil).BulkDeleteSubjectRoles), roleType, system, subjects)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockRoleController)(nil).BulkDelete), roleType, system, subjects)
 }
 
 // ListSubjectByRole mocks base method.

@@ -33,47 +33,32 @@ func (m *MockRoleService) EXPECT() *MockRoleServiceMockRecorder {
 	return m.recorder
 }
 
-// BulkCreateSubjectRoles mocks base method.
-func (m *MockRoleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs []int64) error {
+// BulkCreate mocks base method.
+func (m *MockRoleService) BulkCreate(roleType, system string, subjectPKs []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectRoles", roleType, system, subjectPKs)
+	ret := m.ctrl.Call(m, "BulkCreate", roleType, system, subjectPKs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkCreateSubjectRoles indicates an expected call of BulkCreateSubjectRoles.
-func (mr *MockRoleServiceMockRecorder) BulkCreateSubjectRoles(roleType, system, subjectPKs interface{}) *gomock.Call {
+// BulkCreate indicates an expected call of BulkCreate.
+func (mr *MockRoleServiceMockRecorder) BulkCreate(roleType, system, subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectRoles", reflect.TypeOf((*MockRoleService)(nil).BulkCreateSubjectRoles), roleType, system, subjectPKs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockRoleService)(nil).BulkCreate), roleType, system, subjectPKs)
 }
 
-// BulkDeleteSubjectRoles mocks base method.
-func (m *MockRoleService) BulkDeleteSubjectRoles(roleType, system string, subjectPKs []int64) error {
+// BulkDelete mocks base method.
+func (m *MockRoleService) BulkDelete(roleType, system string, subjectPKs []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectRoles", roleType, system, subjectPKs)
+	ret := m.ctrl.Call(m, "BulkDelete", roleType, system, subjectPKs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkDeleteSubjectRoles indicates an expected call of BulkDeleteSubjectRoles.
-func (mr *MockRoleServiceMockRecorder) BulkDeleteSubjectRoles(roleType, system, subjectPKs interface{}) *gomock.Call {
+// BulkDelete indicates an expected call of BulkDelete.
+func (mr *MockRoleServiceMockRecorder) BulkDelete(roleType, system, subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectRoles", reflect.TypeOf((*MockRoleService)(nil).BulkDeleteSubjectRoles), roleType, system, subjectPKs)
-}
-
-// ListRoleSystemIDBySubjectPK mocks base method.
-func (m *MockRoleService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRoleSystemIDBySubjectPK", pk)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListRoleSystemIDBySubjectPK indicates an expected call of ListRoleSystemIDBySubjectPK.
-func (mr *MockRoleServiceMockRecorder) ListRoleSystemIDBySubjectPK(pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRoleSystemIDBySubjectPK", reflect.TypeOf((*MockRoleService)(nil).ListRoleSystemIDBySubjectPK), pk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockRoleService)(nil).BulkDelete), roleType, system, subjectPKs)
 }
 
 // ListSubjectPKByRole mocks base method.
@@ -89,4 +74,19 @@ func (m *MockRoleService) ListSubjectPKByRole(roleType, system string) ([]int64,
 func (mr *MockRoleServiceMockRecorder) ListSubjectPKByRole(roleType, system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectPKByRole", reflect.TypeOf((*MockRoleService)(nil).ListSubjectPKByRole), roleType, system)
+}
+
+// ListSystemIDBySubjectPK mocks base method.
+func (m *MockRoleService) ListSystemIDBySubjectPK(pk int64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSystemIDBySubjectPK", pk)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSystemIDBySubjectPK indicates an expected call of ListSystemIDBySubjectPK.
+func (mr *MockRoleServiceMockRecorder) ListSystemIDBySubjectPK(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSystemIDBySubjectPK", reflect.TypeOf((*MockRoleService)(nil).ListSystemIDBySubjectPK), pk)
 }
