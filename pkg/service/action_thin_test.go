@@ -12,6 +12,7 @@ package service
 
 import (
 	"errors"
+
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
@@ -22,7 +23,6 @@ import (
 )
 
 var _ = Describe("ActionService", func() {
-
 	Describe("ListThinActionBySystem", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {

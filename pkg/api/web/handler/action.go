@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -57,21 +58,27 @@ func ListAction(c *gin.Context) {
 	systemID := c.Param("system_id")
 
 	// 获取action信息
-	svc := service.NewActionService()
-	allActions, err := svc.ListBySystem(systemID)
+	allActions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
-		err = errorWrapf(err, "systemID=`%s`", systemID)
+		err = errorWrapf(err, "cacheimpls.ListActionBySystem systemID=`%s` fail", systemID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	set := set.SplitStringToSet(query.Fields, ",")
+	// 可能请求不需要所有数据，筛选出请求字段
+	fieldSet := set.SplitStringToSet(query.Fields, ",")
+	// slz已校验了fieldSet都是可支持的字段，所以如果所需字段为全集，则不需要再筛选，直接返回
+	if fieldSet.Size() == actionSupportFieldSet.Size() {
+		util.SuccessJSONResponse(c, "ok", allActions)
+		return
+	}
+
 	actions := make([]map[string]interface{}, 0, len(allActions))
 	for _, action := range allActions {
-		ac, err := filterFields(set, action)
+		ac, err := filterFields(fieldSet, action)
 		if err != nil {
 			err = errorWrapf(err, "filterFields set=`%+v`, systemID=`%s`, actionID=`%s`",
-				set, systemID, action.ID)
+				fieldSet, systemID, action.ID)
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}

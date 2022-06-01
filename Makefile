@@ -6,9 +6,9 @@ init:
 	pip install pre-commit
 	pre-commit install
 	# go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.43.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.45.2
 	# for make doc
-	go install github.com/swaggo/swag/cmd/swag@v1.7.6
+	go install github.com/swaggo/swag/cmd/swag@v1.8.1
 	# for make mock
 	go install github.com/golang/mock/mockgen@v1.4.4
 	# for ginkgo
@@ -19,7 +19,7 @@ dep:
 	go mod vendor
 
 doc:
-	swag init
+	swag init --parseDependency --parseDepth 3
 
 godoc:
 	godoc -http=127.0.0.1:6060 -goroot="."

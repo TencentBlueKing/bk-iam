@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/stringx"
-	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/component"
 	"iam/pkg/database/edao"

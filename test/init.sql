@@ -23,6 +23,7 @@ INSERT INTO `subject` (`pk`, `type`, `id`, `name`) VALUES
 (8, 'user','user008', 'user008'),
 (9, 'user','user009', 'user009'),
 (10, 'user','user010', 'user010'),
+(11, 'user','user011', 'user011'),
 -- user with group
 (100, 'user','user100', 'user100'),
 (101, 'user','user101', 'user101'),
@@ -132,10 +133,10 @@ INSERT INTO `system_info` VALUES ('demo','2021-06-24 07:23:13','2021-06-24 07:23
 INSERT INTO `resource_type` VALUES (1,'demo','app','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `action` VALUES (1,'demo','access_developer_center','2021-06-24 07:23:13','2021-06-24 07:23:13'),(2,'demo','develop_app','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `action_resource_type` VALUES (1,'demo','develop_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28');
-INSERT INTO `saas_action` VALUES (1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','create',1,'2021-06-24 07:23:13','2021-06-24 07:23:13'),(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','',1,'2021-06-24 07:31:28','2021-06-24 07:31:28');
+INSERT INTO `saas_action` VALUES (1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','create', 0, 1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
 INSERT INTO `saas_action_resource_type` VALUES (1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `saas_instance_selection` VALUES (1,'demo','app_view','应用视图','app_view',0,'[{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13');
-INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
+INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',0,1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
 INSERT INTO `saas_system_info` VALUES ('demo','Demo平台','Demo','A demo SaaS for quick start','A demo SaaS for quick start.','demo,bk_iam_app','{\"token\":\"63yr6hs11bsqa8u4d9i0acbpjuuyizaw\",\"host\":\"http://127.0.0.1:5000\",\"auth\":\"basic\",\"healthz\":\"/healthz/\"}','2021-06-24 07:23:13','2021-06-24 07:31:28');
 
 INSERT INTO `system_info` VALUES ('demo2','2021-06-24 07:23:13','2021-06-24 07:23:13');
@@ -228,6 +229,6 @@ INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (19,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
 
 
-
-
-
+-- temporary policy
+INSERT INTO `temporary_policy` (`subject_pk`, `action_pk`, `expression`, `expired_at`) VALUES (11,2,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]',4102444800);

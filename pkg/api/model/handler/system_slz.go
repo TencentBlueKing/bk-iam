@@ -83,3 +83,9 @@ type systemCreateResponse struct {
 type systemClientsResponse struct {
 	Clients string `json:"clients" example:"bk_paas,bk_esb"`
 }
+
+type systemListResponse struct {
+	ID     string `json:"id" example:"bk_paas"`
+	Name   string `json:"name" example:"bk_paas"`
+	NameEn string `json:"name_en" example:"bk_paas"`
+}

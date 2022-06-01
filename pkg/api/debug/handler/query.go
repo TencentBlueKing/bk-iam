@@ -21,7 +21,6 @@ import (
 	modelHandler "iam/pkg/api/model/handler"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -36,7 +35,7 @@ func QueryModel(c *gin.Context) {
 	fields := "base_info,resource_types,actions,action_groups,instance_selections,resource_creator_actions," +
 		"common_actions,feature_shield_rules"
 	fieldSet := set.SplitStringToSet(fields, ",")
-	modelHandler.BuildSystemInfoQueryResponse(c, systemID, fieldSet)
+	modelHandler.BuildSystemInfoQueryResponse(c, systemID, fieldSet, false)
 }
 
 // QueryActions ...
@@ -48,8 +47,7 @@ func QueryActions(c *gin.Context) {
 	}
 
 	// 获取action信息
-	svc := service.NewActionService()
-	actions, err := svc.ListBySystem(systemID)
+	actions, err := cacheimpls.ListActionBySystem(systemID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -170,7 +168,7 @@ func QueryPolicies(c *gin.Context) {
 	_, isForce := c.GetQuery("force")
 
 	// make a request
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	req.System = body.System
 	req.Subject.Type = body.SubjectType
 	req.Subject.ID = body.SubjectID

@@ -266,9 +266,9 @@ func batchDeleteInstanceSelections(c *gin.Context, systemID string, ids []string
 				}
 				// 如果Action关联了该实例视图，则再检查是否已经有删除Action的事件
 				eventExist, err1 := eventSvc.ExistByTypeModel(
-					ModelChangeEventTypeActionDeleted,
-					ModelChangeEventStatusPending,
-					ModelChangeEventModelTypeAction,
+					service.ModelChangeEventTypeActionDeleted,
+					service.ModelChangeEventStatusPending,
+					service.ModelChangeEventModelTypeAction,
 					actionPK,
 				)
 				if err1 != nil {

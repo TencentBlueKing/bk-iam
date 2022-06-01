@@ -48,7 +48,6 @@ definitions:
     properties:
       action:
         $ref: '#/definitions/handler.actionInResponse'
-        type: object
       condition:
         additionalProperties: true
         type: object
@@ -63,6 +62,7 @@ definitions:
         type: string
       id:
         example: biz_create
+        maxLength: 32
         type: string
       name:
         example: biz_create
@@ -74,14 +74,34 @@ definitions:
         items:
           type: string
         type: array
+      related_environments:
+        items:
+          $ref: '#/definitions/handler.relatedEnvironment'
+        type: array
       related_resource_types:
         items:
           $ref: '#/definitions/handler.relatedResourceType'
         type: array
+      sensitivity:
+        example: 0
+        maximum: 9
+        minimum: 0
+        type: integer
       type:
+        enum:
+        - create
+        - edit
+        - view
+        - delete
+        - list
+        - manage
+        - execute
+        - debug
+        - use
         type: string
       version:
         example: 1
+        minimum: 1
         type: integer
     required:
     - id
@@ -106,14 +126,34 @@ definitions:
         items:
           type: string
         type: array
+      related_environments:
+        items:
+          $ref: '#/definitions/handler.relatedEnvironment'
+        type: array
       related_resource_types:
         items:
           $ref: '#/definitions/handler.relatedResourceType'
         type: array
+      sensitivity:
+        example: 0
+        maximum: 9
+        minimum: 0
+        type: integer
       type:
+        enum:
+        - create
+        - edit
+        - view
+        - delete
+        - list
+        - manage
+        - execute
+        - debug
+        - use
         type: string
       version:
         example: 1
+        minimum: 1
         type: integer
     type: object
   handler.appCodeAppSecretSerializer:
@@ -131,6 +171,7 @@ definitions:
       actions:
         items:
           $ref: '#/definitions/handler.action'
+        maxItems: 10
         type: array
       resources:
         description: can't be empty
@@ -138,8 +179,7 @@ definitions:
           $ref: '#/definitions/handler.resource'
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
@@ -157,21 +197,21 @@ definitions:
     properties:
       action:
         $ref: '#/definitions/handler.action'
-        type: object
       resources_list:
         items:
           items:
             $ref: '#/definitions/handler.resource'
           type: array
+        maxItems: 100
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
     required:
     - action
+    - resources_list
     - subject
     - system
     type: object
@@ -183,15 +223,13 @@ definitions:
     properties:
       action:
         $ref: '#/definitions/handler.action'
-        type: object
       resources:
         description: required
         items:
           $ref: '#/definitions/handler.resource'
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
@@ -218,11 +256,11 @@ definitions:
           type: integer
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
       system_id:
         type: string
       template_id:
+        minimum: 1
         type: integer
     required:
     - create_policies
@@ -240,7 +278,6 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/handler.appCodeAppSecretSerializer'
-        type: object
       type:
         type: string
     required:
@@ -258,8 +295,7 @@ definitions:
   handler.enginePolicyResponse:
     properties:
       action:
-        $ref: '#/definitions/handler.policyResponseAction'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_engine_handler.policyResponseAction'
       expired_at:
         example: 4102444800
         type: integer
@@ -270,8 +306,7 @@ definitions:
         example: 100
         type: integer
       subject:
-        $ref: '#/definitions/handler.policyResponseSubject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_engine_handler.policyResponseSubject'
       system:
         example: bk_cmdb
         type: string
@@ -306,15 +341,11 @@ definitions:
       id:
         type: integer
     type: object
-  handler.getMaxPolicyIDSerializer:
-    properties:
-      updated_at:
-        example: 1592899208
-        type: integer
-    type: object
   handler.idExpiredAtSerializer:
     properties:
       expired_at:
+        maximum: 4102444800
+        minimum: 0
         type: integer
       id:
         type: integer
@@ -326,6 +357,7 @@ definitions:
     properties:
       id:
         example: biz_set
+        maxLength: 32
         type: string
       is_dynamic:
         example: false
@@ -374,15 +406,6 @@ definitions:
           type: integer
         type: array
     type: object
-  handler.listPolicyIDsSerializer:
-    properties:
-      begin_updated_at:
-        example: 1592899208
-        type: integer
-      end_updated_at:
-        example: 1592899208
-        type: integer
-    type: object
   handler.listPolicySerializer:
     properties:
       ids:
@@ -390,30 +413,16 @@ definitions:
         type: string
       max_id:
         example: 10001
+        minimum: 1
         type: integer
       min_id:
         example: 1
+        minimum: 1
         type: integer
       timestamp:
         example: 1592899208
+        minimum: 1
         type: integer
-    type: object
-  handler.listQuerySerializer:
-    properties:
-      actionID:
-        example: edit_host
-        type: string
-      page:
-        example: 1
-        type: integer
-      pageSize:
-        example: 100
-        type: integer
-      timestamp:
-        example: 1592899208
-        type: integer
-    required:
-    - actionID
     type: object
   handler.policiesAlterSerializer:
     properties:
@@ -426,8 +435,7 @@ definitions:
           type: integer
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
       update_policies:
         items:
           $ref: '#/definitions/handler.updatePolicy'
@@ -481,6 +489,8 @@ definitions:
         description: 'NOTE: this field not used!'
         type: string
       expired_at:
+        maximum: 4102444800
+        minimum: 0
         type: integer
       resource_expression:
         type: string
@@ -492,8 +502,7 @@ definitions:
   handler.policyGetResponse:
     properties:
       action:
-        $ref: '#/definitions/handler.policyResponseAction'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_open_handler.policyResponseAction'
       expired_at:
         example: 4102444800
         type: integer
@@ -504,8 +513,7 @@ definitions:
         example: 100
         type: integer
       subject:
-        $ref: '#/definitions/handler.policyResponseSubject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_open_handler.policyResponseSubject'
       system:
         example: bk_test
         type: string
@@ -519,41 +527,19 @@ definitions:
         example: 100
         type: integer
       subject:
-        $ref: '#/definitions/handler.policyResponseSubject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_open_handler.policyResponseSubject'
     type: object
-  handler.policyListResponse:
+  handler.policyListResponseMetadata:
     properties:
-      metadata:
-        $ref: '#/definitions/handler.listPolicySerializer'
-        type: object
-      results:
-        items:
-          $ref: '#/definitions/handler.enginePolicyResponse'
-        type: array
+      action:
+        $ref: '#/definitions/iam_pkg_api_open_handler.policyResponseAction'
+      system:
+        example: bk_test
+        type: string
+      timestamp:
+        example: 1592899208
+        type: integer
     type: object
-  handler.policyResponseAction:
-    properties:
-      id:
-        example: edit
-        type: string
-    type: object
-  handler.policyResponseSubject:
-    properties:
-      id:
-        example: admin
-        type: string
-      name:
-        example: Administer
-        type: string
-      type:
-        example: user
-        type: string
-    type: object
-  handler.policySubjectsResponse:
-    items:
-      $ref: '#/definitions/handler.policyIDSubject'
-    type: array
   handler.queryByActionsRequest:
     properties:
       actions:
@@ -566,8 +552,7 @@ definitions:
           $ref: '#/definitions/handler.resource'
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
@@ -580,10 +565,10 @@ definitions:
     properties:
       action:
         $ref: '#/definitions/handler.action'
-        type: object
       ext_resources:
         items:
           $ref: '#/definitions/handler.extResource'
+        maxItems: 1000
         type: array
       resources:
         description: can be empty
@@ -591,8 +576,7 @@ definitions:
           $ref: '#/definitions/handler.resource'
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
@@ -606,15 +590,13 @@ definitions:
     properties:
       action:
         $ref: '#/definitions/handler.action'
-        type: object
       resources:
         description: can be empty
         items:
           $ref: '#/definitions/handler.resource'
         type: array
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
       system:
         example: bk_paas
         type: string
@@ -656,14 +638,29 @@ definitions:
     - id
     - system_id
     type: object
+  handler.relatedEnvironment:
+    properties:
+      type:
+        description: |-
+          NOTE: currently only support period_daily, will support current_timestamp later
+                and no operators now!
+                only one field, but should be a struct! keep extensible in the future
+        enum:
+        - period_daily
+        example: period_daily
+        type: string
+    type: object
   handler.relatedResourceType:
     properties:
       id:
         example: host
+        maxLength: 32
         type: string
       name_alias:
+        example: ""
         type: string
       name_alias_en:
+        example: ""
         type: string
       related_instance_selections:
         items:
@@ -671,6 +668,10 @@ definitions:
         type: array
       selection_mode:
         description: '实例选择方式/范围: ["all", "instance", "attribute"]'
+        enum:
+        - all
+        - instance
+        - attribute
         example: instance
         type: string
       system_id:
@@ -719,6 +720,7 @@ definitions:
         type: string
       id:
         example: biz_set
+        maxLength: 32
         type: string
       name:
         example: biz_set
@@ -733,9 +735,14 @@ definitions:
         type: array
       provider_config:
         $ref: '#/definitions/handler.resourceProviderConfig'
-        type: object
+      sensitivity:
+        example: 0
+        maximum: 9
+        minimum: 0
+        type: integer
       version:
         example: 1
+        minimum: 1
         type: integer
     required:
     - id
@@ -765,9 +772,14 @@ definitions:
         type: array
       provider_config:
         $ref: '#/definitions/handler.resourceProviderConfig'
-        type: object
+      sensitivity:
+        example: 0
+        maximum: 9
+        minimum: 0
+        type: integer
       version:
         example: 1
+        minimum: 1
         type: integer
     type: object
   handler.responseSubject:
@@ -782,20 +794,6 @@ definitions:
         example: user
         type: string
     type: object
-  handler.subject:
-    properties:
-      id:
-        type: string
-      type:
-        type: string
-    required:
-    - id
-    - type
-    type: object
-  handler.subjectGroupsResponse:
-    items:
-      $ref: '#/definitions/handler.responseSubject'
-    type: array
   handler.subjectTemplateSerializer:
     properties:
       subject_id:
@@ -805,20 +803,13 @@ definitions:
       system_id:
         type: string
       template_id:
+        minimum: 1
         type: integer
     required:
     - subject_id
     - subject_type
     - system_id
     - template_id
-    type: object
-  handler.subjectsSerializer:
-    properties:
-      ids:
-        example: 1,2,3
-        type: string
-    required:
-    - ids
     type: object
   handler.systemClientsResponse:
     properties:
@@ -835,6 +826,9 @@ definitions:
   handler.systemProviderConfig:
     properties:
       auth:
+        enum:
+        - none
+        - basic
         example: basic
         type: string
       healthz:
@@ -885,6 +879,7 @@ definitions:
         type: string
       id:
         example: bk_paas
+        maxLength: 32
         type: string
       name:
         example: bk_paas
@@ -894,7 +889,6 @@ definitions:
         type: string
       provider_config:
         $ref: '#/definitions/handler.systemProviderConfig'
-        type: object
     required:
     - clients
     - id
@@ -921,7 +915,53 @@ definitions:
         type: string
       provider_config:
         $ref: '#/definitions/handler.systemProviderConfig'
+    type: object
+  handler.temporaryPoliciesDeleteSerializer:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      system_id:
+        type: string
+    required:
+    - ids
+    - subject_id
+    - subject_type
+    - system_id
+    type: object
+  handler.temporaryPoliciesSerializer:
+    properties:
+      policies:
+        items:
+          $ref: '#/definitions/handler.policy'
+        type: array
+      subject:
+        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
+    required:
+    - policies
+    - subject
+    type: object
+  handler.thinPolicyResponse:
+    properties:
+      expired_at:
+        example: 4102444800
+        type: integer
+      expression:
+        additionalProperties: true
         type: object
+      id:
+        example: 100
+        type: integer
+      subject:
+        $ref: '#/definitions/iam_pkg_api_open_handler.policyResponseSubject'
+      version:
+        example: "1"
+        type: string
     type: object
   handler.tokenResponse:
     properties:
@@ -937,6 +977,8 @@ definitions:
         description: 'NOTE: this field not used!'
         type: string
       expired_at:
+        maximum: 4102444800
+        minimum: 0
         type: integer
       id:
         type: integer
@@ -951,11 +993,11 @@ definitions:
   handler.updateTemplatePolicySerializer:
     properties:
       subject:
-        $ref: '#/definitions/handler.subject'
-        type: object
+        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
       system_id:
         type: string
       template_id:
+        minimum: 1
         type: integer
       update_policies:
         items:
@@ -966,6 +1008,85 @@ definitions:
     - system_id
     - template_id
     - update_policies
+    type: object
+  iam_pkg_api_engine_handler.policyListResponse:
+    properties:
+      metadata:
+        $ref: '#/definitions/handler.listPolicySerializer'
+      results:
+        items:
+          $ref: '#/definitions/handler.enginePolicyResponse'
+        type: array
+    type: object
+  iam_pkg_api_engine_handler.policyResponseAction:
+    properties:
+      id:
+        example: edit
+        type: string
+    type: object
+  iam_pkg_api_engine_handler.policyResponseSubject:
+    properties:
+      id:
+        example: admin
+        type: string
+      name:
+        example: Administer
+        type: string
+      type:
+        example: user
+        type: string
+    type: object
+  iam_pkg_api_open_handler.policyListResponse:
+    properties:
+      count:
+        example: 120
+        type: integer
+      metadata:
+        $ref: '#/definitions/handler.policyListResponseMetadata'
+      results:
+        items:
+          $ref: '#/definitions/handler.thinPolicyResponse'
+        type: array
+    type: object
+  iam_pkg_api_open_handler.policyResponseAction:
+    properties:
+      id:
+        example: edit
+        type: string
+    type: object
+  iam_pkg_api_open_handler.policyResponseSubject:
+    properties:
+      id:
+        example: admin
+        type: string
+      name:
+        example: Administer
+        type: string
+      type:
+        example: user
+        type: string
+    type: object
+  iam_pkg_api_policy_handler.subject:
+    properties:
+      id:
+        example: admin
+        type: string
+      type:
+        example: user
+        type: string
+    required:
+    - id
+    - type
+    type: object
+  iam_pkg_api_web_handler.subject:
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+    required:
+    - id
+    - type
     type: object
   types.SaaSPolicy:
     properties:
@@ -1002,15 +1123,13 @@ definitions:
     properties:
       code:
         type: integer
-      data:
-        type: object
+      data: {}
       message:
         type: string
     type: object
 info:
   contact: {}
   description: 蓝鲸权限中心后台服务 API 文档
-  license: {}
   title: IAM API
   version: "1.0"
 paths:
@@ -1062,14 +1181,17 @@ paths:
         type: string
       - example: 10001
         in: query
+        minimum: 1
         name: max_id
         type: integer
       - example: 1
         in: query
+        minimum: 1
         name: min_id
         type: integer
       - example: 1592899208
         in: query
+        minimum: 1
         name: timestamp
         type: integer
       produces:
@@ -1086,7 +1208,7 @@ paths:
             - $ref: '#/definitions/util.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handler.policyListResponse'
+                  $ref: '#/definitions/iam_pkg_api_engine_handler.policyListResponse'
               type: object
       security:
       - AppCode: []
@@ -1103,10 +1225,12 @@ paths:
       parameters:
       - example: 1592899208
         in: query
+        minimum: 1
         name: begin_updated_at
         type: integer
       - example: 1592899208
         in: query
+        minimum: 1
         name: end_updated_at
         type: integer
       produces:
@@ -1140,6 +1264,7 @@ paths:
       parameters:
       - example: 1592899208
         in: query
+        minimum: 1
         name: updated_at
         type: integer
       produces:
@@ -1192,7 +1317,75 @@ paths:
       summary: system info
       tags:
       - engine
-  /api/v1/open/departments/{user_id}/groups:
+  /api/v1/model/share/systems:
+    get:
+      consumes:
+      - application/json
+      description: get the list of systems
+      operationId: api-model-share-systems-list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.systemClientsResponse'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: list system
+      tags:
+      - model_share
+  /api/v1/model/share/systems/{system_id}/query:
+    get:
+      consumes:
+      - application/json
+      description: query the system
+      operationId: api-model-share-system-query
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.querySerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/gin.H'
+              type: object
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: system info query
+      tags:
+      - model_share
+  /api/v1/open/departments/{department_id}/groups:
     get:
       consumes:
       - application/json
@@ -1218,7 +1411,9 @@ paths:
             - $ref: '#/definitions/util.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handler.subjectGroupsResponse'
+                  items:
+                    $ref: '#/definitions/handler.responseSubject'
+                  type: array
               type: object
       security:
       - AppCode: []
@@ -1257,7 +1452,9 @@ paths:
             - $ref: '#/definitions/util.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handler.subjectGroupsResponse'
+                  items:
+                    $ref: '#/definitions/handler.responseSubject'
+                  type: array
               type: object
       security:
       - AppCode: []
@@ -1950,14 +2147,18 @@ paths:
         type: string
       - example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - example: 100
         in: query
+        maximum: 500
+        minimum: 10
         name: pageSize
         type: integer
       - example: 1592899208
         in: query
+        minimum: 1
         name: timestamp
         type: integer
       produces:
@@ -1974,7 +2175,7 @@ paths:
             - $ref: '#/definitions/util.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handler.policyListResponse'
+                  $ref: '#/definitions/iam_pkg_api_open_handler.policyListResponse'
               type: object
       security:
       - AppCode: []
@@ -2013,7 +2214,9 @@ paths:
             - $ref: '#/definitions/util.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handler.policySubjectsResponse'
+                  items:
+                    $ref: '#/definitions/handler.policyIDSubject'
+                  type: array
               type: object
       security:
       - AppCode: []
@@ -2606,6 +2809,100 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: Alter policies/变更用户自定义申请策略
+      tags:
+      - web
+  /api/v1/web/systems/{system_id}/temporary-policies:
+    post:
+      consumes:
+      - application/json
+      description: create temporary policies by application
+      operationId: api-web-create-temporary-policies
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: create temporary policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.temporaryPoliciesSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Create Temporary policies/创建临时权限策略
+      tags:
+      - web
+  /api/v1/web/temporary-policies:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete temporary policies
+      operationId: api-web-batch-delete-temporary-policies
+      parameters:
+      - description: delete temporary policy info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.temporaryPoliciesDeleteSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Batch delete temporary policies/删除临时权限策略
+      tags:
+      - web
+  /api/v1/web/temporary-policies/before_expired_at:
+    delete:
+      consumes:
+      - application/json
+      description: batch delete temporary policies before expired_at
+      operationId: api-web-batch-delete-temporary-policies-before-expired-at
+      parameters:
+      - description: expired_at
+        in: query
+        name: expired_at
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Batch delete temporary policies before expired_at/删除指定过期时间之前临时权限策略
       tags:
       - web
   /healthz:

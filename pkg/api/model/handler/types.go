@@ -10,16 +10,6 @@
 
 package handler
 
-const (
-	ModelChangeEventTypeActionDeleted       = "action_deleted"
-	ModelChangeEventTypeActionPolicyDeleted = "action_policy_deleted"
-
-	ModelChangeEventModelTypeAction = "action"
-
-	ModelChangeEventStatusPending  = "pending"
-	ModelChangeEventStatusFinished = "finished"
-)
-
 type referenceResourceType struct {
 	SystemID string `json:"system_id" structs:"system_id" binding:"required" example:"bk_cmdb"`
 	ID       string `json:"id" structs:"id" binding:"required" example:"host"`

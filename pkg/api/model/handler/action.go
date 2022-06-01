@@ -84,6 +84,7 @@ func BatchCreateActions(c *gin.Context) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			Sensitivity:   ac.Sensitivity,
 			Type:          ac.Type,
 			Version:       ac.Version,
 
@@ -100,6 +101,9 @@ func BatchCreateActions(c *gin.Context) {
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
+	// delete from cache
+	cacheimpls.DeleteActionListCache(systemID)
+
 	util.SuccessJSONResponse(c, "ok", nil)
 }
 
@@ -191,12 +195,16 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["description_en"]; ok {
 		allowEmptyFields.AddKey("DescriptionEn")
 	}
+	if _, ok := data["sensitivity"]; ok {
+		allowEmptyFields.AddKey("Sensitivity")
+	}
 
 	action := svctypes.Action{
 		Name:                 body.Name,
 		NameEn:               body.NameEn,
 		Description:          body.Description,
 		DescriptionEn:        body.DescriptionEn,
+		Sensitivity:          body.Sensitivity,
 		Version:              body.Version,
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
@@ -217,6 +225,7 @@ func UpdateAction(c *gin.Context) {
 
 	// delete from cache
 	cacheimpls.BatchDeleteActionCache(systemID, []string{actionID})
+	cacheimpls.DeleteActionListCache(systemID)
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
@@ -303,8 +312,12 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				util.SystemErrorJSONResponse(c, err1)
 				return
 			}
-			exist, err1 := eventSvc.ExistByTypeModel(ModelChangeEventTypeActionDeleted, ModelChangeEventStatusPending,
-				ModelChangeEventModelTypeAction, actionPK)
+			exist, err1 := eventSvc.ExistByTypeModel(
+				service.ModelChangeEventTypeActionDeleted,
+				service.ModelChangeEventStatusPending,
+				service.ModelChangeEventModelTypeAction,
+				actionPK,
+			)
 			if err1 != nil {
 				err1 = errorx.Wrapf(err1, "Handler", "batchDeleteActions",
 					"eventSvc.ExistByTypeModel fail, systemID=`%s`, ids=`%v`", systemID, ids)
@@ -315,10 +328,10 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				continue
 			}
 			events = append(events, svctypes.ModelChangeEvent{
-				Type:      ModelChangeEventTypeActionDeleted,
-				Status:    ModelChangeEventStatusPending,
+				Type:      service.ModelChangeEventTypeActionDeleted,
+				Status:    service.ModelChangeEventStatusPending,
 				SystemID:  systemID,
-				ModelType: ModelChangeEventModelTypeAction,
+				ModelType: service.ModelChangeEventModelTypeAction,
 				ModelID:   id,
 				ModelPK:   actionPK,
 			})
@@ -356,10 +369,10 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 			// 直接更新掉 delete_policy事件的状态
 			eventSvc := service.NewModelChangeService()
 			err = eventSvc.UpdateStatusByModel(
-				ModelChangeEventTypeActionPolicyDeleted,
-				ModelChangeEventModelTypeAction,
+				service.ModelChangeEventTypeActionPolicyDeleted,
+				service.ModelChangeEventModelTypeAction,
 				actionPK,
-				ModelChangeEventStatusFinished,
+				service.ModelChangeEventStatusFinished,
 			)
 			if err != nil {
 				err = errorx.Wrapf(err, "Handler", "batchDeleteActions",
@@ -380,6 +393,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 
 		// delete from cache
 		cacheimpls.BatchDeleteActionCache(systemID, newIDs)
+		cacheimpls.DeleteActionListCache(systemID)
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)

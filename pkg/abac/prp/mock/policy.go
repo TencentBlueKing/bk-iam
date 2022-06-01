@@ -96,17 +96,17 @@ func (mr *MockPolicyManagerMockRecorder) ListSaaSBySubjectTemplateBeforeExpiredA
 }
 
 // AlterCustomPolicies mocks base method
-func (m *MockPolicyManager) AlterCustomPolicies(systemID, subjectType, subjectID string, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error {
+func (m *MockPolicyManager) AlterCustomPolicies(system, subjectType, subjectID string, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AlterCustomPolicies", systemID, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs)
+	ret := m.ctrl.Call(m, "AlterCustomPolicies", system, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AlterCustomPolicies indicates an expected call of AlterCustomPolicies
-func (mr *MockPolicyManagerMockRecorder) AlterCustomPolicies(systemID, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) AlterCustomPolicies(system, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlterCustomPolicies", reflect.TypeOf((*MockPolicyManager)(nil).AlterCustomPolicies), systemID, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlterCustomPolicies", reflect.TypeOf((*MockPolicyManager)(nil).AlterCustomPolicies), system, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs)
 }
 
 // UpdateSubjectPoliciesExpiredAt mocks base method
@@ -153,57 +153,100 @@ func (mr *MockPolicyManagerMockRecorder) GetExpressionsFromCache(actionPK, expre
 }
 
 // DeleteByActionID mocks base method
-func (m *MockPolicyManager) DeleteByActionID(systemID, actionID string) error {
+func (m *MockPolicyManager) DeleteByActionID(system, actionID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByActionID", systemID, actionID)
+	ret := m.ctrl.Call(m, "DeleteByActionID", system, actionID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByActionID indicates an expected call of DeleteByActionID
-func (mr *MockPolicyManagerMockRecorder) DeleteByActionID(systemID, actionID interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) DeleteByActionID(system, actionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionID", reflect.TypeOf((*MockPolicyManager)(nil).DeleteByActionID), systemID, actionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionID", reflect.TypeOf((*MockPolicyManager)(nil).DeleteByActionID), system, actionID)
 }
 
 // CreateAndDeleteTemplatePolicies mocks base method
-func (m *MockPolicyManager) CreateAndDeleteTemplatePolicies(systemID, subjectType, subjectID string, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64) error {
+func (m *MockPolicyManager) CreateAndDeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAndDeleteTemplatePolicies", systemID, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs)
+	ret := m.ctrl.Call(m, "CreateAndDeleteTemplatePolicies", system, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAndDeleteTemplatePolicies indicates an expected call of CreateAndDeleteTemplatePolicies
-func (mr *MockPolicyManagerMockRecorder) CreateAndDeleteTemplatePolicies(systemID, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) CreateAndDeleteTemplatePolicies(system, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAndDeleteTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).CreateAndDeleteTemplatePolicies), systemID, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAndDeleteTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).CreateAndDeleteTemplatePolicies), system, subjectType, subjectID, templateID, createPolicies, deletePolicyIDs)
 }
 
 // UpdateTemplatePolicies mocks base method
-func (m *MockPolicyManager) UpdateTemplatePolicies(systemID, subjectType, subjectID string, policies []types.Policy) error {
+func (m *MockPolicyManager) UpdateTemplatePolicies(system, subjectType, subjectID string, policies []types.Policy) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTemplatePolicies", systemID, subjectType, subjectID, policies)
+	ret := m.ctrl.Call(m, "UpdateTemplatePolicies", system, subjectType, subjectID, policies)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateTemplatePolicies indicates an expected call of UpdateTemplatePolicies
-func (mr *MockPolicyManagerMockRecorder) UpdateTemplatePolicies(systemID, subjectType, subjectID, policies interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) UpdateTemplatePolicies(system, subjectType, subjectID, policies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).UpdateTemplatePolicies), systemID, subjectType, subjectID, policies)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).UpdateTemplatePolicies), system, subjectType, subjectID, policies)
 }
 
 // DeleteTemplatePolicies mocks base method
-func (m *MockPolicyManager) DeleteTemplatePolicies(systemID, subjectType, subjectID string, templateID int64) error {
+func (m *MockPolicyManager) DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTemplatePolicies", systemID, subjectType, subjectID, templateID)
+	ret := m.ctrl.Call(m, "DeleteTemplatePolicies", system, subjectType, subjectID, templateID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteTemplatePolicies indicates an expected call of DeleteTemplatePolicies
-func (mr *MockPolicyManagerMockRecorder) DeleteTemplatePolicies(systemID, subjectType, subjectID, templateID interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) DeleteTemplatePolicies(system, subjectType, subjectID, templateID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemplatePolicies), systemID, subjectType, subjectID, templateID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplatePolicies", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemplatePolicies), system, subjectType, subjectID, templateID)
+}
+
+// CreateTemporaryPolicies mocks base method
+func (m *MockPolicyManager) CreateTemporaryPolicies(system, subjectType, subjectID string, policies []types.Policy) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTemporaryPolicies", system, subjectType, subjectID, policies)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTemporaryPolicies indicates an expected call of CreateTemporaryPolicies
+func (mr *MockPolicyManagerMockRecorder) CreateTemporaryPolicies(system, subjectType, subjectID, policies interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemporaryPolicies", reflect.TypeOf((*MockPolicyManager)(nil).CreateTemporaryPolicies), system, subjectType, subjectID, policies)
+}
+
+// DeleteTemporaryByIDs mocks base method
+func (m *MockPolicyManager) DeleteTemporaryByIDs(system, subjectType, subjectID string, policyIDs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTemporaryByIDs", system, subjectType, subjectID, policyIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTemporaryByIDs indicates an expected call of DeleteTemporaryByIDs
+func (mr *MockPolicyManagerMockRecorder) DeleteTemporaryByIDs(system, subjectType, subjectID, policyIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemporaryByIDs", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemporaryByIDs), system, subjectType, subjectID, policyIDs)
+}
+
+// DeleteTemporaryBeforeExpiredAt mocks base method
+func (m *MockPolicyManager) DeleteTemporaryBeforeExpiredAt(expiredAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteTemporaryBeforeExpiredAt", expiredAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteTemporaryBeforeExpiredAt indicates an expected call of DeleteTemporaryBeforeExpiredAt
+func (mr *MockPolicyManagerMockRecorder) DeleteTemporaryBeforeExpiredAt(expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemporaryBeforeExpiredAt", reflect.TypeOf((*MockPolicyManager)(nil).DeleteTemporaryBeforeExpiredAt), expiredAt)
 }

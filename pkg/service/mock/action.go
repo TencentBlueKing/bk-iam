@@ -78,6 +78,21 @@ func (mr *MockActionServiceMockRecorder) ListBySystem(system interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockActionService)(nil).ListBySystem), system)
 }
 
+// ListBaseInfoBySystem mocks base method
+func (m *MockActionService) ListBaseInfoBySystem(system string) ([]types.ActionBaseInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBaseInfoBySystem", system)
+	ret0, _ := ret[0].([]types.ActionBaseInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBaseInfoBySystem indicates an expected call of ListBaseInfoBySystem
+func (mr *MockActionServiceMockRecorder) ListBaseInfoBySystem(system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBaseInfoBySystem", reflect.TypeOf((*MockActionService)(nil).ListBaseInfoBySystem), system)
+}
+
 // BulkCreate mocks base method
 func (m *MockActionService) BulkCreate(system string, actions []types.Action) error {
 	m.ctrl.T.Helper()

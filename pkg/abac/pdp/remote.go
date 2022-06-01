@@ -12,6 +12,7 @@ package pdp
 
 import (
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -45,10 +46,16 @@ func queryRemoteResourceAttrs(
 ) (attrs map[string]interface{}, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PDPHelper, "queryRemoteResourceAttrs")
 
+	timestampNano := time.Now().UnixNano()
+
 	// 查询policies相关的属性key
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
-		condition, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+		condition, err := cacheimpls.GetUnmarshalledResourceExpression(
+			policy.Expression,
+			policy.ExpressionSignature,
+			timestampNano,
+		)
 		if err != nil {
 			return nil, err
 		}

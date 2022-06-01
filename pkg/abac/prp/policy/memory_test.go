@@ -20,8 +20,8 @@ import (
 	rds "github.com/go-redis/redis/v8"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/abac/prp/common"
 	"iam/pkg/cache/redis"
@@ -32,7 +32,6 @@ import (
 )
 
 var _ = Describe("Memory", func() {
-
 	It("newMemoryRetriever", func() {
 		r := newMemoryRetriever("test", 1, nil)
 		assert.NotNil(GinkgoT(), r)
@@ -117,7 +116,6 @@ var _ = Describe("Memory", func() {
 				"test:1:456": cached2,
 				"test:1:789": cached3,
 			}
-
 		})
 		AfterEach(func() {
 			// ctl.Finish()
@@ -134,7 +132,6 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Empty(GinkgoT(), policies)
 			assert.Nil(GinkgoT(), missingSubjectPKs)
-
 		})
 		It("all missing, no changed list", func() {
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthPolicy, missingPKs []int64, err error) {
@@ -174,7 +171,6 @@ var _ = Describe("Memory", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), policies, 3)
 			assert.Empty(GinkgoT(), missingSubjectPKs)
-
 		})
 		It("all hit, has change list", func() {
 			patches.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
@@ -258,7 +254,6 @@ var _ = Describe("Memory", func() {
 		BeforeEach(func() {
 			r = newMemoryRetriever("test", 1, nil)
 			cacheimpls.LocalPolicyCache = gocache.New(1*time.Minute, 1*time.Minute)
-
 		})
 
 		It("ok", func() {
@@ -289,7 +284,6 @@ var _ = Describe("Memory", func() {
 			_, ok = cacheimpls.LocalPolicyCache.Get("111")
 			assert.False(GinkgoT(), ok)
 		})
-
 	})
 
 	It("deleteSystemSubjectPKsFromMemory", func() {
@@ -443,7 +437,5 @@ var _ = Describe("Memory", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "truncate fail", err.Error())
 		})
-
 	})
-
 })

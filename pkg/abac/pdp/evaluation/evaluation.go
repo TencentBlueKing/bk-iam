@@ -60,7 +60,11 @@ func evalPolicy(ctx *evalctx.EvalContext, policy types.AuthPolicy, currentTime t
 		return false, fmt.Errorf("evalPolicy action: %s get not resource in request", ctx.Action.ID)
 	}
 
-	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(
+		policy.Expression,
+		policy.ExpressionSignature,
+		currentTime.UnixNano(),
+	)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)
@@ -119,7 +123,11 @@ func partialEvalPolicy(
 		return true, condition.NewAnyCondition(), nil
 	}
 
-	cond, err := cacheimpls.GetUnmarshalledResourceExpression(policy.Expression, policy.ExpressionSignature)
+	cond, err := cacheimpls.GetUnmarshalledResourceExpression(
+		policy.Expression,
+		policy.ExpressionSignature,
+		currentTime.UnixNano(),
+	)
 	if err != nil {
 		log.Debugf("pdp evalPolicy policy id: %d expression: %s format error: %v",
 			policy.ID, policy.Expression, err)

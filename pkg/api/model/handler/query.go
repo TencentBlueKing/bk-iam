@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/util"
 )
@@ -61,12 +62,12 @@ func SystemInfoQuery(c *gin.Context) {
 	}
 	fieldSet := set.SplitStringToSet(fields, ",")
 
-	BuildSystemInfoQueryResponse(c, systemID, fieldSet)
+	BuildSystemInfoQueryResponse(c, systemID, fieldSet, false)
 }
 
 //nolint:gocognit
 // BuildSystemInfoQueryResponse will only the data requested
-func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet) {
+func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet, isModelSharing bool) {
 	// make the return data
 	data := gin.H{}
 
@@ -80,10 +81,12 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 			return
 		}
 
-		// delete the token from provider_config
-		_, ok := systemInfo.ProviderConfig["token"]
-		if ok {
-			delete(systemInfo.ProviderConfig, "token")
+		// default, delete the token from provider_config, model sharing should keep the token
+		if !isModelSharing {
+			_, ok := systemInfo.ProviderConfig["token"]
+			if ok {
+				delete(systemInfo.ProviderConfig, "token")
+			}
 		}
 
 		data[SystemQueryFieldBaseInfo] = systemInfo
@@ -104,8 +107,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 
 	// field: action => actions
 	if fieldSet.Has(SystemQueryFieldActions) {
-		acSvc := service.NewActionService()
-		actions, err := acSvc.ListBySystem(systemID)
+		actions, err := cacheimpls.ListActionBySystem(systemID)
 		if err != nil {
 			err = errorx.Wrapf(err, "Handler", "SystemInfoQuery",
 				"acSvc.ListBySystem system_id=`%s` fail", systemID)
@@ -138,7 +140,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 		if fieldSet.Has(SystemQueryFieldActionGroups) {
 			ag, err := svc.GetActionGroups(systemID)
 			if err != nil {
-				data[SystemQueryFieldActionGroups] = map[string]interface{}{}
+				data[SystemQueryFieldActionGroups] = []interface{}{}
 			}
 			data[SystemQueryFieldActionGroups] = ag
 		}
@@ -154,7 +156,7 @@ func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set
 		if fieldSet.Has(SystemQueryFieldCommonActions) {
 			ac, err := svc.GetCommonActions(systemID)
 			if err != nil {
-				data[SystemQueryFieldCommonActions] = map[string]interface{}{}
+				data[SystemQueryFieldCommonActions] = []interface{}{}
 			}
 			data[SystemQueryFieldCommonActions] = ac
 		}

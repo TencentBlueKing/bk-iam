@@ -39,34 +39,44 @@ type PolicyManager interface {
 	// in policy_crud.go
 
 	AlterCustomPolicies(
-		systemID, subjectType, subjectID string,
+		system, subjectType, subjectID string,
 		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error
 	UpdateSubjectPoliciesExpiredAt(subjectType, subjectID string, policies []types.PolicyPKExpiredAt) error
 
 	DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
 
 	GetExpressionsFromCache(actionPK int64, expressionPKs []int64) ([]svctypes.AuthExpression, error)
-	DeleteByActionID(systemID, actionID string) error
+	DeleteByActionID(system, actionID string) error
 
 	// template
 
-	CreateAndDeleteTemplatePolicies(systemID, subjectType, subjectID string, templateID int64,
+	CreateAndDeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64,
 		createPolicies []types.Policy, deletePolicyIDs []int64) error
-	UpdateTemplatePolicies(systemID, subjectType, subjectID string, policies []types.Policy) error
-	DeleteTemplatePolicies(systemID, subjectType, subjectID string, templateID int64) error
+	UpdateTemplatePolicies(system, subjectType, subjectID string, policies []types.Policy) error
+	DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) error
+
+	// temporary policy
+	CreateTemporaryPolicies(
+		system, subjectType, subjectID string,
+		policies []types.Policy,
+	) ([]int64, error)
+	DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
+	DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
 }
 
 type policyManager struct {
-	subjectService service.SubjectService
-	actionService  service.ActionService
-	policyService  service.PolicyService
+	subjectService         service.SubjectService
+	actionService          service.ActionService
+	policyService          service.PolicyService
+	temporaryPolicyService service.TemporaryPolicyService
 }
 
 // NewPolicyManager ...
 func NewPolicyManager() PolicyManager {
 	return &policyManager{
-		subjectService: service.NewSubjectService(),
-		actionService:  service.NewActionService(),
-		policyService:  service.NewPolicyService(),
+		subjectService:         service.NewSubjectService(),
+		actionService:          service.NewActionService(),
+		policyService:          service.NewPolicyService(),
+		temporaryPolicyService: service.NewTemporaryPolicyService(),
 	}
 }

@@ -32,6 +32,16 @@ func (d actionCacheDeleter) Execute(key cache.Key) (err error) {
 	return
 }
 
+type actionListCacheDeleter struct{}
+
+// Execute ...
+func (d actionListCacheDeleter) Execute(key cache.Key) (err error) {
+	err = multierr.Combine(
+		ActionListCache.Delete(key),
+	)
+	return
+}
+
 // NOTE: resource_type
 // handler/resource_type.go => UpdateResourceType => DeleteResourceType(systemID, resourceTypeID)
 //                          => batchDeleteResourceTypes => BatchDeleteResourceTypeCache(systemID, resourceTypeIDs)
@@ -94,6 +104,13 @@ func BatchDeleteActionCache(systemID string, actionIDs []string) error {
 	}
 
 	ActionCacheCleaner.BatchDelete(keys)
+	return nil
+}
+
+// DeleteActionListCache ...
+func DeleteActionListCache(systemID string) error {
+	key := cache.NewStringKey(systemID)
+	ActionListCacheCleaner.Delete(key)
 	return nil
 }
 

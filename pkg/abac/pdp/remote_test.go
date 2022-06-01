@@ -28,7 +28,6 @@ import (
 )
 
 var _ = Describe("Remote", func() {
-
 	Describe("fillRemoteResourceAttrs", func() {
 		var req *request.Request
 		var ctl *gomock.Controller
@@ -97,7 +96,6 @@ var _ = Describe("Remote", func() {
 			assert.Equal(GinkgoT(), "world", w)
 			// assert.Equal(GinkgoT(), want, req.Resources[0].Attribute.(map[string]interface{}))
 		})
-
 	})
 
 	Describe("queryRemoteResourceAttrs", func() {
@@ -127,9 +125,8 @@ var _ = Describe("Remote", func() {
 
 		It("error, cacheimpls.GetUnmarshalledResourceExpression fail", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
-				func(expression, signature string) (condition.Condition, error) {
+				func(expression, signature string, timestampNano int64) (condition.Condition, error) {
 					return nil, errors.New("the error")
-
 				})
 
 			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{
@@ -158,9 +155,8 @@ var _ = Describe("Remote", func() {
 
 		It("error, pip.QueryRemoteResourceAttribute fail", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
-				func(expression, signature string) (condition.Condition, error) {
+				func(expression, signature string, timestampNano int64) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
-
 				})
 
 			patches.ApplyFunc(getConditionAttrKeys,
@@ -180,7 +176,7 @@ var _ = Describe("Remote", func() {
 
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.GetUnmarshalledResourceExpression,
-				func(expression, signature string) (condition.Condition, error) {
+				func(expression, signature string, timestampNano int64) (condition.Condition, error) {
 					return condition.NewBoolCondition("bk_cmdb.host.isUp", true), nil
 				})
 
@@ -206,7 +202,6 @@ var _ = Describe("Remote", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[string]interface{}{"hello": "world"}, attrs)
 		})
-
 	})
 
 	Describe("queryExtResourceAttrs", func() {
@@ -269,9 +264,7 @@ var _ = Describe("Remote", func() {
 			resources, err := queryExtResourceAttrs(resource, []condition.Condition{})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []map[string]interface{}{{"hello": "world"}}, resources)
-
 		})
-
 	})
 
 	Describe("getConditionAttrKeys", func() {
@@ -306,7 +299,5 @@ var _ = Describe("Remote", func() {
 			assert.Len(GinkgoT(), keys, 2)
 			assert.ElementsMatch(GinkgoT(), []string{"isUp", "isDown"}, keys)
 		})
-
 	})
-
 })

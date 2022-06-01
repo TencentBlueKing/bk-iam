@@ -7,8 +7,8 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/component"
@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("LocalAppCodeSecret", func() {
-
 	Describe("VerifyAppCodeAppSecret", func() {
 		var ctl *gomock.Controller
 		var mockManager *mock.MockAppSecretManager
@@ -28,7 +27,6 @@ var _ = Describe("LocalAppCodeSecret", func() {
 
 			ctl = gomock.NewController(GinkgoT())
 			mockManager = mock.NewMockAppSecretManager(ctl)
-
 		})
 
 		AfterEach(func() {
@@ -64,7 +62,6 @@ var _ = Describe("LocalAppCodeSecret", func() {
 
 			ok := cacheimpls.VerifyAppCodeAppSecretFromDB("app", "123")
 			assert.False(GinkgoT(), ok)
-
 		})
 
 		It("miss, get from database invalid", func() {
@@ -113,7 +110,6 @@ var _ = Describe("LocalAppCodeSecret", func() {
 
 			ok := cacheimpls.VerifyAppCodeAppSecretFromAuth("app", "123")
 			assert.False(GinkgoT(), ok)
-
 		})
 
 		It("miss, get from bkauth invalid", func() {

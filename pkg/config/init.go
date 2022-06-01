@@ -19,6 +19,7 @@ var (
 	SuperAppCodeSet          *set.StringSet
 	SuperUserSet             *set.StringSet
 	SupportShieldFeaturesSet *set.StringSet
+	ShareAppCodeSet          *set.StringSet
 )
 
 // InitSuperAppCode ...
@@ -53,4 +54,9 @@ func InitSupportShieldFeatures(supportShieldFeatures []string) {
 		"user_permission.group.quit",               // 退出用户组
 	}
 	SupportShieldFeaturesSet.Append(defaultSupportShieldFeatures...)
+}
+
+// InitShareAppCode read the value from config, parse to set
+func InitShareAppCode(shareAppCode string) {
+	ShareAppCodeSet = set.SplitStringToSet(shareAppCode, ",")
 }

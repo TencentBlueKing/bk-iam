@@ -16,8 +16,8 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
-	gocache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
+	gocache "github.com/wklken/go-cache"
 
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/cache/redis"
@@ -28,7 +28,6 @@ import (
 )
 
 var _ = Describe("Init", func() {
-
 	var ctl *gomock.Controller
 	var patches *gomonkey.Patches
 	BeforeEach(func() {
@@ -70,7 +69,6 @@ var _ = Describe("Init", func() {
 		policies, err := policy.GetPoliciesFromCache("test", 1, []int64{123, 456, 789})
 		assert.NoError(GinkgoT(), err)
 		assert.Len(GinkgoT(), policies, 3)
-
 	})
 
 	It("DeleteSystemSubjectPKsFromCache", func() {
@@ -99,5 +97,4 @@ var _ = Describe("Init", func() {
 		err := policy.BatchDeleteSystemSubjectPKsFromCache([]string{"test", "test1"}, []int64{123, 456})
 		assert.NoError(GinkgoT(), err)
 	})
-
 })

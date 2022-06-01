@@ -1,3 +1,28 @@
+# 1.11.6
+
+- action model change check use []ActionBaseInfo
+
+# 1.11.5
+
+- pref: action_service ListBySystem use cache to do check
+
+# 1.11.4
+
+- bugfix: temporary policy fill expression signature
+
+# 1.11.3
+
+- add: model change event delete api
+
+# 1.11.2
+
+- add: model share api support
+
+# 1.11.1
+
+- add: temporary policy
+- upgrade: go 1.18
+
 # 1.10.4
 
 - bugfix: /api/v1/web/unreferenced-expressions timeout
