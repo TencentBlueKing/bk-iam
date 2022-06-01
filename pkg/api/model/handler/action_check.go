@@ -199,8 +199,8 @@ func checkActionIDsHasAnyPolicies(systemID string, ids []string) ([]string, erro
 			}
 			// 若删除Action策略时间不存在，则Action不可删除
 			if !eventExist {
-				return []string{}, fmt.Errorf("action has releated policies, "+
-					"you can't delete it or update the related_resource_types unless delete all the related policies. "+
+				return []string{}, fmt.Errorf("action has related policies, "+
+					"you can't delete it or update the related_resource_types/auth_type unless delete all the related policies. "+
 					"please contact administrator. [systemID=%s, id=%s, actionPK=%d]",
 					systemID, id, actionPK)
 			}
@@ -249,9 +249,75 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 		if currentRT.SystemID != oldRT.System || currentRT.ID != oldRT.ID {
 			err = fmt.Errorf(
 				"%w, related_resource_types[%d](system=%s, id=%s) different to exist related_resource_types[%d](system=%s, id=%s)",
-				err, i, currentRT.SystemID, currentRT.ID, i, oldRT.System, oldRT.ID)
+				err,
+				i,
+				currentRT.SystemID,
+				currentRT.ID,
+				i,
+				oldRT.System,
+				oldRT.ID,
+			)
 			return err
 		}
+	}
+	return nil
+}
+
+func checkUpdatedActionAuthType(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
+	// if not change the auth_type and relatedResourceTypes
+	if authType == "" && len(relatedResourceTypes) == 0 {
+		return nil
+	}
+
+	// if authType != "" || len(relatedResourceTypes) > 0
+
+	oldAction, err := service.NewActionService().Get(systemID, actionID)
+	if err != nil {
+		return fmt.Errorf("actionService get systemID=%s, actionID=%s fail, %w", systemID, actionID, err)
+	}
+
+	// 1. if auth_type want to change, should has no policies
+	if authType != "" && authType != oldAction.AuthType {
+		needAsyncDeletedActionIDs, err := checkActionIDsHasAnyPolicies(systemID, []string{actionID})
+		if err != nil {
+			return fmt.Errorf("checkActionIDsHashAnyPolicies systemID=%s, actionID=%s: %w", systemID, actionID, err)
+		}
+		if len(needAsyncDeletedActionIDs) != 0 {
+			return fmt.Errorf("systemID=%s, actionID=%s has related policies, you cant't update the auth_type",
+				systemID, actionID)
+		}
+	}
+
+	// 2. new auth_type/related_resource_types should be valid
+	var newAuthType string
+	var newRelatedResourceTypes []relatedResourceType
+
+	if authType != "" {
+		newAuthType = authType
+	} else {
+		newAuthType = oldAction.AuthType
+	}
+
+	if len(relatedResourceTypes) > 0 {
+		newRelatedResourceTypes = relatedResourceTypes
+	} else {
+		for _, rrt := range oldAction.RelatedResourceTypes {
+			relatedInstanceSelections := make([]referenceInstanceSelection, 0)
+			for _, rrtis := range rrt.RelatedInstanceSelections {
+				relatedInstanceSelections = append(relatedInstanceSelections, referenceInstanceSelection{
+					IgnoreIAMPath: rrtis["ignore_iam_path"].(bool),
+				})
+			}
+
+			newRelatedResourceTypes = append(newRelatedResourceTypes, relatedResourceType{
+				SelectionMode:             rrt.SelectionMode,
+				RelatedInstanceSelections: relatedInstanceSelections,
+			})
+		}
+	}
+	valid, message := validateActionAuthType(newAuthType, newRelatedResourceTypes)
+	if !valid {
+		return fmt.Errorf("validateActionAuthType fail:%s", message)
 	}
 	return nil
 }

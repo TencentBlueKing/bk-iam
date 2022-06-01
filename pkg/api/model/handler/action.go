@@ -175,43 +175,11 @@ func UpdateAction(c *gin.Context) {
 		}
 	}
 
-	// TODO:
-	// should check the final authType
-	if body.AuthType != "" || len(body.RelatedResourceTypes) > 0 {
-		oldAction, err := service.NewActionService().Get(systemID, actionID)
-		if err != nil {
-			util.SystemErrorJSONResponse(c, err)
-			return
-		}
-		// 1. if auth_type want to change, should has no policies
-		if body.AuthType != "" && body.AuthType != oldAction.AuthType {
-			needAsyncDeletedActionIDs, err := checkActionIDsHasAnyPolicies(systemID, []string{actionID})
-			if err == nil && len(needAsyncDeletedActionIDs) == 0 {
-				// return nil
-			} else {
-				util.BadRequestErrorJSONResponse(c, "action has policies, can not change auth_type")
-				return
-			}
-		}
-
-		// 2. new auth_type/related_resource_types should be valid
-		newAuthType := oldAction.AuthType
-		if body.AuthType != "" {
-			newAuthType = body.AuthType
-		}
-		newRelatedResourceTypes := make([]relatedResourceType, 0, len(oldAction.RelatedResourceTypes))
-		for _, rrt := range oldAction.RelatedResourceTypes {
-			newRelatedResourceTypes = append(newRelatedResourceTypes, relatedResourceType{
-				SelectionMode: rrt.SelectionMode,
-			})
-		}
-		if len(body.RelatedResourceTypes) > 0 {
-			newRelatedResourceTypes = body.RelatedResourceTypes
-		}
-		valid, message := validateActionAuthType(newAuthType, newRelatedResourceTypes)
-		if !valid {
-			util.BadRequestErrorJSONResponse(c, message)
-		}
+	// check the updated auth_type/related_resource_type should be valid
+	err = checkUpdatedActionAuthType(systemID, actionID, body.AuthType, body.RelatedResourceTypes)
+	if err != nil {
+		util.ConflictJSONResponse(c, err.Error())
+		return
 	}
 
 	// build the data

@@ -129,7 +129,7 @@ func validateRelatedInstanceSelections(
 ) (bool, string) {
 	for index, data := range data {
 		if err := binding.Validator.ValidateStruct(data); err != nil {
-			message := fmt.Sprintf("data of action_id=%s releated_resource_type[%s] instance_selections[%d], %s",
+			message := fmt.Sprintf("data of action_id=%s related_resource_type[%s] instance_selections[%d], %s",
 				actionID, relatedResourceTypeID, index, util.ValidationErrorMessage(err))
 			return false, message
 		}
@@ -184,7 +184,11 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 		if d.SelectionMode != SelectionModeAttribute {
 			if len(d.RelatedInstanceSelections) > 0 {
 				// validate if not empty
-				valid, message := validateRelatedInstanceSelections(d.RelatedInstanceSelections, actionID, relatedResourceTypeID)
+				valid, message := validateRelatedInstanceSelections(
+					d.RelatedInstanceSelections,
+					actionID,
+					relatedResourceTypeID,
+				)
 				if !valid {
 					return false, message
 				}
@@ -217,7 +221,21 @@ func validateActionAuthType(authType string, relatedResourceTypes []relatedResou
 			if rrt.SelectionMode != "" && rrt.SelectionMode != SelectionModeInstance {
 				return false, fmt.Sprintf(
 					"action.auth_type is 'rbac', so the related_resource_types[%d]'s selection_mode should be 'instance'(or empty)",
-					index)
+					index,
+				)
+			}
+
+			// 2.2 if auth_type == "rbac", the related_instance_selections[i].ignore_iam_path should be true
+			for idx, ris := range rrt.RelatedInstanceSelections {
+				if !ris.IgnoreIAMPath {
+					return false, fmt.Sprintf(
+						"action.auth_type is 'rbac', "+
+							"so the related_resource_types[%d].related_instance_selections[%d]'s "+
+							"ignore_iam_path should be 'true'",
+						index,
+						idx,
+					)
+				}
 			}
 		}
 	}
