@@ -31,11 +31,11 @@ type DepartmentService interface {
 	GetSubjectDepartmentPKs(subjectPK int64) ([]int64, error) // cache subject detail
 
 	// web api
-	GetSubjectDepartmentCount() (int64, error)
-	ListPagingSubjectDepartment(limit, offset int64) ([]types.SubjectDepartment, error)
-	BulkCreateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error
-	BulkUpdateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error
-	BulkDeleteSubjectDepartments(subjectPKs []int64) error
+	GetCount() (int64, error)
+	ListPaging(limit, offset int64) ([]types.SubjectDepartment, error)
+	BulkCreate(subjectDepartments []types.SubjectDepartment) error
+	BulkUpdate(subjectDepartments []types.SubjectDepartment) error
+	BulkDelete(subjectPKs []int64) error
 
 	// for pap
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
@@ -67,9 +67,9 @@ func (l *departmentService) GetSubjectDepartmentPKs(subjectPK int64) ([]int64, e
 	return departmentPKs, nil
 }
 
-// BulkCreateSubjectDepartments 批量创建用户部门关系
-func (l *departmentService) BulkCreateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkCreateSubjectDepartments")
+// BulkCreate 批量创建用户部门关系
+func (l *departmentService) BulkCreate(subjectDepartments []types.SubjectDepartment) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkCreate")
 	daoSubjectDepartments := make([]dao.SubjectDepartment, 0, len(subjectDepartments))
 	for _, subjectDepartment := range subjectDepartments {
 		daoSubjectDepartment := dao.SubjectDepartment{
@@ -90,8 +90,8 @@ func (l *departmentService) BulkCreateSubjectDepartments(subjectDepartments []ty
 	return nil
 }
 
-// BulkDeleteSubjectDepartments ...
-func (l *departmentService) BulkDeleteSubjectDepartments(subjectPKs []int64) error {
+// BulkDelete ...
+func (l *departmentService) BulkDelete(subjectPKs []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkDeleteSubjectDepartments")
 	err := l.manager.BulkDelete(subjectPKs)
 	if err != nil {
@@ -100,9 +100,9 @@ func (l *departmentService) BulkDeleteSubjectDepartments(subjectPKs []int64) err
 	return err
 }
 
-// BulkUpdateSubjectDepartments ...
-func (l *departmentService) BulkUpdateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkUpdateSubjectDepartments")
+// BulkUpdate ...
+func (l *departmentService) BulkUpdate(subjectDepartments []types.SubjectDepartment) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkUpdate")
 	daoSubjectDepartments := make([]dao.SubjectDepartment, 0, len(subjectDepartments))
 	for _, subjectDepartment := range subjectDepartments {
 		daoSubjectDepartment := dao.SubjectDepartment{
@@ -123,9 +123,9 @@ func (l *departmentService) BulkUpdateSubjectDepartments(subjectDepartments []ty
 	return nil
 }
 
-// ListPagingSubjectDepartment ...
-func (l *departmentService) ListPagingSubjectDepartment(limit, offset int64) ([]types.SubjectDepartment, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "ListPagingSubjectDepartment")
+// ListPaging ...
+func (l *departmentService) ListPaging(limit, offset int64) ([]types.SubjectDepartment, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "ListPaging")
 	daoSubjectDepartments, err := l.manager.ListPaging(limit, offset)
 	if err != nil {
 		return nil, errorWrapf(err, "manager.ListPaging limit=`%d`, offset=`%d` fail", limit, offset)
@@ -151,11 +151,11 @@ func (l *departmentService) ListPagingSubjectDepartment(limit, offset int64) ([]
 	return subjectDepartments, nil
 }
 
-// GetSubjectDepartmentCount ...
-func (l *departmentService) GetSubjectDepartmentCount() (int64, error) {
+// GetCount ...
+func (l *departmentService) GetCount() (int64, error) {
 	count, err := l.manager.GetCount()
 	if err != nil {
-		return count, errorx.Wrapf(err, DepartmentSVC, "GetSubjectDepartmentCount", "manager.GetCount fail")
+		return count, errorx.Wrapf(err, DepartmentSVC, "GetCount", "manager.GetCount fail")
 	}
 	return count, err
 }

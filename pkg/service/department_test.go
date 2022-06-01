@@ -74,7 +74,7 @@ var _ = Describe("DepartmentService", func() {
 		It("empty ok", func() {
 			manager := &departmentService{}
 
-			err := manager.BulkCreateSubjectDepartments([]types.SubjectDepartment{})
+			err := manager.BulkCreate([]types.SubjectDepartment{})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -93,7 +93,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkCreateSubjectDepartments([]types.SubjectDepartment{
+			err := manager.BulkCreate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -118,7 +118,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkCreateSubjectDepartments([]types.SubjectDepartment{
+			err := manager.BulkCreate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -147,7 +147,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkDeleteSubjectDepartments([]int64{1, 2})
+			err := manager.BulkDelete([]int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDelete")
 		})
@@ -162,7 +162,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkDeleteSubjectDepartments([]int64{1, 2})
+			err := manager.BulkDelete([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -179,7 +179,7 @@ var _ = Describe("DepartmentService", func() {
 		It("empty ok", func() {
 			manager := &departmentService{}
 
-			err := manager.BulkUpdateSubjectDepartments([]types.SubjectDepartment{})
+			err := manager.BulkUpdate([]types.SubjectDepartment{})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -198,7 +198,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkUpdateSubjectDepartments([]types.SubjectDepartment{
+			err := manager.BulkUpdate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -223,7 +223,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			err := manager.BulkUpdateSubjectDepartments([]types.SubjectDepartment{
+			err := manager.BulkUpdate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -252,7 +252,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			_, err := manager.ListPagingSubjectDepartment(int64(1), int64(2))
+			_, err := manager.ListPaging(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListPaging")
 		})
@@ -267,7 +267,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			_, err := manager.ListPagingSubjectDepartment(int64(1), int64(2))
+			_, err := manager.ListPaging(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -287,7 +287,7 @@ var _ = Describe("DepartmentService", func() {
 				manager: mockDepartmentService,
 			}
 
-			subjectDepartments, err := manager.ListPagingSubjectDepartment(int64(1), int64(2))
+			subjectDepartments, err := manager.ListPaging(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.SubjectDepartment{{SubjectPK: int64(1), DepartmentPKs: []int64{2, 3}}}, subjectDepartments)
 		})

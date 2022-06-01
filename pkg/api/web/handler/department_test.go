@@ -52,7 +52,7 @@ func TestBatchCreateSubjectDepartments(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkCreateSubjectDepartments([]pap.SubjectDepartment{
+		mockCtl.EXPECT().BulkCreate([]pap.SubjectDepartment{
 			{
 				SubjectID:     "admin",
 				DepartmentIDs: []string{"1", "2"},
@@ -75,7 +75,7 @@ func TestBatchCreateSubjectDepartments(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkCreateSubjectDepartments([]pap.SubjectDepartment{
+		mockCtl.EXPECT().BulkCreate([]pap.SubjectDepartment{
 			{
 				SubjectID:     "admin",
 				DepartmentIDs: []string{"1", "2"},
@@ -130,7 +130,7 @@ func TestBatchDeleteSubjectDepartments(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkDeleteSubjectDepartments([]string{"admin"}).Return(errors.New("error")).AnyTimes()
+		mockCtl.EXPECT().BulkDelete([]string{"admin"}).Return(errors.New("error")).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewDepartmentController, func() pap.DepartmentController {
 			return mockCtl
 		})
@@ -142,7 +142,7 @@ func TestBatchDeleteSubjectDepartments(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkDeleteSubjectDepartments([]string{"admin"}).Return(nil).AnyTimes()
+		mockCtl.EXPECT().BulkDelete([]string{"admin"}).Return(nil).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewDepartmentController, func() pap.DepartmentController {
 			return mockCtl
 		})
@@ -182,7 +182,7 @@ func TestBatchUpdateSubjectDepartments(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkUpdateSubjectDepartments([]pap.SubjectDepartment{
+		mockCtl.EXPECT().BulkUpdate([]pap.SubjectDepartment{
 			{
 				SubjectID:     "admin",
 				DepartmentIDs: []string{"1", "2"},
@@ -205,7 +205,7 @@ func TestBatchUpdateSubjectDepartments(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockDepartmentController(ctl)
-		mockCtl.EXPECT().BulkUpdateSubjectDepartments([]pap.SubjectDepartment{
+		mockCtl.EXPECT().BulkUpdate([]pap.SubjectDepartment{
 			{
 				SubjectID:     "admin",
 				DepartmentIDs: []string{"1", "2"},

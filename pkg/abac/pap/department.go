@@ -27,10 +27,10 @@ import (
 const DepartmentCTL = "DepartmentCTL"
 
 type DepartmentController interface {
-	ListPagingSubjectDepartment(limit, offset int64) ([]SubjectDepartment, error)
-	BulkCreateSubjectDepartments(subjectDepartments []SubjectDepartment) error
-	BulkUpdateSubjectDepartments(subjectDepartments []SubjectDepartment) error
-	BulkDeleteSubjectDepartments(subjectIDs []string) error
+	ListPaging(limit, offset int64) ([]SubjectDepartment, error)
+	BulkCreate(subjectDepartments []SubjectDepartment) error
+	BulkUpdate(subjectDepartments []SubjectDepartment) error
+	BulkDelete(subjectIDs []string) error
 }
 
 type departmentController struct {
@@ -47,12 +47,12 @@ func NewDepartmentController() DepartmentController {
 	}
 }
 
-// ListPagingSubjectDepartment ...
-func (c *departmentController) ListPagingSubjectDepartment(limit, offset int64) ([]SubjectDepartment, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "ListPagingSubjectDepartment")
-	svcSubjectDepartments, err := c.service.ListPagingSubjectDepartment(limit, offset)
+// ListPaging ...
+func (c *departmentController) ListPaging(limit, offset int64) ([]SubjectDepartment, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "ListPaging")
+	svcSubjectDepartments, err := c.service.ListPaging(limit, offset)
 	if err != nil {
-		return nil, errorWrapf(err, "service.ListPagingSubjectDepartment limit=`%d` offset=`%d` fail", limit, offset)
+		return nil, errorWrapf(err, "service.ListPaging limit=`%d` offset=`%d` fail", limit, offset)
 	}
 
 	pks := make([]int64, 0, len(svcSubjectDepartments)*5)
@@ -88,33 +88,33 @@ func (c *departmentController) ListPagingSubjectDepartment(limit, offset int64) 
 	return subjectDepartments, nil
 }
 
-// BulkCreateSubjectDepartments ...
-func (c *departmentController) BulkCreateSubjectDepartments(subjectDepartments []SubjectDepartment) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkCreateSubjectDepartments")
+// BulkCreate ...
+func (c *departmentController) BulkCreate(subjectDepartments []SubjectDepartment) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkCreate")
 	serviceSubjectDepartments, err := convertToServiceSubjectDepartments(subjectDepartments)
 	if err != nil {
 		return errorWrapf(err, "convertToServiceSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
-	err = c.service.BulkCreateSubjectDepartments(serviceSubjectDepartments)
+	err = c.service.BulkCreate(serviceSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "service.BulkCreateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
+		return errorWrapf(err, "service.BulkCreate subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
 	return nil
 }
 
-// BulkUpdateSubjectDepartments ...
-func (c *departmentController) BulkUpdateSubjectDepartments(subjectDepartments []SubjectDepartment) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkUpdateSubjectDepartments")
+// BulkUpdate ...
+func (c *departmentController) BulkUpdate(subjectDepartments []SubjectDepartment) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkUpdate")
 	serviceSubjectDepartments, err := convertToServiceSubjectDepartments(subjectDepartments)
 	if err != nil {
 		return errorWrapf(err, "convertToServiceSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
-	err = c.service.BulkUpdateSubjectDepartments(serviceSubjectDepartments)
+	err = c.service.BulkUpdate(serviceSubjectDepartments)
 	if err != nil {
-		return errorWrapf(err, "service.BulkUpdateSubjectDepartments subjectDepartments=`%+v` fail", subjectDepartments)
+		return errorWrapf(err, "service.BulkUpdate subjectDepartments=`%+v` fail", subjectDepartments)
 	}
 
 	subjectPKs := make([]int64, 0, len(serviceSubjectDepartments))
@@ -128,9 +128,9 @@ func (c *departmentController) BulkUpdateSubjectDepartments(subjectDepartments [
 	return nil
 }
 
-// BulkDeleteSubjectDepartments ...
-func (c *departmentController) BulkDeleteSubjectDepartments(subjectIDs []string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkDeleteSubjectDepartments")
+// BulkDelete ...
+func (c *departmentController) BulkDelete(subjectIDs []string) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentCTL, "BulkDelete")
 	subjects := make([]types.Subject, 0, len(subjectIDs))
 	for _, subjectID := range subjectIDs {
 		subjects = append(subjects, types.Subject{
@@ -144,9 +144,9 @@ func (c *departmentController) BulkDeleteSubjectDepartments(subjectIDs []string)
 		return errorWrapf(err, "subjectService.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	err = c.service.BulkDeleteSubjectDepartments(subjectPKs)
+	err = c.service.BulkDelete(subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "service.BulkDeleteSubjectDepartments subjectIDs=`%s` fail", subjectIDs)
+		return errorWrapf(err, "service.BulkDelete subjectIDs=`%s` fail", subjectIDs)
 	}
 
 	// delete from cache

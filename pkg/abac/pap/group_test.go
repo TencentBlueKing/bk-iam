@@ -45,7 +45,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.createOrUpdateSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -86,7 +86,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.createOrUpdateSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -141,7 +141,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.createOrUpdateSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -188,7 +188,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.createOrUpdateSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -245,7 +245,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			typeCount, err := manager.createOrUpdateSubjectMembers("group", "1", []SubjectMember{
+			typeCount, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
 				{
 					Type:            "user",
 					ID:              "2",

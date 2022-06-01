@@ -49,10 +49,10 @@ func (c *groupController) CreateOrUpdateSubjectMembers(
 	_type, id string,
 	members []SubjectMember,
 ) (typeCount map[string]int64, err error) {
-	return c.createOrUpdateSubjectMembers(_type, id, members, true)
+	return c.alterSubjectMembers(_type, id, members, true)
 }
 
-func (c *groupController) createOrUpdateSubjectMembers(
+func (c *groupController) alterSubjectMembers(
 	_type, id string,
 	members []SubjectMember,
 	createIfNotExists bool,
@@ -195,7 +195,7 @@ func (c *groupController) bulkCreateSubjectMembers(tx *sqlx.Tx, _type, id string
 
 // UpdateSubjectMembersExpiredAt ...
 func (c *groupController) UpdateSubjectMembersExpiredAt(_type, id string, members []SubjectMember) (err error) {
-	_, err = c.createOrUpdateSubjectMembers(_type, id, members, false)
+	_, err = c.alterSubjectMembers(_type, id, members, false)
 	return
 }
 

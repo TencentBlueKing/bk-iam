@@ -39,7 +39,7 @@ func CreateSubjectRole(c *gin.Context) {
 	// TODO: 校验 systemID 存在
 
 	ctl := pap.NewRoleController()
-	err := ctl.BulkCreateSubjectRoles(body.RoleType, body.SystemID, papSubjects)
+	err := ctl.BulkCreate(body.RoleType, body.SystemID, papSubjects)
 	if err != nil {
 		err = errorWrapf(
 			err, "ctl.BulkCreateSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
@@ -70,7 +70,7 @@ func DeleteSubjectRole(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Subjects)
 
 	ctl := pap.NewRoleController()
-	err := ctl.BulkDeleteSubjectRoles(body.RoleType, body.SystemID, papSubjects)
+	err := ctl.BulkDelete(body.RoleType, body.SystemID, papSubjects)
 	if err != nil {
 		err = errorWrapf(
 			err, "ctl.BulkDeleteSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",

@@ -64,7 +64,7 @@ func TestCreateSubjectRole(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkCreateSubjectRoles("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkCreate("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -92,7 +92,7 @@ func TestCreateSubjectRole(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkCreateSubjectRoles("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkCreate("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -160,7 +160,7 @@ func TestDeleteSubjectRole(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkDeleteSubjectRoles("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkDelete("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -188,7 +188,7 @@ func TestDeleteSubjectRole(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkDeleteSubjectRoles("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkDelete("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",

@@ -35,7 +35,7 @@ var _ = Describe("DepartmentController", func() {
 
 		It("service.ListPagingSubjectDepartment fail", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().ListPagingSubjectDepartment(int64(1), int64(2)).Return(
+			mockDepartmentService.EXPECT().ListPaging(int64(1), int64(2)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -43,14 +43,14 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			_, err := manager.ListPagingSubjectDepartment(int64(1), int64(2))
+			_, err := manager.ListPaging(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListPagingSubjectDepartment")
+			assert.Contains(GinkgoT(), err.Error(), "ListPaging")
 		})
 
 		It("ok", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().ListPagingSubjectDepartment(int64(1), int64(2)).Return(
+			mockDepartmentService.EXPECT().ListPaging(int64(1), int64(2)).Return(
 				[]types.SubjectDepartment{
 					{
 						SubjectPK:     int64(1),
@@ -86,7 +86,7 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			subjectDepartmets, err := manager.ListPagingSubjectDepartment(int64(1), int64(2))
+			subjectDepartmets, err := manager.ListPaging(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []SubjectDepartment{
 				{
@@ -97,7 +97,7 @@ var _ = Describe("DepartmentController", func() {
 		})
 	})
 
-	Describe("BulkCreateSubjectDepartments", func() {
+	Describe("BulkCreate", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -106,9 +106,9 @@ var _ = Describe("DepartmentController", func() {
 			ctl.Finish()
 		})
 
-		It("service.BulkCreateSubjectDepartments fail", func() {
+		It("service.BulkCreate fail", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkCreateSubjectDepartments([]types.SubjectDepartment{
+			mockDepartmentService.EXPECT().BulkCreate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -135,14 +135,14 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			err := manager.BulkCreateSubjectDepartments([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
+			err := manager.BulkCreate([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkCreateSubjectDepartments")
+			assert.Contains(GinkgoT(), err.Error(), "BulkCreate")
 		})
 
 		It("ok", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkCreateSubjectDepartments([]types.SubjectDepartment{
+			mockDepartmentService.EXPECT().BulkCreate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -169,7 +169,7 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			err := manager.BulkCreateSubjectDepartments([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
+			err := manager.BulkCreate([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -185,7 +185,7 @@ var _ = Describe("DepartmentController", func() {
 
 		It("service.BulkUpdateSubjectDepartments fail", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkUpdateSubjectDepartments([]types.SubjectDepartment{
+			mockDepartmentService.EXPECT().BulkUpdate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -212,14 +212,14 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			err := manager.BulkUpdateSubjectDepartments([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
+			err := manager.BulkUpdate([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkUpdateSubjectDepartments")
+			assert.Contains(GinkgoT(), err.Error(), "BulkUpdate")
 		})
 
 		It("ok", func() {
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkUpdateSubjectDepartments([]types.SubjectDepartment{
+			mockDepartmentService.EXPECT().BulkUpdate([]types.SubjectDepartment{
 				{
 					SubjectPK:     1,
 					DepartmentPKs: []int64{2, 3},
@@ -249,7 +249,7 @@ var _ = Describe("DepartmentController", func() {
 				service: mockDepartmentService,
 			}
 
-			err := manager.BulkUpdateSubjectDepartments([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
+			err := manager.BulkUpdate([]SubjectDepartment{{SubjectID: "1", DepartmentIDs: []string{"2", "3"}}})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -273,7 +273,7 @@ var _ = Describe("DepartmentController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDeleteSubjectDepartments([]string{"1"})
+			err := manager.BulkDelete([]string{"1"})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListPKsBySubjects")
 		})
@@ -285,7 +285,7 @@ var _ = Describe("DepartmentController", func() {
 			).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkDeleteSubjectDepartments([]int64{1}).Return(
+			mockDepartmentService.EXPECT().BulkDelete([]int64{1}).Return(
 				errors.New("error"),
 			).AnyTimes()
 
@@ -294,9 +294,9 @@ var _ = Describe("DepartmentController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDeleteSubjectDepartments([]string{"1"})
+			err := manager.BulkDelete([]string{"1"})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteSubjectDepartments")
+			assert.Contains(GinkgoT(), err.Error(), "BulkDelete")
 		})
 
 		It("ok", func() {
@@ -306,7 +306,7 @@ var _ = Describe("DepartmentController", func() {
 			).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
-			mockDepartmentService.EXPECT().BulkDeleteSubjectDepartments([]int64{1}).Return(
+			mockDepartmentService.EXPECT().BulkDelete([]int64{1}).Return(
 				nil,
 			).AnyTimes()
 
@@ -320,7 +320,7 @@ var _ = Describe("DepartmentController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDeleteSubjectDepartments([]string{"1"})
+			err := manager.BulkDelete([]string{"1"})
 			assert.NoError(GinkgoT(), err)
 		})
 	})

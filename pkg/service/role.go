@@ -25,12 +25,12 @@ const RoleSVC = "RoleSVC"
 // RoleService ...
 type RoleService interface {
 	// 鉴权
-	ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) // cache subject role system
+	ListSystemIDBySubjectPK(pk int64) ([]string, error) // cache subject role system
 
 	// web api
 	ListSubjectPKByRole(roleType, system string) ([]int64, error)
-	BulkCreateSubjectRoles(roleType, system string, subjectPKs []int64) error
-	BulkDeleteSubjectRoles(roleType, system string, subjectPKs []int64) error
+	BulkCreate(roleType, system string, subjectPKs []int64) error
+	BulkDelete(roleType, system string, subjectPKs []int64) error
 }
 
 type roleService struct {
@@ -44,9 +44,9 @@ func NewRoleService() RoleService {
 	}
 }
 
-// ListRoleSystemIDBySubjectPK ...
-func (l *roleService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListRoleSystemIDBySubjectPK")
+// ListSystemIDBySubjectPK ...
+func (l *roleService) ListSystemIDBySubjectPK(pk int64) ([]string, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListSystemIDBySubjectPK")
 
 	systemIDs, err := l.manager.ListSystemIDBySubjectPK(pk)
 	if err != nil {
@@ -69,9 +69,9 @@ func (l *roleService) ListSubjectPKByRole(roleType, system string) ([]int64, err
 	return subjectPKs, err
 }
 
-// BulkCreateSubjectRoles ...
-func (l *roleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkCreateSubjectRoles")
+// BulkCreate ...
+func (l *roleService) BulkCreate(roleType, system string, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkCreate")
 
 	// 查询角色已有的subjectPK
 	oldSubjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
@@ -105,8 +105,8 @@ func (l *roleService) BulkCreateSubjectRoles(roleType, system string, subjectPKs
 }
 
 // BulkDeleteSubjectRoles ...
-func (l *roleService) BulkDeleteSubjectRoles(roleType, system string, subjectPKs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkDeleteSubjectRoles")
+func (l *roleService) BulkDelete(roleType, system string, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "BulkDelete")
 
 	if len(subjectPKs) == 0 {
 		return nil
