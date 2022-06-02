@@ -249,7 +249,14 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 		if currentRT.SystemID != oldRT.System || currentRT.ID != oldRT.ID {
 			err = fmt.Errorf(
 				"%w, related_resource_types[%d](system=%s, id=%s) different to exist related_resource_types[%d](system=%s, id=%s)",
-				err, i, currentRT.SystemID, currentRT.ID, i, oldRT.System, oldRT.ID)
+				err,
+				i,
+				currentRT.SystemID,
+				currentRT.ID,
+				i,
+				oldRT.System,
+				oldRT.ID,
+			)
 			return err
 		}
 	}

@@ -204,7 +204,11 @@ func (s *policyService) GetByActionTemplate(subjectPK, actionPK, templateID int6
 	daoPolicy, err := s.manager.GetByActionTemplate(subjectPK, actionPK, templateID)
 	if err != nil {
 		return policy, errorWrapf(
-			err, "manager.GetByActionTemplate subjectPK=`%d`, actionPK=`%d`, templateID=", subjectPK, actionPK, templateID,
+			err,
+			"manager.GetByActionTemplate subjectPK=`%d`, actionPK=`%d`, templateID=",
+			subjectPK,
+			actionPK,
+			templateID,
 		)
 	}
 	if daoPolicy.ExpressionPK == expressionPKActionWithoutResource {

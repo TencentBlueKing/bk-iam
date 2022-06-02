@@ -581,7 +581,9 @@ var _ = Describe("PolicyService", func() {
 			}
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
-			mockPolicyManager.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), gomock.Any()).Return(errors.New("update fail"))
+			mockPolicyManager.EXPECT().
+				BulkUpdateExpiredAtWithTx(gomock.Any(), gomock.Any()).
+				Return(errors.New("update fail"))
 
 			db, dbMock := database.NewMockSqlxDB()
 			dbMock.ExpectBegin()

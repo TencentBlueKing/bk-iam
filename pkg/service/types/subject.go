@@ -43,6 +43,7 @@ type SubjectDepartment struct {
 // SubjectRelationPKPolicyExpiredAt ...
 type SubjectRelationPKPolicyExpiredAt struct {
 	PK              int64 `json:"pk"`
+	SubjectPK       int64 `json:"subject_pk"`
 	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }
 

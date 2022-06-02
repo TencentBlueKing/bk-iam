@@ -19,16 +19,18 @@ import (
 
 var _ = Describe("Map", func() {
 	Describe("MapValueInterfaceToString", func() {
-		DescribeTable("MapValueInterfaceToString cases", func(expected string, willError bool, input map[string]interface{}) {
+		DescribeTable(
+			"MapValueInterfaceToString cases",
+			func(expected string, willError bool, input map[string]interface{}) {
 
-			data, err := util.MapValueInterfaceToString(input)
-			if willError {
-				assert.Error(GinkgoT(), err)
-			} else {
-				assert.NoError(GinkgoT(), err)
-				assert.Equal(GinkgoT(), expected, data["a"])
-			}
-		},
+				data, err := util.MapValueInterfaceToString(input)
+				if willError {
+					assert.Error(GinkgoT(), err)
+				} else {
+					assert.NoError(GinkgoT(), err)
+					assert.Equal(GinkgoT(), expected, data["a"])
+				}
+			},
 			Entry("will error", "", true,
 				map[string]interface{}{
 					"a": "1",

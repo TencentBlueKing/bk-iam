@@ -259,6 +259,7 @@ func (c *groupController) alterSubjectMembers(
 			if m.PolicyExpiredAt > oldMember.PolicyExpiredAt {
 				updateMembers = append(updateMembers, types.SubjectRelationPKPolicyExpiredAt{
 					PK:              oldMember.PK,
+					SubjectPK:       subjectPK,
 					PolicyExpiredAt: m.PolicyExpiredAt,
 				})
 
@@ -288,7 +289,7 @@ func (c *groupController) alterSubjectMembers(
 
 	if len(updateMembers) != 0 {
 		// 更新成员过期时间
-		err = c.service.UpdateMembersExpiredAtWithTx(tx, updateMembers)
+		err = c.service.UpdateMembersExpiredAtWithTx(tx, parentPK, updateMembers)
 		if err != nil {
 			err = errorWrapf(err, "service.UpdateMembersExpiredAtWithTx members=`%+v`", updateMembers)
 			return
@@ -298,7 +299,7 @@ func (c *groupController) alterSubjectMembers(
 	// 无成员可添加，直接返回
 	if createIfNotExists && len(createMembers) != 0 {
 		// 添加成员
-		err = c.service.BulkCreateSubjectMembersWithTx(tx, createMembers)
+		err = c.service.BulkCreateSubjectMembersWithTx(tx, parentPK, createMembers)
 		if err != nil {
 			err = errorWrapf(err, "service.BulkCreateSubjectMembersWithTx relations=`%+v`", createMembers)
 			return nil, err

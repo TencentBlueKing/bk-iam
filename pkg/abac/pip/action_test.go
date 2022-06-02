@@ -37,9 +37,12 @@ var _ = Describe("Action", func() {
 		})
 
 		It("GetActionPK fail", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
-				return types.ActionDetail{}, errors.New("get GetActionDetail fail")
-			})
+			patches = gomonkey.ApplyFunc(
+				cacheimpls.GetActionDetail,
+				func(system, id string) (types.ActionDetail, error) {
+					return types.ActionDetail{}, errors.New("get GetActionDetail fail")
+				},
+			)
 
 			_, _, err := pip.GetActionDetail("bk_test", "edit")
 			assert.Error(GinkgoT(), err)
@@ -47,14 +50,17 @@ var _ = Describe("Action", func() {
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetActionDetail, func(system, id string) (types.ActionDetail, error) {
-				return types.ActionDetail{PK: 123, ResourceTypes: []types.ThinActionResourceType{
-					{
-						System: "test",
-						ID:     "abc",
-					},
-				}}, nil
-			})
+			patches = gomonkey.ApplyFunc(
+				cacheimpls.GetActionDetail,
+				func(system, id string) (types.ActionDetail, error) {
+					return types.ActionDetail{PK: 123, ResourceTypes: []types.ThinActionResourceType{
+						{
+							System: "test",
+							ID:     "abc",
+						},
+					}}, nil
+				},
+			)
 
 			pk, rts, err := pip.GetActionDetail("bk_test", "edit")
 			assert.NoError(GinkgoT(), err)

@@ -182,7 +182,11 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 		if d.SelectionMode != SelectionModeAttribute {
 			if len(d.RelatedInstanceSelections) > 0 {
 				// validate if not empty
-				valid, message := validateRelatedInstanceSelections(d.RelatedInstanceSelections, actionID, relatedResourceTypeID)
+				valid, message := validateRelatedInstanceSelections(
+					d.RelatedInstanceSelections,
+					actionID,
+					relatedResourceTypeID,
+				)
 				if !valid {
 					return false, message
 				}

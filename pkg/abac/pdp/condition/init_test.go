@@ -66,8 +66,12 @@ var _ = Describe("Condition", func() {
 			data := types.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}},
+						},
 					},
 				},
 			}
@@ -95,8 +99,12 @@ var _ = Describe("Condition", func() {
 			data := types.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}},
+						},
 					},
 				},
 			}

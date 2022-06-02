@@ -11,11 +11,13 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/TencentBlueKing/gopkg/stringx"
+	"github.com/go-sql-driver/mysql"
 	jsoniter "github.com/json-iterator/go"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
@@ -65,6 +67,22 @@ var _ = Describe("Utils", func() {
 			})
 		})
 
+	})
+
+	Describe("IsMysqlDuplicateEntryError", func() {
+		It("true", func() {
+			assert.True(GinkgoT(), IsMysqlDuplicateEntryError(&mysql.MySQLError{
+				Number: 1062,
+			}))
+		})
+
+		It("false", func() {
+			assert.False(GinkgoT(), IsMysqlDuplicateEntryError(errors.New("error")))
+		})
+
+		It("nil false", func() {
+			assert.False(GinkgoT(), IsMysqlDuplicateEntryError(nil))
+		})
 	})
 
 })

@@ -98,9 +98,12 @@ var _ = Describe("RoleController", func() {
 				nil,
 			).AnyTimes()
 
-			patches := gomonkey.ApplyFunc(cacheimpls.DeleteSubjectRoleSystemID, func(subjectType, subjectID string) error {
-				return nil
-			})
+			patches := gomonkey.ApplyFunc(
+				cacheimpls.DeleteSubjectRoleSystemID,
+				func(subjectType, subjectID string) error {
+					return nil
+				},
+			)
 			defer patches.Reset()
 
 			manager := &roleController{
@@ -187,9 +190,12 @@ var _ = Describe("RoleController", func() {
 				nil,
 			).AnyTimes()
 
-			patches := gomonkey.ApplyFunc(cacheimpls.DeleteSubjectRoleSystemID, func(subjectType, subjectID string) error {
-				return nil
-			})
+			patches := gomonkey.ApplyFunc(
+				cacheimpls.DeleteSubjectRoleSystemID,
+				func(subjectType, subjectID string) error {
+					return nil
+				},
+			)
 			defer patches.Reset()
 
 			manager := &roleController{

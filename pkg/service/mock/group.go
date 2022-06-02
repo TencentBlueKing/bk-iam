@@ -36,17 +36,17 @@ func (m *MockGroupService) EXPECT() *MockGroupServiceMockRecorder {
 }
 
 // BulkCreateSubjectMembersWithTx mocks base method.
-func (m *MockGroupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []types.SubjectRelation) error {
+func (m *MockGroupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectMembersWithTx", tx, relations)
+	ret := m.ctrl.Call(m, "BulkCreateSubjectMembersWithTx", tx, parentPK, relations)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BulkCreateSubjectMembersWithTx indicates an expected call of BulkCreateSubjectMembersWithTx.
-func (mr *MockGroupServiceMockRecorder) BulkCreateSubjectMembersWithTx(tx, relations interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) BulkCreateSubjectMembersWithTx(tx, parentPK, relations interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateSubjectMembersWithTx), tx, relations)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateSubjectMembersWithTx), tx, parentPK, relations)
 }
 
 // BulkDeleteBySubjectPKsWithTx mocks base method.
@@ -214,15 +214,15 @@ func (mr *MockGroupServiceMockRecorder) ListSubjectGroups(subjectPK, beforeExpir
 }
 
 // UpdateMembersExpiredAtWithTx mocks base method.
-func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, members []types.SubjectRelationPKPolicyExpiredAt) error {
+func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMembersExpiredAtWithTx", tx, members)
+	ret := m.ctrl.Call(m, "UpdateMembersExpiredAtWithTx", tx, parentPK, members)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMembersExpiredAtWithTx indicates an expected call of UpdateMembersExpiredAtWithTx.
-func (mr *MockGroupServiceMockRecorder) UpdateMembersExpiredAtWithTx(tx, members interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) UpdateMembersExpiredAtWithTx(tx, parentPK, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMembersExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateMembersExpiredAtWithTx), tx, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMembersExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateMembersExpiredAtWithTx), tx, parentPK, members)
 }

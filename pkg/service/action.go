@@ -143,7 +143,11 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	if dbAction.RelatedEnvironments != "" {
 		err = jsoniter.UnmarshalFromString(dbAction.RelatedEnvironments, &action.RelatedEnvironments)
 		if err != nil {
-			return action, errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", dbAction.RelatedEnvironments)
+			return action, errorWrapf(
+				err,
+				"unmarshal action.RelatedEnvironments=`%+v` fail",
+				dbAction.RelatedEnvironments,
+			)
 		}
 	}
 
@@ -357,7 +361,10 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			Version:             ac.Version,
 		})
 
-		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(system, ac)
+		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(
+			system,
+			ac,
+		)
 		if err1 != nil {
 			return errorWrapf(err1, "convertToDbRelatedResourceTypes system=`%s`, action=`%+v`", system, ac)
 		}
@@ -440,7 +447,11 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		}
 		err = l.actionResourceTypeManager.BulkCreateWithTx(tx, dbActionResourceTypes)
 		if err != nil {
-			return errorWrapf(err, "actionResourceTypeManager.BulkCreateWithTx actionResourceTypes=`%+v`", dbActionResourceTypes)
+			return errorWrapf(
+				err,
+				"actionResourceTypeManager.BulkCreateWithTx actionResourceTypes=`%+v`",
+				dbActionResourceTypes,
+			)
 		}
 	}
 

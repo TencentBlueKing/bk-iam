@@ -83,9 +83,15 @@ var _ = Describe("GroupController", func() {
 					},
 				}, nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
-				errors.New("error"),
-			).AnyTimes()
+			mockGroupService.EXPECT().
+				UpdateMembersExpiredAtWithTx(
+					gomock.Any(), int64(1),
+					[]types.SubjectRelationPKPolicyExpiredAt{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+				).
+				Return(
+					errors.New("error"),
+				).
+				AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -116,10 +122,13 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.SubjectMember{}, nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
-				nil,
-			).AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), []types.SubjectRelation{{
+			mockGroupService.EXPECT().
+				UpdateMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}}).
+				Return(
+					nil,
+				).
+				AnyTimes()
+			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),
@@ -156,9 +165,14 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.SubjectMember{}, nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
+			mockGroupService.EXPECT().
+				UpdateMembersExpiredAtWithTx(
+					gomock.Any(), int64(1),
+					[]types.SubjectRelationPKPolicyExpiredAt{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+				).Return(
 				nil,
-			).AnyTimes()
+			).
+				AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -188,10 +202,16 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.SubjectMember{}, nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
-				nil,
-			).AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), []types.SubjectRelation{{
+			mockGroupService.EXPECT().
+				UpdateMembersExpiredAtWithTx(
+					gomock.Any(), int64(1),
+					[]types.SubjectRelationPKPolicyExpiredAt{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+				).
+				Return(
+					nil,
+				).
+				AnyTimes()
+			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),

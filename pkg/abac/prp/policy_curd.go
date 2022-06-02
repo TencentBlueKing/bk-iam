@@ -162,14 +162,24 @@ func (m *policyManager) AlterCustomPolicies(
 	// 2. 转换数据
 	cps, err := convertToServicePolicies(subjectPK, createPolicies, actionPKMap)
 	if err != nil {
-		err = errorWrapf(err, "convertServicePolicies create policies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
-			subjectPK, createPolicies, actionPKMap)
+		err = errorWrapf(
+			err,
+			"convertServicePolicies create policies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
+			subjectPK,
+			createPolicies,
+			actionPKMap,
+		)
 		return
 	}
 	ups, err := convertToServicePolicies(subjectPK, updatePolicies, actionPKMap)
 	if err != nil {
-		err = errorWrapf(err, "convertServicePolicies update policies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
-			subjectPK, updatePolicies, actionPKMap)
+		err = errorWrapf(
+			err,
+			"convertServicePolicies update policies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
+			subjectPK,
+			updatePolicies,
+			actionPKMap,
+		)
 		return
 	}
 
@@ -255,7 +265,12 @@ func (m *policyManager) UpdateTemplatePolicies(
 	// 3. service执行 update
 	err = m.policyService.UpdateTemplatePolicies(subjectPK, ups, actionPKWithResourceTypeSet)
 	if err != nil {
-		err = errorWrapf(err, "policyService.UpdateTemplatePolicies system=`%s`, subjectPK=`%d` fail", system, subjectPK)
+		err = errorWrapf(
+			err,
+			"policyService.UpdateTemplatePolicies system=`%s`, subjectPK=`%d` fail",
+			system,
+			subjectPK,
+		)
 		return
 	}
 

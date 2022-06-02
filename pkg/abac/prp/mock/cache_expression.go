@@ -57,11 +57,19 @@ func (m *MockexpressionCacher) GetExpressions(expressionPKs []int64) ([]types.Au
 // GetExpressions indicates an expected call of GetExpressions
 func (mr *MockexpressionCacherMockRecorder) GetExpressions(expressionPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpressions", reflect.TypeOf((*MockexpressionCacher)(nil).GetExpressions), expressionPKs)
+	return mr.mock.ctrl.RecordCallWithMethodType(
+		mr.mock,
+		"GetExpressions",
+		reflect.TypeOf((*MockexpressionCacher)(nil).GetExpressions),
+		expressionPKs,
+	)
 }
 
 // SetExpressions mocks base method
-func (m *MockexpressionCacher) SetExpressions(noCacheExpressionPKs []int64, noCacheExpressions []types.AuthExpression) error {
+func (m *MockexpressionCacher) SetExpressions(
+	noCacheExpressionPKs []int64,
+	noCacheExpressions []types.AuthExpression,
+) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetExpressions", noCacheExpressionPKs, noCacheExpressions)
 	ret0, _ := ret[0].(error)
@@ -69,7 +77,15 @@ func (m *MockexpressionCacher) SetExpressions(noCacheExpressionPKs []int64, noCa
 }
 
 // SetExpressions indicates an expected call of SetExpressions
-func (mr *MockexpressionCacherMockRecorder) SetExpressions(noCacheExpressionPKs, noCacheExpressions interface{}) *gomock.Call {
+func (mr *MockexpressionCacherMockRecorder) SetExpressions(
+	noCacheExpressionPKs, noCacheExpressions interface{},
+) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetExpressions", reflect.TypeOf((*MockexpressionCacher)(nil).SetExpressions), noCacheExpressionPKs, noCacheExpressions)
+	return mr.mock.ctrl.RecordCallWithMethodType(
+		mr.mock,
+		"SetExpressions",
+		reflect.TypeOf((*MockexpressionCacher)(nil).SetExpressions),
+		noCacheExpressionPKs,
+		noCacheExpressions,
+	)
 }
