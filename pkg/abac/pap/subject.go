@@ -158,6 +158,8 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 		deleteGroupPKPolicyCache(groupPKs)
 	}
 
+	// TODO 清理subject system group缓存
+
 	return err
 }
 

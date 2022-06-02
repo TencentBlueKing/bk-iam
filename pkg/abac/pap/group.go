@@ -315,6 +315,8 @@ func (c *groupController) alterSubjectMembers(
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
+	// TODO 清理subject system group 缓存
+
 	return typeCount, nil
 }
 
@@ -361,6 +363,8 @@ func (c *groupController) DeleteSubjectMembers(
 
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectCache(append(userPKs, departmentPKs...))
+
+	// TODO 清理subject system group 缓存
 
 	return typeCount, nil
 }

@@ -30,7 +30,7 @@ func (s *groupService) createOrUpdateGroupAuthType(
 	systemID string,
 	groupPK, authType int64,
 ) (created bool, count int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "CreateOrUpdateGroupAuthType")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "createOrUpdateGroupAuthType")
 
 	groupSystemAuthType, err := s.authTypeManger.GetBySystemGroup(systemID, groupPK)
 	if errors.Is(err, sql.ErrNoRows) {
