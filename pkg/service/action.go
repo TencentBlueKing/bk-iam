@@ -353,6 +353,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			Sensitivity:         ac.Sensitivity,
 			RelatedActions:      relatedActions,
 			RelatedEnvironments: relatedEnvironments,
+			AuthType:            ac.AuthType,
 			Type:                ac.Type,
 			Version:             ac.Version,
 		})
@@ -487,6 +488,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		Description:         action.Description,
 		DescriptionEn:       action.DescriptionEn,
 		Sensitivity:         action.Sensitivity,
+		AuthType:            action.AuthType,
 		Type:                action.Type,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,
