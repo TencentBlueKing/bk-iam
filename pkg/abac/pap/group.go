@@ -359,7 +359,10 @@ func (c *groupController) DeleteSubjectMembers(
 	}
 
 	// 清理缓存
-	subjectPKs := append(userPKs, departmentPKs...)
+	subjectPKs := make([]int64, 0, len(members))
+	subjectPKs = append(subjectPKs, userPKs...)
+	subjectPKs = append(subjectPKs, departmentPKs...)
+
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
 	return typeCount, nil
