@@ -154,10 +154,10 @@ func (mr *MockGroupServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(parentP
 }
 
 // ListMember mocks base method.
-func (m *MockGroupService) ListMember(parentPK int64) ([]types.SubjectMember, error) {
+func (m *MockGroupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMember", parentPK)
-	ret0, _ := ret[0].([]types.SubjectMember)
+	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -169,10 +169,10 @@ func (mr *MockGroupServiceMockRecorder) ListMember(parentPK interface{}) *gomock
 }
 
 // ListPagingMember mocks base method.
-func (m *MockGroupService) ListPagingMember(parentPK, limit, offset int64) ([]types.SubjectMember, error) {
+func (m *MockGroupService) ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingMember", parentPK, limit, offset)
-	ret0, _ := ret[0].([]types.SubjectMember)
+	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -184,10 +184,10 @@ func (mr *MockGroupServiceMockRecorder) ListPagingMember(parentPK, limit, offset
 }
 
 // ListPagingMemberBeforeExpiredAt mocks base method.
-func (m *MockGroupService) ListPagingMemberBeforeExpiredAt(parentPK, expiredAt, limit, offset int64) ([]types.SubjectMember, error) {
+func (m *MockGroupService) ListPagingMemberBeforeExpiredAt(parentPK, expiredAt, limit, offset int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingMemberBeforeExpiredAt", parentPK, expiredAt, limit, offset)
-	ret0, _ := ret[0].([]types.SubjectMember)
+	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

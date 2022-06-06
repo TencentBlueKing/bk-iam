@@ -32,14 +32,14 @@ type GroupController interface {
 	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 
 	GetMemberCount(_type, id string) (int64, error)
-	ListPagingMember(_type, id string, limit, offset int64) ([]SubjectMember, error)
+	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
 	GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
 	ListPagingMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
-	) ([]SubjectMember, error)
+	) ([]GroupMember, error)
 
-	CreateOrUpdateSubjectMembers(_type, id string, members []SubjectMember) (map[string]int64, error)
-	UpdateSubjectMembersExpiredAt(_type, id string, members []SubjectMember) error
+	CreateOrUpdateSubjectMembers(_type, id string, members []GroupMember) (map[string]int64, error)
+	UpdateSubjectMembersExpiredAt(_type, id string, members []GroupMember) error
 	DeleteSubjectMembers(_type, id string, members []Subject) (map[string]int64, error)
 }
 
@@ -134,8 +134,8 @@ func (c *groupController) GetMemberCount(_type, id string) (int64, error) {
 	return count, nil
 }
 
-func (c *groupController) ListPagingMember(_type, id string, limit, offset int64) ([]SubjectMember, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetMemberCount")
+func (c *groupController) ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMember")
 	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
@@ -179,7 +179,7 @@ func (c *groupController) GetMemberCountBeforeExpiredAt(_type, id string, expire
 // ListPagingMemberBeforeExpiredAt ...
 func (c *groupController) ListPagingMemberBeforeExpiredAt(
 	_type, id string, expiredAt int64, limit, offset int64,
-) ([]SubjectMember, error) {
+) ([]GroupMember, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMemberBeforeExpiredAt")
 	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
@@ -205,14 +205,14 @@ func (c *groupController) ListPagingMemberBeforeExpiredAt(
 // CreateOrUpdateSubjectMembers ...
 func (c *groupController) CreateOrUpdateSubjectMembers(
 	_type, id string,
-	members []SubjectMember,
+	members []GroupMember,
 ) (typeCount map[string]int64, err error) {
 	return c.alterSubjectMembers(_type, id, members, true)
 }
 
 func (c *groupController) alterSubjectMembers(
 	_type, id string,
-	members []SubjectMember,
+	members []GroupMember,
 	createIfNotExists bool,
 ) (typeCount map[string]int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CreateSubjectMembers")
@@ -228,7 +228,7 @@ func (c *groupController) alterSubjectMembers(
 	}
 
 	// 重复和已经存在DB里的不需要
-	memberMap := make(map[int64]types.SubjectMember, len(relations))
+	memberMap := make(map[int64]types.GroupMember, len(relations))
 	for _, m := range relations {
 		memberMap[m.SubjectPK] = m
 	}
@@ -321,7 +321,7 @@ func (c *groupController) alterSubjectMembers(
 }
 
 // UpdateSubjectMembersExpiredAt ...
-func (c *groupController) UpdateSubjectMembersExpiredAt(_type, id string, members []SubjectMember) (err error) {
+func (c *groupController) UpdateSubjectMembersExpiredAt(_type, id string, members []GroupMember) (err error) {
 	_, err = c.alterSubjectMembers(_type, id, members, false)
 	return
 }
@@ -362,7 +362,11 @@ func (c *groupController) DeleteSubjectMembers(
 	}
 
 	// 清理缓存
-	cacheimpls.BatchDeleteSubjectCache(append(userPKs, departmentPKs...))
+	subjectPKs := make([]int64, 0, len(members))
+	subjectPKs = append(subjectPKs, userPKs...)
+	subjectPKs = append(subjectPKs, departmentPKs...)
+
+	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
 	// TODO 清理subject system group 缓存
 
@@ -372,7 +376,7 @@ func (c *groupController) DeleteSubjectMembers(
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
 	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
 	for _, m := range svcSubjectGroups {
-		subject, err := cacheimpls.GetSubjectByPK(m.PK)
+		subject, err := cacheimpls.GetSubjectByPK(m.ParentPK)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				continue
@@ -393,8 +397,8 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 	return groups, nil
 }
 
-func convertToSubjectMembers(svcSubjectMembers []types.SubjectMember) ([]SubjectMember, error) {
-	members := make([]SubjectMember, 0, len(svcSubjectMembers))
+func convertToSubjectMembers(svcSubjectMembers []types.GroupMember) ([]GroupMember, error) {
+	members := make([]GroupMember, 0, len(svcSubjectMembers))
 	for _, m := range svcSubjectMembers {
 		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
 		if err != nil {
@@ -405,7 +409,7 @@ func convertToSubjectMembers(svcSubjectMembers []types.SubjectMember) ([]Subject
 			return nil, err
 		}
 
-		members = append(members, SubjectMember{
+		members = append(members, GroupMember{
 			PK:              m.PK,
 			Type:            subject.Type,
 			ID:              subject.ID,

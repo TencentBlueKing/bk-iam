@@ -62,7 +62,7 @@ var _ = Describe("GroupService", func() {
 
 			subjectMembers, err := manager.ListMember(1)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.SubjectMember{}, subjectMembers)
+			assert.Equal(GinkgoT(), []types.GroupMember{}, subjectMembers)
 		})
 	})
 

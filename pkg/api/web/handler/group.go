@@ -91,9 +91,9 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "UpdateSubjectMembersExpiredAt")
 
-	papSubjects := make([]pap.SubjectMember, 0, len(body.Members))
+	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
-		papSubjects = append(papSubjects, pap.SubjectMember{
+		papSubjects = append(papSubjects, pap.GroupMember{
 			Type:            m.Type,
 			ID:              m.ID,
 			PolicyExpiredAt: m.PolicyExpiredAt,
@@ -153,9 +153,9 @@ func BatchAddSubjectMembers(c *gin.Context) {
 		return
 	}
 
-	papSubjects := make([]pap.SubjectMember, 0, len(body.Members))
+	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
-		papSubjects = append(papSubjects, pap.SubjectMember{
+		papSubjects = append(papSubjects, pap.GroupMember{
 			Type:            m.Type,
 			ID:              m.ID,
 			PolicyExpiredAt: body.PolicyExpiredAt,

@@ -61,7 +61,7 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 	t.Run("CreateOrUpdateSubjectMembers error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.SubjectMember{
+		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -90,7 +90,7 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.SubjectMember{
+		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -245,7 +245,7 @@ func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
 	t.Run("UpdateSubjectMembersExpiredAt error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.SubjectMember{
+		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -274,7 +274,7 @@ func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.SubjectMember{
+		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",

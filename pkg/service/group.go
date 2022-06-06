@@ -43,11 +43,11 @@ type GroupService interface {
 
 	GetMemberCount(parentPK int64) (int64, error)
 	GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt int64) (int64, error)
-	ListPagingMember(parentPK, limit, offset int64) ([]types.SubjectMember, error)
+	ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error)
 	ListPagingMemberBeforeExpiredAt(
 		parentPK int64, expiredAt int64, limit, offset int64,
-	) ([]types.SubjectMember, error)
-	ListMember(parentPK int64) ([]types.SubjectMember, error)
+	) ([]types.GroupMember, error)
+	ListMember(parentPK int64) ([]types.GroupMember, error)
 
 	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
 	BulkDeleteSubjectMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
@@ -73,7 +73,8 @@ func NewGroupService() GroupService {
 
 func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 	return types.SubjectGroup{
-		PK:              relation.ParentPK,
+		PK:              relation.PK,
+		ParentPK:        relation.ParentPK,
 		PolicyExpiredAt: relation.PolicyExpiredAt,
 		CreateAt:        relation.CreateAt,
 	}
@@ -172,10 +173,10 @@ func (l *groupService) ListExistSubjectsBeforeExpiredAt(
 
 // from subject_member.go
 
-func convertToSubjectMembers(daoRelations []dao.SubjectRelation) []types.SubjectMember {
-	relations := make([]types.SubjectMember, 0, len(daoRelations))
+func convertToSubjectMembers(daoRelations []dao.SubjectRelation) []types.GroupMember {
+	relations := make([]types.GroupMember, 0, len(daoRelations))
 	for _, r := range daoRelations {
-		relations = append(relations, types.SubjectMember{
+		relations = append(relations, types.GroupMember{
 			PK:              r.PK,
 			SubjectPK:       r.SubjectPK,
 			PolicyExpiredAt: r.PolicyExpiredAt,
@@ -197,7 +198,7 @@ func (l *groupService) GetMemberCount(parentPK int64) (int64, error) {
 }
 
 // ListPagingMember ...
-func (l *groupService) ListPagingMember(parentPK, limit, offset int64) ([]types.SubjectMember, error) {
+func (l *groupService) ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error) {
 	daoRelations, err := l.manager.ListPagingMember(parentPK, limit, offset)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
@@ -209,7 +210,7 @@ func (l *groupService) ListPagingMember(parentPK, limit, offset int64) ([]types.
 }
 
 // ListMember ...
-func (l *groupService) ListMember(parentPK int64) ([]types.SubjectMember, error) {
+func (l *groupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
 	daoRelations, err := l.manager.ListMember(parentPK)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
@@ -402,7 +403,7 @@ func (l *groupService) GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt i
 // ListPagingMemberBeforeExpiredAt ...
 func (l *groupService) ListPagingMemberBeforeExpiredAt(
 	parentPK int64, expiredAt int64, limit, offset int64,
-) ([]types.SubjectMember, error) {
+) ([]types.GroupMember, error) {
 	daoRelations, err := l.manager.ListPagingMemberBeforeExpiredAt(
 		parentPK, expiredAt, limit, offset,
 	)

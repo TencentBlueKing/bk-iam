@@ -25,8 +25,8 @@ type SubjectDepartment struct {
 	DepartmentIDs []string `json:"departments"`
 }
 
-// SubjectMember ...
-type SubjectMember struct {
+// GroupMember ...
+type GroupMember struct {
 	PK              int64     `json:"pk"`
 	Type            string    `json:"type"`
 	ID              string    `json:"id"`
