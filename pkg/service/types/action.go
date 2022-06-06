@@ -62,6 +62,7 @@ type ActionBaseInfo struct {
 	Description   string `json:"description" structs:"description"`
 	DescriptionEn string `json:"description_en" structs:"description_en"`
 	Sensitivity   int64  `json:"sensitivity" structs:"sensitivity"`
+	AuthType      string `json:"auth_type" structs:"auth_type"`
 	Type          string `json:"type" structs:"type"`
 	Version       int64  `json:"version" structs:"version"`
 }
