@@ -35,7 +35,7 @@ func (m *MockGroupController) EXPECT() *MockGroupControllerMockRecorder {
 }
 
 // CreateOrUpdateSubjectMembers mocks base method.
-func (m *MockGroupController) CreateOrUpdateSubjectMembers(_type, id string, members []pap.SubjectMember) (map[string]int64, error) {
+func (m *MockGroupController) CreateOrUpdateSubjectMembers(_type, id string, members []pap.GroupMember) (map[string]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateOrUpdateSubjectMembers", _type, id, members)
 	ret0, _ := ret[0].(map[string]int64)
@@ -110,10 +110,10 @@ func (mr *MockGroupControllerMockRecorder) ListExistSubjectsBeforeExpiredAt(subj
 }
 
 // ListPagingMember mocks base method.
-func (m *MockGroupController) ListPagingMember(_type, id string, limit, offset int64) ([]pap.SubjectMember, error) {
+func (m *MockGroupController) ListPagingMember(_type, id string, limit, offset int64) ([]pap.GroupMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingMember", _type, id, limit, offset)
-	ret0, _ := ret[0].([]pap.SubjectMember)
+	ret0, _ := ret[0].([]pap.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -125,10 +125,10 @@ func (mr *MockGroupControllerMockRecorder) ListPagingMember(_type, id, limit, of
 }
 
 // ListPagingMemberBeforeExpiredAt mocks base method.
-func (m *MockGroupController) ListPagingMemberBeforeExpiredAt(_type, id string, expiredAt, limit, offset int64) ([]pap.SubjectMember, error) {
+func (m *MockGroupController) ListPagingMemberBeforeExpiredAt(_type, id string, expiredAt, limit, offset int64) ([]pap.GroupMember, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingMemberBeforeExpiredAt", _type, id, expiredAt, limit, offset)
-	ret0, _ := ret[0].([]pap.SubjectMember)
+	ret0, _ := ret[0].([]pap.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -155,7 +155,7 @@ func (mr *MockGroupControllerMockRecorder) ListSubjectGroups(_type, id, beforeEx
 }
 
 // UpdateSubjectMembersExpiredAt mocks base method.
-func (m *MockGroupController) UpdateSubjectMembersExpiredAt(_type, id string, members []pap.SubjectMember) error {
+func (m *MockGroupController) UpdateSubjectMembersExpiredAt(_type, id string, members []pap.GroupMember) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSubjectMembersExpiredAt", _type, id, members)
 	ret0, _ := ret[0].(error)

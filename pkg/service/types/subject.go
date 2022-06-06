@@ -19,8 +19,8 @@ type Subject struct {
 	Name string `json:"name"`
 }
 
-// SubjectMember ...
-type SubjectMember struct {
+// GroupMember ...
+type GroupMember struct {
 	PK              int64     `json:"pk"`
 	SubjectPK       int64     `json:"subject_pk"`
 	PolicyExpiredAt int64     `json:"policy_expired_at"`
@@ -30,6 +30,7 @@ type SubjectMember struct {
 // SubjectGroup subject关联的组
 type SubjectGroup struct {
 	PK              int64     `json:"pk"`
+	ParentPK        int64     `json:"parent_pk"`
 	PolicyExpiredAt int64     `json:"policy_expired_at"`
 	CreateAt        time.Time `json:"created_at"`
 }
