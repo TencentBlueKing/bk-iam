@@ -17,9 +17,15 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/cache/redis"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )
+
+type keySubjectGroup struct {
+	Key           cache.Key
+	SubjectGroups []types.ThinSubjectGroup
+}
 
 // ListSystemSubjectEffectGroups ...
 func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSubjectGroup, error) {
@@ -100,6 +106,8 @@ func setMissingSystemSubjectGroup(
 	notCachedSubjectGroups map[int64][]types.ThinSubjectGroup,
 	missingPKs []int64,
 ) {
+	kvs := make([]keySubjectGroup, 0, len(notCachedSubjectGroups)+len(notCachedSubjectGroups))
+
 	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
 	for pk, sgs := range notCachedSubjectGroups {
@@ -110,11 +118,10 @@ func setMissingSystemSubjectGroup(
 			SubjectPK: pk,
 		}
 
-		// TODO: pipeline batch set
-		err := setSystemSubjectGroupCache(key, sgs)
-		if err != nil {
-			log.Errorf("set subject_group to redis fail, key=%s, err=%s", key.Key(), err)
-		}
+		kvs = append(kvs, keySubjectGroup{
+			Key:           key,
+			SubjectGroups: sgs,
+		})
 	}
 
 	// 4. set the no-groups key cache
@@ -125,18 +132,44 @@ func setMissingSystemSubjectGroup(
 					SystemID:  systemID,
 					SubjectPK: pk,
 				}
-				// TODO: pipeline batch set
-				err := setSystemSubjectGroupCache(key, []types.ThinSubjectGroup{})
-				if err != nil {
-					log.Errorf("set empty subject_group to redis fail, key=%s, err=%s", key.Key(), err)
-				}
+
+				kvs = append(kvs, keySubjectGroup{
+					Key:           key,
+					SubjectGroups: []types.ThinSubjectGroup{},
+				})
 			}
 		}
 	}
+
+	err := batchSetSystemSubjectGroupCache(kvs)
+	if err != nil {
+		log.Errorf("batchSetSystemSubjectGroupCache to redis fail, kvs=`%+v`, err=`%s`", kvs, err)
+	}
 }
 
-func setSystemSubjectGroupCache(key cache.Key, subjectGroups []types.ThinSubjectGroup) error {
-	return SystemSubjectGroupCache.Set(key, subjectGroups, 0)
+func batchSetSystemSubjectGroupCache(kvs []keySubjectGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchSetSystemSubjectGroup")
+
+	cacheKvs := make([]redis.KV, 0, len(kvs))
+	// batch set the subject_groups at one time
+	for _, kv := range kvs {
+		value, err := SystemSubjectGroupCache.Marshal(kv.SubjectGroups)
+		if err != nil {
+			return errorWrapf(err, "SystemSubjectGroupCache.Marshal fail sg=`%+v`", kv.SubjectGroups)
+		}
+
+		cacheKvs = append(cacheKvs, redis.KV{
+			Key:   kv.Key.Key(),
+			Value: conv.BytesToString(value),
+		})
+	}
+
+	err := SystemSubjectGroupCache.BatchSetWithTx(cacheKvs, 0)
+	if err != nil {
+		return errorWrapf(err, "SystemSubjectGroupCache.BatchSetWithTx fail kvs=`%+v`", cacheKvs)
+	}
+
+	return nil
 }
 
 func BatchDeleteSystemSubjectGroupCache(systemIDs []string, subjectPKs []int64) error {
