@@ -48,6 +48,10 @@ func (l *groupService) doUpdateSubjectSystemGroup(
 		if database.IsMysqlDuplicateEntryError(err) {
 			return ErrNeedRetry
 		}
+
+		if err == nil {
+			return nil
+		}
 	}
 
 	if err != nil {
