@@ -21,37 +21,16 @@ import (
 	"iam/pkg/service/types"
 )
 
-func retrieveSubjectGroups(key cache.Key) (interface{}, error) {
-	k := key.(SubjectPKCacheKey)
-
-	svc := service.NewGroupService()
-	return svc.GetEffectThinSubjectGroups(k.PK)
-}
-
-// TODO: remove this cache? => if we can know a department add or remove from a group?
-
-// GetSubjectGroups get groups by subject pk
-func GetSubjectGroups(pk int64) (subjectGroups []types.ThinSubjectGroup, err error) {
-	key := SubjectPKCacheKey{
-		PK: pk,
-	}
-
-	err = SubjectGroupCache.GetInto(key, &subjectGroups, retrieveSubjectGroups)
-	err = errorx.Wrapf(err, CacheLayer, "GetSubjectGroups",
-		"SubjectGroupCache.Get key=`%s` fail", key.Key())
-	return
-}
-
-// ListSubjectEffectGroups ...
-func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "ListSubjectEffectGroups")
+// ListSystemSubjectEffectGroups ...
+func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSubjectGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "ListSystemSubjectEffectGroups")
 
 	// 1. get from cache
 	subjectGroups := make([]types.ThinSubjectGroup, 0, len(pks))
 
-	cachedSubjectGroups, notExistCachePKs, err := batchGetSubjectGroups(pks)
+	cachedSubjectGroups, notExistCachePKs, err := batchGetSystemSubjectGroups(systemID, pks)
 	if err != nil {
-		err = errorWrapf(err, "batchGetSubjectGroups pks=`%+v` fail", pks)
+		err = errorWrapf(err, "batchGetSystemSubjectGroups systemID=`%s`, pks=`%+v` fail", systemID, pks)
 		return subjectGroups, err
 	}
 	subjectGroups = append(subjectGroups, cachedSubjectGroups...)
@@ -63,12 +42,12 @@ func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
 	// 3. ids of no cache, retrieve multiple
 	svc := service.NewGroupService()
 	// 按照时间过滤, 不应该查已过期的回来
-	notCachedSubjectGroups, err := svc.ListEffectThinSubjectGroups(notExistCachePKs)
+	notCachedSubjectGroups, err := svc.ListEffectThinSubjectGroups(systemID, notExistCachePKs)
 	if err != nil {
 		err = errorWrapf(err, "SubjectService.ListEffectThinSubjectGroups pks=`%v` fail", notExistCachePKs)
 		return nil, err
 	}
-	setMissing(notCachedSubjectGroups, notExistCachePKs)
+	setMissingSystemSubjectGroup(systemID, notCachedSubjectGroups, notExistCachePKs)
 	// append the notCachedSubjectGroups
 	for _, sgs := range notCachedSubjectGroups {
 		subjectGroups = append(subjectGroups, sgs...)
@@ -77,28 +56,32 @@ func ListSubjectEffectGroups(pks []int64) ([]types.ThinSubjectGroup, error) {
 	return subjectGroups, nil
 }
 
-func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup, notExistCachePKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchGetSubjectGroups")
+func batchGetSystemSubjectGroups(
+	systemID string,
+	pks []int64,
+) (subjectGroups []types.ThinSubjectGroup, notExistCachePKs []int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchGetSystemSubjectGroups")
 
 	// batch get the subject_groups at one time
 	keys := make([]cache.Key, 0, len(pks))
 	for _, pk := range pks {
-		keys = append(keys, SubjectPKCacheKey{
-			PK: pk,
+		keys = append(keys, SystemSubjectPKCacheKey{
+			SystemID:  systemID,
+			SubjectPK: pk,
 		})
 	}
-	hitCacheResults, err := SubjectGroupCache.BatchGet(keys)
+	hitCacheResults, err := SystemSubjectGroupCache.BatchGet(keys)
 	if err != nil {
 		err = errorWrapf(err, "SubjectGroupCache.BatchGet keys=`%+v` fail", keys)
 		return
 	}
 
 	for _, pk := range pks {
-		key := SubjectPKCacheKey{PK: pk}
+		key := SystemSubjectPKCacheKey{SystemID: systemID, SubjectPK: pk}
 		if data, ok := hitCacheResults[key]; ok {
 			// do unmarshal
 			var sg []types.ThinSubjectGroup
-			err = SubjectGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
+			err = SystemSubjectGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
 			if err != nil {
 				err = errorWrapf(err, "unmarshal text in cache into SubjectGroup fail", "")
 				return
@@ -112,18 +95,23 @@ func batchGetSubjectGroups(pks []int64) (subjectGroups []types.ThinSubjectGroup,
 	return subjectGroups, notExistCachePKs, err
 }
 
-func setMissing(notCachedSubjectGroups map[int64][]types.ThinSubjectGroup, missingPKs []int64) {
+func setMissingSystemSubjectGroup(
+	systemID string,
+	notCachedSubjectGroups map[int64][]types.ThinSubjectGroup,
+	missingPKs []int64,
+) {
 	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
 	for pk, sgs := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)
 
-		key := SubjectPKCacheKey{
-			PK: pk,
+		key := SystemSubjectPKCacheKey{
+			SystemID:  systemID,
+			SubjectPK: pk,
 		}
 
 		// TODO: pipeline batch set
-		err := setSubjectGroupCache(key, sgs)
+		err := setSystemSubjectGroupCache(key, sgs)
 		if err != nil {
 			log.Errorf("set subject_group to redis fail, key=%s, err=%s", key.Key(), err)
 		}
@@ -133,11 +121,12 @@ func setMissing(notCachedSubjectGroups map[int64][]types.ThinSubjectGroup, missi
 	if len(missingPKs) != hasGroupPKs.Size() {
 		for _, pk := range missingPKs {
 			if !hasGroupPKs.Has(pk) {
-				key := SubjectPKCacheKey{
-					PK: pk,
+				key := SystemSubjectPKCacheKey{
+					SystemID:  systemID,
+					SubjectPK: pk,
 				}
 				// TODO: pipeline batch set
-				err := setSubjectGroupCache(key, []types.ThinSubjectGroup{})
+				err := setSystemSubjectGroupCache(key, []types.ThinSubjectGroup{})
 				if err != nil {
 					log.Errorf("set empty subject_group to redis fail, key=%s, err=%s", key.Key(), err)
 				}
@@ -146,6 +135,31 @@ func setMissing(notCachedSubjectGroups map[int64][]types.ThinSubjectGroup, missi
 	}
 }
 
-func setSubjectGroupCache(key cache.Key, subjectGroups []types.ThinSubjectGroup) error {
-	return SubjectGroupCache.Set(key, subjectGroups, 0)
+func setSystemSubjectGroupCache(key cache.Key, subjectGroups []types.ThinSubjectGroup) error {
+	return SystemSubjectGroupCache.Set(key, subjectGroups, 0)
+}
+
+func BatchDeleteSystemSubjectGroupCache(systemIDs []string, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchGetSystemSubjectGroups")
+	keys := make([]cache.Key, 0, len(subjectPKs)*len(systemIDs))
+	for _, systemID := range systemIDs {
+		for _, subjectPK := range subjectPKs {
+			keys = append(keys, SystemSubjectPKCacheKey{
+				SystemID:  systemID,
+				SubjectPK: subjectPK,
+			})
+		}
+	}
+
+	if len(keys) == 0 {
+		return nil
+	}
+
+	err := SystemSubjectGroupCache.BatchDelete(keys)
+	if err != nil {
+		err = errorWrapf(err, "SystemSubjectGroupCache.BatchDelete keys=`%+v` fail", keys)
+		return err
+	}
+
+	return nil
 }

@@ -94,7 +94,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
@@ -113,7 +113,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -139,7 +139,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -169,7 +169,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -199,7 +199,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -231,7 +231,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -261,7 +261,7 @@ var _ = Describe("Entrance", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -606,7 +606,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
@@ -620,7 +620,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -641,7 +641,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,

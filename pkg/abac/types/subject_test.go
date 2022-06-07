@@ -11,8 +11,6 @@
 package types_test
 
 import (
-	"time"
-
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
@@ -36,86 +34,16 @@ var _ = Describe("subject", func() {
 
 			It("ok", func() {
 				expectedPK := int64(123)
-				expectedGroups := []types.SubjectGroup{
-					{
-						PK: 1,
-					},
-				}
 				expectedDepts := []int64{1, 2, 3}
-				s.FillAttributes(expectedPK, expectedGroups, expectedDepts)
+				s.FillAttributes(expectedPK, expectedDepts)
 
 				pk, err := s.Attribute.GetPK()
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), expectedPK, pk)
 
-				gs, err := s.Attribute.GetGroups()
-				assert.NoError(GinkgoT(), err)
-				assert.Equal(GinkgoT(), expectedGroups, gs)
-
 				depts, err := s.Attribute.GetDepartments()
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), expectedDepts, depts)
-			})
-		})
-
-		Describe("GetEffectGroupPKs", func() {
-			var s types.Subject
-			BeforeEach(func() {
-				s = types.NewSubject()
-			})
-
-			It("error, not exists", func() {
-				_, err := s.GetEffectGroupPKs()
-				assert.Error(GinkgoT(), err)
-			})
-
-			It("empty", func() {
-				expectedGroups := []types.SubjectGroup{}
-				s.FillAttributes(123, expectedGroups, []int64{1, 2, 3})
-
-				pks, err := s.GetEffectGroupPKs()
-				assert.NoError(GinkgoT(), err)
-				assert.Empty(GinkgoT(), pks)
-			})
-
-			It("all expired", func() {
-				expectedGroups := []types.SubjectGroup{
-					{
-						PK:              1,
-						PolicyExpiredAt: 0,
-					},
-				}
-				s.FillAttributes(123, expectedGroups, []int64{1, 2, 3})
-
-				pks, err := s.GetEffectGroupPKs()
-				assert.NoError(GinkgoT(), err)
-				assert.Empty(GinkgoT(), pks)
-			})
-
-			It("ok", func() {
-				nowUnix := time.Now().Unix()
-				expectedGroups := []types.SubjectGroup{
-					{
-						PK:              1,
-						PolicyExpiredAt: nowUnix + 2000,
-					},
-					{
-						PK:              2,
-						PolicyExpiredAt: 0,
-					},
-					{
-						PK:              3,
-						PolicyExpiredAt: nowUnix + 2000,
-					},
-				}
-				s.FillAttributes(123, expectedGroups, []int64{1, 2, 3})
-
-				pks, err := s.GetEffectGroupPKs()
-				assert.NoError(GinkgoT(), err)
-
-				assert.Len(GinkgoT(), pks, 2)
-				assert.Contains(GinkgoT(), pks, int64(1))
-				assert.Contains(GinkgoT(), pks, int64(3))
 			})
 		})
 
@@ -132,8 +60,7 @@ var _ = Describe("subject", func() {
 
 			It("empty", func() {
 				expectedDepts := []int64{1, 2, 3}
-				expectedGroups := []types.SubjectGroup{}
-				s.FillAttributes(123, expectedGroups, expectedDepts)
+				s.FillAttributes(123, expectedDepts)
 
 				pks, err := s.GetDepartmentPKs()
 				assert.NoError(GinkgoT(), err)

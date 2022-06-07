@@ -20,20 +20,21 @@ import (
 	"iam/pkg/database"
 )
 
-func Test_subjectSystemGroupManager_GetGroups(t *testing.T) {
+func Test_subjectSystemGroupManager_ListGroups(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT
+		subject_pk,
 		groups
 		FROM subject_system_group
-		WHERE system_id = (.*) AND subject_pk = (.*)`
-		mockRows := sqlmock.NewRows([]string{"groups"}).AddRow("test")
+		WHERE system_id = (.*) AND subject_pk IN (.*)`
+		mockRows := sqlmock.NewRows([]string{"subject_pk", "groups"}).AddRow(int64(1), "test")
 		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectSystemGroupManager{DB: db}
-		groups, err := manager.GetGroups("system", int64(1))
+		groups, err := manager.ListEffectSubjectGroups("system", []int64{1})
 
 		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, groups, "test")
+		assert.Equal(t, groups, []EffectSubjectGroups{{Groups: "test", SubjectPK: int64(1)}})
 	})
 }
 

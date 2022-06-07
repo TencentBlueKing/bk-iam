@@ -15,6 +15,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -315,7 +316,8 @@ func (c *groupController) alterSubjectMembers(
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	// TODO 清理subject system group 缓存
+	// 清理subject system group 缓存
+	deleteSubjectPKSystemGroupCache(subjectPKs)
 
 	return typeCount, nil
 }
@@ -368,7 +370,8 @@ func (c *groupController) DeleteSubjectMembers(
 
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	// TODO 清理subject system group 缓存
+	// 清理subject system group 缓存
+	deleteSubjectPKSystemGroupCache(subjectPKs)
 
 	return typeCount, nil
 }
@@ -419,4 +422,22 @@ func convertToSubjectMembers(svcSubjectMembers []types.GroupMember) ([]GroupMemb
 	}
 
 	return members, nil
+}
+
+func deleteSubjectPKSystemGroupCache(subjectPKs []int64) {
+	systemSVC := service.NewSystemService()
+	allSystems, err := systemSVC.ListAll()
+	if err != nil {
+		log.WithError(err).Errorf("deleteSubjectPKSystemGroupCache fail groupPKs=`%v`", subjectPKs)
+	} else {
+		systemIDs := make([]string, 0, len(allSystems))
+		for _, s := range allSystems {
+			systemIDs = append(systemIDs, s.ID)
+		}
+
+		err = cacheimpls.BatchDeleteSystemSubjectGroupCache(systemIDs, subjectPKs)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
 }

@@ -103,7 +103,7 @@ func Eval(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
@@ -301,7 +301,7 @@ func QueryAuthPolicies(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists

@@ -78,19 +78,19 @@ func (mr *MockSubjectSystemGroupManagerMockRecorder) GetBySystemSubject(systemID
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySystemSubject", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).GetBySystemSubject), systemID, subjectPK)
 }
 
-// GetGroups mocks base method.
-func (m *MockSubjectSystemGroupManager) GetGroups(systemID string, subjectPK int64) (string, error) {
+// ListEffectSubjectGroups mocks base method.
+func (m *MockSubjectSystemGroupManager) ListEffectSubjectGroups(systemID string, subjectPKs []int64) ([]dao.EffectSubjectGroups, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroups", systemID, subjectPK)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "ListEffectSubjectGroups", systemID, subjectPKs)
+	ret0, _ := ret[0].([]dao.EffectSubjectGroups)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetGroups indicates an expected call of GetGroups.
-func (mr *MockSubjectSystemGroupManagerMockRecorder) GetGroups(systemID, subjectPK interface{}) *gomock.Call {
+// ListEffectSubjectGroups indicates an expected call of ListEffectSubjectGroups.
+func (mr *MockSubjectSystemGroupManagerMockRecorder) ListEffectSubjectGroups(systemID, subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroups", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).GetGroups), systemID, subjectPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectSubjectGroups", reflect.TypeOf((*MockSubjectSystemGroupManager)(nil).ListEffectSubjectGroups), systemID, subjectPKs)
 }
 
 // UpdateWithTx mocks base method.

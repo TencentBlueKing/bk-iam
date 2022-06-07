@@ -113,7 +113,7 @@ func queryAndPartialEvalConditions(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
@@ -170,8 +170,8 @@ func queryAndPartialEvalConditions(
 	return conditions, err
 }
 
-// fillSubjectDetail ...
-func fillSubjectDetail(r *request.Request) error {
+// fillSubjectDepartments ...
+func fillSubjectDepartments(r *request.Request) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Request", "fillSubjectDetail")
 
 	_type := r.Subject.Type
@@ -183,13 +183,13 @@ func fillSubjectDetail(r *request.Request) error {
 		return err
 	}
 
-	departments, groups, err := pip.GetSubjectDetail(pk)
+	departments, err := pip.GetSubjectDepartmentPKs(pk)
 	if err != nil {
 		err = errorWrapf(err, "GetSubjectDetail pk=`%d` fail", pk)
 		return err
 	}
 
-	r.Subject.FillAttributes(pk, groups, departments)
+	r.Subject.FillAttributes(pk, departments)
 	return nil
 }
 

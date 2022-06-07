@@ -233,33 +233,6 @@ var _ = Describe("attribute", func() {
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, v)
 		})
 
-		It("GetGroups", func() {
-			_, err := a.GetGroups()
-			assert.Error(GinkgoT(), err)
-
-			// invalid
-			a.Attribute[types.GroupAttrName] = int64(1)
-			_, err = a.GetGroups()
-			assert.Error(GinkgoT(), err)
-
-			// valid
-			expectedSr := []types.SubjectGroup{}
-			a.Attribute[types.GroupAttrName] = expectedSr
-			v, err := a.GetGroups()
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expectedSr, v)
-		})
-
-		It("SetGroups", func() {
-			expectedSr := []types.SubjectGroup{}
-			a.SetGroups(expectedSr)
-
-			assert.True(GinkgoT(), a.Has(types.GroupAttrName))
-			v, err := a.GetGroups()
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expectedSr, v)
-		})
-
 	})
 
 })

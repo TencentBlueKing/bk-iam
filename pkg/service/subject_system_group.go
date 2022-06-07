@@ -20,6 +20,7 @@ import (
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
+	"iam/pkg/service/types"
 )
 
 // ErrNoPolicies ...
@@ -206,4 +207,57 @@ func updateGroupsString(
 		return "", err
 	}
 	return groups, nil
+}
+
+// ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
+func (l *groupService) ListEffectThinSubjectGroups(
+	systemID string,
+	pks []int64,
+) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")
+
+	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
+
+	relations, err := l.subjectSystemGroupManager.ListEffectSubjectGroups(systemID, pks)
+	if err != nil {
+		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
+	}
+
+	for _, r := range relations {
+		subjectPK := r.SubjectPK
+
+		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
+		if err != nil {
+			err = errorWrapf(
+				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, systemID=`%d`, subjectPK=`%d`, groups=`%s`",
+				systemID, r.SubjectPK, r.Groups,
+			)
+			return nil, err
+		}
+
+		subjectGroups[subjectPK] = append(subjectGroups[subjectPK], thinSubjectGroup...)
+	}
+
+	return subjectGroups, nil
+}
+
+func convertSystemSubjectGroupsToThinSubjectGroup(
+	groups string,
+) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
+	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
+	if groups != "" {
+		err := jsoniter.UnmarshalFromString(groups, &groupExpiredAtMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for groupPK, expiredAt := range groupExpiredAtMap {
+		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
+			PK:              groupPK,
+			PolicyExpiredAt: expiredAt,
+		})
+	}
+
+	return thinSubjectGroup, nil
 }

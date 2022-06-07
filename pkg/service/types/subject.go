@@ -54,3 +54,10 @@ type SubjectRelation struct {
 	ParentPK        int64 `json:"parent_pk"`
 	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }
+
+// ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at
+type ThinSubjectGroup struct {
+	// PK is the subject_pk of group
+	PK              int64 `json:"pk" msgpack:"p"`
+	PolicyExpiredAt int64 `json:"policy_expired_at" msgpack:"pe"`
+}

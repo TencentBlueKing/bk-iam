@@ -12,32 +12,39 @@ package cacheimpls
 
 import (
 	"testing"
+	"time"
 
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/cache/redis"
+	"iam/pkg/service"
+	"iam/pkg/service/mock"
 )
 
-func TestActionIDCacheKey_Key(t *testing.T) {
-	key := ActionIDCacheKey{
-		SystemID: "test",
-		ActionID: "edit",
-	}
+func TestGetSubjectDepartmentPKs(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
 
-	assert.Equal(t, "test:edit", key.Key())
-}
+	var (
+		expiration = 5 * time.Minute
+	)
 
-func TestSubjectPKCacheKey_Key(t *testing.T) {
-	key := SubjectPKCacheKey{
-		PK: int64(1),
-	}
+	mockService := mock.NewMockDepartmentService(ctl)
+	mockService.EXPECT().GetSubjectDepartmentPKs(int64(1)).Return([]int64{2, 3}, nil).AnyTimes()
 
-	assert.Equal(t, "1", key.Key())
-}
+	patches := gomonkey.ApplyFunc(service.NewDepartmentService,
+		func() service.DepartmentService {
+			return mockService
+		})
+	defer patches.Reset()
 
-func TestSystemSubjectPKCacheKey_Key(t *testing.T) {
-	key := SystemSubjectPKCacheKey{
-		SystemID:  "test",
-		SubjectPK: int64(1),
-	}
+	mockCache := redis.NewMockCache("mockCache", expiration)
 
-	assert.Equal(t, "test:1", key.Key())
+	SubjectDepartmentCache = mockCache
+
+	departments, err := GetSubjectDepartmentPKs(int64(1))
+	assert.NoError(t, err)
+	assert.Equal(t, []int64{2, 3}, departments)
 }

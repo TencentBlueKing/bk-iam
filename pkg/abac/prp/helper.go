@@ -29,7 +29,7 @@ TODO:
 
 */
 
-func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
+func getEffectSubjectPKs(systemID string, subject types.Subject) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "getEffectSubjectPKs")
 
 	subjectPK, err := subject.Attribute.GetPK()
@@ -38,12 +38,6 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 		return nil, err
 	}
 
-	// 通过subject对象获取group pks，只获取有效的
-	groupPKs, err := subject.GetEffectGroupPKs()
-	if err != nil {
-		err = errorWrapf(err, "subject.GetEffectGroupPKs subject=`%+v` fail", subject)
-		return nil, err
-	}
 	// 通过subject对象获取dept pks
 	deptPKs, err := subject.GetDepartmentPKs()
 	if err != nil {
@@ -51,31 +45,23 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 		return nil, err
 	}
 
+	subjectPKs := make([]int64, 0, len(deptPKs)+1)
+	subjectPKs = append(subjectPKs, subjectPK)
+	subjectPKs = append(subjectPKs, deptPKs...)
+
 	// 用户继承组织加入的用户组 => 多个部门属于同一个组, 所以需要去重
 	now := time.Now().Unix()
-	inheritGroupPKSet := set.NewInt64Set()
-	if len(deptPKs) > 0 {
-		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
-		if newErr != nil {
-			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
-			return nil, newErr
-		}
-		for _, sg := range subjectGroups {
-			if sg.PolicyExpiredAt > now {
-				inheritGroupPKSet.Add(sg.PK)
-			}
+	groupPKSet := set.NewInt64Set()
+	subjectGroups, err := cacheimpls.ListSystemSubjectEffectGroups(systemID, subjectPKs)
+	if err != nil {
+		err = errorWrapf(err, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
+		return nil, err
+	}
+	for _, sg := range subjectGroups {
+		if sg.PolicyExpiredAt > now {
+			groupPKSet.Add(sg.PK)
 		}
 	}
-
-	inheritGroupPKs := inheritGroupPKSet.ToSlice()
-
-	// 1. merge `user-groupPKs` and `user-dept-groupPKs`
-	groupPKMaxLen := len(groupPKs) + len(inheritGroupPKs)
-	groupPKSet := set.NewFixedLengthInt64Set(groupPKMaxLen)
-	// 用户加入的用户组
-	groupPKSet.Append(groupPKs...)
-	// 用户继承组织加入的用户组
-	groupPKSet.Append(inheritGroupPKs...)
 
 	// 2. collect all pks
 	effectSubjectPKs := make([]int64, 0, 1+groupPKSet.Size())

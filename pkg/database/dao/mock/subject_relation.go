@@ -137,21 +137,6 @@ func (mr *MockSubjectRelationManagerMockRecorder) ListEffectRelationBySubjectPKs
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectRelationBySubjectPKs", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListEffectRelationBySubjectPKs), subjectPKs)
 }
 
-// ListEffectThinRelationBySubjectPK mocks base method.
-func (m *MockSubjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int64) ([]dao.ThinSubjectRelation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectThinRelationBySubjectPK", subjectPK)
-	ret0, _ := ret[0].([]dao.ThinSubjectRelation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListEffectThinRelationBySubjectPK indicates an expected call of ListEffectThinRelationBySubjectPK.
-func (mr *MockSubjectRelationManagerMockRecorder) ListEffectThinRelationBySubjectPK(subjectPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectThinRelationBySubjectPK", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListEffectThinRelationBySubjectPK), subjectPK)
-}
-
 // ListMember mocks base method.
 func (m *MockSubjectRelationManager) ListMember(parentPK int64) ([]dao.SubjectRelation, error) {
 	m.ctrl.T.Helper()

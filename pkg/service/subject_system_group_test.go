@@ -21,6 +21,7 @@ import (
 
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
+	"iam/pkg/service/types"
 )
 
 var _ = Describe("SubjectService", func() {
@@ -326,4 +327,79 @@ var _ = Describe("SubjectService", func() {
 		})
 	})
 
+	Describe("convertSystemSubjectGroupsToThinSubjectGroup", func() {
+		It("empty ok", func() {
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup("")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), 0, len(groups))
+		})
+
+		It("UnmarshalFromString fail", func() {
+			_, err := convertSystemSubjectGroupsToThinSubjectGroup("abc")
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("ok", func() {
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{PK: 1, PolicyExpiredAt: 1555555555}}, groups)
+		})
+	})
+
+	Describe("ListEffectThinSubjectGroups", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("subjectSystemGroupManager.ListEffectSubjectGroups fail", func() {
+			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
+			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &groupService{
+				subjectSystemGroupManager: mockSubjectSystemGroupManager,
+			}
+
+			_, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListRelationByPKs")
+		})
+
+		It("UnmarshalFromString fail", func() {
+			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
+			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
+				[]dao.EffectSubjectGroups{{SubjectPK: int64(1), Groups: `abc`}}, nil,
+			).AnyTimes()
+
+			manager := &groupService{
+				subjectSystemGroupManager: mockSubjectSystemGroupManager,
+			}
+
+			_, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
+			assert.Error(GinkgoT(), err)
+		})
+
+		It("ok", func() {
+			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
+			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
+				[]dao.EffectSubjectGroups{{SubjectPK: int64(1), Groups: `{"2": 1555555555}`}}, nil,
+			).AnyTimes()
+
+			manager := &groupService{
+				subjectSystemGroupManager: mockSubjectSystemGroupManager,
+			}
+
+			groups, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), map[int64][]types.ThinSubjectGroup{1: {{
+				PK:              2,
+				PolicyExpiredAt: 1555555555,
+			}}}, groups)
+		})
+	})
 })
