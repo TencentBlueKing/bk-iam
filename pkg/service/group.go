@@ -248,8 +248,9 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
 
-	for _, m := range members {
-		for _, systemID := range systemIDs {
+	for _, systemID := range systemIDs {
+		for _, m := range members {
+
 			err = l.addOrUpdateSubjectSystemGroup(tx, systemID, m.SubjectPK, parentPK, m.PolicyExpiredAt)
 			if err != nil {
 				return errorWrapf(
@@ -314,8 +315,12 @@ func (l *groupService) BulkDeleteSubjectMembers(
 		return nil, errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
 
-	for _, subjectPK := range append(userPKs, departmentPKs...) {
-		for _, systemID := range systemIDs {
+	subjectPKs := make([]int64, 0, len(userPKs)+len(departmentPKs))
+	subjectPKs = append(subjectPKs, userPKs...)
+	subjectPKs = append(subjectPKs, departmentPKs...)
+
+	for _, systemID := range systemIDs {
+		for _, subjectPK := range subjectPKs {
 			err = l.removeSubjectSystemGroup(tx, systemID, subjectPK, parentPK)
 			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
 				// 数据不存在时记录日志
@@ -370,8 +375,8 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
 
-	for _, r := range relations {
-		for _, systemID := range systemIDs {
+	for _, systemID := range systemIDs {
+		for _, r := range relations {
 			err = l.addOrUpdateSubjectSystemGroup(tx, systemID, r.SubjectPK, parentPK, r.PolicyExpiredAt)
 			if err != nil {
 				return errorWrapf(
