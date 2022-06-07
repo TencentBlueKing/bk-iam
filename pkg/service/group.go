@@ -250,8 +250,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 
 	for _, systemID := range systemIDs {
 		for _, m := range members {
-
-			err = l.addOrUpdateSubjectSystemGroup(tx, systemID, m.SubjectPK, parentPK, m.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, parentPK, m.PolicyExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
@@ -321,7 +320,7 @@ func (l *groupService) BulkDeleteSubjectMembers(
 
 	for _, systemID := range systemIDs {
 		for _, subjectPK := range subjectPKs {
-			err = l.removeSubjectSystemGroup(tx, systemID, subjectPK, parentPK)
+			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, parentPK)
 			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
 				// 数据不存在时记录日志
 				log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
@@ -377,7 +376,7 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(
 
 	for _, systemID := range systemIDs {
 		for _, r := range relations {
-			err = l.addOrUpdateSubjectSystemGroup(tx, systemID, r.SubjectPK, parentPK, r.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, parentPK, r.PolicyExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
