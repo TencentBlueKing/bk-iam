@@ -92,8 +92,9 @@ func (l *groupService) doUpdateSubjectSystemGroup(
 // addOrUpdateSubjectSystemGroup 增加subject-system-group关系或更新过期时间
 func (l *groupService) addOrUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
+	subjectPK int64,
 	systemID string,
-	subjectPK, groupPK, expiredAt int64,
+	groupPK, expiredAt int64,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "addOrUpdateSubjectSystemGroup")
 
@@ -129,8 +130,9 @@ func (l *groupService) addOrUpdateSubjectSystemGroup(
 // removeSubjectSystemGroup 移除subject-system-group关系
 func (l *groupService) removeSubjectSystemGroup(
 	tx *sqlx.Tx,
+	subjectPK int64,
 	systemID string,
-	subjectPK, groupPK int64,
+	groupPK int64,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "removeSubjectSystemGroup")
 

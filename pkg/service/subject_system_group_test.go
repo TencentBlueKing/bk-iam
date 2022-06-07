@@ -111,7 +111,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
@@ -130,7 +130,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
@@ -149,7 +149,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
@@ -178,7 +178,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
@@ -197,7 +197,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "retry")
 		})
@@ -216,7 +216,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.addOrUpdateSubjectSystemGroup(nil, "system", int64(1), 1, 1555555555)
+			err := manager.addOrUpdateSubjectSystemGroup(nil, int64(1), "system", 1, 1555555555)
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -242,7 +242,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
+			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetBySystemSubject")
 		})
@@ -259,7 +259,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
+			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "no subject system group")
 		})
@@ -280,7 +280,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
+			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
@@ -301,7 +301,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
+			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "retry")
 		})
@@ -322,7 +322,7 @@ var _ = Describe("SubjectService", func() {
 				subjectSystemGroupManager: mockSubjectSystemGroupManager,
 			}
 
-			err := manager.removeSubjectSystemGroup(nil, "system", int64(1), int64(2))
+			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
 			assert.NoError(GinkgoT(), err)
 		})
 	})
