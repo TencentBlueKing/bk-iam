@@ -17,8 +17,6 @@ import (
 
 	"iam/pkg/abac/pap"
 	"iam/pkg/api/common"
-	"iam/pkg/service"
-	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -34,18 +32,18 @@ func ListSubjectMember(c *gin.Context) {
 
 	subject.Default()
 
-	svc := service.NewGroupService()
-	count, err := svc.GetMemberCount(subject.Type, subject.ID)
+	ctl := pap.NewGroupController()
+	count, err := ctl.GetMemberCount(subject.Type, subject.ID)
 	if err != nil {
 		err = errorWrapf(err, "type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	relations, err := svc.ListPagingMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
+	relations, err := ctl.ListPagingMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
 	if err != nil {
 		err = errorWrapf(
-			err, "svc.ListPagingMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+			err, "ctl.ListPagingMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
 			subject.Type, subject.ID, subject.Limit, subject.Offset,
 		)
 		util.SystemErrorJSONResponse(c, err)
@@ -66,10 +64,10 @@ func GetSubjectGroup(c *gin.Context) {
 		return
 	}
 
-	svc := service.NewGroupService()
-	groups, err := svc.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
+	ctl := pap.NewGroupController()
+	groups, err := ctl.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "svc.ListSubjectGroups",
+		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups",
 			"type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -93,9 +91,9 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "UpdateSubjectMembersExpiredAt")
 
-	papSubjects := make([]pap.SubjectMember, 0, len(body.Members))
+	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
-		papSubjects = append(papSubjects, pap.SubjectMember{
+		papSubjects = append(papSubjects, pap.GroupMember{
 			Type:            m.Type,
 			ID:              m.ID,
 			PolicyExpiredAt: m.PolicyExpiredAt,
@@ -155,9 +153,9 @@ func BatchAddSubjectMembers(c *gin.Context) {
 		return
 	}
 
-	papSubjects := make([]pap.SubjectMember, 0, len(body.Members))
+	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
-		papSubjects = append(papSubjects, pap.SubjectMember{
+		papSubjects = append(papSubjects, pap.GroupMember{
 			Type:            m.Type,
 			ID:              m.ID,
 			PolicyExpiredAt: body.PolicyExpiredAt,
@@ -188,23 +186,23 @@ func ListSubjectMemberBeforeExpiredAt(c *gin.Context) {
 
 	body.Default()
 
-	svc := service.NewGroupService()
-	count, err := svc.GetMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
+	ctl := pap.NewGroupController()
+	count, err := ctl.GetMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "svc.GetMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.GetMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	relations, err := svc.ListPagingMemberBeforeExpiredAt(
+	relations, err := ctl.ListPagingMemberBeforeExpiredAt(
 		body.Type, body.ID, body.BeforeExpiredAt, body.Limit, body.Offset,
 	)
 	if err != nil {
 		err = errorWrapf(
-			err, "svc.ListPagingMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.ListPagingMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
@@ -231,15 +229,15 @@ func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
 		return
 	}
 
-	svcSubjects := make([]types.Subject, 0, len(body.Subjects))
-	copier.Copy(&svcSubjects, &body.Subjects)
+	papSubjects := make([]pap.Subject, 0, len(body.Subjects))
+	copier.Copy(&papSubjects, &body.Subjects)
 
-	svc := service.NewGroupService()
-	existSubjects, err := svc.ListExistSubjectsBeforeExpiredAt(svcSubjects, body.BeforeExpiredAt)
+	ctl := pap.NewGroupController()
+	existSubjects, err := ctl.ListExistSubjectsBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "svc.ListExistSubjectsBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
-			svcSubjects, body.BeforeExpiredAt,
+			err, "ctl.ListExistSubjectsBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
+			papSubjects, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return

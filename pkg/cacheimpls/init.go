@@ -109,7 +109,7 @@ func InitCaches(disabled bool) {
 		"local_subject_pk",
 		disabled,
 		retrieveSubjectPKFromRedis,
-		1*time.Minute,
+		30*time.Minute,
 		nil,
 	)
 

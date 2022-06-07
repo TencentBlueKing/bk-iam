@@ -28,16 +28,32 @@ import (
 var _ = Describe("GroupController", func() {
 	Describe("createOrUpdateSubjectMembers", func() {
 		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
+				switch id {
+				case "1":
+					return int64(1), nil
+				case "2":
+					return int64(2), nil
+				}
+
+				return 0, nil
+			})
+			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+				return nil
+			})
 		})
 		AfterEach(func() {
 			ctl.Finish()
+			patches.Reset()
 		})
 
 		It("service.ListMember fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember("group", "1").Return(
+			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -45,7 +61,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -58,12 +74,11 @@ var _ = Describe("GroupController", func() {
 
 		It("service.UpdateMembersExpiredAtWithTx fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember("group", "1").Return(
-				[]types.SubjectMember{
+			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+				[]types.GroupMember{
 					{
 						PK:              1,
-						Type:            "user",
-						ID:              "2",
+						SubjectPK:       2,
 						PolicyExpiredAt: 2,
 					},
 				}, nil,
@@ -77,16 +92,15 @@ var _ = Describe("GroupController", func() {
 			mock.ExpectCommit()
 			tx, _ := db.Beginx()
 
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
 				return tx, nil
 			})
-			defer patches.Reset()
 
 			manager := &groupController{
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -99,19 +113,15 @@ var _ = Describe("GroupController", func() {
 
 		It("bulkCreateSubjectMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember("group", "1").Return(
-				[]types.SubjectMember{}, nil,
+			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
 				nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), []types.SubjectRelation{{
 				SubjectPK:       2,
-				SubjectID:       "2",
-				SubjectType:     "user",
 				ParentPK:        1,
-				ParentType:      "group",
-				ParentID:        "1",
 				PolicyExpiredAt: int64(3),
 			}}).Return(
 				errors.New("error"),
@@ -122,26 +132,15 @@ var _ = Describe("GroupController", func() {
 			mock.ExpectCommit()
 			tx, _ := db.Beginx()
 
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
 				return tx, nil
 			})
-			patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
-				switch id {
-				case "1":
-					return int64(1), nil
-				case "2":
-					return int64(2), nil
-				}
-
-				return 0, nil
-			})
-			defer patches.Reset()
 
 			manager := &groupController{
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -154,8 +153,8 @@ var _ = Describe("GroupController", func() {
 
 		It("not create ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember("group", "1").Return(
-				[]types.SubjectMember{}, nil,
+			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
 				nil,
@@ -166,29 +165,15 @@ var _ = Describe("GroupController", func() {
 			mock.ExpectCommit()
 			tx, _ := db.Beginx()
 
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
 				return tx, nil
 			})
-			patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
-				switch id {
-				case "1":
-					return int64(1), nil
-				case "2":
-					return int64(2), nil
-				}
-
-				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
-				return nil
-			})
-			defer patches.Reset()
 
 			manager := &groupController{
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
+			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -200,19 +185,15 @@ var _ = Describe("GroupController", func() {
 
 		It("ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember("group", "1").Return(
-				[]types.SubjectMember{}, nil,
+			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().UpdateMembersExpiredAtWithTx(gomock.Any(), []types.SubjectRelationPKPolicyExpiredAt{{PK: 1, PolicyExpiredAt: 3}}).Return(
 				nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), []types.SubjectRelation{{
 				SubjectPK:       2,
-				SubjectID:       "2",
-				SubjectType:     "user",
 				ParentPK:        1,
-				ParentType:      "group",
-				ParentID:        "1",
 				PolicyExpiredAt: int64(3),
 			}}).Return(
 				nil,
@@ -223,29 +204,15 @@ var _ = Describe("GroupController", func() {
 			mock.ExpectCommit()
 			tx, _ := db.Beginx()
 
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
 				return tx, nil
 			})
-			patches.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
-				switch id {
-				case "1":
-					return int64(1), nil
-				case "2":
-					return int64(2), nil
-				}
-
-				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
-				return nil
-			})
-			defer patches.Reset()
 
 			manager := &groupController{
 				service: mockGroupService,
 			}
 
-			typeCount, err := manager.alterSubjectMembers("group", "1", []SubjectMember{
+			typeCount, err := manager.alterSubjectMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -259,16 +226,34 @@ var _ = Describe("GroupController", func() {
 
 	Describe("DeleteSubjectMembers", func() {
 		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
+				switch id {
+				case "1":
+					return int64(1), nil
+				case "2":
+					return int64(2), nil
+				case "3":
+					return int64(3), nil
+				}
+
+				return 0, nil
+			})
+			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+				return nil
+			})
 		})
 		AfterEach(func() {
 			ctl.Finish()
+			patches.Reset()
 		})
 
 		It("service.BulkDeleteSubjectMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().BulkDeleteSubjectMembers("group", "1", []types.Subject{{Type: "user", ID: "2"}}).Return(
+			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -281,6 +266,10 @@ var _ = Describe("GroupController", func() {
 					Type: "user",
 					ID:   "2",
 				},
+				{
+					Type: "department",
+					ID:   "3",
+				},
 			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteSubjectMembers")
@@ -288,7 +277,7 @@ var _ = Describe("GroupController", func() {
 
 		It("ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().BulkDeleteSubjectMembers("group", "1", []types.Subject{{Type: "user", ID: "2"}}).Return(
+			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
 
@@ -296,25 +285,14 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			patches := gomonkey.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
-				switch id {
-				case "1":
-					return int64(1), nil
-				case "2":
-					return int64(2), nil
-				}
-
-				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
-				return nil
-			})
-			defer patches.Reset()
-
 			typeCount, err := manager.DeleteSubjectMembers("group", "1", []Subject{
 				{
 					Type: "user",
 					ID:   "2",
+				},
+				{
+					Type: "department",
+					ID:   "3",
 				},
 			})
 			assert.NoError(GinkgoT(), err)
