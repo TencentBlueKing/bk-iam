@@ -213,7 +213,7 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 	ActionListCache = redis.NewCache(
-		"all_act",
+		"all_act:2",
 		30*time.Minute,
 	)
 
