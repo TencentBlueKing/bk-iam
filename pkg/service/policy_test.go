@@ -79,7 +79,6 @@ var _ = Describe("PolicyService", func() {
 
 			_, err := svc.ListAuthBySubjectAction([]int64{1, 2}, int64(1))
 			assert.Error(GinkgoT(), err)
-
 		})
 	})
 
@@ -249,7 +248,6 @@ var _ = Describe("PolicyService", func() {
 
 			_, err := svc.ListThinBySubjectTemplateBeforeExpiredAt(int64(1), int64(0), int64(10))
 			assert.Error(GinkgoT(), err)
-
 		})
 	})
 
@@ -933,5 +931,4 @@ var _ = Describe("PolicyService", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 	})
-
 })

@@ -25,9 +25,7 @@ import (
 )
 
 func Test_setMissingSystemSubjectGroup(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
 	SystemSubjectGroupCache = mockCache
 
@@ -62,9 +60,7 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 }
 
 func TestBatchDeleteSystemSubjectGroupCache(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
 	SystemSubjectGroupCache = mockCache
 
@@ -90,9 +86,7 @@ func TestBatchDeleteSystemSubjectGroupCache(t *testing.T) {
 }
 
 func Test_batchGetSystemSubjectGroups(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
 	SystemSubjectGroupCache = mockCache
 
@@ -115,9 +109,7 @@ func Test_batchGetSystemSubjectGroups(t *testing.T) {
 }
 
 func TestListSystemSubjectEffectGroups(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
 	SystemSubjectGroupCache = mockCache
 

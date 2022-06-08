@@ -30,7 +30,6 @@ const GroupSVC = "GroupSVC"
 
 // GroupService ...
 type GroupService interface {
-
 	// 鉴权
 	ListEffectThinSubjectGroups(systemID string, pks []int64) (map[int64][]types.ThinSubjectGroup, error)
 

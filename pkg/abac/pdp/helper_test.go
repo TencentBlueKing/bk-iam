@@ -31,7 +31,6 @@ import (
 )
 
 var _ = Describe("Helper", func() {
-
 	Describe("queryPolicies", func() {
 		var ctl *gomock.Controller
 		var mgr *mock.MockPolicyManager
@@ -86,7 +85,6 @@ var _ = Describe("Helper", func() {
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("queryAndPartialEvalConditions", func() {
@@ -112,7 +110,6 @@ var _ = Describe("Helper", func() {
 			}
 
 			patches = gomonkey.NewPatches()
-
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -279,7 +276,6 @@ var _ = Describe("Helper", func() {
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("fillSubjectDepartments", func() {
@@ -302,7 +298,6 @@ var _ = Describe("Helper", func() {
 			err := fillSubjectDepartments(r)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "get subject_pk fail")
-
 		})
 
 		It("pip.GetSubjectDetail fail", func() {
@@ -348,7 +343,8 @@ var _ = Describe("Helper", func() {
 		It("GetActionDetail fail", func() {
 			patches = gomonkey.ApplyFunc(pip.GetActionDetail,
 				func(system, id string) (pk int64,
-					arts []types.ActionResourceType, err error) {
+					arts []types.ActionResourceType, err error,
+				) {
 					return -1, nil, errors.New("get GetActionDetail fail")
 				})
 
@@ -360,14 +356,13 @@ var _ = Describe("Helper", func() {
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(pip.GetActionDetail,
 				func(system, id string) (pk int64,
-					arts []types.ActionResourceType, err error) {
+					arts []types.ActionResourceType, err error,
+				) {
 					return 123, []types.ActionResourceType{}, nil
 				})
 
 			err := fillActionDetail(r)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-
 })

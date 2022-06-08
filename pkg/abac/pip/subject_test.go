@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("Subject", func() {
-
 	Describe("GetSubjectPK", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -54,7 +53,6 @@ var _ = Describe("Subject", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(123), pk)
 		})
-
 	})
 
 	Describe("GetSubjectDepartmentPKs", func() {
@@ -87,7 +85,5 @@ var _ = Describe("Subject", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, depts)
 		})
-
 	})
-
 })

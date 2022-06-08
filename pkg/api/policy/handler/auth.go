@@ -71,7 +71,7 @@ func Auth(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	copyRequestFromAuthBody(req, &body)
 
 	// 鉴权
@@ -241,7 +241,7 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	copyRequestFromAuthByResourcesBody(req, &body)
 
 	// 鉴权

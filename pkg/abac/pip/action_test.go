@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("Action", func() {
-
 	Describe("GetActionDetail", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -67,6 +66,5 @@ var _ = Describe("Action", func() {
 			assert.Equal(GinkgoT(), int64(123), pk)
 			assert.Len(GinkgoT(), rts, 1)
 		})
-
 	})
 })

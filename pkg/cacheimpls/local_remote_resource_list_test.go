@@ -33,9 +33,7 @@ func TestRemoteResourceListCacheKey_Key(t *testing.T) {
 }
 
 func TestListRemoteResources(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	// valid
 	retrieveFunc := func(key cache.Key) (interface{}, error) {

@@ -25,7 +25,6 @@ import (
 )
 
 var _ = Describe("Helper", func() {
-
 	Describe("getEffectSubjectPKs", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -34,7 +33,6 @@ var _ = Describe("Helper", func() {
 			ctl = gomock.NewController(GinkgoT())
 
 			s = types.NewSubject()
-
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -104,5 +102,4 @@ var _ = Describe("Helper", func() {
 			assert.ElementsMatch(GinkgoT(), []int64{123, 5, 6, 7}, pks)
 		})
 	})
-
 })

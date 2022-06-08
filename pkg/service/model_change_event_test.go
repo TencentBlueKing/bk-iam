@@ -25,7 +25,6 @@ var _ = Describe("ModelEventService", func() {
 		svc = &modelChangeEventService{
 			manager: mockManager,
 		}
-
 	})
 	AfterEach(func() {
 		ctl.Finish()
@@ -63,5 +62,4 @@ var _ = Describe("ModelEventService", func() {
 			assert.Regexp(GinkgoT(), "manager.DeleteByStatusWithTx (.*) fail", err.Error())
 		})
 	})
-
 })

@@ -57,7 +57,8 @@ func Test_subjectRelationManager_ListRelation(t *testing.T) {
 		 WHERE subject_pk =`
 		mockRows := sqlmock.NewRows(
 			[]string{
-				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
+				"pk", "subject_pk", "parent_pk", "policy_expired_at",
+			},
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
@@ -103,7 +104,8 @@ func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 		 ORDER BY policy_expired_at DESC`
 		mockRows := sqlmock.NewRows(
 			[]string{
-				"pk", "subject_pk", "parent_pk", "policy_expired_at"},
+				"pk", "subject_pk", "parent_pk", "policy_expired_at",
+			},
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000)).WillReturnRows(mockRows)
 

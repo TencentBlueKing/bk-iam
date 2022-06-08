@@ -32,7 +32,7 @@ var _ = Describe("request", func() {
 	})
 
 	Describe("HasRemoteResources", func() {
-		var expectedSystem = "bk_test"
+		expectedSystem := "bk_test"
 		var r *request.Request
 		BeforeEach(func() {
 			r = request.NewRequest()
@@ -78,7 +78,7 @@ var _ = Describe("request", func() {
 	})
 
 	Describe("GetRemoteResources", func() {
-		var expectedSystem = "bk_test"
+		expectedSystem := "bk_test"
 		var r *request.Request
 		BeforeEach(func() {
 			r = request.NewRequest()
@@ -142,11 +142,10 @@ var _ = Describe("request", func() {
 			d := r.GetRemoteResources()
 			assert.Len(GinkgoT(), d, 2)
 		})
-
 	})
 
 	Describe("ValidateActionResource", func() {
-		var expectedSystem = "bk_test"
+		expectedSystem := "bk_test"
 		var r *request.Request
 		BeforeEach(func() {
 			r = request.NewRequest()
@@ -196,27 +195,27 @@ var _ = Describe("request", func() {
 		})
 	})
 	Describe("ValidateActionRemoteResource", func() {
-		var expectedSystem = "bk_test"
+		expectedSystem := "bk_test"
 		var r *request.Request
 		BeforeEach(func() {
 			r = request.NewRequest()
 			r.System = expectedSystem
 			r.Action.Attribute = &types.ActionAttribute{
 				Attribute: map[string]interface{}{
-					"resource_type": []types.ActionResourceType{{
-						System: "bk_test",
-						Type:   "host",
-					}, {
-						System: "bk_job",
-						Type:   "job",
-					},
+					"resource_type": []types.ActionResourceType{
+						{
+							System: "bk_test",
+							Type:   "host",
+						}, {
+							System: "bk_job",
+							Type:   "job",
+						},
 					},
 				},
 			}
 		})
 
 		It("true", func() {
-
 			r.Resources = []types.Resource{
 				{
 					System: "bk_job",
@@ -224,7 +223,6 @@ var _ = Describe("request", func() {
 				},
 			}
 			assert.True(GinkgoT(), r.ValidateActionRemoteResource())
-
 		})
 
 		It("false, wrong local resources", func() {

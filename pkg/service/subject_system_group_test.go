@@ -25,7 +25,6 @@ import (
 )
 
 var _ = Describe("SubjectService", func() {
-
 	Describe("createSubjectSystemGroup", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
@@ -65,7 +64,7 @@ var _ = Describe("SubjectService", func() {
 	})
 
 	Describe("updateGroupsString", func() {
-		var updateFunc = func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+		updateFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
 			groupExpiredAtMap[2] = 1555555555
 			return groupExpiredAtMap, nil
 		}
@@ -77,7 +76,7 @@ var _ = Describe("SubjectService", func() {
 		})
 
 		It("updateFunc fail", func() {
-			var newUpdateFunc = func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
+			newUpdateFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
 				return nil, errors.New("update error")
 			}
 			_, err := updateGroupsString(`{"1": 2}`, newUpdateFunc)

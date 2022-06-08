@@ -28,9 +28,7 @@ func TestGetSystem(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	mockService := mock.NewMockSystemService(ctl)
 	mockService.EXPECT().Get("test").Return(svctypes.System{

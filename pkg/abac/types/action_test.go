@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("action", func() {
-
 	Describe("Action cases", func() {
 		It("NewAction", func() {
 			a := types.NewAction()
@@ -76,7 +75,6 @@ var _ = Describe("action", func() {
 				})
 				assert.False(GinkgoT(), a.WithoutResourceType())
 			})
-
 		})
 	})
 

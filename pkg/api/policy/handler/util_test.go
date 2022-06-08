@@ -217,7 +217,6 @@ func TestAnyExpression(t *testing.T) {
 }
 
 var _ = Describe("util", func() {
-
 	Describe("validateSystemSuperUser", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -279,7 +278,6 @@ var _ = Describe("util", func() {
 	})
 
 	Describe("buildResourceID", func() {
-
 		It("empty", func() {
 			uid := buildResourceID([]resource{})
 			assert.Equal(GinkgoT(), uid, "")
@@ -315,9 +313,7 @@ var _ = Describe("util", func() {
 })
 
 func Test_validateSystemMatchClient(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	retrieveFunc := func(key cache.Key) (interface{}, error) {
 		return []string{"test"}, nil
 	}

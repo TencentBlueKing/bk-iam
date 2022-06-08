@@ -25,7 +25,6 @@ const SubjectSVC = "SubjectSVC"
 
 // SubjectService subject加载器
 type SubjectService interface {
-
 	// 鉴权
 	Get(pk int64) (types.Subject, error)
 	GetPK(_type, id string) (int64, error)

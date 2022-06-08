@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("subject", func() {
-
 	Describe("Subject cases", func() {
 		It("NewSubject", func() {
 			s := types.NewSubject()
@@ -68,5 +67,4 @@ var _ = Describe("subject", func() {
 			})
 		})
 	})
-
 })

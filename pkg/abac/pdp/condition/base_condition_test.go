@@ -43,6 +43,7 @@ type strCtx string
 func (c strCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
+
 func (c strCtx) HasResource(_type string) bool {
 	return false
 }
@@ -52,6 +53,7 @@ type boolCtx bool
 func (c boolCtx) GetAttr(key string) (interface{}, error) {
 	return bool(c), nil
 }
+
 func (c boolCtx) HasResource(_type string) bool {
 	return false
 }
@@ -62,6 +64,7 @@ func (c listCtx) GetAttr(key string) (interface{}, error) {
 	x := []interface{}(c)
 	return x, nil
 }
+
 func (c listCtx) HasResource(_type string) bool {
 	return false
 }
@@ -71,6 +74,7 @@ type errCtx int
 func (c errCtx) GetAttr(key string) (interface{}, error) {
 	return nil, errors.New("missing key")
 }
+
 func (c errCtx) HasResource(_type string) bool {
 	return false
 }
@@ -80,6 +84,7 @@ type HitStrCtx string
 func (c HitStrCtx) GetAttr(key string) (interface{}, error) {
 	return string(c), nil
 }
+
 func (c HitStrCtx) HasResource(_type string) bool {
 	return true
 }
@@ -89,6 +94,7 @@ type MissStrCtx string
 func (c MissStrCtx) GetAttr(key string) (interface{}, error) {
 	return "", nil
 }
+
 func (c MissStrCtx) HasResource(_type string) bool {
 	return false
 }
@@ -105,7 +111,7 @@ func (c MapCtx) GetAttr(key string) (interface{}, error) {
 
 // host.system  has key=system
 func (c MapCtx) HasResource(_type string) bool {
-	for k, _ := range c {
+	for k := range c {
 		if strings.HasPrefix(k, _type+".") {
 			return true
 		}
@@ -114,7 +120,6 @@ func (c MapCtx) HasResource(_type string) bool {
 }
 
 var _ = Describe("BaseCondition", func() {
-
 	Describe("GetKeys", func() {
 		It("ok", func() {
 			expectedKey := "test"
@@ -218,7 +223,5 @@ var _ = Describe("BaseCondition", func() {
 		It("list, missing", func() {
 			assert.False(GinkgoT(), condition.forOr(listCtx{3, 4}, fn))
 		})
-
 	})
-
 })

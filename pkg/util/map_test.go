@@ -22,7 +22,6 @@ var _ = Describe("Map", func() {
 		DescribeTable(
 			"MapValueInterfaceToString cases",
 			func(expected string, willError bool, input map[string]interface{}) {
-
 				data, err := util.MapValueInterfaceToString(input)
 				if willError {
 					assert.Error(GinkgoT(), err)
@@ -43,5 +42,4 @@ var _ = Describe("Map", func() {
 				}),
 		)
 	})
-
 })

@@ -26,14 +26,12 @@ import (
 )
 
 var _ = Describe("Changelist", func() {
-
 	It("NewChangeList", func() {
 		a := common.NewChangeList("test", 60, 100)
 		assert.NotNil(GinkgoT(), a)
 	})
 
 	Describe("FetchList", func() {
-
 		var c *common.ChangeList
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -79,7 +77,6 @@ var _ = Describe("Changelist", func() {
 			assert.Contains(GinkgoT(), data, "456")
 			assert.Equal(GinkgoT(), int64(1000), data["123"])
 			assert.Equal(GinkgoT(), int64(2000), data["456"])
-
 		})
 	})
 
@@ -147,5 +144,4 @@ var _ = Describe("Changelist", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 	})
-
 })

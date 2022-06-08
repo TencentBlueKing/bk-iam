@@ -27,9 +27,7 @@ func TestGetSubjectDepartmentPKs(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	mockService := mock.NewMockDepartmentService(ctl)
 	mockService.EXPECT().GetSubjectDepartmentPKs(int64(1)).Return([]int64{2, 3}, nil).AnyTimes()

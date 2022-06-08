@@ -26,7 +26,6 @@ const DepartmentSVC = "DepartmentSVC"
 
 // DepartmentService ...
 type DepartmentService interface {
-
 	// 鉴权
 	GetSubjectDepartmentPKs(subjectPK int64) ([]int64, error) // cache subject detail
 

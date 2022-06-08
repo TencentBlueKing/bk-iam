@@ -64,7 +64,8 @@ func (m *saasInstanceSelectionManager) Get(system, id string) (instanceSelection
 
 // ListBySystem ...
 func (m *saasInstanceSelectionManager) ListBySystem(system string) (
-	saasInstanceSelections []SaaSInstanceSelection, err error) {
+	saasInstanceSelections []SaaSInstanceSelection, err error,
+) {
 	err = m.selectBySystem(&saasInstanceSelections, system)
 	if errors.Is(err, sql.ErrNoRows) {
 		return saasInstanceSelections, nil
