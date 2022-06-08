@@ -28,9 +28,7 @@ import (
 //       curd中所有方法必须考虑删除policy缓存
 //       curd中所有方法必须考虑删除policy缓存
 
-var (
-	ErrActionNotExists = errors.New("action not exists")
-)
+var ErrActionNotExists = errors.New("action not exists")
 
 func convertToServicePolicies(
 	subjectPK int64, policies []types.Policy, actionMap map[string]int64,

@@ -111,7 +111,8 @@ func (m *subjectRelationManager) ListRelationBeforeExpiredAt(
 
 // ListEffectThinRelationBySubjectPK ...
 func (m *subjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int64) (
-	relations []ThinSubjectRelation, err error) {
+	relations []ThinSubjectRelation, err error,
+) {
 	// 过期时间必须大于当前时间
 	now := time.Now().Unix()
 
@@ -125,7 +126,8 @@ func (m *subjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int
 
 // ListEffectRelationBySubjectPKs ...
 func (m *subjectRelationManager) ListEffectRelationBySubjectPKs(subjectPKs []int64) (
-	relations []EffectSubjectRelation, err error) {
+	relations []EffectSubjectRelation, err error,
+) {
 	if len(subjectPKs) == 0 {
 		return
 	}
@@ -143,7 +145,8 @@ func (m *subjectRelationManager) ListEffectRelationBySubjectPKs(subjectPKs []int
 
 // ListPagingMember ...
 func (m *subjectRelationManager) ListPagingMember(parentPK int64, limit, offset int64) (
-	members []SubjectRelation, err error) {
+	members []SubjectRelation, err error,
+) {
 	err = m.selectPagingMembers(&members, parentPK, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
@@ -169,7 +172,8 @@ func (m *subjectRelationManager) GetMemberCount(parentPK int64) (int64, error) {
 
 // BulkDeleteByMembersWithTx ...
 func (m *subjectRelationManager) BulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error) {
+	tx *sqlx.Tx, parentPK int64, subjectPKs []int64,
+) (int64, error) {
 	if len(subjectPKs) == 0 {
 		return 0, nil
 	}
@@ -296,7 +300,8 @@ func (m *subjectRelationManager) selectEffectRelationBySubjectPKs(
 }
 
 func (m *subjectRelationManager) selectPagingMembers(
-	members *[]SubjectRelation, parentPK int64, limit, offset int64) error {
+	members *[]SubjectRelation, parentPK int64, limit, offset int64,
+) error {
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -311,7 +316,8 @@ func (m *subjectRelationManager) selectPagingMembers(
 }
 
 func (m *subjectRelationManager) selectPagingMembersBeforeExpiredAt(
-	members *[]SubjectRelation, parentPK int64, expiredAt int64, limit, offset int64) error {
+	members *[]SubjectRelation, parentPK int64, expiredAt int64, limit, offset int64,
+) error {
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -327,7 +333,8 @@ func (m *subjectRelationManager) selectPagingMembersBeforeExpiredAt(
 }
 
 func (m *subjectRelationManager) selectMembers(
-	members *[]SubjectRelation, parentPK int64) error {
+	members *[]SubjectRelation, parentPK int64,
+) error {
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -359,7 +366,8 @@ func (m *subjectRelationManager) getMemberCountBeforeExpiredAt(
 }
 
 func (m *subjectRelationManager) bulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error) {
+	tx *sqlx.Tx, parentPK int64, subjectPKs []int64,
+) (int64, error) {
 	sql := `DELETE FROM subject_relation WHERE parent_pk=? AND subject_pk in (?)`
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, parentPK, subjectPKs)
 }

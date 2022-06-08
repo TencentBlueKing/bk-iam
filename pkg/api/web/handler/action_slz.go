@@ -20,9 +20,7 @@ const (
 	actionDefaultFields = "id,name,name_en"
 )
 
-var (
-	actionSupportFieldSet = set.SplitStringToSet(actionSupportFields, ",")
-)
+var actionSupportFieldSet = set.SplitStringToSet(actionSupportFields, ",")
 
 type actionQuerySerializer struct {
 	queryViaFields

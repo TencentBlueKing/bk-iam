@@ -30,7 +30,6 @@ const GroupSVC = "GroupSVC"
 
 // GroupService ...
 type GroupService interface {
-
 	// 鉴权
 	GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)               // cache subject detail
 	ListEffectThinSubjectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error) // cache department groups

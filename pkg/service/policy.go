@@ -44,9 +44,7 @@ const (
 	PolicyTemplateIDCustom int64 = 0
 )
 
-var (
-	errPolicy = errors.New("policy data error")
-)
+var errPolicy = errors.New("policy data error")
 
 // PolicyService ...
 type PolicyService interface {

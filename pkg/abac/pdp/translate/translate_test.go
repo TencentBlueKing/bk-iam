@@ -20,7 +20,6 @@ import (
 )
 
 var _ = Describe("Expression", func() {
-
 	Describe("ConditionsTranslate", func() {
 		anyExpr := map[string]interface{}{
 			"op":    "any",
@@ -44,9 +43,7 @@ var _ = Describe("Expression", func() {
 				want := map[string]interface{}{"field": "test", "op": "eq", "value": false}
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), want, expr)
-
 			})
-
 		})
 
 		Describe("two condition", func() {
@@ -76,11 +73,8 @@ var _ = Describe("Expression", func() {
 				assert.ElementsMatch(GinkgoT(), want["content"], expr["content"])
 				// assert.Equal(GinkgoT(), want, expr)
 				// assert.True(GinkgoT(), assert.ObjectsAreEqualValues(want, expr))
-
 			})
-
 		})
-
 	})
 
 	Describe("oldExprToCondition", func() {
@@ -124,7 +118,6 @@ var _ = Describe("Expression", func() {
 			got, err := cond.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
-
 		})
 	})
 
@@ -175,7 +168,6 @@ var _ = Describe("Expression", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
-
 	})
 
 	Describe("expressionToCondition", func() {
@@ -277,7 +269,6 @@ var _ = Describe("Expression", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.EqualValues(GinkgoT(), want, got)
 		})
-
 	})
 
 	Describe("PolicyExpressionTranslate", func() {
@@ -346,7 +337,6 @@ var _ = Describe("Expression", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, expr)
 		})
-
 	})
 
 	Describe("mergeContentField", func() {
@@ -533,7 +523,6 @@ var _ = Describe("Expression", func() {
 			}
 			assert.EqualValues(GinkgoT(), want, content)
 		})
-
 	})
 })
 

@@ -31,8 +31,11 @@ var webLogger *zap.Logger
 
 // use logrus for better usage
 var sqlLogger *logrus.Logger
-var auditLogger *logrus.Logger
-var componentLogger *logrus.Logger
+
+var (
+	auditLogger     *logrus.Logger
+	componentLogger *logrus.Logger
+)
 
 // InitLogger ...
 func InitLogger(logger *config.Logger) {

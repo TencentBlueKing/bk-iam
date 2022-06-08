@@ -11,8 +11,9 @@
 package dao
 
 import (
-	"iam/pkg/database"
 	"testing"
+
+	"iam/pkg/database"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"

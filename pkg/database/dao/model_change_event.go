@@ -58,7 +58,8 @@ func NewModelChangeEventManager() ModelChangeEventManager {
 
 // GetByTypeModel ...
 func (m *modelChangeEventManager) GetByTypeModel(eventType, status, modelType string,
-	modelPK int64) (modelChangeEvent ModelChangeEvent, err error) {
+	modelPK int64,
+) (modelChangeEvent ModelChangeEvent, err error) {
 	err = m.selectOne(&modelChangeEvent, eventType, status, modelType, modelPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return modelChangeEvent, nil
@@ -178,6 +179,7 @@ func (m *modelChangeEventManager) update(updatedSQL string, data map[string]inte
 	}
 	return nil
 }
+
 func (m *modelChangeEventManager) insert(modelChangeEvents []ModelChangeEvent) error {
 	query := `INSERT INTO model_change_event (
 		type,

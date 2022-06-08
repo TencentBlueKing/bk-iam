@@ -22,7 +22,6 @@ import (
 )
 
 var _ = Describe("RoleService", func() {
-
 	Describe("ListRoleSystemIDBySubjectPK", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {

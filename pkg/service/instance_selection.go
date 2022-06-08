@@ -46,7 +46,8 @@ func NewInstanceSelectionService() InstanceSelectionService {
 
 // ListBySystem ...
 func (s *instanceSelectionService) ListBySystem(system string) (
-	instanceSelections []types.InstanceSelection, err error) {
+	instanceSelections []types.InstanceSelection, err error,
+) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(InstanceSelectionSVC, "ListBySystem")
 
 	saasInstanceSelections, err := s.saasManager.ListBySystem(system)

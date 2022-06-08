@@ -183,7 +183,6 @@ var _ = Describe("NumericCompare", func() {
 			// - should all false
 			assert.False(GinkgoT(), ltCondition.Eval(listCtx{3, 4}))
 		})
-
 	})
 
 	Describe("Translate", func() {
@@ -222,7 +221,6 @@ var _ = Describe("NumericCompare", func() {
 			c1, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c1)
-
 		})
 
 		It("ok, gte", func() {
@@ -253,5 +251,4 @@ var _ = Describe("NumericCompare", func() {
 			assert.Equal(GinkgoT(), expected, c1)
 		})
 	})
-
 })

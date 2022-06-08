@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("GroupService", func() {
-
 	Describe("createOrUpdateGroupAuthType", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {

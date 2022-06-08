@@ -21,9 +21,7 @@ import (
 )
 
 var _ = Describe("SubjectDetail", func() {
-
 	Describe("msgpack marshal/unmarshal", func() {
-
 		It("normal data, ok", func() {
 			s := types.SubjectDetail{
 				DepartmentPKs: []int64{1, 3, 2},
@@ -137,7 +135,6 @@ var _ = Describe("SubjectDetail", func() {
 			assert.Len(GinkgoT(), us.SubjectGroups, 0)
 		})
 	})
-
 })
 
 func BenchmarkThinSubjectDetail(b *testing.B) {

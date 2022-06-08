@@ -34,7 +34,6 @@ func readResponse(w *httptest.ResponseRecorder) util.Response {
 }
 
 var _ = Describe("Response", func() {
-
 	var c *gin.Context
 	// var r *gin.Engine
 	var w *httptest.ResponseRecorder
@@ -76,7 +75,6 @@ var _ = Describe("Response", func() {
 	})
 
 	Context("SuccessJSONResponseWithDebug", func() {
-
 		It("debug is nil", func() {
 			util.SuccessJSONResponseWithDebug(c, "ok", nil, nil)
 			assert.Equal(GinkgoT(), 200, c.Writer.Status())
@@ -113,7 +111,6 @@ var _ = Describe("Response", func() {
 	})
 
 	Context("SystemErrorJSONResponseWithDebug", func() {
-
 		It("debug is nil", func() {
 			util.SystemErrorJSONResponseWithDebug(c, errors.New("anError"), nil)
 			assert.Equal(GinkgoT(), 200, c.Writer.Status())
@@ -130,7 +127,6 @@ var _ = Describe("Response", func() {
 			assert.Equal(GinkgoT(), util.SystemError, got.Code)
 		})
 	})
-
 })
 
 func BenchmarkSuccessJSONResponseWithDebugNilInterface(b *testing.B) {

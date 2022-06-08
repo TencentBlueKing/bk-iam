@@ -30,9 +30,7 @@ import (
 
 var _ = Describe("SubjectGroups", func() {
 	BeforeEach(func() {
-		var (
-			expiration = 5 * time.Minute
-		)
+		expiration := 5 * time.Minute
 		mockCache := redis.NewMockCache("mockCache", expiration)
 
 		SubjectGroupCache = mockCache
@@ -176,16 +174,12 @@ var _ = Describe("SubjectGroups", func() {
 				assert.NoError(GinkgoT(), err)
 				assert.Len(GinkgoT(), sgs, 2)
 			})
-
 		})
-
 	})
 
 	Context("batchGetSubjectGroups", func() {
 		It("SubjectGroupCache.BatchGet empty", func() {
-			var (
-				expiration = 5 * time.Minute
-			)
+			expiration := 5 * time.Minute
 			mockCache := redis.NewMockCache("mockCache", expiration)
 			SubjectGroupCache = mockCache
 
@@ -258,9 +252,6 @@ var _ = Describe("SubjectGroups", func() {
 				assert.Contains(GinkgoT(), noCachePKs, int64(1))
 				assert.Contains(GinkgoT(), noCachePKs, int64(3))
 			})
-
 		})
-
 	})
-
 })

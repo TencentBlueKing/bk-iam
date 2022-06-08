@@ -60,7 +60,8 @@ func ListSystemPolicy(c *gin.Context) {
 }
 
 func convertToInternalTypesPolicy(systemID string, subject types.Subject, id, templateID int64,
-	policy policy) types.Policy {
+	policy policy,
+) types.Policy {
 	return types.Policy{
 		Version: service.PolicyVersion,
 		ID:      id,
