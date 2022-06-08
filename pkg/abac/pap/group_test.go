@@ -174,7 +174,7 @@ var _ = Describe("GroupController", func() {
 				nil,
 			).
 				AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -224,7 +224,7 @@ var _ = Describe("GroupController", func() {
 			}}).Return(
 				nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -311,7 +311,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService

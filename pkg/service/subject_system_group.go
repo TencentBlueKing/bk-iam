@@ -231,7 +231,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 	for _, r := range relations {
 		subjectPK := r.SubjectPK
 
-		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups, now)
+		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
 		if err != nil {
 			err = errorWrapf(
 				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, systemID=`%d`, subjectPK=`%d`, groups=`%s`",
@@ -240,7 +240,11 @@ func (l *groupService) ListEffectThinSubjectGroups(
 			return nil, err
 		}
 
-		subjectGroups[subjectPK] = append(subjectGroups[subjectPK], thinSubjectGroup...)
+		for _, group := range thinSubjectGroup {
+			if group.PolicyExpiredAt > now {
+				subjectGroups[subjectPK] = append(subjectGroups[subjectPK], group)
+			}
+		}
 	}
 
 	return subjectGroups, nil
@@ -248,7 +252,6 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 func convertSystemSubjectGroupsToThinSubjectGroup(
 	groups string,
-	nowTimestamp int64,
 ) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
 	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
 	if groups != "" {
@@ -259,12 +262,10 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 	}
 
 	for groupPK, expiredAt := range groupExpiredAtMap {
-		if expiredAt > nowTimestamp {
-			thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
-				PK:              groupPK,
-				PolicyExpiredAt: expiredAt,
-			})
-		}
+		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
+			PK:              groupPK,
+			PolicyExpiredAt: expiredAt,
+		})
 	}
 
 	return thinSubjectGroup, nil

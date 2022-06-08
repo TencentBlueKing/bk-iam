@@ -334,18 +334,18 @@ var _ = Describe("SubjectService", func() {
 
 	Describe("convertSystemSubjectGroupsToThinSubjectGroup", func() {
 		It("empty ok", func() {
-			groups, err := convertSystemSubjectGroupsToThinSubjectGroup("", 0)
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup("")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), 0, len(groups))
 		})
 
 		It("UnmarshalFromString fail", func() {
-			_, err := convertSystemSubjectGroupsToThinSubjectGroup("abc", 0)
+			_, err := convertSystemSubjectGroupsToThinSubjectGroup("abc")
 			assert.Error(GinkgoT(), err)
 		})
 
 		It("ok", func() {
-			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`, 0)
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{PK: 1, PolicyExpiredAt: 1555555555}}, groups)
 		})

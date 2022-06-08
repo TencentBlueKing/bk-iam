@@ -138,19 +138,19 @@ func (mr *MockGroupServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(parentP
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectsBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListExistSubjectsBeforeExpiredAt), parentPKs, expiredAt)
 }
 
-// ListGroupAuthSystem mocks base method.
-func (m *MockGroupService) ListGroupAuthSystem(groupPK int64) ([]string, error) {
+// ListGroupAuthSystemIDs mocks base method.
+func (m *MockGroupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGroupAuthSystem", groupPK)
+	ret := m.ctrl.Call(m, "ListGroupAuthSystemIDs", groupPK)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListGroupAuthSystem indicates an expected call of ListGroupAuthSystem.
-func (mr *MockGroupServiceMockRecorder) ListGroupAuthSystem(groupPK interface{}) *gomock.Call {
+// ListGroupAuthSystemIDs indicates an expected call of ListGroupAuthSystemIDs.
+func (mr *MockGroupServiceMockRecorder) ListGroupAuthSystemIDs(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupAuthSystem", reflect.TypeOf((*MockGroupService)(nil).ListGroupAuthSystem), groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupAuthSystemIDs", reflect.TypeOf((*MockGroupService)(nil).ListGroupAuthSystemIDs), groupPK)
 }
 
 // ListMember mocks base method.

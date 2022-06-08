@@ -208,7 +208,7 @@ func BatchDeleteSubjectAllSystemGroupCache(subjectPKs []int64) {
 // BatchDeleteSubjectAuthSystemGroupCache 批量删除subject group授权系统的 group 缓存
 func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, parentPK int64) {
 	svc := service.NewGroupService()
-	systems, err := svc.ListGroupAuthSystem(parentPK)
+	systems, err := svc.ListGroupAuthSystemIDs(parentPK)
 	if err != nil {
 		log.WithError(err).Errorf(
 			"BatchDeleteSubjectAuthSystemGroupCache fail subjectPKs=`%v`, groupPK=`%d`", subjectPKs, parentPK,

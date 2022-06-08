@@ -52,7 +52,7 @@ type GroupService interface {
 	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
 
 	// auth type
-	ListGroupAuthSystem(groupPK int64) ([]string, error)
+	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
 
 	// open api
 	ListThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
@@ -223,7 +223,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
 	if err != nil {
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
@@ -289,7 +289,7 @@ func (l *groupService) BulkDeleteSubjectMembers(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
 	if err != nil {
 		return nil, errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
@@ -349,7 +349,7 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
 	if err != nil {
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
