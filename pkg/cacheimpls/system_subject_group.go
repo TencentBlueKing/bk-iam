@@ -22,11 +22,6 @@ import (
 	"iam/pkg/service/types"
 )
 
-type keySubjectGroup struct {
-	Key           cache.Key
-	SubjectGroups []types.ThinSubjectGroup
-}
-
 // ListSystemSubjectEffectGroups ...
 func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSubjectGroup, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "ListSystemSubjectEffectGroups")
@@ -76,7 +71,7 @@ func batchGetSystemSubjectGroups(
 			SubjectPK: pk,
 		})
 	}
-	hitCacheResults, err := SystemSubjectGroupCache.BatchGet(keys)
+	hitCacheResults, err := SubjectSystemGroupCache.BatchGet(keys)
 	if err != nil {
 		err = errorWrapf(err, "SubjectGroupCache.BatchGet keys=`%+v` fail", keys)
 		return
@@ -87,7 +82,7 @@ func batchGetSystemSubjectGroups(
 		if data, ok := hitCacheResults[key]; ok {
 			// do unmarshal
 			var sg []types.ThinSubjectGroup
-			err = SystemSubjectGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
+			err = SubjectSystemGroupCache.Unmarshal(conv.StringToBytes(data), &sg)
 			if err != nil {
 				err = errorWrapf(err, "unmarshal text in cache into SubjectGroup fail", "")
 				return
@@ -106,7 +101,7 @@ func setMissingSystemSubjectGroup(
 	notCachedSubjectGroups map[int64][]types.ThinSubjectGroup,
 	missingPKs []int64,
 ) {
-	kvs := make([]keySubjectGroup, 0, len(notCachedSubjectGroups)+len(notCachedSubjectGroups))
+	cacheMap := make(map[string][]types.ThinSubjectGroup, len(notCachedSubjectGroups)+len(notCachedSubjectGroups))
 
 	hasGroupPKs := set.NewFixedLengthInt64Set(len(notCachedSubjectGroups))
 	// 3. set to cache
@@ -118,10 +113,7 @@ func setMissingSystemSubjectGroup(
 			SubjectPK: pk,
 		}
 
-		kvs = append(kvs, keySubjectGroup{
-			Key:           key,
-			SubjectGroups: sgs,
-		})
+		cacheMap[key.Key()] = sgs
 	}
 
 	// 4. set the no-groups key cache
@@ -133,46 +125,43 @@ func setMissingSystemSubjectGroup(
 					SubjectPK: pk,
 				}
 
-				kvs = append(kvs, keySubjectGroup{
-					Key:           key,
-					SubjectGroups: []types.ThinSubjectGroup{},
-				})
+				cacheMap[key.Key()] = []types.ThinSubjectGroup{}
 			}
 		}
 	}
 
-	err := batchSetSystemSubjectGroupCache(kvs)
+	err := batchSetSubjectSystemGroupCache(cacheMap)
 	if err != nil {
-		log.Errorf("batchSetSystemSubjectGroupCache to redis fail, kvs=`%+v`, err=`%s`", kvs, err)
+		log.Errorf("batchSetSubjectSystemGroupCache to redis fail, kvs=`%+v`, err=`%s`", cacheMap, err)
 	}
 }
 
-func batchSetSystemSubjectGroupCache(kvs []keySubjectGroup) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchSetSystemSubjectGroup")
+func batchSetSubjectSystemGroupCache(cacheMap map[string][]types.ThinSubjectGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchSetSubjectSystemGroupCache")
 
-	cacheKvs := make([]redis.KV, 0, len(kvs))
+	cacheKvs := make([]redis.KV, 0, len(cacheMap))
 	// batch set the subject_groups at one time
-	for _, kv := range kvs {
-		value, err := SystemSubjectGroupCache.Marshal(kv.SubjectGroups)
+	for key, value := range cacheMap {
+		value, err := SubjectSystemGroupCache.Marshal(value)
 		if err != nil {
-			return errorWrapf(err, "SystemSubjectGroupCache.Marshal fail sg=`%+v`", kv.SubjectGroups)
+			return errorWrapf(err, "SubjectSystemGroupCache.Marshal fail sg=`%+v`", value)
 		}
 
 		cacheKvs = append(cacheKvs, redis.KV{
-			Key:   kv.Key.Key(),
+			Key:   key,
 			Value: conv.BytesToString(value),
 		})
 	}
 
-	err := SystemSubjectGroupCache.BatchSetWithTx(cacheKvs, 0)
+	err := SubjectSystemGroupCache.BatchSetWithTx(cacheKvs, 0)
 	if err != nil {
-		return errorWrapf(err, "SystemSubjectGroupCache.BatchSetWithTx fail kvs=`%+v`", cacheKvs)
+		return errorWrapf(err, "SubjectSystemGroupCache.BatchSetWithTx fail kvs=`%+v`", cacheKvs)
 	}
 
 	return nil
 }
 
-func BatchDeleteSystemSubjectGroupCache(systemIDs []string, subjectPKs []int64) error {
+func batchDeleteSubjectSystemGroupCache(systemIDs []string, subjectPKs []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(CacheLayer, "batchGetSystemSubjectGroups")
 	keys := make([]cache.Key, 0, len(subjectPKs)*len(systemIDs))
 	for _, systemID := range systemIDs {
@@ -188,11 +177,46 @@ func BatchDeleteSystemSubjectGroupCache(systemIDs []string, subjectPKs []int64) 
 		return nil
 	}
 
-	err := SystemSubjectGroupCache.BatchDelete(keys)
+	err := SubjectSystemGroupCache.BatchDelete(keys)
 	if err != nil {
-		err = errorWrapf(err, "SystemSubjectGroupCache.BatchDelete keys=`%+v` fail", keys)
+		err = errorWrapf(err, "SubjectSystemGroupCache.BatchDelete keys=`%+v` fail", keys)
 		return err
 	}
 
 	return nil
+}
+
+// BatchDeleteSubjectAllSystemGroupCache 批量删除subject 所有系统的 group 缓存
+func BatchDeleteSubjectAllSystemGroupCache(subjectPKs []int64) {
+	systemSVC := service.NewSystemService()
+	allSystems, err := systemSVC.ListAll()
+	if err != nil {
+		log.WithError(err).Errorf("BatchDeleteSubjectAllSystemGroupCache fail subjectPKs=`%v`", subjectPKs)
+	} else {
+		systemIDs := make([]string, 0, len(allSystems))
+		for _, s := range allSystems {
+			systemIDs = append(systemIDs, s.ID)
+		}
+
+		err = batchDeleteSubjectSystemGroupCache(systemIDs, subjectPKs)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
+}
+
+// BatchDeleteSubjectAuthSystemGroupCache 批量删除subject group授权系统的 group 缓存
+func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, parentPK int64) {
+	svc := service.NewGroupService()
+	systems, err := svc.ListGroupAuthSystem(parentPK)
+	if err != nil {
+		log.WithError(err).Errorf(
+			"BatchDeleteSubjectAuthSystemGroupCache fail subjectPKs=`%v`, groupPK=`%d`", subjectPKs, parentPK,
+		)
+	} else {
+		err = batchDeleteSubjectSystemGroupCache(systems, subjectPKs)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
 }

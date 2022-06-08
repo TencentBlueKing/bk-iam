@@ -13,6 +13,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
@@ -220,15 +221,17 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
 
-	relations, err := l.subjectSystemGroupManager.ListEffectSubjectGroups(systemID, pks)
+	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, pks)
 	if err != nil {
 		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
 	}
 
+	// 筛选未过期的用户组
+	now := time.Now().Unix()
 	for _, r := range relations {
 		subjectPK := r.SubjectPK
 
-		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
+		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups, now)
 		if err != nil {
 			err = errorWrapf(
 				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, systemID=`%d`, subjectPK=`%d`, groups=`%s`",
@@ -245,6 +248,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 func convertSystemSubjectGroupsToThinSubjectGroup(
 	groups string,
+	nowTimestamp int64,
 ) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
 	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
 	if groups != "" {
@@ -255,10 +259,12 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 	}
 
 	for groupPK, expiredAt := range groupExpiredAtMap {
-		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
-			PK:              groupPK,
-			PolicyExpiredAt: expiredAt,
-		})
+		if expiredAt > nowTimestamp {
+			thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
+				PK:              groupPK,
+				PolicyExpiredAt: expiredAt,
+			})
+		}
 	}
 
 	return thinSubjectGroup, nil

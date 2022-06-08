@@ -108,17 +108,19 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 			return
 		}
 
-		// 从DB查询所有关联的groupPK
-		groups, err := svc.ListThinSubjectGroupsBySubjectPKs(departmentPKs)
-		if err != nil {
-			util.SystemErrorJSONResponse(c, err)
-			return
-		}
+		if len(departmentPKs) > 0 {
+			// 从DB查询所有关联的groupPK
+			groups, err := svc.ListThinSubjectGroupsBySubjectPKs(departmentPKs)
+			if err != nil {
+				util.SystemErrorJSONResponse(c, err)
+				return
+			}
 
-		for _, group := range groups {
-			// 仅仅在有效期内才需要
-			if group.PolicyExpiredAt > nowUnix {
-				groupPKs.Add(group.PK)
+			for _, group := range groups {
+				// 仅仅在有效期内才需要
+				if group.PolicyExpiredAt > nowUnix {
+					groupPKs.Add(group.PK)
+				}
 			}
 		}
 	}

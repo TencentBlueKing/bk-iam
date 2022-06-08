@@ -174,11 +174,10 @@ var _ = Describe("GroupController", func() {
 				nil,
 			).
 				AnyTimes()
-			mockSystemService := mock.NewMockSystemService(ctl)
-			mockSystemService.EXPECT().ListAll().Return([]types.System{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
 
-			patches.ApplyFunc(service.NewSystemService, func() service.SystemService {
-				return mockSystemService
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
 			})
 
 			db, mock := database.NewMockSqlxDB()
@@ -225,11 +224,10 @@ var _ = Describe("GroupController", func() {
 			}}).Return(
 				nil,
 			).AnyTimes()
-			mockSystemService := mock.NewMockSystemService(ctl)
-			mockSystemService.EXPECT().ListAll().Return([]types.System{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
 
-			patches.ApplyFunc(service.NewSystemService, func() service.SystemService {
-				return mockSystemService
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
 			})
 
 			db, mock := database.NewMockSqlxDB()
@@ -313,11 +311,10 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
-			mockSystemService := mock.NewMockSystemService(ctl)
-			mockSystemService.EXPECT().ListAll().Return([]types.System{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystem(int64(1)).Return([]string{}, nil).AnyTimes()
 
-			patches.ApplyFunc(service.NewSystemService, func() service.SystemService {
-				return mockSystemService
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
 			})
 
 			manager := &groupController{

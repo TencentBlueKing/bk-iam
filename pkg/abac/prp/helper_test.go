@@ -42,7 +42,7 @@ var _ = Describe("Helper", func() {
 		})
 
 		It("subject GetPK fail", func() {
-			_, err := getEffectSubjectPKs("systemID", s)
+			_, err := getEffectSubjectPKs("test", s)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subject.Attribute.GetPK")
 		})
@@ -51,7 +51,7 @@ var _ = Describe("Helper", func() {
 			s.FillAttributes(123, []int64{1, 2, 3})
 			s.Attribute.Delete(types.DeptAttrName)
 
-			_, err := getEffectSubjectPKs("systemID", s)
+			_, err := getEffectSubjectPKs("test", s)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subject.GetDepartmentPKs")
 		})
@@ -62,7 +62,7 @@ var _ = Describe("Helper", func() {
 					return nil, errors.New("list subject_group fail")
 				})
 			s.FillAttributes(123, []int64{1, 2, 3})
-			_, err := getEffectSubjectPKs("systemID", s)
+			_, err := getEffectSubjectPKs("test", s)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListSubjectEffectGroups")
 		})
@@ -95,7 +95,7 @@ var _ = Describe("Helper", func() {
 				})
 
 			s.FillAttributes(123, []int64{1, 2, 3})
-			pks, err := getEffectSubjectPKs("systemID", s)
+			pks, err := getEffectSubjectPKs("test", s)
 			assert.NoError(GinkgoT(), err)
 
 			// all = user(123) +  groups(5,6,7)

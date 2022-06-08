@@ -13,6 +13,8 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang/mock/gomock"
@@ -87,7 +89,11 @@ var _ = Describe("SubjectService", func() {
 		It("ok", func() {
 			groups, err := updateGroupsString(`{"1": 2}`, updateFunc)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), `{"1":2,"2":1555555555}`, groups)
+			if groups == `{"1":2,"2":1555555555}` || groups == `{"2":1555555555,"1":2}` {
+				return
+			} else {
+				assert.Fail(GinkgoT(), fmt.Sprintf("groups: %s", groups))
+			}
 		})
 	})
 
@@ -328,18 +334,18 @@ var _ = Describe("SubjectService", func() {
 
 	Describe("convertSystemSubjectGroupsToThinSubjectGroup", func() {
 		It("empty ok", func() {
-			groups, err := convertSystemSubjectGroupsToThinSubjectGroup("")
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup("", 0)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), 0, len(groups))
 		})
 
 		It("UnmarshalFromString fail", func() {
-			_, err := convertSystemSubjectGroupsToThinSubjectGroup("abc")
+			_, err := convertSystemSubjectGroupsToThinSubjectGroup("abc", 0)
 			assert.Error(GinkgoT(), err)
 		})
 
 		It("ok", func() {
-			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`)
+			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`, 0)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{PK: 1, PolicyExpiredAt: 1555555555}}, groups)
 		})
@@ -356,7 +362,7 @@ var _ = Describe("SubjectService", func() {
 
 		It("subjectSystemGroupManager.ListEffectSubjectGroups fail", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
-			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
+			mockSubjectSystemGroupManager.EXPECT().ListSubjectGroups("system", []int64{1}).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -371,8 +377,8 @@ var _ = Describe("SubjectService", func() {
 
 		It("UnmarshalFromString fail", func() {
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
-			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
-				[]dao.EffectSubjectGroups{{SubjectPK: int64(1), Groups: `abc`}}, nil,
+			mockSubjectSystemGroupManager.EXPECT().ListSubjectGroups("system", []int64{1}).Return(
+				[]dao.SubjectGroups{{SubjectPK: int64(1), Groups: `abc`}}, nil,
 			).AnyTimes()
 
 			manager := &groupService{
@@ -384,9 +390,11 @@ var _ = Describe("SubjectService", func() {
 		})
 
 		It("ok", func() {
+			ts := time.Now().Unix() + 10
+
 			mockSubjectSystemGroupManager := mock.NewMockSubjectSystemGroupManager(ctl)
-			mockSubjectSystemGroupManager.EXPECT().ListEffectSubjectGroups("system", []int64{1}).Return(
-				[]dao.EffectSubjectGroups{{SubjectPK: int64(1), Groups: `{"2": 1555555555}`}}, nil,
+			mockSubjectSystemGroupManager.EXPECT().ListSubjectGroups("system", []int64{1}).Return(
+				[]dao.SubjectGroups{{SubjectPK: int64(1), Groups: fmt.Sprintf(`{"2": %d}`, ts)}}, nil,
 			).AnyTimes()
 
 			manager := &groupService{
@@ -397,7 +405,7 @@ var _ = Describe("SubjectService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[int64][]types.ThinSubjectGroup{1: {{
 				PK:              2,
-				PolicyExpiredAt: 1555555555,
+				PolicyExpiredAt: ts,
 			}}}, groups)
 		})
 	})

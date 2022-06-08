@@ -51,6 +51,9 @@ type GroupService interface {
 	BulkDeleteSubjectMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
 	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
 
+	// auth type
+	ListGroupAuthSystem(groupPK int64) ([]string, error)
+
 	// open api
 	ListThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
 }
@@ -81,7 +84,7 @@ func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 	}
 }
 
-func convertEffectiveRelationToThinSubjectGroup(effectRelation dao.EffectSubjectRelation) types.ThinSubjectGroup {
+func convertRelationToThinSubjectGroup(effectRelation dao.EffectSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
 		PK:              effectRelation.ParentPK,
 		PolicyExpiredAt: effectRelation.PolicyExpiredAt,
@@ -101,7 +104,7 @@ func (l *groupService) ListThinSubjectGroupsBySubjectPKs(
 
 	subjectGroups = make([]types.ThinSubjectGroup, 0, len(relations))
 	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertEffectiveRelationToThinSubjectGroup(r))
+		subjectGroups = append(subjectGroups, convertRelationToThinSubjectGroup(r))
 	}
 	return subjectGroups, nil
 }
@@ -220,7 +223,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystem(parentPK)
 	if err != nil {
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
@@ -286,7 +289,7 @@ func (l *groupService) BulkDeleteSubjectMembers(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystem(parentPK)
 	if err != nil {
 		return nil, errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}
@@ -346,7 +349,7 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	systemIDs, err := l.ListGroupAuthSystem(parentPK)
 	if err != nil {
 		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
 	}

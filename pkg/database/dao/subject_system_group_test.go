@@ -31,10 +31,10 @@ func Test_subjectSystemGroupManager_ListGroups(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectSystemGroupManager{DB: db}
-		groups, err := manager.ListEffectSubjectGroups("system", []int64{1})
+		groups, err := manager.ListSubjectGroups("system", []int64{1})
 
 		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, groups, []EffectSubjectGroups{{Groups: "test", SubjectPK: int64(1)}})
+		assert.Equal(t, groups, []SubjectGroups{{Groups: "test", SubjectPK: int64(1)}})
 	})
 }
 

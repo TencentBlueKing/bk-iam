@@ -44,7 +44,7 @@ var (
 	ResourceTypeCache       *redis.Cache
 	SubjectDepartmentCache  *redis.Cache
 	SubjectPKCache          *redis.Cache
-	SystemSubjectGroupCache *redis.Cache
+	SubjectSystemGroupCache *redis.Cache
 	SystemCache             *redis.Cache
 	ActionPKCache           *redis.Cache
 	ActionDetailCache       *redis.Cache
@@ -178,7 +178,7 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
-	SystemSubjectGroupCache = redis.NewCache(
+	SubjectSystemGroupCache = redis.NewCache(
 		"sys_sub_grp",
 		30*time.Minute,
 	)

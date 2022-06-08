@@ -27,9 +27,9 @@ import (
 func Test_setMissingSystemSubjectGroup(t *testing.T) {
 	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
-	SystemSubjectGroupCache = mockCache
+	SubjectSystemGroupCache = mockCache
 
-	setMissingSystemSubjectGroup("systemID", map[int64][]types.ThinSubjectGroup{
+	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
 				PK:              2,
@@ -39,8 +39,8 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 	}, []int64{1, 2, 3})
 
 	var sg []types.ThinSubjectGroup
-	SystemSubjectGroupCache.GetInto(SystemSubjectPKCacheKey{
-		SystemID:  "systemID",
+	SubjectSystemGroupCache.GetInto(SystemSubjectPKCacheKey{
+		SystemID:  "test",
 		SubjectPK: 1,
 	}, &sg, nil)
 
@@ -51,20 +51,20 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 		},
 	}, sg)
 
-	SystemSubjectGroupCache.GetInto(SystemSubjectPKCacheKey{
-		SystemID:  "systemID",
+	SubjectSystemGroupCache.GetInto(SystemSubjectPKCacheKey{
+		SystemID:  "test",
 		SubjectPK: 2,
 	}, &sg, nil)
 
 	assert.Len(t, sg, 0)
 }
 
-func TestBatchDeleteSystemSubjectGroupCache(t *testing.T) {
+func Test_batchDeleteSubjectSystemGroupCache(t *testing.T) {
 	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
-	SystemSubjectGroupCache = mockCache
+	SubjectSystemGroupCache = mockCache
 
-	setMissingSystemSubjectGroup("systemID", map[int64][]types.ThinSubjectGroup{
+	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
 				PK:              2,
@@ -73,12 +73,12 @@ func TestBatchDeleteSystemSubjectGroupCache(t *testing.T) {
 		},
 	}, []int64{1, 2, 3})
 
-	err := BatchDeleteSystemSubjectGroupCache([]string{"systemID"}, []int64{1, 2, 3})
+	err := batchDeleteSubjectSystemGroupCache([]string{"test"}, []int64{1, 2, 3})
 	assert.NoError(t, err)
 
 	var sg []types.ThinSubjectGroup
-	err = SystemSubjectGroupCache.Get(SystemSubjectPKCacheKey{
-		SystemID:  "systemID",
+	err = SubjectSystemGroupCache.Get(SystemSubjectPKCacheKey{
+		SystemID:  "test",
 		SubjectPK: 2,
 	}, &sg)
 	assert.Error(t, err)
@@ -88,9 +88,9 @@ func TestBatchDeleteSystemSubjectGroupCache(t *testing.T) {
 func Test_batchGetSystemSubjectGroups(t *testing.T) {
 	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
-	SystemSubjectGroupCache = mockCache
+	SubjectSystemGroupCache = mockCache
 
-	setMissingSystemSubjectGroup("systemID", map[int64][]types.ThinSubjectGroup{
+	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
 				PK:              2,
@@ -99,7 +99,7 @@ func Test_batchGetSystemSubjectGroups(t *testing.T) {
 		},
 	}, []int64{1, 2, 3})
 
-	subjectGroups, notExistCachePKs, err := batchGetSystemSubjectGroups("systemID", []int64{1, 2, 4})
+	subjectGroups, notExistCachePKs, err := batchGetSystemSubjectGroups("test", []int64{1, 2, 4})
 	assert.NoError(t, err)
 	assert.Equal(t, []types.ThinSubjectGroup{{
 		PK:              2,
@@ -111,9 +111,9 @@ func Test_batchGetSystemSubjectGroups(t *testing.T) {
 func TestListSystemSubjectEffectGroups(t *testing.T) {
 	expiration := 5 * time.Minute
 	mockCache := redis.NewMockCache("mockCache", expiration)
-	SystemSubjectGroupCache = mockCache
+	SubjectSystemGroupCache = mockCache
 
-	setMissingSystemSubjectGroup("systemID", map[int64][]types.ThinSubjectGroup{
+	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
 				PK:              2,
@@ -126,7 +126,7 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 	defer ctl.Finish()
 
 	mockService := mock.NewMockGroupService(ctl)
-	mockService.EXPECT().ListEffectThinSubjectGroups("systemID", []int64{4}).Return(
+	mockService.EXPECT().ListEffectThinSubjectGroups("test", []int64{4}).Return(
 		map[int64][]types.ThinSubjectGroup{4: {{
 			PK:              5,
 			PolicyExpiredAt: 5,
@@ -138,7 +138,7 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 		})
 	defer patches.Reset()
 
-	subjectGroups, err := ListSystemSubjectEffectGroups("systemID", []int64{1, 2, 4})
+	subjectGroups, err := ListSystemSubjectEffectGroups("test", []int64{1, 2, 4})
 	assert.NoError(t, err)
 	assert.Equal(t, []types.ThinSubjectGroup{{
 		PK:              2,

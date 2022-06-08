@@ -159,7 +159,7 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	}
 
 	// 清理subject system group缓存
-	deleteSubjectPKSystemGroupCache(pks)
+	cacheimpls.BatchDeleteSubjectAllSystemGroupCache(pks)
 
 	return err
 }
