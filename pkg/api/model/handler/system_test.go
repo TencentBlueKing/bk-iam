@@ -33,7 +33,6 @@ import (
 // https://golang.org/pkg/testing/#hdr-Subtests_and_Sub_benchmarks
 
 var _ = Describe("System", func() {
-
 	Describe("defaultValidClients", func() {
 		var c *gin.Context
 		BeforeEach(func() {
@@ -51,9 +50,7 @@ var _ = Describe("System", func() {
 			assert.Contains(GinkgoT(), defaultValidClients(c, "123"), "123")
 			assert.Contains(GinkgoT(), defaultValidClients(c, "123"), "abc")
 		})
-
 	})
-
 })
 
 func TestCreateSystem(t *testing.T) {

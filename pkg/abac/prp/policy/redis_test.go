@@ -120,7 +120,6 @@ var _ = Describe("Redis", func() {
 
 			_ = hitPolicies
 			_ = emptyPolicyStr
-
 		})
 		AfterEach(func() {
 			patches.Reset()
@@ -199,7 +198,6 @@ var _ = Describe("Redis", func() {
 			_, _, err := r.retrieve(subjectPKs)
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "should do retrieve 1000", err.Error())
-
 		})
 
 		It("empty policy", func() {
@@ -223,7 +221,6 @@ var _ = Describe("Redis", func() {
 			assert.Len(GinkgoT(), policies, 3)
 			assert.Len(GinkgoT(), missingSubjectPKs, 1)
 			assert.Equal(GinkgoT(), int64(1000), missingSubjectPKs[0])
-
 		})
 
 		It("retrieve fail", func() {
@@ -237,7 +234,6 @@ var _ = Describe("Redis", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "retrieve fail", err.Error())
 		})
-
 	})
 	Describe("setMissing", func() {
 		var r *redisRetriever
@@ -290,7 +286,6 @@ var _ = Describe("Redis", func() {
 			_, _, err := r.batchGet([]int64{123, 456})
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "batchHget fail", err.Error())
-
 		})
 
 		It("all empty", func() {
@@ -332,7 +327,6 @@ var _ = Describe("Redis", func() {
 			assert.Len(GinkgoT(), hitPolicies, 2)
 			assert.Len(GinkgoT(), missSubjectPKs, 0)
 		})
-
 	})
 	Describe("batchSet", func() {
 		var r *redisRetriever
@@ -436,7 +430,6 @@ var _ = Describe("Redis", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "batchDelete fail", err.Error())
 		})
-
 	})
 
 	Describe("deleteSystemSubjectPKsFromRedis", func() {
@@ -459,7 +452,6 @@ var _ = Describe("Redis", func() {
 			err := deleteSystemSubjectPKsFromRedis("test", []int64{})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("batchDeleteSystemSubjectPKsFromRedis", func() {
@@ -498,9 +490,6 @@ var _ = Describe("Redis", func() {
 				})
 			err := batchDeleteSystemSubjectPKsFromRedis([]string{"test"}, []int64{123, 456})
 			assert.Error(GinkgoT(), err)
-
 		})
-
 	})
-
 })

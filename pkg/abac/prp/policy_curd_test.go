@@ -27,7 +27,6 @@ import (
 )
 
 var _ = Describe("PolicyCurd", func() {
-
 	Describe("DeleteByIDs", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -108,7 +107,6 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.DeleteByIDs("test", "user", "test", []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("AlterCustomPolicies", func() {
@@ -310,7 +308,6 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("UpdateSubjectPoliciesExpiredAt", func() {
@@ -711,7 +708,6 @@ var _ = Describe("PolicyCurd", func() {
 			)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("UpdateTemplatePolicies", func() {
@@ -881,7 +877,6 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("DeleteTemplatePolicies", func() {
@@ -964,7 +959,6 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.DeleteTemplatePolicies("test", "user", "test", int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("DeleteTemporaryByIDs", func() {
@@ -1061,7 +1055,6 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("CreateTemporaryPolicies", func() {
@@ -1297,6 +1290,5 @@ var _ = Describe("PolicyCurd", func() {
 			err := manager.DeleteTemporaryBeforeExpiredAt(int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 })

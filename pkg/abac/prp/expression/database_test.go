@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("Database", func() {
-
 	Describe("newDatabaseRetriever", func() {
 		It("ok", func() {
 			var ctl *gomock.Controller
@@ -98,9 +97,7 @@ var _ = Describe("Database", func() {
 
 			assert.Len(GinkgoT(), missingPKs, 1)
 			assert.Contains(GinkgoT(), missingPKs, int64(456))
-
 		})
-
 	})
 
 	Describe("getMissingPKs", func() {
@@ -149,7 +146,6 @@ var _ = Describe("Database", func() {
 
 			assert.Empty(GinkgoT(), missingPKs)
 		})
-
 	})
 
 	Describe("setMissing", func() {

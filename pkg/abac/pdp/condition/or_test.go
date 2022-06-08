@@ -61,7 +61,6 @@ var _ = Describe("Or", func() {
 		It("wrong key", func() {
 			_, err := newOrCondition("wrong", []interface{}{"abc"})
 			assert.Error(GinkgoT(), err)
-
 		})
 
 		It("ok", func() {
@@ -185,12 +184,10 @@ var _ = Describe("Or", func() {
 			_, err := newOrCondition("content", value)
 			assert.Error(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("PartialEval", func() {
 		Describe("no nested AND/OR", func() {
-
 			Describe("single", func() {
 				var c Condition
 				BeforeEach(func() {
@@ -338,7 +335,8 @@ var _ = Describe("Or", func() {
 						"op": "OR",
 						"content": []map[string]interface{}{
 							{"field": "host.system", "op": "eq", "value": "linux"},
-							{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}},
+							{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}},
+						},
 					}
 					assert.Equal(GinkgoT(), got, ct)
 				})

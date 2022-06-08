@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("SubjectService", func() {
-
 	Describe("GetPK", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
@@ -152,7 +151,6 @@ var _ = Describe("SubjectService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), pks, []int64{1, 1, 1})
 		})
-
 	})
 
 	Describe("BulkCreate", func() {

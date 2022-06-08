@@ -26,9 +26,7 @@ import (
 )
 
 var _ = Describe("Utils", func() {
-
 	Describe("truncateArgs", func() {
-
 		Context("a string", func() {
 			var a string
 			BeforeEach(func() {
@@ -66,7 +64,6 @@ var _ = Describe("Utils", func() {
 				assert.Equal(GinkgoT(), `[1`, b)
 			})
 		})
-
 	})
 
 	Describe("IsMysqlDuplicateEntryError", func() {
@@ -90,12 +87,10 @@ var _ = Describe("Utils", func() {
 			}))
 		})
 	})
-
 })
 
 func TestLogSlowSQL(t *testing.T) {
 	// TODO
-
 }
 
 func TestAllowBlankFields(t *testing.T) {
@@ -166,6 +161,7 @@ func truncateInterfaceViaJSON(v interface{}) string {
 	}
 	return stringx.Truncate(s, 10)
 }
+
 func truncateInterfaceViaJSONToBytes(v interface{}) string {
 	s, err := jsoniter.Marshal(v)
 	if err != nil {

@@ -29,9 +29,7 @@ import (
 )
 
 var _ = Describe("Entrance", func() {
-
 	Describe("Eval", func() {
-
 		var entry *debug.Entry
 		var req *request.Request
 		var ctl *gomock.Controller
@@ -102,7 +100,6 @@ var _ = Describe("Entrance", func() {
 			assert.False(GinkgoT(), ok)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
-
 		})
 
 		It("QueryPolicies error", func() {
@@ -379,9 +376,7 @@ var _ = Describe("Entrance", func() {
 				"hello": "world",
 			})
 			assert.NoError(GinkgoT(), err)
-
 		})
-
 	})
 
 	Describe("QueryByExtResources", func() {
@@ -556,7 +551,6 @@ var _ = Describe("Entrance", func() {
 			}, resources)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("QueryAuthPolicies", func() {
@@ -613,7 +607,6 @@ var _ = Describe("Entrance", func() {
 			_, err := QueryAuthPolicies(req, entry, false)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
-
 		})
 
 		It("QueryPolicies error", func() {
@@ -657,7 +650,5 @@ var _ = Describe("Entrance", func() {
 			assert.NotNil(GinkgoT(), policies)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-
 })

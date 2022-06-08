@@ -88,9 +88,7 @@ func makeGetSwitchFunc(key string, defaultValue bool) func() bool {
 	}
 }
 
-var (
-	GetSwitchDisableCreateSystemClientValidation = makeGetSwitchFunc(
-		triggerDisableCreateSystemClientValidationKey,
-		DisableCreateSystemClientValidation,
-	)
+var GetSwitchDisableCreateSystemClientValidation = makeGetSwitchFunc(
+	triggerDisableCreateSystemClientValidationKey,
+	DisableCreateSystemClientValidation,
 )

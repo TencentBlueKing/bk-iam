@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("attribute", func() {
-
 	Describe("Raw Attribute", func() {
 		var a types.Attribute
 		BeforeEach(func() {
@@ -109,7 +108,6 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, v)
 		})
-
 	})
 
 	Describe("ActionAttribute", func() {
@@ -159,7 +157,6 @@ var _ = Describe("attribute", func() {
 			rt, err := a.GetResourceTypes()
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedRt, rt)
-
 		})
 
 		It("SetResourceTypes", func() {
@@ -176,7 +173,6 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedRt, v)
 		})
-
 	})
 
 	Describe("SubjectAttribute", func() {
@@ -259,7 +255,5 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedSr, v)
 		})
-
 	})
-
 })

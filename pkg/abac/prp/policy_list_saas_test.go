@@ -15,14 +15,10 @@ import (
 )
 
 var _ = Describe("PolicyListSaas", func() {
-
 	Describe("convertSaaSPoliciesType", func() {
-
 	})
 	Describe("ListSaaSBySubjectSystemTemplate", func() {
-
 	})
 	Describe("GetByActionTemplate", func() {
-
 	})
 })

@@ -15,18 +15,12 @@ import (
 )
 
 var _ = Describe("PolicyList", func() {
-
 	Describe("convertToAuthPolicy", func() {
-
 	})
 	Describe("ListBySubjectAction", func() {
-
 	})
 	Describe("getPoliciesFromCache", func() {
-
 	})
 	Describe("GetExpressionsFromCache", func() {
-
 	})
-
 })

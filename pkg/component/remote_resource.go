@@ -31,9 +31,7 @@ const (
 	replaceToIP   = "*.*.*.*"
 )
 
-var (
-	ipRegex = regexp.MustCompile(ipRegexString)
-)
+var ipRegex = regexp.MustCompile(ipRegexString)
 
 // RemoteResourceRequest ...
 type RemoteResourceRequest struct {
@@ -65,8 +63,7 @@ type RemoteResourceClient interface {
 		fields []string) ([]map[string]interface{}, error)
 }
 
-type remoteResourceClient struct {
-}
+type remoteResourceClient struct{}
 
 // NewRemoteResourceClient ...
 func NewRemoteResourceClient() RemoteResourceClient {

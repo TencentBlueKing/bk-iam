@@ -78,7 +78,6 @@ var _ = Describe("Bool", func() {
 			}
 			assert.False(GinkgoT(), c.Eval(boolCtx(true)))
 		})
-
 	})
 
 	Describe("Translate", func() {
@@ -112,5 +111,4 @@ var _ = Describe("Bool", func() {
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 	})
-
 })
