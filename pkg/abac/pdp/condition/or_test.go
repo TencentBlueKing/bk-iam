@@ -401,7 +401,11 @@ var _ = Describe("Or", func() {
 				// assert.Nil(GinkgoT(), nc)
 				ct, err := nc.Translate(true)
 				assert.NoError(GinkgoT(), err)
-				got := map[string]interface{}{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}
+				got := map[string]interface{}{
+					"field": "subject.type",
+					"op":    "in",
+					"value": []interface{}{"mysql", "linux"},
+				}
 				assert.Equal(GinkgoT(), got, ct)
 			})
 

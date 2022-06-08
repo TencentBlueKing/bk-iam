@@ -289,7 +289,11 @@ var _ = Describe("DepartmentService", func() {
 
 			subjectDepartments, err := manager.ListPaging(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.SubjectDepartment{{SubjectPK: int64(1), DepartmentPKs: []int64{2, 3}}}, subjectDepartments)
+			assert.Equal(
+				GinkgoT(),
+				[]types.SubjectDepartment{{SubjectPK: int64(1), DepartmentPKs: []int64{2, 3}}},
+				subjectDepartments,
+			)
 		})
 	})
 })

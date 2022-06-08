@@ -532,7 +532,14 @@ var _ = Describe("PolicyCurd", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{}, []int64{1})
+			err := manager.CreateAndDeleteTemplatePolicies(
+				"test",
+				"user",
+				"test",
+				int64(1),
+				[]types.Policy{},
+				[]int64{1},
+			)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -553,7 +560,14 @@ var _ = Describe("PolicyCurd", func() {
 				actionService:  mockActionService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{}, []int64{1})
+			err := manager.CreateAndDeleteTemplatePolicies(
+				"test",
+				"user",
+				"test",
+				int64(1),
+				[]types.Policy{},
+				[]int64{1},
+			)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListThinActionBySystem")
 		})
@@ -577,7 +591,14 @@ var _ = Describe("PolicyCurd", func() {
 				actionService:  mockActionService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{}, []int64{1})
+			err := manager.CreateAndDeleteTemplatePolicies(
+				"test",
+				"user",
+				"test",
+				int64(1),
+				[]types.Policy{},
+				[]int64{1},
+			)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListActionResourceTypeIDByActionSystem")
 		})
@@ -639,7 +660,14 @@ var _ = Describe("PolicyCurd", func() {
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{}, []int64{1})
+			err := manager.CreateAndDeleteTemplatePolicies(
+				"test",
+				"user",
+				"test",
+				int64(1),
+				[]types.Policy{},
+				[]int64{1},
+			)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.CreateAndDeleteTemplatePolicies")
 		})
@@ -673,7 +701,14 @@ var _ = Describe("PolicyCurd", func() {
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{}, []int64{1})
+			err := manager.CreateAndDeleteTemplatePolicies(
+				"test",
+				"user",
+				"test",
+				int64(1),
+				[]types.Policy{},
+				[]int64{1},
+			)
 			assert.NoError(GinkgoT(), err)
 		})
 

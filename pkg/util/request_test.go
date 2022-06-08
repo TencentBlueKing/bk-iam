@@ -133,7 +133,11 @@ var _ = Describe("Request", func() {
 
 	Describe("BasicAuthAuthorizationHeader", func() {
 		It("valid basic auth", func() {
-			assert.Equal(GinkgoT(), "Basic YWRtaW46cGFzc3dvcmQ=", util.BasicAuthAuthorizationHeader("admin", "password"))
+			assert.Equal(
+				GinkgoT(),
+				"Basic YWRtaW46cGFzc3dvcmQ=",
+				util.BasicAuthAuthorizationHeader("admin", "password"),
+			)
 		})
 
 	})

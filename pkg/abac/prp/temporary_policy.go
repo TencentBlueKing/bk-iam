@@ -212,7 +212,10 @@ func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPoli
 		}
 		policy, ok := value.(*types.TemporaryPolicy)
 		if !ok {
-			log.Errorf("[%s] parse cachedTemporaryPolicy in memory cache fail, will do retrieve!", TemporaryPolicyMemoryLayer)
+			log.Errorf(
+				"[%s] parse cachedTemporaryPolicy in memory cache fail, will do retrieve!",
+				TemporaryPolicyMemoryLayer,
+			)
 			missPKs = append(missPKs, pk)
 			continue
 		}

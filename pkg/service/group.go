@@ -13,8 +13,12 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
@@ -45,19 +49,23 @@ type GroupService interface {
 	) ([]types.GroupMember, error)
 	ListMember(parentPK int64) ([]types.GroupMember, error)
 
-	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, members []types.SubjectRelationPKPolicyExpiredAt) error
+	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
 	BulkDeleteSubjectMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
-	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []types.SubjectRelation) error
+	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
 }
 
 type groupService struct {
-	manager dao.SubjectRelationManager
+	manager                   dao.SubjectRelationManager
+	authTypeManger            dao.GroupSystemAuthTypeManager
+	subjectSystemGroupManager dao.SubjectSystemGroupManager
 }
 
 // NewGroupService GroupService工厂
 func NewGroupService() GroupService {
 	return &groupService{
-		manager: dao.NewSubjectRelationManager(),
+		manager:                   dao.NewSubjectRelationManager(),
+		authTypeManger:            dao.NewGroupSystemAuthTypeManager(),
+		subjectSystemGroupManager: dao.NewSubjectSystemGroupManager(),
 	}
 }
 
@@ -215,6 +223,7 @@ func (l *groupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
 // UpdateMembersExpiredAtWithTx ...
 func (l *groupService) UpdateMembersExpiredAtWithTx(
 	tx *sqlx.Tx,
+	parentPK int64,
 	members []types.SubjectRelationPKPolicyExpiredAt,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteSubjectMember")
@@ -231,6 +240,28 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	if err != nil {
 		err = errorWrapf(err, "manager.UpdateExpiredAtWithTx relations=`%+v` fail", relations)
 		return err
+	}
+
+	// 更新subject system group
+	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	if err != nil {
+		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+	}
+
+	for _, systemID := range systemIDs {
+		for _, m := range members {
+			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, parentPK, m.PolicyExpiredAt)
+			if err != nil {
+				return errorWrapf(
+					err,
+					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, expiredAt=`%d`, fail",
+					systemID,
+					m.SubjectPK,
+					parentPK,
+					m.PolicyExpiredAt,
+				)
+			}
+		}
 	}
 
 	return nil
@@ -277,6 +308,37 @@ func (l *groupService) BulkDeleteSubjectMembers(
 		typeCount[types.DepartmentType] = count
 	}
 
+	// 更新subject system group
+	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	if err != nil {
+		return nil, errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+	}
+
+	subjectPKs := make([]int64, 0, len(userPKs)+len(departmentPKs))
+	subjectPKs = append(subjectPKs, userPKs...)
+	subjectPKs = append(subjectPKs, departmentPKs...)
+
+	for _, systemID := range systemIDs {
+		for _, subjectPK := range subjectPKs {
+			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, parentPK)
+			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
+				// 数据不存在时记录日志
+				log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
+					systemID, subjectPK, parentPK)
+			}
+
+			if err != nil {
+				return nil, errorWrapf(
+					err,
+					"updateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, fail",
+					systemID,
+					subjectPK,
+					parentPK,
+				)
+			}
+		}
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, errorWrapf(err, "tx commit error")
@@ -285,7 +347,11 @@ func (l *groupService) BulkDeleteSubjectMembers(
 }
 
 // BulkCreateSubjectMembers ...
-func (l *groupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []types.SubjectRelation) error {
+func (l *groupService) BulkCreateSubjectMembersWithTx(
+	tx *sqlx.Tx,
+	parentPK int64,
+	relations []types.SubjectRelation,
+) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateSubjectMembers")
 	// 组装需要创建的Subject关系
 	daoRelations := make([]dao.SubjectRelation, 0, len(relations))
@@ -300,6 +366,28 @@ func (l *groupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, relations []t
 	err := l.manager.BulkCreateWithTx(tx, daoRelations)
 	if err != nil {
 		return errorWrapf(err, "manager.BulkCreateWithTx relations=`%+v` fail", daoRelations)
+	}
+
+	// 更新subject system group
+	systemIDs, err := l.listGroupAuthSystem(parentPK)
+	if err != nil {
+		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+	}
+
+	for _, systemID := range systemIDs {
+		for _, r := range relations {
+			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, parentPK, r.PolicyExpiredAt)
+			if err != nil {
+				return errorWrapf(
+					err,
+					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, expiredAt=`%d`, fail",
+					systemID,
+					r.SubjectPK,
+					parentPK,
+					r.PolicyExpiredAt,
+				)
+			}
+		}
 	}
 	return nil
 }
@@ -347,6 +435,12 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) er
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", pks)
+	}
+
+	// 批量删除用户的subject system group
+	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "subjectSystemGroupManager.DeleteBySubjectPKsWithTx pks=`%+v` fail", pks)
 	}
 
 	return nil

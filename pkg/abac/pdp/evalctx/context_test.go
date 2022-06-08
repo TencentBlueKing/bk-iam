@@ -145,8 +145,12 @@ var _ = Describe("Context", func() {
 			c1 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam.system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"iam.path": []interface{}{"/biz,1/"}},
+						},
 					},
 				},
 			}
@@ -155,9 +159,15 @@ var _ = Describe("Context", func() {
 			c2 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}}},
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.system": []interface{}{"iam"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}},
+						},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam._bk_iam_env_.system": []interface{}{"iam"}},
+						},
 					},
 				},
 			}
@@ -166,10 +176,20 @@ var _ = Describe("Context", func() {
 			c3 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}}},
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai"}}},
-						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam.host.system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"iam.host.path": []interface{}{"/biz,1/"}},
+						},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{
+								"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai"},
+							},
+						},
+						map[string]interface{}{
+							"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}},
+						},
 					},
 				},
 			}
@@ -217,8 +237,14 @@ var _ = Describe("Context", func() {
 			c3 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai", "America/New_York"}}},
-						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{
+								"iam._bk_iam_env_.tz": []interface{}{"Asia/Shanghai", "America/New_York"},
+							},
+						},
+						map[string]interface{}{
+							"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}},
+						},
 					},
 				},
 			}
@@ -231,8 +257,12 @@ var _ = Describe("Context", func() {
 			c3 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{123}}},
-						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{123}},
+						},
+						map[string]interface{}{
+							"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}},
+						},
 					},
 				},
 			}
@@ -245,8 +275,12 @@ var _ = Describe("Context", func() {
 			c3 := pdptypes.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"wrong"}}},
-						map[string]interface{}{"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"iam._bk_iam_env_.tz": []interface{}{"wrong"}},
+						},
+						map[string]interface{}{
+							"NumericLt": map[string]interface{}{"iam._bk_iam_env_.hms": []interface{}{163630}},
+						},
 					},
 				},
 			}
