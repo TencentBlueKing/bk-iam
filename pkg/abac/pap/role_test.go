@@ -49,7 +49,7 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkAddSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListPKsBySubjects")
 		})
@@ -67,7 +67,7 @@ var _ = Describe("RoleController", func() {
 			).AnyTimes()
 
 			mockRoleService := mock.NewMockRoleService(ctl)
-			mockRoleService.EXPECT().BulkCreate("super", "test", []int64{1}).Return(
+			mockRoleService.EXPECT().BulkAddSubjects("super", "test", []int64{1}).Return(
 				errors.New("error"),
 			).AnyTimes()
 
@@ -76,9 +76,9 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkAddSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkCreate")
+			assert.Contains(GinkgoT(), err.Error(), "BulkAddSubjects")
 		})
 
 		It("ok", func() {
@@ -94,7 +94,7 @@ var _ = Describe("RoleController", func() {
 			).AnyTimes()
 
 			mockRoleService := mock.NewMockRoleService(ctl)
-			mockRoleService.EXPECT().BulkCreate("super", "test", []int64{1}).Return(
+			mockRoleService.EXPECT().BulkAddSubjects("super", "test", []int64{1}).Return(
 				nil,
 			).AnyTimes()
 
@@ -111,7 +111,7 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkAddSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -141,7 +141,7 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDelete("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListPKsBySubjects")
 		})
@@ -159,7 +159,7 @@ var _ = Describe("RoleController", func() {
 			).AnyTimes()
 
 			mockRoleService := mock.NewMockRoleService(ctl)
-			mockRoleService.EXPECT().BulkDelete("super", "test", []int64{1}).Return(
+			mockRoleService.EXPECT().BulkDeleteSubjects("super", "test", []int64{1}).Return(
 				errors.New("error"),
 			).AnyTimes()
 
@@ -168,7 +168,7 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDelete("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDelete")
 		})
@@ -186,7 +186,7 @@ var _ = Describe("RoleController", func() {
 			).AnyTimes()
 
 			mockRoleService := mock.NewMockRoleService(ctl)
-			mockRoleService.EXPECT().BulkDelete("super", "test", []int64{1}).Return(
+			mockRoleService.EXPECT().BulkDeleteSubjects("super", "test", []int64{1}).Return(
 				nil,
 			).AnyTimes()
 
@@ -203,7 +203,7 @@ var _ = Describe("RoleController", func() {
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.BulkDelete("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteSubjects("super", "test", []Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.NoError(GinkgoT(), err)
 		})
 	})

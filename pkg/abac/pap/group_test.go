@@ -26,7 +26,7 @@ import (
 )
 
 var _ = Describe("GroupController", func() {
-	Describe("createOrUpdateSubjectMembers", func() {
+	Describe("createOrUpdateGroupMembers", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -61,7 +61,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
+			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -106,7 +106,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
+			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -117,7 +117,7 @@ var _ = Describe("GroupController", func() {
 			assert.Contains(GinkgoT(), err.Error(), "UpdateMembersExpiredAtWithTx")
 		})
 
-		It("bulkCreateSubjectMembers fail", func() {
+		It("bulkCreateGroupMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.GroupMember{}, nil,
@@ -128,7 +128,7 @@ var _ = Describe("GroupController", func() {
 					nil,
 				).
 				AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
+			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),
@@ -149,7 +149,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
+			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -157,7 +157,7 @@ var _ = Describe("GroupController", func() {
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkCreateSubjectMembersWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "BulkCreateGroupMembersWithTx")
 		})
 
 		It("not create ok", func() {
@@ -187,7 +187,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.alterSubjectMembers("group", "1", []GroupMember{
+			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -211,7 +211,7 @@ var _ = Describe("GroupController", func() {
 					nil,
 				).
 				AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
+			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),
@@ -232,7 +232,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			typeCount, err := manager.alterSubjectMembers("group", "1", []GroupMember{
+			typeCount, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
 					Type:            "user",
 					ID:              "2",
@@ -244,7 +244,7 @@ var _ = Describe("GroupController", func() {
 		})
 	})
 
-	Describe("DeleteSubjectMembers", func() {
+	Describe("DeleteGroupMembers", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -271,9 +271,9 @@ var _ = Describe("GroupController", func() {
 			patches.Reset()
 		})
 
-		It("service.BulkDeleteSubjectMembers fail", func() {
+		It("service.BulkDeleteGroupMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
+			mockGroupService.EXPECT().BulkDeleteGroupMembers(int64(1), []int64{2}, []int64{3}).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -281,7 +281,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := manager.DeleteSubjectMembers("group", "1", []Subject{
+			_, err := manager.DeleteGroupMembers("group", "1", []Subject{
 				{
 					Type: "user",
 					ID:   "2",
@@ -292,12 +292,12 @@ var _ = Describe("GroupController", func() {
 				},
 			})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteSubjectMembers")
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteGroupMembers")
 		})
 
 		It("ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3}).Return(
+			mockGroupService.EXPECT().BulkDeleteGroupMembers(int64(1), []int64{2}, []int64{3}).Return(
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
 
@@ -305,7 +305,7 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			typeCount, err := manager.DeleteSubjectMembers("group", "1", []Subject{
+			typeCount, err := manager.DeleteGroupMembers("group", "1", []Subject{
 				{
 					Type: "user",
 					ID:   "2",

@@ -49,8 +49,8 @@ type GroupService interface {
 	ListMember(parentPK int64) ([]types.GroupMember, error)
 
 	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
-	BulkDeleteSubjectMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
-	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
+	BulkDeleteGroupMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
+	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
 }
 
 type groupService struct {
@@ -172,7 +172,7 @@ func (l *groupService) ListExistSubjectsBeforeExpiredAt(
 
 // from subject_member.go
 
-func convertToSubjectMembers(daoRelations []dao.SubjectRelation) []types.GroupMember {
+func convertToGroupMembers(daoRelations []dao.SubjectRelation) []types.GroupMember {
 	relations := make([]types.GroupMember, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		relations = append(relations, types.GroupMember{
@@ -205,7 +205,7 @@ func (l *groupService) ListPagingMember(parentPK, limit, offset int64) ([]types.
 			parentPK, limit, offset)
 	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	return convertToGroupMembers(daoRelations), nil
 }
 
 // ListMember ...
@@ -216,7 +216,7 @@ func (l *groupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
 			"ListMember", "manager.ListMember parentPK=`%d` fail", parentPK)
 	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	return convertToGroupMembers(daoRelations), nil
 }
 
 // UpdateMembersExpiredAtWithTx ...
@@ -225,7 +225,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	parentPK int64,
 	members []types.SubjectRelationPKPolicyExpiredAt,
 ) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteSubjectMember")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateMembersExpiredAtWithTx")
 
 	relations := make([]dao.SubjectRelationPKPolicyExpiredAt, 0, len(members))
 	for _, m := range members {
@@ -266,12 +266,12 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	return nil
 }
 
-// BulkDeleteSubjectMembers ...
-func (l *groupService) BulkDeleteSubjectMembers(
+// BulkDeleteGroupMembers ...
+func (l *groupService) BulkDeleteGroupMembers(
 	parentPK int64,
 	userPKs, departmentPKs []int64,
 ) (map[string]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteSubjectMember")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteGroupMember")
 
 	// 使用事务
 	tx, err := database.GenerateDefaultDBTx()
@@ -345,13 +345,13 @@ func (l *groupService) BulkDeleteSubjectMembers(
 	return typeCount, err
 }
 
-// BulkCreateSubjectMembers ...
-func (l *groupService) BulkCreateSubjectMembersWithTx(
+// BulkCreateGroupMembersWithTx ...
+func (l *groupService) BulkCreateGroupMembersWithTx(
 	tx *sqlx.Tx,
 	parentPK int64,
 	relations []types.SubjectRelation,
 ) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateSubjectMembers")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateGroupMembersWithTx")
 	// 组装需要创建的Subject关系
 	daoRelations := make([]dao.SubjectRelation, 0, len(relations))
 	for _, r := range relations {
@@ -416,7 +416,7 @@ func (l *groupService) ListPagingMemberBeforeExpiredAt(
 			parentPK, expiredAt, limit, offset)
 	}
 
-	return convertToSubjectMembers(daoRelations), nil
+	return convertToGroupMembers(daoRelations), nil
 }
 
 // BulkDeleteBySubjectPKs ...

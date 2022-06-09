@@ -61,8 +61,8 @@ func (d resourceTypeCacheDeleter) Execute(key cache.Key) (err error) {
 // handler/subject.go => BatchDeleteSubjects  =>      for DeleteSubjectPK(s.Type, s.ID)
 //                                           |=>          BatchDeleteSubjectGroups(pks)
 //                                           |=>          BatchDeleteSubjectDepartments(pks)
-//                    => DeleteSubjectMembers =>      for DeleteSubjectGroup(pk)
-//                    => BatchAddSubjectMembers =>    for DeleteSubjectGroup(pk)
+//                    => DeleteGroupMembers =>      for DeleteSubjectGroup(pk)
+//                    => BatchAddGroupMembers =>    for DeleteSubjectGroup(pk)
 //                    => BatchDeleteSubjectDepartments => BatchDeleteSubjectDepartments(pks)
 //                    => BatchUpdateSubjectDepartments => BatchDeleteSubjectDepartments(pks)
 // subject => 一个subject更新, 批量刷掉其所有缓存, 不考虑范围?  Delete SubjectPK/SubjectGroups/SubjectDepartments, batch support

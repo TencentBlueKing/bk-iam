@@ -20,11 +20,11 @@ import (
 	"iam/pkg/util"
 )
 
-// ListSubjectMember 查询用户组的成员列表
-func ListSubjectMember(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSubjectMember")
+// ListGroupMember 查询用户组的成员列表
+func ListGroupMember(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListGroupMember")
 
-	var subject listSubjectMemberSerializer
+	var subject listGroupMemberSerializer
 	if err := c.ShouldBindQuery(&subject); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -56,9 +56,9 @@ func ListSubjectMember(c *gin.Context) {
 	})
 }
 
-// GetSubjectGroup 获取subject关联的用户组
-func GetSubjectGroup(c *gin.Context) {
-	var subject subjectRelationSerializer
+// ListSubjectGroups 获取subject关联的用户组
+func ListSubjectGroups(c *gin.Context) {
+	var subject listSubjectGroupSerializer
 	if err := c.ShouldBindQuery(&subject); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -67,8 +67,7 @@ func GetSubjectGroup(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	groups, err := ctl.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups",
-			"type=`%s`, id=`%s`", subject.Type, subject.ID)
+		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups", "type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -76,9 +75,9 @@ func GetSubjectGroup(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", groups)
 }
 
-// UpdateSubjectMembersExpiredAt subject关系续期
-func UpdateSubjectMembersExpiredAt(c *gin.Context) {
-	var body subjectMemberExpiredAtSerializer
+// BatchUpdateGroupMembersExpiredAt subject关系续期
+func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
+	var body groupMemberExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -89,7 +88,7 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 		return
 	}
 
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "UpdateSubjectMembersExpiredAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchUpdateGroupMembersExpiredAt")
 
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
@@ -101,9 +100,9 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	err := ctl.UpdateSubjectMembersExpiredAt(body.Type, body.ID, papSubjects)
+	err := ctl.UpdateGroupMembersExpiredAt(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorWrapf(err, "ctl.UpdateSubjectMembersExpiredAt",
+		err = errorWrapf(err, "ctl.UpdateGroupMembersExpiredAt",
 			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -112,9 +111,9 @@ func UpdateSubjectMembersExpiredAt(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", gin.H{})
 }
 
-// DeleteSubjectMembers 批量删除subject成员
-func DeleteSubjectMembers(c *gin.Context) {
-	var body deleteSubjectMemberSerializer
+// BatchDeleteGroupMembers 批量删除subject成员
+func BatchDeleteGroupMembers(c *gin.Context) {
+	var body deleteGroupMemberSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -128,9 +127,9 @@ func DeleteSubjectMembers(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Members)
 
 	ctl := pap.NewGroupController()
-	typeCount, err := ctl.DeleteSubjectMembers(body.Type, body.ID, papSubjects)
+	typeCount, err := ctl.DeleteGroupMembers(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.DeleteSubjectMembers",
+		err = errorx.Wrapf(err, "Handler", "ctl.DeleteGroupMembers",
 			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -139,11 +138,11 @@ func DeleteSubjectMembers(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", typeCount)
 }
 
-// BatchAddSubjectMembers 批量添加subject成员
-func BatchAddSubjectMembers(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAddSubjectMembers")
+// BatchAddGroupMembers 批量添加subject成员
+func BatchAddGroupMembers(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAddGroupMembers")
 
-	var body addSubjectMembersSerializer
+	var body addGroupMembersSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -163,10 +162,16 @@ func BatchAddSubjectMembers(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	typeCount, err := ctl.CreateOrUpdateSubjectMembers(body.Type, body.ID, papSubjects)
+	typeCount, err := ctl.CreateOrUpdateGroupMembers(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorWrapf(err, "ctl.CreateOrUpdateSubjectMembers",
-			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
+		err = errorWrapf(
+			err,
+			"ctl.CreateOrUpdateGroupMembers",
+			"type=`%s`, id=`%s`, subjects=`%+v`",
+			body.Type,
+			body.ID,
+			papSubjects,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -174,11 +179,11 @@ func BatchAddSubjectMembers(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", typeCount)
 }
 
-// ListSubjectMemberBeforeExpiredAt 获取小于指定过期时间的成员列表
-func ListSubjectMemberBeforeExpiredAt(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSubjectmembersBeforeExpiredAt")
+// ListGroupMemberBeforeExpiredAt 获取小于指定过期时间的成员列表
+func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListGroupMemberBeforeExpiredAt")
 
-	var body listSubjectMemberBeforeExpiredAtSerializer
+	var body listGroupMemberBeforeExpiredAtSerializer
 	if err := c.ShouldBindQuery(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return

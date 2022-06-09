@@ -5,81 +5,36 @@
 package mock
 
 import (
-	dao "iam/pkg/database/dao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	dao "iam/pkg/database/dao"
+	reflect "reflect"
 )
 
-// MockGroupSystemAuthTypeManager is a mock of GroupSystemAuthTypeManager interface.
+// MockGroupSystemAuthTypeManager is a mock of GroupSystemAuthTypeManager interface
 type MockGroupSystemAuthTypeManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockGroupSystemAuthTypeManagerMockRecorder
 }
 
-// MockGroupSystemAuthTypeManagerMockRecorder is the mock recorder for MockGroupSystemAuthTypeManager.
+// MockGroupSystemAuthTypeManagerMockRecorder is the mock recorder for MockGroupSystemAuthTypeManager
 type MockGroupSystemAuthTypeManagerMockRecorder struct {
 	mock *MockGroupSystemAuthTypeManager
 }
 
-// NewMockGroupSystemAuthTypeManager creates a new mock instance.
+// NewMockGroupSystemAuthTypeManager creates a new mock instance
 func NewMockGroupSystemAuthTypeManager(ctrl *gomock.Controller) *MockGroupSystemAuthTypeManager {
 	mock := &MockGroupSystemAuthTypeManager{ctrl: ctrl}
 	mock.recorder = &MockGroupSystemAuthTypeManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockGroupSystemAuthTypeManager) EXPECT() *MockGroupSystemAuthTypeManagerMockRecorder {
 	return m.recorder
 }
 
-// CreateWithTx mocks base method.
-func (m *MockGroupSystemAuthTypeManager) CreateWithTx(tx *sqlx.Tx, groupSystemAuthType dao.GroupSystemAuthType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWithTx", tx, groupSystemAuthType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateWithTx indicates an expected call of CreateWithTx.
-func (mr *MockGroupSystemAuthTypeManagerMockRecorder) CreateWithTx(tx, groupSystemAuthType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).CreateWithTx), tx, groupSystemAuthType)
-}
-
-// DeleteBySystemGroupWithTx mocks base method.
-func (m *MockGroupSystemAuthTypeManager) DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteBySystemGroupWithTx", tx, systemID, groupPK)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DeleteBySystemGroupWithTx indicates an expected call of DeleteBySystemGroupWithTx.
-func (mr *MockGroupSystemAuthTypeManagerMockRecorder) DeleteBySystemGroupWithTx(tx, systemID, groupPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySystemGroupWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).DeleteBySystemGroupWithTx), tx, systemID, groupPK)
-}
-
-// GetBySystemGroup mocks base method.
-func (m *MockGroupSystemAuthTypeManager) GetBySystemGroup(systemID string, groupPK int64) (dao.GroupSystemAuthType, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBySystemGroup", systemID, groupPK)
-	ret0, _ := ret[0].(dao.GroupSystemAuthType)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBySystemGroup indicates an expected call of GetBySystemGroup.
-func (mr *MockGroupSystemAuthTypeManagerMockRecorder) GetBySystemGroup(systemID, groupPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySystemGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).GetBySystemGroup), systemID, groupPK)
-}
-
-// ListAuthTypeBySystemGroups mocks base method.
+// ListAuthTypeBySystemGroups mocks base method
 func (m *MockGroupSystemAuthTypeManager) ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]dao.GroupAuthType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAuthTypeBySystemGroups", systemID, groupPKs)
@@ -88,13 +43,13 @@ func (m *MockGroupSystemAuthTypeManager) ListAuthTypeBySystemGroups(systemID str
 	return ret0, ret1
 }
 
-// ListAuthTypeBySystemGroups indicates an expected call of ListAuthTypeBySystemGroups.
+// ListAuthTypeBySystemGroups indicates an expected call of ListAuthTypeBySystemGroups
 func (mr *MockGroupSystemAuthTypeManagerMockRecorder) ListAuthTypeBySystemGroups(systemID, groupPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAuthTypeBySystemGroups", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).ListAuthTypeBySystemGroups), systemID, groupPKs)
 }
 
-// ListByGroup mocks base method.
+// ListByGroup mocks base method
 func (m *MockGroupSystemAuthTypeManager) ListByGroup(groupPK int64) ([]dao.GroupSystemAuthType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByGroup", groupPK)
@@ -103,13 +58,42 @@ func (m *MockGroupSystemAuthTypeManager) ListByGroup(groupPK int64) ([]dao.Group
 	return ret0, ret1
 }
 
-// ListByGroup indicates an expected call of ListByGroup.
+// ListByGroup indicates an expected call of ListByGroup
 func (mr *MockGroupSystemAuthTypeManagerMockRecorder) ListByGroup(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).ListByGroup), groupPK)
 }
 
-// UpdateWithTx mocks base method.
+// GetBySystemGroup mocks base method
+func (m *MockGroupSystemAuthTypeManager) GetBySystemGroup(systemID string, groupPK int64) (dao.GroupSystemAuthType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBySystemGroup", systemID, groupPK)
+	ret0, _ := ret[0].(dao.GroupSystemAuthType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBySystemGroup indicates an expected call of GetBySystemGroup
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) GetBySystemGroup(systemID, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySystemGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).GetBySystemGroup), systemID, groupPK)
+}
+
+// CreateWithTx mocks base method
+func (m *MockGroupSystemAuthTypeManager) CreateWithTx(tx *sqlx.Tx, groupSystemAuthType dao.GroupSystemAuthType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWithTx", tx, groupSystemAuthType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateWithTx indicates an expected call of CreateWithTx
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) CreateWithTx(tx, groupSystemAuthType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).CreateWithTx), tx, groupSystemAuthType)
+}
+
+// UpdateWithTx mocks base method
 func (m *MockGroupSystemAuthTypeManager) UpdateWithTx(tx *sqlx.Tx, groupSystemAuthType dao.GroupSystemAuthType) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWithTx", tx, groupSystemAuthType)
@@ -118,8 +102,23 @@ func (m *MockGroupSystemAuthTypeManager) UpdateWithTx(tx *sqlx.Tx, groupSystemAu
 	return ret0, ret1
 }
 
-// UpdateWithTx indicates an expected call of UpdateWithTx.
+// UpdateWithTx indicates an expected call of UpdateWithTx
 func (mr *MockGroupSystemAuthTypeManagerMockRecorder) UpdateWithTx(tx, groupSystemAuthType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).UpdateWithTx), tx, groupSystemAuthType)
+}
+
+// DeleteBySystemGroupWithTx mocks base method
+func (m *MockGroupSystemAuthTypeManager) DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBySystemGroupWithTx", tx, systemID, groupPK)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteBySystemGroupWithTx indicates an expected call of DeleteBySystemGroupWithTx
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) DeleteBySystemGroupWithTx(tx, systemID, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySystemGroupWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).DeleteBySystemGroupWithTx), tx, systemID, groupPK)
 }
