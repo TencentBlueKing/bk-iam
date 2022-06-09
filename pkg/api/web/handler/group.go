@@ -24,7 +24,7 @@ import (
 func ListGroupMember(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListGroupMember")
 
-	var subject listSubjectMemberSerializer
+	var subject listGroupMemberSerializer
 	if err := c.ShouldBindQuery(&subject); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -78,7 +78,7 @@ func ListSubjectGroups(c *gin.Context) {
 
 // UpdateGroupMembersExpiredAt subject关系续期
 func UpdateGroupMembersExpiredAt(c *gin.Context) {
-	var body subjectMemberExpiredAtSerializer
+	var body groupMemberExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -114,7 +114,7 @@ func UpdateGroupMembersExpiredAt(c *gin.Context) {
 
 // DeleteGroupMembers 批量删除subject成员
 func DeleteGroupMembers(c *gin.Context) {
-	var body deleteSubjectMemberSerializer
+	var body deleteGroupMemberSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -143,7 +143,7 @@ func DeleteGroupMembers(c *gin.Context) {
 func BatchAddGroupMembers(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAddGroupMembers")
 
-	var body addSubjectMembersSerializer
+	var body addGroupMembersSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -178,7 +178,7 @@ func BatchAddGroupMembers(c *gin.Context) {
 func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListGroupMemberBeforeExpiredAt")
 
-	var body listSubjectMemberBeforeExpiredAtSerializer
+	var body listGroupMemberBeforeExpiredAtSerializer
 	if err := c.ShouldBindQuery(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return

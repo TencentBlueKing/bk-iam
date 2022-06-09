@@ -22,9 +22,9 @@ import (
 	"iam/pkg/util"
 )
 
-func TestBatchAddSubjectMembers(t *testing.T) {
+func TestBatchAddGroupMembers(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"post", "/api/v1/subject-members", BatchAddGroupMembers,
+		"post", "/api/v1/group-members", BatchAddGroupMembers,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 
 func TestDeleteGroupMembers(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"delete", "/api/v1/subject-members", DeleteGroupMembers,
+		"delete", "/api/v1/group-members", DeleteGroupMembers,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -209,7 +209,7 @@ func TestDeleteGroupMembers(t *testing.T) {
 
 func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"put", "/api/v1/subject-members/expired_at", UpdateGroupMembersExpiredAt,
+		"put", "/api/v1/group-members/expired_at", UpdateGroupMembersExpiredAt,
 	)
 
 	t.Run("no json", func(t *testing.T) {

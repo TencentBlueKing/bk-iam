@@ -149,9 +149,9 @@ func (c *groupController) ListPagingMember(_type, id string, limit, offset int64
 		)
 	}
 
-	members, err := convertToSubjectMembers(svcMembers)
+	members, err := convertToGroupMembers(svcMembers)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers svcSubjectMembers=`%+v` fail", svcMembers)
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
 	}
 
 	return members, nil
@@ -194,9 +194,9 @@ func (c *groupController) ListPagingMemberBeforeExpiredAt(
 		)
 	}
 
-	members, err := convertToSubjectMembers(svcMembers)
+	members, err := convertToGroupMembers(svcMembers)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers svcSubjectMembers=`%+v` fail", svcMembers)
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
 	}
 
 	return members, nil
@@ -299,9 +299,9 @@ func (c *groupController) alterGroupMembers(
 	// 无成员可添加，直接返回
 	if createIfNotExists && len(createMembers) != 0 {
 		// 添加成员
-		err = c.service.BulkCreateSubjectMembersWithTx(tx, parentPK, createMembers)
+		err = c.service.BulkCreateGroupMembersWithTx(tx, parentPK, createMembers)
 		if err != nil {
-			err = errorWrapf(err, "service.BulkCreateSubjectMembersWithTx relations=`%+v`", createMembers)
+			err = errorWrapf(err, "service.BulkCreateGroupMembersWithTx relations=`%+v`", createMembers)
 			return nil, err
 		}
 	}
@@ -397,9 +397,9 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 	return groups, nil
 }
 
-func convertToSubjectMembers(svcSubjectMembers []types.GroupMember) ([]GroupMember, error) {
-	members := make([]GroupMember, 0, len(svcSubjectMembers))
-	for _, m := range svcSubjectMembers {
+func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, error) {
+	members := make([]GroupMember, 0, len(svcGroupMembers))
+	for _, m := range svcGroupMembers {
 		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {

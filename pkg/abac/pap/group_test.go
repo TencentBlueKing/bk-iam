@@ -26,7 +26,7 @@ import (
 )
 
 var _ = Describe("GroupController", func() {
-	Describe("createOrUpdateSubjectMembers", func() {
+	Describe("createOrUpdateGroupMembers", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -117,7 +117,7 @@ var _ = Describe("GroupController", func() {
 			assert.Contains(GinkgoT(), err.Error(), "UpdateMembersExpiredAtWithTx")
 		})
 
-		It("bulkCreateSubjectMembers fail", func() {
+		It("bulkCreateGroupMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.GroupMember{}, nil,
@@ -128,7 +128,7 @@ var _ = Describe("GroupController", func() {
 					nil,
 				).
 				AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
+			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),
@@ -157,7 +157,7 @@ var _ = Describe("GroupController", func() {
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkCreateSubjectMembersWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "BulkCreateGroupMembersWithTx")
 		})
 
 		It("not create ok", func() {
@@ -211,7 +211,7 @@ var _ = Describe("GroupController", func() {
 					nil,
 				).
 				AnyTimes()
-			mockGroupService.EXPECT().BulkCreateSubjectMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
+			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
 				ParentPK:        1,
 				PolicyExpiredAt: int64(3),

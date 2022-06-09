@@ -212,16 +212,16 @@ func (mr *MockGroupServiceMockRecorder) BulkDeleteGroupMembers(parentPK, userPKs
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteGroupMembers", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteGroupMembers), parentPK, userPKs, departmentPKs)
 }
 
-// BulkCreateSubjectMembersWithTx mocks base method
-func (m *MockGroupService) BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error {
+// BulkCreateGroupMembersWithTx mocks base method
+func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectMembersWithTx", tx, parentPK, relations)
+	ret := m.ctrl.Call(m, "BulkCreateGroupMembersWithTx", tx, parentPK, relations)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkCreateSubjectMembersWithTx indicates an expected call of BulkCreateSubjectMembersWithTx
-func (mr *MockGroupServiceMockRecorder) BulkCreateSubjectMembersWithTx(tx, parentPK, relations interface{}) *gomock.Call {
+// BulkCreateGroupMembersWithTx indicates an expected call of BulkCreateGroupMembersWithTx
+func (mr *MockGroupServiceMockRecorder) BulkCreateGroupMembersWithTx(tx, parentPK, relations interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateSubjectMembersWithTx), tx, parentPK, relations)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateGroupMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateGroupMembersWithTx), tx, parentPK, relations)
 }
