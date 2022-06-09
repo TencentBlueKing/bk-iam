@@ -38,9 +38,9 @@ type GroupController interface {
 		_type, id string, expiredAt int64, limit, offset int64,
 	) ([]GroupMember, error)
 
-	CreateOrUpdateSubjectMembers(_type, id string, members []GroupMember) (map[string]int64, error)
-	UpdateSubjectMembersExpiredAt(_type, id string, members []GroupMember) error
-	DeleteSubjectMembers(_type, id string, members []Subject) (map[string]int64, error)
+	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
+	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
+	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
 }
 
 type groupController struct {
@@ -149,9 +149,9 @@ func (c *groupController) ListPagingMember(_type, id string, limit, offset int64
 		)
 	}
 
-	members, err := convertToSubjectMembers(svcMembers)
+	members, err := convertToGroupMembers(svcMembers)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers svcSubjectMembers=`%+v` fail", svcMembers)
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
 	}
 
 	return members, nil
@@ -194,28 +194,28 @@ func (c *groupController) ListPagingMemberBeforeExpiredAt(
 		)
 	}
 
-	members, err := convertToSubjectMembers(svcMembers)
+	members, err := convertToGroupMembers(svcMembers)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToSubjectMembers svcSubjectMembers=`%+v` fail", svcMembers)
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
 	}
 
 	return members, nil
 }
 
-// CreateOrUpdateSubjectMembers ...
-func (c *groupController) CreateOrUpdateSubjectMembers(
+// CreateOrUpdateGroupMembers ...
+func (c *groupController) CreateOrUpdateGroupMembers(
 	_type, id string,
 	members []GroupMember,
 ) (typeCount map[string]int64, err error) {
-	return c.alterSubjectMembers(_type, id, members, true)
+	return c.alterGroupMembers(_type, id, members, true)
 }
 
-func (c *groupController) alterSubjectMembers(
+func (c *groupController) alterGroupMembers(
 	_type, id string,
 	members []GroupMember,
 	createIfNotExists bool,
 ) (typeCount map[string]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CreateSubjectMembers")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "alterGroupMembers")
 	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
@@ -299,9 +299,9 @@ func (c *groupController) alterSubjectMembers(
 	// 无成员可添加，直接返回
 	if createIfNotExists && len(createMembers) != 0 {
 		// 添加成员
-		err = c.service.BulkCreateSubjectMembersWithTx(tx, parentPK, createMembers)
+		err = c.service.BulkCreateGroupMembersWithTx(tx, parentPK, createMembers)
 		if err != nil {
-			err = errorWrapf(err, "service.BulkCreateSubjectMembersWithTx relations=`%+v`", createMembers)
+			err = errorWrapf(err, "service.BulkCreateGroupMembersWithTx relations=`%+v`", createMembers)
 			return nil, err
 		}
 	}
@@ -321,18 +321,18 @@ func (c *groupController) alterSubjectMembers(
 	return typeCount, nil
 }
 
-// UpdateSubjectMembersExpiredAt ...
-func (c *groupController) UpdateSubjectMembersExpiredAt(_type, id string, members []GroupMember) (err error) {
-	_, err = c.alterSubjectMembers(_type, id, members, false)
+// UpdateGroupMembersExpiredAt ...
+func (c *groupController) UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) (err error) {
+	_, err = c.alterGroupMembers(_type, id, members, false)
 	return
 }
 
-// DeleteSubjectMembers ...
-func (c *groupController) DeleteSubjectMembers(
+// DeleteGroupMembers ...
+func (c *groupController) DeleteGroupMembers(
 	_type, id string,
 	members []Subject,
 ) (typeCount map[string]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "DeleteSubjectMembers")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "DeleteGroupMembers")
 
 	userPKs := make([]int64, 0, len(members))
 	departmentPKs := make([]int64, 0, len(members))
@@ -354,10 +354,10 @@ func (c *groupController) DeleteSubjectMembers(
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	typeCount, err = c.service.BulkDeleteSubjectMembers(parentPK, userPKs, departmentPKs)
+	typeCount, err = c.service.BulkDeleteGroupMembers(parentPK, userPKs, departmentPKs)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.BulkDeleteSubjectMembers parenPK=`%s`, userPKs=`%+v`, departmentPKs=`%+v` failed",
+			err, "service.BulkDeleteGroupMembers parenPK=`%s`, userPKs=`%+v`, departmentPKs=`%+v` failed",
 			parentPK, userPKs, departmentPKs,
 		)
 	}
@@ -399,9 +399,9 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 	return groups, nil
 }
 
-func convertToSubjectMembers(svcSubjectMembers []types.GroupMember) ([]GroupMember, error) {
-	members := make([]GroupMember, 0, len(svcSubjectMembers))
-	for _, m := range svcSubjectMembers {
+func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, error) {
+	members := make([]GroupMember, 0, len(svcGroupMembers))
+	for _, m := range svcGroupMembers {
 		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {

@@ -22,9 +22,9 @@ import (
 	"iam/pkg/util"
 )
 
-func TestBatchAddSubjectMembers(t *testing.T) {
+func TestBatchAddGroupMembers(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"post", "/api/v1/subject-members", BatchAddSubjectMembers,
+		"post", "/api/v1/group-members", BatchAddGroupMembers,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -58,10 +58,10 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 		}
 	}
 
-	t.Run("CreateOrUpdateSubjectMembers error", func(t *testing.T) {
+	t.Run("CreateOrUpdateGroupMembers error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.GroupMember{
+		mockCtl.EXPECT().CreateOrUpdateGroupMembers("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -90,7 +90,7 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().CreateOrUpdateSubjectMembers("group", "1", []pap.GroupMember{
+		mockCtl.EXPECT().CreateOrUpdateGroupMembers("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -117,9 +117,9 @@ func TestBatchAddSubjectMembers(t *testing.T) {
 	})
 }
 
-func TestDeleteSubjectMembers(t *testing.T) {
+func TestDeleteGroupMembers(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"delete", "/api/v1/subject-members", DeleteSubjectMembers,
+		"delete", "/api/v1/group-members", BatchDeleteGroupMembers,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -155,7 +155,7 @@ func TestDeleteSubjectMembers(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().DeleteSubjectMembers("group", "1", []pap.Subject{
+		mockCtl.EXPECT().DeleteGroupMembers("group", "1", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -182,7 +182,7 @@ func TestDeleteSubjectMembers(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().DeleteSubjectMembers("group", "1", []pap.Subject{
+		mockCtl.EXPECT().DeleteGroupMembers("group", "1", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -207,9 +207,9 @@ func TestDeleteSubjectMembers(t *testing.T) {
 	})
 }
 
-func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
+func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"put", "/api/v1/subject-members/expired_at", UpdateSubjectMembersExpiredAt,
+		"put", "/api/v1/group-members/expired_at", BatchUpdateGroupMembersExpiredAt,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -242,10 +242,10 @@ func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
 		}
 	}
 
-	t.Run("UpdateSubjectMembersExpiredAt error", func(t *testing.T) {
+	t.Run("UpdateGroupMembersExpiredAt error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.GroupMember{
+		mockCtl.EXPECT().UpdateGroupMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",
@@ -274,7 +274,7 @@ func TestUpdateSubjectMembersExpiredAt(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockGroupController(ctl)
-		mockCtl.EXPECT().UpdateSubjectMembersExpiredAt("group", "1", []pap.GroupMember{
+		mockCtl.EXPECT().UpdateGroupMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
 				Type:            "user",
 				ID:              "admin",

@@ -45,13 +45,13 @@ type deleteSubjectSerializer struct {
 	ID   string `json:"id" binding:"required"`
 }
 
-type listSubjectMemberSerializer struct {
+type listGroupMemberSerializer struct {
 	Type string `form:"type" binding:"required,oneof=group"`
 	ID   string `form:"id" binding:"required"`
 	pageSerializer
 }
 
-type subjectRelationSerializer struct {
+type listSubjectGroupSerializer struct {
 	Type            string `form:"type" binding:"required,oneof=user department"`
 	ID              string `form:"id" binding:"required"`
 	BeforeExpiredAt int64  `form:"before_expired_at" binding:"omitempty,min=0"`
@@ -62,14 +62,14 @@ type memberSerializer struct {
 	ID   string `json:"id" binding:"required"`
 }
 
-type deleteSubjectMemberSerializer struct {
+type deleteGroupMemberSerializer struct {
 	Type string `json:"type" binding:"required,oneof=group"`
 	ID   string `json:"id" binding:"required"`
 	// 防御，避免出现一次性删除太多成员，影响性能
 	Members []memberSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
-type addSubjectMembersSerializer struct {
+type addGroupMembersSerializer struct {
 	Type            string `json:"type" binding:"required,oneof=group"`
 	ID              string `json:"id" binding:"required"`
 	PolicyExpiredAt int64  `json:"policy_expired_at" binding:"omitempty,min=1,max=4102444800"`
@@ -77,7 +77,7 @@ type addSubjectMembersSerializer struct {
 	Members []memberSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
-func (s *addSubjectMembersSerializer) validate() (bool, string) {
+func (s *addGroupMembersSerializer) validate() (bool, string) {
 	// type为group时必须有过期时间
 	if s.Type == types.GroupType && s.PolicyExpiredAt < 1 {
 		return false, "policy expires time required when add group member"
@@ -108,25 +108,25 @@ type userSerializer struct {
 	ID   string `form:"id" binding:"required"`
 }
 
-type subjectRoleQuerySerializer struct {
+type roleSubjectQuerySerializer struct {
 	RoleType string `form:"role_type" json:"role_type" binding:"required,oneof=super_manager system_manager"`
 	SystemID string `form:"system_id" json:"system_id" binding:"required"`
 }
 
-func (s *subjectRoleQuerySerializer) validate() (bool, string) {
+func (s *roleSubjectQuerySerializer) validate() (bool, string) {
 	if s.RoleType == types.SuperManager && s.SystemID != superSystemID {
 		return false, "system_id must be SUPER if role type is super_manager"
 	}
 	return true, "valid"
 }
 
-type subjectRoleSerializer struct {
-	subjectRoleQuerySerializer
+type roleSubjectSerializer struct {
+	roleSubjectQuerySerializer
 	Subjects []userSerializer `json:"subjects" binding:"required,gt=0"`
 }
 
-func (s *subjectRoleSerializer) validate() (bool, string) {
-	if valid, message := s.subjectRoleQuerySerializer.validate(); !valid {
+func (s *roleSubjectSerializer) validate() (bool, string) {
+	if valid, message := s.roleSubjectQuerySerializer.validate(); !valid {
 		return valid, message
 	}
 
@@ -142,13 +142,13 @@ type memberExpiredAtSerializer struct {
 	PolicyExpiredAt int64 `json:"policy_expired_at" binding:"omitempty,min=1,max=4102444800"`
 }
 
-type subjectMemberExpiredAtSerializer struct {
+type groupMemberExpiredAtSerializer struct {
 	Type    string                      `json:"type" binding:"required,oneof=group"`
 	ID      string                      `json:"id" binding:"required"`
 	Members []memberExpiredAtSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
-func (slz *subjectMemberExpiredAtSerializer) validate() (bool, string) {
+func (slz *groupMemberExpiredAtSerializer) validate() (bool, string) {
 	if len(slz.Members) > 0 {
 		if valid, message := common.ValidateArray(slz.Members); !valid {
 			return false, message
@@ -158,8 +158,8 @@ func (slz *subjectMemberExpiredAtSerializer) validate() (bool, string) {
 	return true, ""
 }
 
-type listSubjectMemberBeforeExpiredAtSerializer struct {
-	listSubjectMemberSerializer
+type listGroupMemberBeforeExpiredAtSerializer struct {
+	listGroupMemberSerializer
 	BeforeExpiredAt int64 `form:"before_expired_at" binding:"required,min=1,max=4102444800"`
 }
 

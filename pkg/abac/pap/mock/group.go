@@ -34,34 +34,34 @@ func (m *MockGroupController) EXPECT() *MockGroupControllerMockRecorder {
 	return m.recorder
 }
 
-// CreateOrUpdateSubjectMembers mocks base method.
-func (m *MockGroupController) CreateOrUpdateSubjectMembers(_type, id string, members []pap.GroupMember) (map[string]int64, error) {
+// CreateOrUpdateGroupMembers mocks base method.
+func (m *MockGroupController) CreateOrUpdateGroupMembers(_type, id string, members []pap.GroupMember) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrUpdateSubjectMembers", _type, id, members)
+	ret := m.ctrl.Call(m, "CreateOrUpdateGroupMembers", _type, id, members)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateOrUpdateSubjectMembers indicates an expected call of CreateOrUpdateSubjectMembers.
-func (mr *MockGroupControllerMockRecorder) CreateOrUpdateSubjectMembers(_type, id, members interface{}) *gomock.Call {
+// CreateOrUpdateGroupMembers indicates an expected call of CreateOrUpdateGroupMembers.
+func (mr *MockGroupControllerMockRecorder) CreateOrUpdateGroupMembers(_type, id, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateSubjectMembers", reflect.TypeOf((*MockGroupController)(nil).CreateOrUpdateSubjectMembers), _type, id, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateGroupMembers", reflect.TypeOf((*MockGroupController)(nil).CreateOrUpdateGroupMembers), _type, id, members)
 }
 
-// DeleteSubjectMembers mocks base method.
-func (m *MockGroupController) DeleteSubjectMembers(_type, id string, members []pap.Subject) (map[string]int64, error) {
+// DeleteGroupMembers mocks base method.
+func (m *MockGroupController) DeleteGroupMembers(_type, id string, members []pap.Subject) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSubjectMembers", _type, id, members)
+	ret := m.ctrl.Call(m, "DeleteGroupMembers", _type, id, members)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DeleteSubjectMembers indicates an expected call of DeleteSubjectMembers.
-func (mr *MockGroupControllerMockRecorder) DeleteSubjectMembers(_type, id, members interface{}) *gomock.Call {
+// DeleteGroupMembers indicates an expected call of DeleteGroupMembers.
+func (mr *MockGroupControllerMockRecorder) DeleteGroupMembers(_type, id, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubjectMembers", reflect.TypeOf((*MockGroupController)(nil).DeleteSubjectMembers), _type, id, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroupMembers", reflect.TypeOf((*MockGroupController)(nil).DeleteGroupMembers), _type, id, members)
 }
 
 // GetMemberCount mocks base method.
@@ -154,16 +154,16 @@ func (mr *MockGroupControllerMockRecorder) ListSubjectGroups(_type, id, beforeEx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectGroups", reflect.TypeOf((*MockGroupController)(nil).ListSubjectGroups), _type, id, beforeExpiredAt)
 }
 
-// UpdateSubjectMembersExpiredAt mocks base method.
-func (m *MockGroupController) UpdateSubjectMembersExpiredAt(_type, id string, members []pap.GroupMember) error {
+// UpdateGroupMembersExpiredAt mocks base method.
+func (m *MockGroupController) UpdateGroupMembersExpiredAt(_type, id string, members []pap.GroupMember) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSubjectMembersExpiredAt", _type, id, members)
+	ret := m.ctrl.Call(m, "UpdateGroupMembersExpiredAt", _type, id, members)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateSubjectMembersExpiredAt indicates an expected call of UpdateSubjectMembersExpiredAt.
-func (mr *MockGroupControllerMockRecorder) UpdateSubjectMembersExpiredAt(_type, id, members interface{}) *gomock.Call {
+// UpdateGroupMembersExpiredAt indicates an expected call of UpdateGroupMembersExpiredAt.
+func (mr *MockGroupControllerMockRecorder) UpdateGroupMembersExpiredAt(_type, id, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectMembersExpiredAt", reflect.TypeOf((*MockGroupController)(nil).UpdateSubjectMembersExpiredAt), _type, id, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMembersExpiredAt", reflect.TypeOf((*MockGroupController)(nil).UpdateGroupMembersExpiredAt), _type, id, members)
 }

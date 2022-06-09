@@ -25,8 +25,8 @@ const RoleCTL = "RoleCTL"
 
 type RoleController interface {
 	ListSubjectByRole(roleType, system string) ([]Subject, error)
-	BulkCreate(roleType, system string, subjects []Subject) error
-	BulkDelete(roleType, system string, subjects []Subject) error
+	BulkAddSubjects(roleType, system string, subjects []Subject) error
+	BulkDeleteSubjects(roleType, system string, subjects []Subject) error
 }
 
 type roleController struct {
@@ -43,9 +43,9 @@ func NewRoleController() RoleController {
 	}
 }
 
-// BulkCreate ...
-func (c *roleController) BulkCreate(roleType, system string, subjects []Subject) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleCTL, "BulkCreate")
+// BulkAddSubjects ...
+func (c *roleController) BulkAddSubjects(roleType, system string, subjects []Subject) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleCTL, "BulkAddSubjects")
 
 	svcSubjects := convertToServiceSubjects(subjects)
 	subjectPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
@@ -53,10 +53,10 @@ func (c *roleController) BulkCreate(roleType, system string, subjects []Subject)
 		return errorWrapf(err, "subjectService.ListPKsBySubjects subjects=`%+v` fail", svcSubjects)
 	}
 
-	err = c.service.BulkCreate(roleType, system, subjectPKs)
+	err = c.service.BulkAddSubjects(roleType, system, subjectPKs)
 	if err != nil {
 		return errorWrapf(
-			err, "service.BulkCreate roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
+			err, "service.BulkAddSubjects roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
 			roleType, system, subjectPKs,
 		)
 	}
@@ -69,9 +69,9 @@ func (c *roleController) BulkCreate(roleType, system string, subjects []Subject)
 	return nil
 }
 
-// BulkDelete ...
-func (c *roleController) BulkDelete(roleType, system string, subjects []Subject) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleCTL, "BulkDelete")
+// BulkDeleteSubjects ...
+func (c *roleController) BulkDeleteSubjects(roleType, system string, subjects []Subject) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleCTL, "BulkDeleteSubjects")
 
 	svcSubjects := convertToServiceSubjects(subjects)
 	subjectPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
@@ -79,10 +79,10 @@ func (c *roleController) BulkDelete(roleType, system string, subjects []Subject)
 		return errorWrapf(err, "subjectService.ListPKsBySubjects subjects=`%+v` fail", svcSubjects)
 	}
 
-	err = c.service.BulkDelete(roleType, system, subjectPKs)
+	err = c.service.BulkDeleteSubjects(roleType, system, subjectPKs)
 	if err != nil {
 		return errorWrapf(
-			err, "service.BulkDelete roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
+			err, "service.BulkDeleteSubjects roleType=`%s` system=`%s` subjectPKs=`%+v` fail",
 			roleType, system, subjectPKs,
 		)
 	}

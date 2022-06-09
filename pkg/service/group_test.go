@@ -60,9 +60,9 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			subjectMembers, err := manager.ListMember(1)
+			groupMembers, err := manager.ListMember(1)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.GroupMember{}, subjectMembers)
+			assert.Equal(GinkgoT(), []types.GroupMember{}, groupMembers)
 		})
 	})
 
@@ -194,7 +194,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("BulkCreateSubjectMembersWithTx", func() {
+	Describe("BulkCreateGroupMembersWithTx", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -219,7 +219,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreateSubjectMembersWithTx(nil, int64(1), []types.SubjectRelation{
+			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelation{
 				{
 					SubjectPK:       1,
 					ParentPK:        2,
@@ -231,7 +231,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("BulkDeleteSubjectMembers", func() {
+	Describe("BulkDeleteGroupMembers", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -260,7 +260,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3})
+			_, err := manager.BulkDeleteGroupMembers(int64(1), []int64{2}, []int64{3})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByMembersWithTx")
 		})

@@ -133,11 +133,12 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	}
 
 	action = types.Action{
-		ID:      dbAction.ID,
-		Name:    dbAction.Name,
-		NameEn:  dbAction.NameEn,
-		Type:    dbAction.Type,
-		Version: dbAction.Version,
+		ID:       dbAction.ID,
+		Name:     dbAction.Name,
+		NameEn:   dbAction.NameEn,
+		AuthType: dbAction.AuthType,
+		Type:     dbAction.Type,
+		Version:  dbAction.Version,
 	}
 
 	if dbAction.RelatedEnvironments != "" {
@@ -212,6 +213,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
 		}
@@ -307,6 +309,7 @@ func (l *actionService) ListBaseInfoBySystem(system string) ([]types.ActionBaseI
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
 		}
@@ -357,6 +360,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			Sensitivity:         ac.Sensitivity,
 			RelatedActions:      relatedActions,
 			RelatedEnvironments: relatedEnvironments,
+			AuthType:            ac.AuthType,
 			Type:                ac.Type,
 			Version:             ac.Version,
 		})
@@ -498,6 +502,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		Description:         action.Description,
 		DescriptionEn:       action.DescriptionEn,
 		Sensitivity:         action.Sensitivity,
+		AuthType:            action.AuthType,
 		Type:                action.Type,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,

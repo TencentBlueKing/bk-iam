@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	actionSupportFields = "id,name,name_en,related_resource_types,version,type," +
+	actionSupportFields = "id,name,name_en,related_resource_types,version,type,auth_type," +
 		"description,description_en,related_actions,related_environments"
 	actionDefaultFields = "id,name,name_en"
 )
