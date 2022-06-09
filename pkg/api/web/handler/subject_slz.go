@@ -108,25 +108,25 @@ type userSerializer struct {
 	ID   string `form:"id" binding:"required"`
 }
 
-type subjectRoleQuerySerializer struct {
+type roleSubjectQuerySerializer struct {
 	RoleType string `form:"role_type" json:"role_type" binding:"required,oneof=super_manager system_manager"`
 	SystemID string `form:"system_id" json:"system_id" binding:"required"`
 }
 
-func (s *subjectRoleQuerySerializer) validate() (bool, string) {
+func (s *roleSubjectQuerySerializer) validate() (bool, string) {
 	if s.RoleType == types.SuperManager && s.SystemID != superSystemID {
 		return false, "system_id must be SUPER if role type is super_manager"
 	}
 	return true, "valid"
 }
 
-type subjectRoleSerializer struct {
-	subjectRoleQuerySerializer
+type roleSubjectSerializer struct {
+	roleSubjectQuerySerializer
 	Subjects []userSerializer `json:"subjects" binding:"required,gt=0"`
 }
 
-func (s *subjectRoleSerializer) validate() (bool, string) {
-	if valid, message := s.subjectRoleQuerySerializer.validate(); !valid {
+func (s *roleSubjectSerializer) validate() (bool, string) {
+	if valid, message := s.roleSubjectQuerySerializer.validate(); !valid {
 		return valid, message
 	}
 

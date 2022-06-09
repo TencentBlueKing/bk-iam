@@ -23,7 +23,7 @@ import (
 func BatchAddRoleSubject(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchCreateRoleSubject")
 
-	var body subjectRoleSerializer
+	var body roleSubjectSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -56,7 +56,7 @@ func BatchAddRoleSubject(c *gin.Context) {
 func BatchDeleteRoleSubject(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchDeleteRoleSubject")
 
-	var body subjectRoleSerializer
+	var body roleSubjectSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -87,7 +87,7 @@ func BatchDeleteRoleSubject(c *gin.Context) {
 func ListRoleSubject(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BulkDeleteSubjectRole")
 
-	var query subjectRoleQuerySerializer
+	var query roleSubjectQuerySerializer
 
 	if err := c.ShouldBindQuery(&query); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
