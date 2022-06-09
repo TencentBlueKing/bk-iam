@@ -5,51 +5,35 @@
 package mock
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	component "iam/pkg/component"
 	reflect "reflect"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
-// MockRemoteResourceClient is a mock of RemoteResourceClient interface.
+// MockRemoteResourceClient is a mock of RemoteResourceClient interface
 type MockRemoteResourceClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockRemoteResourceClientMockRecorder
 }
 
-// MockRemoteResourceClientMockRecorder is the mock recorder for MockRemoteResourceClient.
+// MockRemoteResourceClientMockRecorder is the mock recorder for MockRemoteResourceClient
 type MockRemoteResourceClientMockRecorder struct {
 	mock *MockRemoteResourceClient
 }
 
-// NewMockRemoteResourceClient creates a new mock instance.
+// NewMockRemoteResourceClient creates a new mock instance
 func NewMockRemoteResourceClient(ctrl *gomock.Controller) *MockRemoteResourceClient {
 	mock := &MockRemoteResourceClient{ctrl: ctrl}
 	mock.recorder = &MockRemoteResourceClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockRemoteResourceClient) EXPECT() *MockRemoteResourceClientMockRecorder {
 	return m.recorder
 }
 
-// GetResources mocks base method.
-func (m *MockRemoteResourceClient) GetResources(req component.RemoteResourceRequest, system, _type string, ids, fields []string) ([]map[string]interface{}, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResources", req, system, _type, ids, fields)
-	ret0, _ := ret[0].([]map[string]interface{})
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetResources indicates an expected call of GetResources.
-func (mr *MockRemoteResourceClientMockRecorder) GetResources(req, system, _type, ids, fields interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResources", reflect.TypeOf((*MockRemoteResourceClient)(nil).GetResources), req, system, _type, ids, fields)
-}
-
-// QueryResources mocks base method.
+// QueryResources mocks base method
 func (m *MockRemoteResourceClient) QueryResources(req component.RemoteResourceRequest, system, _type string, ids, fields []string) ([]map[string]interface{}, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "QueryResources", req, system, _type, ids, fields)
@@ -58,8 +42,23 @@ func (m *MockRemoteResourceClient) QueryResources(req component.RemoteResourceRe
 	return ret0, ret1
 }
 
-// QueryResources indicates an expected call of QueryResources.
+// QueryResources indicates an expected call of QueryResources
 func (mr *MockRemoteResourceClientMockRecorder) QueryResources(req, system, _type, ids, fields interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryResources", reflect.TypeOf((*MockRemoteResourceClient)(nil).QueryResources), req, system, _type, ids, fields)
+}
+
+// GetResources mocks base method
+func (m *MockRemoteResourceClient) GetResources(req component.RemoteResourceRequest, system, _type string, ids, fields []string) ([]map[string]interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResources", req, system, _type, ids, fields)
+	ret0, _ := ret[0].([]map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetResources indicates an expected call of GetResources
+func (mr *MockRemoteResourceClientMockRecorder) GetResources(req, system, _type, ids, fields interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResources", reflect.TypeOf((*MockRemoteResourceClient)(nil).GetResources), req, system, _type, ids, fields)
 }

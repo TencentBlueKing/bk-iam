@@ -5,51 +5,36 @@
 package mock
 
 import (
-	sdao "iam/pkg/database/sdao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	sdao "iam/pkg/database/sdao"
+	reflect "reflect"
 )
 
-// MockSaaSSystemManager is a mock of SaaSSystemManager interface.
+// MockSaaSSystemManager is a mock of SaaSSystemManager interface
 type MockSaaSSystemManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockSaaSSystemManagerMockRecorder
 }
 
-// MockSaaSSystemManagerMockRecorder is the mock recorder for MockSaaSSystemManager.
+// MockSaaSSystemManagerMockRecorder is the mock recorder for MockSaaSSystemManager
 type MockSaaSSystemManagerMockRecorder struct {
 	mock *MockSaaSSystemManager
 }
 
-// NewMockSaaSSystemManager creates a new mock instance.
+// NewMockSaaSSystemManager creates a new mock instance
 func NewMockSaaSSystemManager(ctrl *gomock.Controller) *MockSaaSSystemManager {
 	mock := &MockSaaSSystemManager{ctrl: ctrl}
 	mock.recorder = &MockSaaSSystemManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockSaaSSystemManager) EXPECT() *MockSaaSSystemManagerMockRecorder {
 	return m.recorder
 }
 
-// CreateWithTx mocks base method.
-func (m *MockSaaSSystemManager) CreateWithTx(tx *sqlx.Tx, system sdao.SaaSSystem) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWithTx", tx, system)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateWithTx indicates an expected call of CreateWithTx.
-func (mr *MockSaaSSystemManagerMockRecorder) CreateWithTx(tx, system interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockSaaSSystemManager)(nil).CreateWithTx), tx, system)
-}
-
-// Get mocks base method.
+// Get mocks base method
 func (m *MockSaaSSystemManager) Get(id string) (sdao.SaaSSystem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", id)
@@ -58,13 +43,13 @@ func (m *MockSaaSSystemManager) Get(id string) (sdao.SaaSSystem, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
+// Get indicates an expected call of Get
 func (mr *MockSaaSSystemManagerMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSaaSSystemManager)(nil).Get), id)
 }
 
-// ListAll mocks base method.
+// ListAll mocks base method
 func (m *MockSaaSSystemManager) ListAll() ([]sdao.SaaSSystem, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAll")
@@ -73,13 +58,27 @@ func (m *MockSaaSSystemManager) ListAll() ([]sdao.SaaSSystem, error) {
 	return ret0, ret1
 }
 
-// ListAll indicates an expected call of ListAll.
+// ListAll indicates an expected call of ListAll
 func (mr *MockSaaSSystemManagerMockRecorder) ListAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockSaaSSystemManager)(nil).ListAll))
 }
 
-// Update mocks base method.
+// CreateWithTx mocks base method
+func (m *MockSaaSSystemManager) CreateWithTx(tx *sqlx.Tx, system sdao.SaaSSystem) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWithTx", tx, system)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateWithTx indicates an expected call of CreateWithTx
+func (mr *MockSaaSSystemManagerMockRecorder) CreateWithTx(tx, system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockSaaSSystemManager)(nil).CreateWithTx), tx, system)
+}
+
+// Update mocks base method
 func (m *MockSaaSSystemManager) Update(id string, system sdao.SaaSSystem) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", id, system)
@@ -87,7 +86,7 @@ func (m *MockSaaSSystemManager) Update(id string, system sdao.SaaSSystem) error 
 	return ret0
 }
 
-// Update indicates an expected call of Update.
+// Update indicates an expected call of Update
 func (mr *MockSaaSSystemManagerMockRecorder) Update(id, system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSaaSSystemManager)(nil).Update), id, system)

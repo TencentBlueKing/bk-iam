@@ -82,53 +82,89 @@ func Register(r *gin.RouterGroup) {
 		pt.DELETE("/policies", handler.DeleteSubjectTemplatePolicies)
 	}
 
-	// 查询subject列表
-	r.GET("/subjects", handler.ListSubject)
-	// 创建subject
-	r.POST("/subjects", handler.BatchCreateSubjects)
-	// 删除subject
-	r.DELETE("/subjects", handler.BatchDeleteSubjects)
-	// 更新subject
-	r.PUT("/subjects", handler.BatchUpdateSubject)
+	// subject
+	{
+		// 查询subject列表
+		r.GET("/subjects", handler.ListSubject)
+		// 创建subject
+		r.POST("/subjects", handler.BatchCreateSubjects)
+		// 删除subject
+		r.DELETE("/subjects", handler.BatchDeleteSubjects)
+		// 更新subject
+		r.PUT("/subjects", handler.BatchUpdateSubject)
+	}
+
 	// 筛选有过期成员的subjects
 	r.POST("/subjects/before_expired_at", handler.ListExistSubjectsBeforeExpiredAt)
 
-	// 查询subject的成员列表
-	r.GET("/subject-members", handler.ListSubjectMember)
-	// 批量添加subject成员
-	r.POST("/subject-members", handler.BatchAddSubjectMembers)
-	// 批量删除subject成员
-	r.DELETE("/subject-members", handler.DeleteSubjectMembers)
-	// 批量subject成员过期时间
-	r.PUT("/subject-members/expired_at", handler.UpdateSubjectMembersExpiredAt)
+	// group-members
+	{
+		// Deprecated: use the NEW instead
+		// 查询subject的成员列表
+		r.GET("/subject-members", handler.ListGroupMember)
+		// 批量添加subject成员
+		r.POST("/subject-members", handler.BatchAddGroupMembers)
+		// 批量删除subject成员
+		r.DELETE("/subject-members", handler.DeleteGroupMembers)
+		// 批量subject成员过期时间
+		r.PUT("/subject-members/expired_at", handler.UpdateGroupMembersExpiredAt)
+		// 查询小于指定过期时间的成员列表, 批量用户组查询
+		r.GET("/subject-members/query", handler.ListGroupMemberBeforeExpiredAt)
 
-	// 查询小于指定过期时间的成员列表, 批量用户组查询
-	r.GET("/subject-members/query", handler.ListSubjectMemberBeforeExpiredAt)
+		// NEW:
+		// 查询subject的成员列表
+		r.GET("/group-members", handler.ListGroupMember)
+		// 批量添加subject成员
+		r.POST("/group-members", handler.BatchAddGroupMembers)
+		// 批量删除subject成员
+		r.DELETE("/group-members", handler.DeleteGroupMembers)
+		// 批量subject成员过期时间
+		r.PUT("/group-members/expired_at", handler.UpdateGroupMembersExpiredAt)
+		// 查询小于指定过期时间的成员列表, 批量用户组查询
+		r.GET("/group-members/query", handler.ListGroupMemberBeforeExpiredAt)
+	}
 
-	// 查询subject所在的用户组/部门
-	r.GET("/subject-relations", handler.GetSubjectGroup)
+	// subject-departments
+	{
+		// 查询subject-department关系
+		r.GET("/subject-departments", handler.ListSubjectDepartments)
+		// 创建subject-department关系
+		r.POST("/subject-departments", handler.BatchCreateSubjectDepartments)
+		// 更新subject-department关系
+		r.PUT("/subject-departments", handler.BatchUpdateSubjectDepartments)
+		// 删除subject-department关系
+		r.DELETE("/subject-departments", handler.BatchDeleteSubjectDepartments)
+	}
 
-	// 查询subject-department关系
-	r.GET("/subject-departments", handler.ListSubjectDepartments)
-	// 创建subject-department关系
-	r.POST("/subject-departments", handler.BatchCreateSubjectDepartments)
-	// 更新subject-department关系
-	r.PUT("/subject-departments", handler.BatchUpdateSubjectDepartments)
-	// 删除subject-department关系
-	r.DELETE("/subject-departments", handler.BatchDeleteSubjectDepartments)
+	// subject-groups
+	{
+		// Deprecated: use the NEW instead
+		// 查询subject所在的用户组/部门
+		r.GET("/subject-relations", handler.ListSubjectGroups)
 
-	// 查询subject role
-	r.GET("/subject-roles", handler.ListSubjectRole)
-	// 批量添加subject role
-	r.POST("/subject-roles", handler.CreateSubjectRole)
-	// 批量删除subject role
-	r.DELETE("/subject-roles", handler.DeleteSubjectRole)
+		// NEW:
+		r.GET("/subject-groups", handler.ListSubjectGroups)
+		// TODO: 需要考虑分页了
+	}
 
-	// 模型变更事件
-	r.GET("/model-change-event", handler.ListModelChangeEvent)
-	r.PUT("/model-change-event/:event_pk", handler.UpdateModelChangeEvent)
-	r.DELETE("/model-change-event", handler.BatchDeleteModelChangeEvent)
+	// subject-roles
+	{
+		// 查询subject role
+		r.GET("/subject-roles", handler.ListSubjectRole)
+		// 批量添加subject role
+		r.POST("/subject-roles", handler.CreateSubjectRole)
+		// 批量删除subject role
+		r.DELETE("/subject-roles", handler.DeleteSubjectRole)
+	}
 
-	// 清理未引用的expression
-	r.DELETE("/unreferenced-expressions", handler.DeleteUnreferencedExpressions)
+	// others
+	{
+		// 模型变更事件
+		r.GET("/model-change-event", handler.ListModelChangeEvent)
+		r.PUT("/model-change-event/:event_pk", handler.UpdateModelChangeEvent)
+		r.DELETE("/model-change-event", handler.BatchDeleteModelChangeEvent)
+
+		// 清理未引用的expression
+		r.DELETE("/unreferenced-expressions", handler.DeleteUnreferencedExpressions)
+	}
 }

@@ -5,36 +5,35 @@
 package mock
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	types "iam/pkg/service/types"
 	reflect "reflect"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
-// MockEnginePolicyService is a mock of EnginePolicyService interface.
+// MockEnginePolicyService is a mock of EnginePolicyService interface
 type MockEnginePolicyService struct {
 	ctrl     *gomock.Controller
 	recorder *MockEnginePolicyServiceMockRecorder
 }
 
-// MockEnginePolicyServiceMockRecorder is the mock recorder for MockEnginePolicyService.
+// MockEnginePolicyServiceMockRecorder is the mock recorder for MockEnginePolicyService
 type MockEnginePolicyServiceMockRecorder struct {
 	mock *MockEnginePolicyService
 }
 
-// NewMockEnginePolicyService creates a new mock instance.
+// NewMockEnginePolicyService creates a new mock instance
 func NewMockEnginePolicyService(ctrl *gomock.Controller) *MockEnginePolicyService {
 	mock := &MockEnginePolicyService{ctrl: ctrl}
 	mock.recorder = &MockEnginePolicyServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockEnginePolicyService) EXPECT() *MockEnginePolicyServiceMockRecorder {
 	return m.recorder
 }
 
-// GetMaxPKBeforeUpdatedAt mocks base method.
+// GetMaxPKBeforeUpdatedAt mocks base method
 func (m *MockEnginePolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMaxPKBeforeUpdatedAt", updatedAt)
@@ -43,43 +42,13 @@ func (m *MockEnginePolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int6
 	return ret0, ret1
 }
 
-// GetMaxPKBeforeUpdatedAt indicates an expected call of GetMaxPKBeforeUpdatedAt.
+// GetMaxPKBeforeUpdatedAt indicates an expected call of GetMaxPKBeforeUpdatedAt
 func (mr *MockEnginePolicyServiceMockRecorder) GetMaxPKBeforeUpdatedAt(updatedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxPKBeforeUpdatedAt", reflect.TypeOf((*MockEnginePolicyService)(nil).GetMaxPKBeforeUpdatedAt), updatedAt)
 }
 
-// ListBetweenPK mocks base method.
-func (m *MockEnginePolicyService) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]types.EngineQueryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBetweenPK", expiredAt, minPK, maxPK)
-	ret0, _ := ret[0].([]types.EngineQueryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListBetweenPK indicates an expected call of ListBetweenPK.
-func (mr *MockEnginePolicyServiceMockRecorder) ListBetweenPK(expiredAt, minPK, maxPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBetweenPK", reflect.TypeOf((*MockEnginePolicyService)(nil).ListBetweenPK), expiredAt, minPK, maxPK)
-}
-
-// ListByPKs mocks base method.
-func (m *MockEnginePolicyService) ListByPKs(pks []int64) ([]types.EngineQueryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]types.EngineQueryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs.
-func (mr *MockEnginePolicyServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockEnginePolicyService)(nil).ListByPKs), pks)
-}
-
-// ListPKBetweenUpdatedAt mocks base method.
+// ListPKBetweenUpdatedAt mocks base method
 func (m *MockEnginePolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPKBetweenUpdatedAt", beginUpdatedAt, endUpdatedAt)
@@ -88,8 +57,38 @@ func (m *MockEnginePolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpda
 	return ret0, ret1
 }
 
-// ListPKBetweenUpdatedAt indicates an expected call of ListPKBetweenUpdatedAt.
+// ListPKBetweenUpdatedAt indicates an expected call of ListPKBetweenUpdatedAt
 func (mr *MockEnginePolicyServiceMockRecorder) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKBetweenUpdatedAt", reflect.TypeOf((*MockEnginePolicyService)(nil).ListPKBetweenUpdatedAt), beginUpdatedAt, endUpdatedAt)
+}
+
+// ListBetweenPK mocks base method
+func (m *MockEnginePolicyService) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]types.EngineQueryPolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBetweenPK", expiredAt, minPK, maxPK)
+	ret0, _ := ret[0].([]types.EngineQueryPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBetweenPK indicates an expected call of ListBetweenPK
+func (mr *MockEnginePolicyServiceMockRecorder) ListBetweenPK(expiredAt, minPK, maxPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBetweenPK", reflect.TypeOf((*MockEnginePolicyService)(nil).ListBetweenPK), expiredAt, minPK, maxPK)
+}
+
+// ListByPKs mocks base method
+func (m *MockEnginePolicyService) ListByPKs(pks []int64) ([]types.EngineQueryPolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByPKs", pks)
+	ret0, _ := ret[0].([]types.EngineQueryPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByPKs indicates an expected call of ListByPKs
+func (mr *MockEnginePolicyServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockEnginePolicyService)(nil).ListByPKs), pks)
 }

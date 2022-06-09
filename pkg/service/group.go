@@ -30,7 +30,6 @@ const GroupSVC = "GroupSVC"
 
 // GroupService ...
 type GroupService interface {
-
 	// 鉴权
 	GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error)               // cache subject detail
 	ListEffectThinSubjectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error) // cache department groups
@@ -50,7 +49,7 @@ type GroupService interface {
 	ListMember(parentPK int64) ([]types.GroupMember, error)
 
 	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
-	BulkDeleteSubjectMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
+	BulkDeleteGroupMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
 	BulkCreateSubjectMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
 }
 
@@ -267,8 +266,8 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	return nil
 }
 
-// BulkDeleteSubjectMembers ...
-func (l *groupService) BulkDeleteSubjectMembers(
+// BulkDeleteGroupMembers ...
+func (l *groupService) BulkDeleteGroupMembers(
 	parentPK int64,
 	userPKs, departmentPKs []int64,
 ) (map[string]int64, error) {

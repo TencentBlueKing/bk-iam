@@ -5,123 +5,36 @@
 package mock
 
 import (
-	dao "iam/pkg/database/dao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	dao "iam/pkg/database/dao"
+	reflect "reflect"
 )
 
-// MockExpressionManager is a mock of ExpressionManager interface.
+// MockExpressionManager is a mock of ExpressionManager interface
 type MockExpressionManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockExpressionManagerMockRecorder
 }
 
-// MockExpressionManagerMockRecorder is the mock recorder for MockExpressionManager.
+// MockExpressionManagerMockRecorder is the mock recorder for MockExpressionManager
 type MockExpressionManagerMockRecorder struct {
 	mock *MockExpressionManager
 }
 
-// NewMockExpressionManager creates a new mock instance.
+// NewMockExpressionManager creates a new mock instance
 func NewMockExpressionManager(ctrl *gomock.Controller) *MockExpressionManager {
 	mock := &MockExpressionManager{ctrl: ctrl}
 	mock.recorder = &MockExpressionManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockExpressionManager) EXPECT() *MockExpressionManagerMockRecorder {
 	return m.recorder
 }
 
-// BulkCreateWithTx mocks base method.
-func (m *MockExpressionManager) BulkCreateWithTx(tx *sqlx.Tx, expressions []dao.Expression) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, expressions)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
-func (mr *MockExpressionManagerMockRecorder) BulkCreateWithTx(tx, expressions interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkCreateWithTx), tx, expressions)
-}
-
-// BulkDeleteByPKsWithTx mocks base method.
-func (m *MockExpressionManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx.
-func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
-}
-
-// BulkUpdateWithTx mocks base method.
-func (m *MockExpressionManager) BulkUpdateWithTx(tx *sqlx.Tx, expressions []dao.Expression) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateWithTx", tx, expressions)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkUpdateWithTx indicates an expected call of BulkUpdateWithTx.
-func (mr *MockExpressionManagerMockRecorder) BulkUpdateWithTx(tx, expressions interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkUpdateWithTx), tx, expressions)
-}
-
-// ChangeReferencedExpressionTypeBeforeUpdateAt mocks base method.
-func (m *MockExpressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChangeReferencedExpressionTypeBeforeUpdateAt", fromType, toType, updatedAt)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ChangeReferencedExpressionTypeBeforeUpdateAt indicates an expected call of ChangeReferencedExpressionTypeBeforeUpdateAt.
-func (mr *MockExpressionManagerMockRecorder) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeReferencedExpressionTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).ChangeReferencedExpressionTypeBeforeUpdateAt), fromType, toType, updatedAt)
-}
-
-// ChangeUnreferencedExpressionType mocks base method.
-func (m *MockExpressionManager) ChangeUnreferencedExpressionType(fromType, toType int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChangeUnreferencedExpressionType", fromType, toType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ChangeUnreferencedExpressionType indicates an expected call of ChangeUnreferencedExpressionType.
-func (mr *MockExpressionManagerMockRecorder) ChangeUnreferencedExpressionType(fromType, toType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUnreferencedExpressionType", reflect.TypeOf((*MockExpressionManager)(nil).ChangeUnreferencedExpressionType), fromType, toType)
-}
-
-// DeleteUnreferencedExpressionByTypeBeforeUpdateAt mocks base method.
-func (m *MockExpressionManager) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", _type, updatedAt)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteUnreferencedExpressionByTypeBeforeUpdateAt indicates an expected call of DeleteUnreferencedExpressionByTypeBeforeUpdateAt.
-func (mr *MockExpressionManagerMockRecorder) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnreferencedExpressionByTypeBeforeUpdateAt), _type, updatedAt)
-}
-
-// ListAuthByPKs mocks base method.
+// ListAuthByPKs mocks base method
 func (m *MockExpressionManager) ListAuthByPKs(pks []int64) ([]dao.AuthExpression, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAuthByPKs", pks)
@@ -130,13 +43,13 @@ func (m *MockExpressionManager) ListAuthByPKs(pks []int64) ([]dao.AuthExpression
 	return ret0, ret1
 }
 
-// ListAuthByPKs indicates an expected call of ListAuthByPKs.
+// ListAuthByPKs indicates an expected call of ListAuthByPKs
 func (mr *MockExpressionManagerMockRecorder) ListAuthByPKs(pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAuthByPKs", reflect.TypeOf((*MockExpressionManager)(nil).ListAuthByPKs), pks)
 }
 
-// ListDistinctBySignaturesType mocks base method.
+// ListDistinctBySignaturesType mocks base method
 func (m *MockExpressionManager) ListDistinctBySignaturesType(signatures []string, _type int64) ([]dao.Expression, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDistinctBySignaturesType", signatures, _type)
@@ -145,8 +58,94 @@ func (m *MockExpressionManager) ListDistinctBySignaturesType(signatures []string
 	return ret0, ret1
 }
 
-// ListDistinctBySignaturesType indicates an expected call of ListDistinctBySignaturesType.
+// ListDistinctBySignaturesType indicates an expected call of ListDistinctBySignaturesType
 func (mr *MockExpressionManagerMockRecorder) ListDistinctBySignaturesType(signatures, _type interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDistinctBySignaturesType", reflect.TypeOf((*MockExpressionManager)(nil).ListDistinctBySignaturesType), signatures, _type)
+}
+
+// BulkCreateWithTx mocks base method
+func (m *MockExpressionManager) BulkCreateWithTx(tx *sqlx.Tx, expressions []dao.Expression) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, expressions)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BulkCreateWithTx indicates an expected call of BulkCreateWithTx
+func (mr *MockExpressionManagerMockRecorder) BulkCreateWithTx(tx, expressions interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkCreateWithTx), tx, expressions)
+}
+
+// BulkUpdateWithTx mocks base method
+func (m *MockExpressionManager) BulkUpdateWithTx(tx *sqlx.Tx, expressions []dao.Expression) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateWithTx", tx, expressions)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateWithTx indicates an expected call of BulkUpdateWithTx
+func (mr *MockExpressionManagerMockRecorder) BulkUpdateWithTx(tx, expressions interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkUpdateWithTx), tx, expressions)
+}
+
+// BulkDeleteByPKsWithTx mocks base method
+func (m *MockExpressionManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx
+func (mr *MockExpressionManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockExpressionManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
+}
+
+// ChangeUnreferencedExpressionType mocks base method
+func (m *MockExpressionManager) ChangeUnreferencedExpressionType(fromType, toType int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeUnreferencedExpressionType", fromType, toType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeUnreferencedExpressionType indicates an expected call of ChangeUnreferencedExpressionType
+func (mr *MockExpressionManagerMockRecorder) ChangeUnreferencedExpressionType(fromType, toType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUnreferencedExpressionType", reflect.TypeOf((*MockExpressionManager)(nil).ChangeUnreferencedExpressionType), fromType, toType)
+}
+
+// ChangeReferencedExpressionTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeReferencedExpressionTypeBeforeUpdateAt", fromType, toType, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeReferencedExpressionTypeBeforeUpdateAt indicates an expected call of ChangeReferencedExpressionTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) ChangeReferencedExpressionTypeBeforeUpdateAt(fromType, toType, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeReferencedExpressionTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).ChangeReferencedExpressionTypeBeforeUpdateAt), fromType, toType, updatedAt)
+}
+
+// DeleteUnreferencedExpressionByTypeBeforeUpdateAt mocks base method
+func (m *MockExpressionManager) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", _type, updatedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUnreferencedExpressionByTypeBeforeUpdateAt indicates an expected call of DeleteUnreferencedExpressionByTypeBeforeUpdateAt
+func (mr *MockExpressionManagerMockRecorder) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressionByTypeBeforeUpdateAt", reflect.TypeOf((*MockExpressionManager)(nil).DeleteUnreferencedExpressionByTypeBeforeUpdateAt), _type, updatedAt)
 }

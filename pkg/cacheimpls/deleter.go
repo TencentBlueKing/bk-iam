@@ -61,7 +61,7 @@ func (d resourceTypeCacheDeleter) Execute(key cache.Key) (err error) {
 // handler/subject.go => BatchDeleteSubjects  =>      for DeleteSubjectPK(s.Type, s.ID)
 //                                           |=>          BatchDeleteSubjectGroups(pks)
 //                                           |=>          BatchDeleteSubjectDepartments(pks)
-//                    => DeleteSubjectMembers =>      for DeleteSubjectGroup(pk)
+//                    => DeleteGroupMembers =>      for DeleteSubjectGroup(pk)
 //                    => BatchAddSubjectMembers =>    for DeleteSubjectGroup(pk)
 //                    => BatchDeleteSubjectDepartments => BatchDeleteSubjectDepartments(pks)
 //                    => BatchUpdateSubjectDepartments => BatchDeleteSubjectDepartments(pks)

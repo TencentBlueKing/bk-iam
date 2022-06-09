@@ -5,79 +5,36 @@
 package mock
 
 import (
-	dao "iam/pkg/database/dao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	dao "iam/pkg/database/dao"
+	reflect "reflect"
 )
 
-// MockSubjectManager is a mock of SubjectManager interface.
+// MockSubjectManager is a mock of SubjectManager interface
 type MockSubjectManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockSubjectManagerMockRecorder
 }
 
-// MockSubjectManagerMockRecorder is the mock recorder for MockSubjectManager.
+// MockSubjectManagerMockRecorder is the mock recorder for MockSubjectManager
 type MockSubjectManagerMockRecorder struct {
 	mock *MockSubjectManager
 }
 
-// NewMockSubjectManager creates a new mock instance.
+// NewMockSubjectManager creates a new mock instance
 func NewMockSubjectManager(ctrl *gomock.Controller) *MockSubjectManager {
 	mock := &MockSubjectManager{ctrl: ctrl}
 	mock.recorder = &MockSubjectManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockSubjectManager) EXPECT() *MockSubjectManagerMockRecorder {
 	return m.recorder
 }
 
-// BulkCreate mocks base method.
-func (m *MockSubjectManager) BulkCreate(subjects []dao.Subject) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreate", subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreate indicates an expected call of BulkCreate.
-func (mr *MockSubjectManagerMockRecorder) BulkCreate(subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectManager)(nil).BulkCreate), subjects)
-}
-
-// BulkDeleteByPKsWithTx mocks base method.
-func (m *MockSubjectManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx.
-func (mr *MockSubjectManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockSubjectManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
-}
-
-// BulkUpdate mocks base method.
-func (m *MockSubjectManager) BulkUpdate(subjects []dao.Subject) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdate", subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkUpdate indicates an expected call of BulkUpdate.
-func (mr *MockSubjectManagerMockRecorder) BulkUpdate(subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdate", reflect.TypeOf((*MockSubjectManager)(nil).BulkUpdate), subjects)
-}
-
-// Get mocks base method.
+// Get mocks base method
 func (m *MockSubjectManager) Get(pk int64) (dao.Subject, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", pk)
@@ -86,28 +43,13 @@ func (m *MockSubjectManager) Get(pk int64) (dao.Subject, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
+// Get indicates an expected call of Get
 func (mr *MockSubjectManagerMockRecorder) Get(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectManager)(nil).Get), pk)
 }
 
-// GetCount mocks base method.
-func (m *MockSubjectManager) GetCount(_type string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCount", _type)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCount indicates an expected call of GetCount.
-func (mr *MockSubjectManagerMockRecorder) GetCount(_type interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCount", reflect.TypeOf((*MockSubjectManager)(nil).GetCount), _type)
-}
-
-// GetPK mocks base method.
+// GetPK mocks base method
 func (m *MockSubjectManager) GetPK(_type, id string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPK", _type, id)
@@ -116,13 +58,13 @@ func (m *MockSubjectManager) GetPK(_type, id string) (int64, error) {
 	return ret0, ret1
 }
 
-// GetPK indicates an expected call of GetPK.
+// GetPK indicates an expected call of GetPK
 func (mr *MockSubjectManagerMockRecorder) GetPK(_type, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockSubjectManager)(nil).GetPK), _type, id)
 }
 
-// ListByIDs mocks base method.
+// ListByIDs mocks base method
 func (m *MockSubjectManager) ListByIDs(_type string, ids []string) ([]dao.Subject, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByIDs", _type, ids)
@@ -131,28 +73,13 @@ func (m *MockSubjectManager) ListByIDs(_type string, ids []string) ([]dao.Subjec
 	return ret0, ret1
 }
 
-// ListByIDs indicates an expected call of ListByIDs.
+// ListByIDs indicates an expected call of ListByIDs
 func (mr *MockSubjectManagerMockRecorder) ListByIDs(_type, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByIDs", reflect.TypeOf((*MockSubjectManager)(nil).ListByIDs), _type, ids)
 }
 
-// ListByPKs mocks base method.
-func (m *MockSubjectManager) ListByPKs(pks []int64) ([]dao.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]dao.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs.
-func (mr *MockSubjectManagerMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectManager)(nil).ListByPKs), pks)
-}
-
-// ListPaging mocks base method.
+// ListPaging mocks base method
 func (m *MockSubjectManager) ListPaging(_type string, limit, offset int64) ([]dao.Subject, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPaging", _type, limit, offset)
@@ -161,8 +88,80 @@ func (m *MockSubjectManager) ListPaging(_type string, limit, offset int64) ([]da
 	return ret0, ret1
 }
 
-// ListPaging indicates an expected call of ListPaging.
+// ListPaging indicates an expected call of ListPaging
 func (mr *MockSubjectManagerMockRecorder) ListPaging(_type, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaging", reflect.TypeOf((*MockSubjectManager)(nil).ListPaging), _type, limit, offset)
+}
+
+// ListByPKs mocks base method
+func (m *MockSubjectManager) ListByPKs(pks []int64) ([]dao.Subject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByPKs", pks)
+	ret0, _ := ret[0].([]dao.Subject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByPKs indicates an expected call of ListByPKs
+func (mr *MockSubjectManagerMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectManager)(nil).ListByPKs), pks)
+}
+
+// GetCount mocks base method
+func (m *MockSubjectManager) GetCount(_type string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCount", _type)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCount indicates an expected call of GetCount
+func (mr *MockSubjectManagerMockRecorder) GetCount(_type interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCount", reflect.TypeOf((*MockSubjectManager)(nil).GetCount), _type)
+}
+
+// BulkCreate mocks base method
+func (m *MockSubjectManager) BulkCreate(subjects []dao.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreate", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreate indicates an expected call of BulkCreate
+func (mr *MockSubjectManagerMockRecorder) BulkCreate(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectManager)(nil).BulkCreate), subjects)
+}
+
+// BulkDeleteByPKsWithTx mocks base method
+func (m *MockSubjectManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx
+func (mr *MockSubjectManagerMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockSubjectManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
+}
+
+// BulkUpdate mocks base method
+func (m *MockSubjectManager) BulkUpdate(subjects []dao.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdate", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdate indicates an expected call of BulkUpdate
+func (mr *MockSubjectManagerMockRecorder) BulkUpdate(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdate", reflect.TypeOf((*MockSubjectManager)(nil).BulkUpdate), subjects)
 }

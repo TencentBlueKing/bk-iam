@@ -5,64 +5,35 @@
 package mock
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	types "iam/pkg/service/types"
 	reflect "reflect"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
-// MockInstanceSelectionService is a mock of InstanceSelectionService interface.
+// MockInstanceSelectionService is a mock of InstanceSelectionService interface
 type MockInstanceSelectionService struct {
 	ctrl     *gomock.Controller
 	recorder *MockInstanceSelectionServiceMockRecorder
 }
 
-// MockInstanceSelectionServiceMockRecorder is the mock recorder for MockInstanceSelectionService.
+// MockInstanceSelectionServiceMockRecorder is the mock recorder for MockInstanceSelectionService
 type MockInstanceSelectionServiceMockRecorder struct {
 	mock *MockInstanceSelectionService
 }
 
-// NewMockInstanceSelectionService creates a new mock instance.
+// NewMockInstanceSelectionService creates a new mock instance
 func NewMockInstanceSelectionService(ctrl *gomock.Controller) *MockInstanceSelectionService {
 	mock := &MockInstanceSelectionService{ctrl: ctrl}
 	mock.recorder = &MockInstanceSelectionServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockInstanceSelectionService) EXPECT() *MockInstanceSelectionServiceMockRecorder {
 	return m.recorder
 }
 
-// BulkCreate mocks base method.
-func (m *MockInstanceSelectionService) BulkCreate(system string, instanceSelections []types.InstanceSelection) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreate", system, instanceSelections)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreate indicates an expected call of BulkCreate.
-func (mr *MockInstanceSelectionServiceMockRecorder) BulkCreate(system, instanceSelections interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockInstanceSelectionService)(nil).BulkCreate), system, instanceSelections)
-}
-
-// BulkDelete mocks base method.
-func (m *MockInstanceSelectionService) BulkDelete(system string, instanceSelectionIDs []string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", system, instanceSelectionIDs)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockInstanceSelectionServiceMockRecorder) BulkDelete(system, instanceSelectionIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockInstanceSelectionService)(nil).BulkDelete), system, instanceSelectionIDs)
-}
-
-// ListBySystem mocks base method.
+// ListBySystem mocks base method
 func (m *MockInstanceSelectionService) ListBySystem(system string) ([]types.InstanceSelection, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBySystem", system)
@@ -71,13 +42,27 @@ func (m *MockInstanceSelectionService) ListBySystem(system string) ([]types.Inst
 	return ret0, ret1
 }
 
-// ListBySystem indicates an expected call of ListBySystem.
+// ListBySystem indicates an expected call of ListBySystem
 func (mr *MockInstanceSelectionServiceMockRecorder) ListBySystem(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockInstanceSelectionService)(nil).ListBySystem), system)
 }
 
-// Update mocks base method.
+// BulkCreate mocks base method
+func (m *MockInstanceSelectionService) BulkCreate(system string, instanceSelections []types.InstanceSelection) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreate", system, instanceSelections)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreate indicates an expected call of BulkCreate
+func (mr *MockInstanceSelectionServiceMockRecorder) BulkCreate(system, instanceSelections interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockInstanceSelectionService)(nil).BulkCreate), system, instanceSelections)
+}
+
+// Update mocks base method
 func (m *MockInstanceSelectionService) Update(system, instanceSelectionID string, instanceSelection types.InstanceSelection) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", system, instanceSelectionID, instanceSelection)
@@ -85,8 +70,22 @@ func (m *MockInstanceSelectionService) Update(system, instanceSelectionID string
 	return ret0
 }
 
-// Update indicates an expected call of Update.
+// Update indicates an expected call of Update
 func (mr *MockInstanceSelectionServiceMockRecorder) Update(system, instanceSelectionID, instanceSelection interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockInstanceSelectionService)(nil).Update), system, instanceSelectionID, instanceSelection)
+}
+
+// BulkDelete mocks base method
+func (m *MockInstanceSelectionService) BulkDelete(system string, instanceSelectionIDs []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDelete", system, instanceSelectionIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDelete indicates an expected call of BulkDelete
+func (mr *MockInstanceSelectionServiceMockRecorder) BulkDelete(system, instanceSelectionIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockInstanceSelectionService)(nil).BulkDelete), system, instanceSelectionIDs)
 }

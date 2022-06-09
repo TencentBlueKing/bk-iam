@@ -5,37 +5,36 @@
 package mock
 
 import (
-	dao "iam/pkg/database/dao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	dao "iam/pkg/database/dao"
+	reflect "reflect"
 )
 
-// MockResourceTypeManager is a mock of ResourceTypeManager interface.
+// MockResourceTypeManager is a mock of ResourceTypeManager interface
 type MockResourceTypeManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockResourceTypeManagerMockRecorder
 }
 
-// MockResourceTypeManagerMockRecorder is the mock recorder for MockResourceTypeManager.
+// MockResourceTypeManagerMockRecorder is the mock recorder for MockResourceTypeManager
 type MockResourceTypeManagerMockRecorder struct {
 	mock *MockResourceTypeManager
 }
 
-// NewMockResourceTypeManager creates a new mock instance.
+// NewMockResourceTypeManager creates a new mock instance
 func NewMockResourceTypeManager(ctrl *gomock.Controller) *MockResourceTypeManager {
 	mock := &MockResourceTypeManager{ctrl: ctrl}
 	mock.recorder = &MockResourceTypeManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockResourceTypeManager) EXPECT() *MockResourceTypeManagerMockRecorder {
 	return m.recorder
 }
 
-// BulkCreateWithTx mocks base method.
+// BulkCreateWithTx mocks base method
 func (m *MockResourceTypeManager) BulkCreateWithTx(tx *sqlx.Tx, resourceTypes []dao.ResourceType) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, resourceTypes)
@@ -43,13 +42,13 @@ func (m *MockResourceTypeManager) BulkCreateWithTx(tx *sqlx.Tx, resourceTypes []
 	return ret0
 }
 
-// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
+// BulkCreateWithTx indicates an expected call of BulkCreateWithTx
 func (mr *MockResourceTypeManagerMockRecorder) BulkCreateWithTx(tx, resourceTypes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockResourceTypeManager)(nil).BulkCreateWithTx), tx, resourceTypes)
 }
 
-// BulkDeleteWithTx mocks base method.
+// BulkDeleteWithTx mocks base method
 func (m *MockResourceTypeManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, system, ids)
@@ -57,7 +56,7 @@ func (m *MockResourceTypeManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, i
 	return ret0
 }
 
-// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx.
+// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx
 func (mr *MockResourceTypeManagerMockRecorder) BulkDeleteWithTx(tx, system, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockResourceTypeManager)(nil).BulkDeleteWithTx), tx, system, ids)

@@ -231,7 +231,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("BulkDeleteSubjectMembers", func() {
+	Describe("BulkDeleteGroupMembers", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -260,7 +260,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.BulkDeleteSubjectMembers(int64(1), []int64{2}, []int64{3})
+			_, err := manager.BulkDeleteGroupMembers(int64(1), []int64{2}, []int64{3})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByMembersWithTx")
 		})

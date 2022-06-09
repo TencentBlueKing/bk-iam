@@ -5,51 +5,36 @@
 package mock
 
 import (
-	dao "iam/pkg/database/dao"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	dao "iam/pkg/database/dao"
+	reflect "reflect"
 )
 
-// MockSystemManager is a mock of SystemManager interface.
+// MockSystemManager is a mock of SystemManager interface
 type MockSystemManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockSystemManagerMockRecorder
 }
 
-// MockSystemManagerMockRecorder is the mock recorder for MockSystemManager.
+// MockSystemManagerMockRecorder is the mock recorder for MockSystemManager
 type MockSystemManagerMockRecorder struct {
 	mock *MockSystemManager
 }
 
-// NewMockSystemManager creates a new mock instance.
+// NewMockSystemManager creates a new mock instance
 func NewMockSystemManager(ctrl *gomock.Controller) *MockSystemManager {
 	mock := &MockSystemManager{ctrl: ctrl}
 	mock.recorder = &MockSystemManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockSystemManager) EXPECT() *MockSystemManagerMockRecorder {
 	return m.recorder
 }
 
-// CreateWithTx mocks base method.
-func (m *MockSystemManager) CreateWithTx(tx *sqlx.Tx, system dao.System) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWithTx", tx, system)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateWithTx indicates an expected call of CreateWithTx.
-func (mr *MockSystemManagerMockRecorder) CreateWithTx(tx, system interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockSystemManager)(nil).CreateWithTx), tx, system)
-}
-
-// Get mocks base method.
+// Get mocks base method
 func (m *MockSystemManager) Get(id string) (dao.System, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", id)
@@ -58,8 +43,22 @@ func (m *MockSystemManager) Get(id string) (dao.System, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
+// Get indicates an expected call of Get
 func (mr *MockSystemManagerMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSystemManager)(nil).Get), id)
+}
+
+// CreateWithTx mocks base method
+func (m *MockSystemManager) CreateWithTx(tx *sqlx.Tx, system dao.System) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWithTx", tx, system)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateWithTx indicates an expected call of CreateWithTx
+func (mr *MockSystemManagerMockRecorder) CreateWithTx(tx, system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockSystemManager)(nil).CreateWithTx), tx, system)
 }
