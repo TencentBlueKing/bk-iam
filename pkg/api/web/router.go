@@ -23,6 +23,9 @@ func Register(r *gin.RouterGroup) {
 	// 系统列表
 	r.GET("/systems", handler.ListSystem)
 
+	// 资源类型列表
+	r.GET("/resource-types", handler.ListResourceType)
+
 	// all resource in system
 	s := r.Group("/systems/:system_id")
 	s.Use(common.SystemExists())
@@ -55,21 +58,22 @@ func Register(r *gin.RouterGroup) {
 		s.POST("/temporary-policies", handler.CreateTemporaryPolicies)
 	}
 
-	// 资源类型列表
-	r.GET("/resource-types", handler.ListResourceType)
+	// policy
+	{
+		// 查询过期的 policy 列表
+		r.GET("/policies", handler.ListPolicy)
+		// 更新策略过期时间
+		r.PUT("/policies/expired_at", handler.UpdatePoliciesExpiredAt)
+		// 删除
+		r.DELETE("/policies", handler.BatchDeletePolicies)
+	}
 
-	// 查询过期的 policy 列表
-	r.GET("/policies", handler.ListPolicy)
-
-	// 更新策略过期时间
-	r.PUT("/policies/expired_at", handler.UpdatePoliciesExpiredAt)
-
-	// Policy 删除
-	r.DELETE("/policies", handler.BatchDeletePolicies)
-
-	// temporary-policies 删除
-	r.DELETE("/temporary-policies", handler.BatchDeleteTemporaryPolicies)
-	r.DELETE("/temporary-policies/before_expired_at", handler.DeleteTemporaryBeforeExpiredAt)
+	// temporary-policy
+	{
+		// temporary-policies 删除
+		r.DELETE("/temporary-policies", handler.BatchDeleteTemporaryPolicies)
+		r.DELETE("/temporary-policies/before_expired_at", handler.DeleteTemporaryBeforeExpiredAt)
+	}
 
 	// 权限模板相关
 	pt := r.Group("/perm-templates")
@@ -92,10 +96,10 @@ func Register(r *gin.RouterGroup) {
 		r.DELETE("/subjects", handler.BatchDeleteSubjects)
 		// 更新subject
 		r.PUT("/subjects", handler.BatchUpdateSubject)
-	}
 
-	// 筛选有过期成员的subjects
-	r.POST("/subjects/before_expired_at", handler.ListExistSubjectsBeforeExpiredAt)
+		// 筛选有过期成员的subjects
+		r.POST("/subjects/before_expired_at", handler.ListExistSubjectsBeforeExpiredAt)
+	}
 
 	// group-members
 	{
@@ -105,9 +109,9 @@ func Register(r *gin.RouterGroup) {
 		// 批量添加subject成员
 		r.POST("/subject-members", handler.BatchAddGroupMembers)
 		// 批量删除subject成员
-		r.DELETE("/subject-members", handler.DeleteGroupMembers)
+		r.DELETE("/subject-members", handler.BatchDeleteGroupMembers)
 		// 批量subject成员过期时间
-		r.PUT("/subject-members/expired_at", handler.UpdateGroupMembersExpiredAt)
+		r.PUT("/subject-members/expired_at", handler.BatchUpdateGroupMembersExpiredAt)
 		// 查询小于指定过期时间的成员列表, 批量用户组查询
 		r.GET("/subject-members/query", handler.ListGroupMemberBeforeExpiredAt)
 
@@ -117,9 +121,9 @@ func Register(r *gin.RouterGroup) {
 		// 批量添加subject成员
 		r.POST("/group-members", handler.BatchAddGroupMembers)
 		// 批量删除subject成员
-		r.DELETE("/group-members", handler.DeleteGroupMembers)
+		r.DELETE("/group-members", handler.BatchDeleteGroupMembers)
 		// 批量subject成员过期时间
-		r.PUT("/group-members/expired_at", handler.UpdateGroupMembersExpiredAt)
+		r.PUT("/group-members/expired_at", handler.BatchUpdateGroupMembersExpiredAt)
 		// 查询小于指定过期时间的成员列表, 批量用户组查询
 		r.GET("/group-members/query", handler.ListGroupMemberBeforeExpiredAt)
 	}
@@ -142,9 +146,12 @@ func Register(r *gin.RouterGroup) {
 		// 查询subject所在的用户组/部门
 		r.GET("/subject-relations", handler.ListSubjectGroups)
 
-		// NEW:
+		// TODO: 需要考虑分页了 => https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
 		r.GET("/subject-groups", handler.ListSubjectGroups)
-		// TODO: 需要考虑分页了
+
+		// TODO: add subject-groups?groups=1,2,3,4,5 return true/false
+		// r.GET("/users/:subject_id/groups", handler.ListSubjectGroups)
+		// r.GET("/departments/:subject_id/groups", handler.ListSubjectGroups)
 	}
 
 	// subject-roles

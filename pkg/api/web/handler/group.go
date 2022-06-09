@@ -58,7 +58,7 @@ func ListGroupMember(c *gin.Context) {
 
 // ListSubjectGroups 获取subject关联的用户组
 func ListSubjectGroups(c *gin.Context) {
-	var subject subjectRelationSerializer
+	var subject listSubjectGroupSerializer
 	if err := c.ShouldBindQuery(&subject); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
@@ -67,8 +67,7 @@ func ListSubjectGroups(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	groups, err := ctl.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups",
-			"type=`%s`, id=`%s`", subject.Type, subject.ID)
+		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups", "type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -76,8 +75,8 @@ func ListSubjectGroups(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", groups)
 }
 
-// UpdateGroupMembersExpiredAt subject关系续期
-func UpdateGroupMembersExpiredAt(c *gin.Context) {
+// BatchUpdateGroupMembersExpiredAt subject关系续期
+func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	var body groupMemberExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
@@ -89,7 +88,7 @@ func UpdateGroupMembersExpiredAt(c *gin.Context) {
 		return
 	}
 
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "UpdateGroupMembersExpiredAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchUpdateGroupMembersExpiredAt")
 
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
@@ -112,8 +111,8 @@ func UpdateGroupMembersExpiredAt(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", gin.H{})
 }
 
-// DeleteGroupMembers 批量删除subject成员
-func DeleteGroupMembers(c *gin.Context) {
+// BatchDeleteGroupMembers 批量删除subject成员
+func BatchDeleteGroupMembers(c *gin.Context) {
 	var body deleteGroupMemberSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
@@ -165,8 +164,14 @@ func BatchAddGroupMembers(c *gin.Context) {
 	ctl := pap.NewGroupController()
 	typeCount, err := ctl.CreateOrUpdateGroupMembers(body.Type, body.ID, papSubjects)
 	if err != nil {
-		err = errorWrapf(err, "ctl.CreateOrUpdateGroupMembers",
-			"type=`%s`, id=`%s`, subjects=`%+v`", body.Type, body.ID, papSubjects)
+		err = errorWrapf(
+			err,
+			"ctl.CreateOrUpdateGroupMembers",
+			"type=`%s`, id=`%s`, subjects=`%+v`",
+			body.Type,
+			body.ID,
+			papSubjects,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

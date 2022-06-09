@@ -119,7 +119,7 @@ func TestBatchAddGroupMembers(t *testing.T) {
 
 func TestDeleteGroupMembers(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"delete", "/api/v1/group-members", DeleteGroupMembers,
+		"delete", "/api/v1/group-members", BatchDeleteGroupMembers,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -209,7 +209,7 @@ func TestDeleteGroupMembers(t *testing.T) {
 
 func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"put", "/api/v1/group-members/expired_at", UpdateGroupMembersExpiredAt,
+		"put", "/api/v1/group-members/expired_at", BatchUpdateGroupMembersExpiredAt,
 	)
 
 	t.Run("no json", func(t *testing.T) {
