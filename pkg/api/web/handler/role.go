@@ -19,9 +19,9 @@ import (
 	"iam/pkg/util"
 )
 
-// CreateSubjectRole ...
-func CreateSubjectRole(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BulkCreateSubjectRole")
+// BatchAddRoleSubject ...
+func BatchAddRoleSubject(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchCreateRoleSubject")
 
 	var body subjectRoleSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -39,7 +39,7 @@ func CreateSubjectRole(c *gin.Context) {
 	// TODO: 校验 systemID 存在
 
 	ctl := pap.NewRoleController()
-	err := ctl.BulkCreate(body.RoleType, body.SystemID, papSubjects)
+	err := ctl.BulkAddSubjects(body.RoleType, body.SystemID, papSubjects)
 	if err != nil {
 		err = errorWrapf(
 			err, "ctl.BulkCreateSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
@@ -52,9 +52,9 @@ func CreateSubjectRole(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", nil)
 }
 
-// DeleteSubjectRole ...
-func DeleteSubjectRole(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BulkDeleteSubjectRole")
+// BatchDeleteRoleSubject ...
+func BatchDeleteRoleSubject(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchDeleteRoleSubject")
 
 	var body subjectRoleSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -70,7 +70,7 @@ func DeleteSubjectRole(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Subjects)
 
 	ctl := pap.NewRoleController()
-	err := ctl.BulkDelete(body.RoleType, body.SystemID, papSubjects)
+	err := ctl.BulkDeleteSubjects(body.RoleType, body.SystemID, papSubjects)
 	if err != nil {
 		err = errorWrapf(
 			err, "ctl.BulkDeleteSubjectRoles roleType=`%s`, system=`%s`, subjects=`%+v`",
@@ -83,8 +83,8 @@ func DeleteSubjectRole(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", nil)
 }
 
-// ListSubjectRole ...
-func ListSubjectRole(c *gin.Context) {
+// ListRoleSubject ...
+func ListRoleSubject(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BulkDeleteSubjectRole")
 
 	var query subjectRoleQuerySerializer

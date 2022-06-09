@@ -122,7 +122,7 @@ var _ = Describe("RoleService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []int64{1})
+			err := manager.BulkAddSubjects("super", "test", []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListSubjectPKByRole")
 		})
@@ -149,7 +149,7 @@ var _ = Describe("RoleService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []int64{1, 2, 3})
+			err := manager.BulkAddSubjects("super", "test", []int64{1, 2, 3})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkCreate")
 		})
@@ -176,7 +176,7 @@ var _ = Describe("RoleService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreate("super", "test", []int64{1, 2, 3})
+			err := manager.BulkAddSubjects("super", "test", []int64{1, 2, 3})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -193,7 +193,7 @@ var _ = Describe("RoleService", func() {
 		It("empty pk", func() {
 			manager := &roleService{}
 
-			err := manager.BulkDelete("super", "test", []int64{})
+			err := manager.BulkDeleteSubjects("super", "test", []int64{})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -207,7 +207,7 @@ var _ = Describe("RoleService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkDelete("super", "test", []int64{1})
+			err := manager.BulkDeleteSubjects("super", "test", []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "BulkDelete")
 		})
@@ -222,7 +222,7 @@ var _ = Describe("RoleService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkDelete("super", "test", []int64{1})
+			err := manager.BulkDeleteSubjects("super", "test", []int64{1})
 			assert.NoError(GinkgoT(), err)
 		})
 	})

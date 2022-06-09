@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"iam/pkg/api/common"
-	modelHandle "iam/pkg/api/model/handler"
+	modelHandler "iam/pkg/api/model/handler"
 	"iam/pkg/api/web/handler"
 )
 
@@ -37,7 +37,7 @@ func Register(r *gin.RouterGroup) {
 		s.GET("/actions", handler.ListAction)
 		// action detail
 		s.GET("/actions/:action_id", handler.GetAction)
-		s.DELETE("/actions/:action_id", modelHandle.DeleteAction)
+		s.DELETE("/actions/:action_id", modelHandler.DeleteAction)
 
 		s.GET("/instance-selections", handler.ListInstanceSelection)
 
@@ -128,7 +128,7 @@ func Register(r *gin.RouterGroup) {
 		r.GET("/group-members/query", handler.ListGroupMemberBeforeExpiredAt)
 	}
 
-	// subject-departments
+	// Resource: subject-departments
 	{
 		// 查询subject-department关系
 		r.GET("/subject-departments", handler.ListSubjectDepartments)
@@ -154,14 +154,23 @@ func Register(r *gin.RouterGroup) {
 		// r.GET("/departments/:subject_id/groups", handler.ListSubjectGroups)
 	}
 
-	// subject-roles
+	// Resource: role-subjects
 	{
+		// Deprecated: use the NEW instead
 		// 查询subject role
-		r.GET("/subject-roles", handler.ListSubjectRole)
+		r.GET("/subject-roles", handler.ListRoleSubject)
 		// 批量添加subject role
-		r.POST("/subject-roles", handler.CreateSubjectRole)
+		r.POST("/subject-roles", handler.BatchAddRoleSubject)
 		// 批量删除subject role
-		r.DELETE("/subject-roles", handler.DeleteSubjectRole)
+		r.DELETE("/subject-roles", handler.BatchDeleteRoleSubject)
+
+		// NEW:
+		// 查询role subjects
+		r.GET("/role-subjects", handler.ListRoleSubject)
+		// 批量添加role subjects
+		r.POST("/role-subjects", handler.BatchAddRoleSubject)
+		// 批量删除role subject
+		r.DELETE("/role-subjects", handler.BatchDeleteRoleSubject)
 	}
 
 	// others

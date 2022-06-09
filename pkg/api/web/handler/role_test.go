@@ -22,9 +22,9 @@ import (
 	"iam/pkg/util"
 )
 
-func TestCreateSubjectRole(t *testing.T) {
+func TestAddRoleSubject(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"post", "/api/v1/subject-roles", CreateSubjectRole,
+		"post", "/api/v1/subject-roles", BatchAddRoleSubject,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -64,7 +64,7 @@ func TestCreateSubjectRole(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkCreate("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkAddSubjects("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -92,7 +92,7 @@ func TestCreateSubjectRole(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkCreate("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkAddSubjects("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -118,9 +118,9 @@ func TestCreateSubjectRole(t *testing.T) {
 	})
 }
 
-func TestDeleteSubjectRole(t *testing.T) {
+func TestBatchDeleteRoleSubject(t *testing.T) {
 	newRequestFunc := util.CreateNewAPIRequestFunc(
-		"delete", "/api/v1/subject-roles", DeleteSubjectRole,
+		"delete", "/api/v1/subject-roles", BatchDeleteRoleSubject,
 	)
 
 	t.Run("no json", func(t *testing.T) {
@@ -160,7 +160,7 @@ func TestDeleteSubjectRole(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkDelete("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkDeleteSubjects("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
@@ -188,7 +188,7 @@ func TestDeleteSubjectRole(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockCtl := mock.NewMockRoleController(ctl)
-		mockCtl.EXPECT().BulkDelete("system_manager", "test", []pap.Subject{
+		mockCtl.EXPECT().BulkDeleteSubjects("system_manager", "test", []pap.Subject{
 			{
 				Type: "user",
 				ID:   "admin",
