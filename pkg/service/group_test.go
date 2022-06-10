@@ -285,7 +285,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.ListThinSubjectGroupsBySubjectPKs([]int64{1, 2})
+			_, err := manager.ListEffectThinSubjectGroupsBySubjectPKs([]int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListEffectRelationBySubjectPKs")
 		})
@@ -305,9 +305,9 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			subjectGroups, err := manager.ListThinSubjectGroupsBySubjectPKs([]int64{1, 2})
+			subjectGroups, err := manager.ListEffectThinSubjectGroupsBySubjectPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{PK: 1, PolicyExpiredAt: 2}}, subjectGroups)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 2}}, subjectGroups)
 		})
 	})
 })

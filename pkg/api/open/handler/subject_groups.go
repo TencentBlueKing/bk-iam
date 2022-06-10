@@ -84,7 +84,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	}
 
 	svc := service.NewGroupService()
-	groups, err := svc.ListThinSubjectGroupsBySubjectPKs([]int64{subjectPK})
+	groups, err := svc.ListEffectThinSubjectGroupsBySubjectPKs([]int64{subjectPK})
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -97,7 +97,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
 		if group.PolicyExpiredAt > nowUnix {
-			groupPKs.Add(group.PK)
+			groupPKs.Add(group.GroupPK)
 		}
 	}
 
@@ -110,7 +110,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 
 		if len(departmentPKs) > 0 {
 			// 从DB查询所有关联的groupPK
-			groups, err := svc.ListThinSubjectGroupsBySubjectPKs(departmentPKs)
+			groups, err := svc.ListEffectThinSubjectGroupsBySubjectPKs(departmentPKs)
 			if err != nil {
 				util.SystemErrorJSONResponse(c, err)
 				return
@@ -119,7 +119,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 			for _, group := range groups {
 				// 仅仅在有效期内才需要
 				if group.PolicyExpiredAt > nowUnix {
-					groupPKs.Add(group.PK)
+					groupPKs.Add(group.GroupPK)
 				}
 			}
 		}

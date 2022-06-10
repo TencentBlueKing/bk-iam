@@ -55,7 +55,7 @@ type GroupService interface {
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
 
 	// open api
-	ListThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
+	ListEffectThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
 }
 
 type groupService struct {
@@ -86,13 +86,13 @@ func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 
 func convertRelationToThinSubjectGroup(effectRelation dao.EffectSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
-		PK:              effectRelation.ParentPK,
+		GroupPK:         effectRelation.ParentPK,
 		PolicyExpiredAt: effectRelation.PolicyExpiredAt,
 	}
 }
 
-// ListThinSubjectGroupsBySubjectPKs 批量获取 subject 有效的 groups(未过期的)
-func (l *groupService) ListThinSubjectGroupsBySubjectPKs(
+// ListEffectThinSubjectGroupsBySubjectPKs 批量获取 subject 有效的 groups(未过期的)
+func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKs(
 	pks []int64,
 ) (subjectGroups []types.ThinSubjectGroup, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")

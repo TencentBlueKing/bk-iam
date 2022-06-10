@@ -72,23 +72,23 @@ var _ = Describe("Helper", func() {
 				func(systemID string, pks []int64) ([]svctypes.ThinSubjectGroup, error) {
 					return []svctypes.ThinSubjectGroup{
 						{
-							PK:              4,
+							GroupPK:         4,
 							PolicyExpiredAt: 0,
 						},
 						{
-							PK:              5,
+							GroupPK:         5,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
 						},
 						{
-							PK:              6,
+							GroupPK:         6,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
 						},
 						{
-							PK:              6,
+							GroupPK:         6,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
 						},
 						{
-							PK:              7,
+							GroupPK:         7,
 							PolicyExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
 						},
 					}, nil

@@ -233,10 +233,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
 		if err != nil {
-			err = errorWrapf(
-				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, systemID=`%d`, subjectPK=`%d`, groups=`%s`",
-				systemID, r.SubjectPK, r.Groups,
-			)
+			err = errorWrapf(err, "convertSystemSubjectGroupsToThinSubjectGroup fail groups=`%s`", r.Groups)
 			return nil, err
 		}
 
@@ -263,7 +260,7 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 
 	for groupPK, expiredAt := range groupExpiredAtMap {
 		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
-			PK:              groupPK,
+			GroupPK:         groupPK,
 			PolicyExpiredAt: expiredAt,
 		})
 	}

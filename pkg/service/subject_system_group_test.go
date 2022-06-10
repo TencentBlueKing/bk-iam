@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang/mock/gomock"
+	jsoniter "github.com/json-iterator/go"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
@@ -89,11 +90,10 @@ var _ = Describe("SubjectService", func() {
 		It("ok", func() {
 			groups, err := updateGroupsString(`{"1": 2}`, updateFunc)
 			assert.NoError(GinkgoT(), err)
-			if groups == `{"1":2,"2":1555555555}` || groups == `{"2":1555555555,"1":2}` {
-				return
-			} else {
-				assert.Fail(GinkgoT(), fmt.Sprintf("groups: %s", groups))
-			}
+
+			groupMap := map[int64]int64{}
+			jsoniter.UnmarshalFromString(groups, &groupMap)
+			assert.Equal(GinkgoT(), map[int64]int64{1: 2, 2: 1555555555}, groupMap)
 		})
 	})
 
@@ -347,7 +347,7 @@ var _ = Describe("SubjectService", func() {
 		It("ok", func() {
 			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{PK: 1, PolicyExpiredAt: 1555555555}}, groups)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 1555555555}}, groups)
 		})
 	})
 
@@ -404,7 +404,7 @@ var _ = Describe("SubjectService", func() {
 			groups, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[int64][]types.ThinSubjectGroup{1: {{
-				PK:              2,
+				GroupPK:         2,
 				PolicyExpiredAt: ts,
 			}}}, groups)
 		})
