@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/cacheimpls"
@@ -30,6 +31,7 @@ const GroupCTL = "GroupCTL"
 type GroupController interface {
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	CheckSubjectExistGroups(_type, id string, groupIDs []string) (map[string]bool, error)
 
 	GetMemberCount(_type, id string) (int64, error)
 	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
@@ -92,6 +94,54 @@ func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, e
 	}
 
 	return existSubjects, nil
+}
+
+func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []string) (map[string]bool, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
+
+	// subject Type+ID to PK
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	// groupIDs to groupPKs
+	groupPKs := make([]int64, 0, len(groupIDs))
+	groupPKToGroupID := make(map[int64]string, len(groupIDs))
+	for _, groupID := range groupIDs {
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
+		if err != nil {
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
+				types.GroupType,
+				groupID,
+			)
+		}
+		groupPKs = append(groupPKs, groupPK)
+
+		groupPKToGroupID[groupPK] = groupID
+	}
+
+	// do check
+	existGroupPKs, err := c.service.ListSubjectExistParentPks(subjectPK, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"service.ListSubjectExistParentPks subjectPK=`%s`, groupPKs=`%+v` fail",
+			subjectPK,
+			groupPKs,
+		)
+	}
+	existGroupPKSet := set.NewInt64SetWithValues(existGroupPKs)
+
+	// build result
+	groupIDBelong := make(map[string]bool, len(groupIDs))
+	for groupPK, groupID := range groupPKToGroupID {
+		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
+	}
+
+	return groupIDBelong, nil
 }
 
 // ListSubjectGroups ...

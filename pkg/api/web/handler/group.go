@@ -11,6 +11,8 @@
 package handler
 
 import (
+	"strings"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
@@ -73,6 +75,35 @@ func ListSubjectGroups(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", groups)
+}
+
+func CheckSubjectGroupsBelong(c *gin.Context) {
+	var query checkSubjectGroupsBelongSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	// subject.type= & subject.id= & group_ids=1,2,3,4
+	groupIDs := strings.Split(query.GroupIDs, ",")
+	if len(groupIDs) > 100 {
+		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
+	}
+
+	ctl := pap.NewGroupController()
+	groupIDBelong, err := ctl.CheckSubjectExistGroups(query.Type, query.ID, groupIDs)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListSubjectExistParentPks type=`%s`, id=`%s` fail",
+			query.Type,
+			query.ID,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", groupIDBelong)
 }
 
 // BatchUpdateGroupMembersExpiredAt subject关系续期

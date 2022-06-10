@@ -51,6 +51,12 @@ type listGroupMemberSerializer struct {
 	pageSerializer
 }
 
+type checkSubjectGroupsBelongSerializer struct {
+	Type     string `form:"type" binding:"required,oneof=user department"`
+	ID       string `form:"id" binding:"required"`
+	GroupIDs string `form:"group_ids" binding:"required"`
+}
+
 type listSubjectGroupSerializer struct {
 	Type            string `form:"type" binding:"required,oneof=user department"`
 	ID              string `form:"id" binding:"required"`
