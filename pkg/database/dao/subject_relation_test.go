@@ -12,7 +12,6 @@ package dao
 
 import (
 	"testing"
-	"time"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -65,23 +64,6 @@ func Test_subjectRelationManager_ListRelation(t *testing.T) {
 
 		manager := &subjectRelationManager{DB: db}
 		relations, err := manager.ListRelation(int64(1))
-
-		assert.NoError(t, err, "query from db fail.")
-		assert.Len(t, relations, 1)
-	})
-}
-
-func Test_subjectRelationManager_ListEffectRelationBySubjectPKs(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT subject_pk, parent_pk, policy_expired_at FROM subject_relation
-		 WHERE subject_pk in (.*) AND policy_expired_at > (.*)`
-		mockRows := sqlmock.NewRows(
-			[]string{"subject_pk", "parent_pk", "policy_expired_at"},
-		).AddRow(int64(1), int64(1), int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), time.Now().Unix()).WillReturnRows(mockRows)
-
-		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListEffectRelationBySubjectPKs([]int64{1})
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)

@@ -217,7 +217,7 @@ var _ = Describe("GroupService", func() {
 				authTypeManger: mockGroupSystemAuthTypeManager,
 			}
 
-			_, err := manager.listGroupAuthSystem(int64(1))
+			_, err := manager.ListGroupAuthSystemIDs(int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListByGroup")
 		})
@@ -235,7 +235,7 @@ var _ = Describe("GroupService", func() {
 				authTypeManger: mockGroupSystemAuthTypeManager,
 			}
 
-			systems, err := manager.listGroupAuthSystem(int64(1))
+			systems, err := manager.ListGroupAuthSystemIDs(int64(1))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []string{"1", "2"}, systems)
 		})

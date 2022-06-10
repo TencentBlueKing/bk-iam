@@ -5,36 +5,79 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	sqlx "github.com/jmoiron/sqlx"
 	types "iam/pkg/service/types"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
-// MockSubjectService is a mock of SubjectService interface
+// MockSubjectService is a mock of SubjectService interface.
 type MockSubjectService struct {
 	ctrl     *gomock.Controller
 	recorder *MockSubjectServiceMockRecorder
 }
 
-// MockSubjectServiceMockRecorder is the mock recorder for MockSubjectService
+// MockSubjectServiceMockRecorder is the mock recorder for MockSubjectService.
 type MockSubjectServiceMockRecorder struct {
 	mock *MockSubjectService
 }
 
-// NewMockSubjectService creates a new mock instance
+// NewMockSubjectService creates a new mock instance.
 func NewMockSubjectService(ctrl *gomock.Controller) *MockSubjectService {
 	mock := &MockSubjectService{ctrl: ctrl}
 	mock.recorder = &MockSubjectServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSubjectService) EXPECT() *MockSubjectServiceMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// BulkCreate mocks base method.
+func (m *MockSubjectService) BulkCreate(subjects []types.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreate", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreate indicates an expected call of BulkCreate.
+func (mr *MockSubjectServiceMockRecorder) BulkCreate(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectService)(nil).BulkCreate), subjects)
+}
+
+// BulkDeleteByPKsWithTx mocks base method.
+func (m *MockSubjectService) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx.
+func (mr *MockSubjectServiceMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteByPKsWithTx), tx, pks)
+}
+
+// BulkUpdateName mocks base method.
+func (m *MockSubjectService) BulkUpdateName(subjects []types.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateName", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateName indicates an expected call of BulkUpdateName.
+func (mr *MockSubjectServiceMockRecorder) BulkUpdateName(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateName", reflect.TypeOf((*MockSubjectService)(nil).BulkUpdateName), subjects)
+}
+
+// Get mocks base method.
 func (m *MockSubjectService) Get(pk int64) (types.Subject, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", pk)
@@ -43,28 +86,13 @@ func (m *MockSubjectService) Get(pk int64) (types.Subject, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockSubjectServiceMockRecorder) Get(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectService)(nil).Get), pk)
 }
 
-// GetPK mocks base method
-func (m *MockSubjectService) GetPK(_type, id string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPK", _type, id)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPK indicates an expected call of GetPK
-func (mr *MockSubjectServiceMockRecorder) GetPK(_type, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockSubjectService)(nil).GetPK), _type, id)
-}
-
-// GetCount mocks base method
+// GetCount mocks base method.
 func (m *MockSubjectService) GetCount(_type string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCount", _type)
@@ -73,43 +101,28 @@ func (m *MockSubjectService) GetCount(_type string) (int64, error) {
 	return ret0, ret1
 }
 
-// GetCount indicates an expected call of GetCount
+// GetCount indicates an expected call of GetCount.
 func (mr *MockSubjectServiceMockRecorder) GetCount(_type interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCount", reflect.TypeOf((*MockSubjectService)(nil).GetCount), _type)
 }
 
-// ListPaging mocks base method
-func (m *MockSubjectService) ListPaging(_type string, limit, offset int64) ([]types.Subject, error) {
+// GetPK mocks base method.
+func (m *MockSubjectService) GetPK(_type, id string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPaging", _type, limit, offset)
-	ret0, _ := ret[0].([]types.Subject)
+	ret := m.ctrl.Call(m, "GetPK", _type, id)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPaging indicates an expected call of ListPaging
-func (mr *MockSubjectServiceMockRecorder) ListPaging(_type, limit, offset interface{}) *gomock.Call {
+// GetPK indicates an expected call of GetPK.
+func (mr *MockSubjectServiceMockRecorder) GetPK(_type, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaging", reflect.TypeOf((*MockSubjectService)(nil).ListPaging), _type, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockSubjectService)(nil).GetPK), _type, id)
 }
 
-// ListPKsBySubjects mocks base method
-func (m *MockSubjectService) ListPKsBySubjects(subjects []types.Subject) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPKsBySubjects", subjects)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPKsBySubjects indicates an expected call of ListPKsBySubjects
-func (mr *MockSubjectServiceMockRecorder) ListPKsBySubjects(subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKsBySubjects", reflect.TypeOf((*MockSubjectService)(nil).ListPKsBySubjects), subjects)
-}
-
-// ListByPKs mocks base method
+// ListByPKs mocks base method.
 func (m *MockSubjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByPKs", pks)
@@ -118,50 +131,38 @@ func (m *MockSubjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
 	return ret0, ret1
 }
 
-// ListByPKs indicates an expected call of ListByPKs
+// ListByPKs indicates an expected call of ListByPKs.
 func (mr *MockSubjectServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectService)(nil).ListByPKs), pks)
 }
 
-// BulkCreate mocks base method
-func (m *MockSubjectService) BulkCreate(subjects []types.Subject) error {
+// ListPKsBySubjects mocks base method.
+func (m *MockSubjectService) ListPKsBySubjects(subjects []types.Subject) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreate", subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ListPKsBySubjects", subjects)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// BulkCreate indicates an expected call of BulkCreate
-func (mr *MockSubjectServiceMockRecorder) BulkCreate(subjects interface{}) *gomock.Call {
+// ListPKsBySubjects indicates an expected call of ListPKsBySubjects.
+func (mr *MockSubjectServiceMockRecorder) ListPKsBySubjects(subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectService)(nil).BulkCreate), subjects)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKsBySubjects", reflect.TypeOf((*MockSubjectService)(nil).ListPKsBySubjects), subjects)
 }
 
-// BulkUpdateName mocks base method
-func (m *MockSubjectService) BulkUpdateName(subjects []types.Subject) error {
+// ListPaging mocks base method.
+func (m *MockSubjectService) ListPaging(_type string, limit, offset int64) ([]types.Subject, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateName", subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ListPaging", _type, limit, offset)
+	ret0, _ := ret[0].([]types.Subject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// BulkUpdateName indicates an expected call of BulkUpdateName
-func (mr *MockSubjectServiceMockRecorder) BulkUpdateName(subjects interface{}) *gomock.Call {
+// ListPaging indicates an expected call of ListPaging.
+func (mr *MockSubjectServiceMockRecorder) ListPaging(_type, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateName", reflect.TypeOf((*MockSubjectService)(nil).BulkUpdateName), subjects)
-}
-
-// BulkDeleteByPKsWithTx mocks base method
-func (m *MockSubjectService) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx
-func (mr *MockSubjectServiceMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteByPKsWithTx), tx, pks)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaging", reflect.TypeOf((*MockSubjectService)(nil).ListPaging), _type, limit, offset)
 }

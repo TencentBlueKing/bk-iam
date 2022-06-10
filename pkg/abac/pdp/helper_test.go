@@ -149,7 +149,7 @@ var _ = Describe("Helper", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
@@ -167,7 +167,7 @@ var _ = Describe("Helper", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -192,7 +192,7 @@ var _ = Describe("Helper", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -223,7 +223,7 @@ var _ = Describe("Helper", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -253,7 +253,7 @@ var _ = Describe("Helper", func() {
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
@@ -278,7 +278,7 @@ var _ = Describe("Helper", func() {
 		})
 	})
 
-	Describe("fillSubjectDetail", func() {
+	Describe("fillSubjectDepartments", func() {
 		var r *request.Request
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -295,7 +295,7 @@ var _ = Describe("Helper", func() {
 			patches = gomonkey.ApplyFunc(pip.GetSubjectPK, func(_type, id string) (pk int64, err error) {
 				return -1, errors.New("get subject_pk fail")
 			})
-			err := fillSubjectDetail(r)
+			err := fillSubjectDepartments(r)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "get subject_pk fail")
 		})
@@ -304,31 +304,25 @@ var _ = Describe("Helper", func() {
 			patches = gomonkey.ApplyFunc(pip.GetSubjectPK, func(_type, id string) (pk int64, err error) {
 				return 123, nil
 			})
-			patches.ApplyFunc(pip.GetSubjectDetail, func(pk int64) ([]int64, []types.SubjectGroup, error) {
-				return nil, nil, errors.New("get GetSubjectDetail fail")
+			patches.ApplyFunc(pip.GetSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+				return nil, errors.New("get GetSubjectDepartmentPKs fail")
 			})
 
-			err := fillSubjectDetail(r)
+			err := fillSubjectDepartments(r)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "get GetSubjectDetail fail")
+			assert.Contains(GinkgoT(), err.Error(), "get GetSubjectDepartmentPKs fail")
 		})
 
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(pip.GetSubjectPK, func(_type, id string) (pk int64, err error) {
 				return 123, nil
 			})
-			returned := []types.SubjectGroup{
-				{
-					PK:              1,
-					PolicyExpiredAt: 123,
-				},
-			}
 
-			patches.ApplyFunc(pip.GetSubjectDetail, func(pk int64) ([]int64, []types.SubjectGroup, error) {
-				return []int64{1, 2, 3}, returned, nil
+			patches.ApplyFunc(pip.GetSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+				return []int64{1, 2, 3}, nil
 			})
 
-			err := fillSubjectDetail(r)
+			err := fillSubjectDepartments(r)
 			assert.NoError(GinkgoT(), err)
 		})
 	})

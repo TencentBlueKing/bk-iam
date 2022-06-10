@@ -315,7 +315,8 @@ func (c *groupController) alterGroupMembers(
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	// TODO 清理subject system group 缓存
+	// 清理subject system group 缓存
+	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
 
 	return typeCount, nil
 }
@@ -348,16 +349,16 @@ func (c *groupController) DeleteGroupMembers(
 		}
 	}
 
-	parenPK, err := cacheimpls.GetSubjectPK(_type, id)
+	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	typeCount, err = c.service.BulkDeleteGroupMembers(parenPK, userPKs, departmentPKs)
+	typeCount, err = c.service.BulkDeleteGroupMembers(parentPK, userPKs, departmentPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err, "service.BulkDeleteGroupMembers parenPK=`%s`, userPKs=`%+v`, departmentPKs=`%+v` failed",
-			parenPK, userPKs, departmentPKs,
+			parentPK, userPKs, departmentPKs,
 		)
 	}
 
@@ -368,7 +369,8 @@ func (c *groupController) DeleteGroupMembers(
 
 	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
 
-	// TODO 清理subject system group 缓存
+	// group auth system
+	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
 
 	return typeCount, nil
 }

@@ -5,35 +5,36 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	pap "iam/pkg/abac/pap"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockSubjectController is a mock of SubjectController interface
+// MockSubjectController is a mock of SubjectController interface.
 type MockSubjectController struct {
 	ctrl     *gomock.Controller
 	recorder *MockSubjectControllerMockRecorder
 }
 
-// MockSubjectControllerMockRecorder is the mock recorder for MockSubjectController
+// MockSubjectControllerMockRecorder is the mock recorder for MockSubjectController.
 type MockSubjectControllerMockRecorder struct {
 	mock *MockSubjectController
 }
 
-// NewMockSubjectController creates a new mock instance
+// NewMockSubjectController creates a new mock instance.
 func NewMockSubjectController(ctrl *gomock.Controller) *MockSubjectController {
 	mock := &MockSubjectController{ctrl: ctrl}
 	mock.recorder = &MockSubjectControllerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSubjectController) EXPECT() *MockSubjectControllerMockRecorder {
 	return m.recorder
 }
 
-// BulkCreate mocks base method
+// BulkCreate mocks base method.
 func (m *MockSubjectController) BulkCreate(subjects []pap.Subject) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkCreate", subjects)
@@ -41,27 +42,13 @@ func (m *MockSubjectController) BulkCreate(subjects []pap.Subject) error {
 	return ret0
 }
 
-// BulkCreate indicates an expected call of BulkCreate
+// BulkCreate indicates an expected call of BulkCreate.
 func (mr *MockSubjectControllerMockRecorder) BulkCreate(subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectController)(nil).BulkCreate), subjects)
 }
 
-// BulkUpdateName mocks base method
-func (m *MockSubjectController) BulkUpdateName(subjects []pap.Subject) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateName", subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkUpdateName indicates an expected call of BulkUpdateName
-func (mr *MockSubjectControllerMockRecorder) BulkUpdateName(subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateName", reflect.TypeOf((*MockSubjectController)(nil).BulkUpdateName), subjects)
-}
-
-// BulkDelete mocks base method
+// BulkDelete mocks base method.
 func (m *MockSubjectController) BulkDelete(subjects []pap.Subject) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkDelete", subjects)
@@ -69,8 +56,22 @@ func (m *MockSubjectController) BulkDelete(subjects []pap.Subject) error {
 	return ret0
 }
 
-// BulkDelete indicates an expected call of BulkDelete
+// BulkDelete indicates an expected call of BulkDelete.
 func (mr *MockSubjectControllerMockRecorder) BulkDelete(subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockSubjectController)(nil).BulkDelete), subjects)
+}
+
+// BulkUpdateName mocks base method.
+func (m *MockSubjectController) BulkUpdateName(subjects []pap.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateName", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateName indicates an expected call of BulkUpdateName.
+func (mr *MockSubjectControllerMockRecorder) BulkUpdateName(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateName", reflect.TypeOf((*MockSubjectController)(nil).BulkUpdateName), subjects)
 }

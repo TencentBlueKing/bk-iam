@@ -53,7 +53,6 @@ type EffectSubjectRelation struct {
 
 // SubjectRelationManager ...
 type SubjectRelationManager interface {
-	ListEffectThinRelationBySubjectPK(subjectPK int64) ([]ThinSubjectRelation, error)
 	ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]EffectSubjectRelation, error)
 
 	ListRelation(subjectPK int64) ([]SubjectRelation, error)
@@ -102,21 +101,6 @@ func (m *subjectRelationManager) ListRelationBeforeExpiredAt(
 	subjectPK int64, expiredAt int64,
 ) (relations []SubjectRelation, err error) {
 	err = m.selectRelationBeforeExpiredAt(&relations, subjectPK, expiredAt)
-	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
-	if errors.Is(err, sql.ErrNoRows) {
-		return relations, nil
-	}
-	return
-}
-
-// ListEffectThinRelationBySubjectPK ...
-func (m *subjectRelationManager) ListEffectThinRelationBySubjectPK(subjectPK int64) (
-	relations []ThinSubjectRelation, err error,
-) {
-	// 过期时间必须大于当前时间
-	now := time.Now().Unix()
-
-	err = m.selectEffectThinRelationBySubjectPK(&relations, subjectPK, now)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -268,20 +252,6 @@ func (m *subjectRelationManager) selectRelationBeforeExpiredAt(
 		 AND policy_expired_at < ?
 		 ORDER BY policy_expired_at DESC`
 	return database.SqlxSelect(m.DB, relations, query, subjectPK, expiredAt)
-}
-
-func (m *subjectRelationManager) selectEffectThinRelationBySubjectPK(
-	relations *[]ThinSubjectRelation,
-	pk int64,
-	now int64,
-) error {
-	query := `SELECT
-		 parent_pk,
-		 policy_expired_at
-		 FROM subject_relation
-		 WHERE subject_pk = ?
-		 AND policy_expired_at > ?`
-	return database.SqlxSelect(m.DB, relations, query, pk, now)
 }
 
 func (m *subjectRelationManager) selectEffectRelationBySubjectPKs(

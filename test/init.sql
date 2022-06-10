@@ -232,3 +232,31 @@ INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (19,
 -- temporary policy
 INSERT INTO `temporary_policy` (`subject_pk`, `action_pk`, `expression`, `expired_at`) VALUES (11,2,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]',4102444800);
+
+
+-- subject_system_group
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 102, "{\"2102\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 103, "{\"2103\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 104, "{\"2104\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 141, "{\"2141\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 145, "{\"2145\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 147, "{\"2147\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1122, "{\"2122\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1123, "{\"2123\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1144, "{\"2144\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1146, "{\"2146\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1148, "{\"2148\":4102444800}");
+
+
+-- group_system_auth_type
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2102, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2103, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2104, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2141, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2145, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2147, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2122, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2123, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2144, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2146, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2148, 1);

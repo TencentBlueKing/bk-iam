@@ -13,6 +13,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
@@ -20,6 +21,7 @@ import (
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
+	"iam/pkg/service/types"
 )
 
 // ErrNoPolicies ...
@@ -208,4 +210,60 @@ func updateGroupsString(
 		return "", err
 	}
 	return groups, nil
+}
+
+// ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
+func (l *groupService) ListEffectThinSubjectGroups(
+	systemID string,
+	pks []int64,
+) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")
+
+	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
+
+	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, pks)
+	if err != nil {
+		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
+	}
+
+	// 筛选未过期的用户组
+	now := time.Now().Unix()
+	for _, r := range relations {
+		subjectPK := r.SubjectPK
+
+		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
+		if err != nil {
+			err = errorWrapf(err, "convertSystemSubjectGroupsToThinSubjectGroup fail groups=`%s`", r.Groups)
+			return nil, err
+		}
+
+		for _, group := range thinSubjectGroup {
+			if group.PolicyExpiredAt > now {
+				subjectGroups[subjectPK] = append(subjectGroups[subjectPK], group)
+			}
+		}
+	}
+
+	return subjectGroups, nil
+}
+
+func convertSystemSubjectGroupsToThinSubjectGroup(
+	groups string,
+) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
+	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
+	if groups != "" {
+		err := jsoniter.UnmarshalFromString(groups, &groupExpiredAtMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for groupPK, expiredAt := range groupExpiredAtMap {
+		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
+			GroupPK:         groupPK,
+			PolicyExpiredAt: expiredAt,
+		})
+	}
+
+	return thinSubjectGroup, nil
 }

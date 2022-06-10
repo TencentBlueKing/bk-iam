@@ -30,9 +30,15 @@ type SubjectSystemGroup struct {
 	Reversion int64  `db:"reversion"` // 更新版本
 }
 
+// SubjectGroups with the minimum fields of the relationship: subject-group-expired_at
+type SubjectGroups struct {
+	SubjectPK int64  `db:"subject_pk"`
+	Groups    string `db:"groups"`
+}
+
 // SubjectSystemGroup ...
 type SubjectSystemGroupManager interface {
-	GetGroups(systemID string, subjectPK int64) (string, error)
+	ListSubjectGroups(systemID string, subjectPKs []int64) ([]SubjectGroups, error)
 
 	GetBySystemSubject(systemID string, subjectPK int64) (SubjectSystemGroup, error)
 	CreateWithTx(tx *sqlx.Tx, subjectSystemGroup SubjectSystemGroup) error
@@ -51,9 +57,12 @@ func NewSubjectSystemGroupManager() SubjectSystemGroupManager {
 	}
 }
 
-// GetGroups ...
-func (m *subjectSystemGroupManager) GetGroups(systemID string, subjectPK int64) (groups string, err error) {
-	err = m.selectGroups(&groups, systemID, subjectPK)
+// ListSubjectGroups ...
+func (m *subjectSystemGroupManager) ListSubjectGroups(
+	systemID string,
+	subjectPKs []int64,
+) (groups []SubjectGroups, err error) {
+	err = m.selectGroups(&groups, systemID, subjectPKs)
 	// 不存在直接返回空
 	if errors.Is(err, sql.ErrNoRows) {
 		return groups, nil
@@ -83,12 +92,17 @@ func (m *subjectSystemGroupManager) DeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjec
 	return m.deleteBySubjectPKsWithTx(tx, subjectPKs)
 }
 
-func (m *subjectSystemGroupManager) selectGroups(groups *string, systemID string, subjectPK int64) error {
+func (m *subjectSystemGroupManager) selectGroups(
+	groups *[]SubjectGroups,
+	systemID string,
+	subjectPKs []int64,
+) error {
 	query := `SELECT
+		subject_pk,
 		groups
 		FROM subject_system_group
-		WHERE system_id = ? AND subject_pk = ?`
-	return database.SqlxGet(m.DB, groups, query, systemID, subjectPK)
+		WHERE system_id = ? AND subject_pk IN (?)`
+	return database.SqlxSelect(m.DB, groups, query, systemID, subjectPKs)
 }
 
 func (m *subjectSystemGroupManager) selectBySystemSubject(

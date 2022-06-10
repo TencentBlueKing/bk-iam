@@ -141,7 +141,7 @@ func (m *policyManager) listBySubjectAction(
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
 	// 通过subject对象获取PK
-	effectSubjectPKs, err := getEffectSubjectPKs(subject)
+	effectSubjectPKs, err := getEffectSubjectPKs(system, subject)
 	if err != nil {
 		err = errorWrapf(err, "getEffectSubjectPKs subject=`%+v` fail", subject)
 		return

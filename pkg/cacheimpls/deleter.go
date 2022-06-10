@@ -71,11 +71,7 @@ type subjectCacheDeleter struct{}
 
 // Execute ...
 func (d subjectCacheDeleter) Execute(key cache.Key) (err error) {
-	err = multierr.Combine(
-		SubjectGroupCache.Delete(key),
-		SubjectDetailCache.Delete(key),
-	)
-	return
+	return SubjectDepartmentCache.Delete(key)
 }
 
 type systemCacheDeleter struct{}

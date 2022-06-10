@@ -82,9 +82,9 @@ func (s *groupService) createOrUpdateGroupAuthType(
 	return false, count, nil
 }
 
-// listGroupAuthSystem 查询group已授权的系统
-func (s *groupService) listGroupAuthSystem(groupPK int64) ([]string, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "listGroupAuthSystem")
+// ListGroupAuthSystemIDs 查询group已授权的系统
+func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthSystemIDs")
 
 	groupSystemAuthTypes, err := s.authTypeManger.ListByGroup(groupPK)
 	if err != nil {

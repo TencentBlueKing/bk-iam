@@ -21,6 +21,7 @@ import (
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
+	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
 )
@@ -173,6 +174,11 @@ var _ = Describe("GroupController", func() {
 				nil,
 			).
 				AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
+			})
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -218,6 +224,11 @@ var _ = Describe("GroupController", func() {
 			}}).Return(
 				nil,
 			).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
+			})
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -300,6 +311,11 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().BulkDeleteGroupMembers(int64(1), []int64{2}, []int64{3}).Return(
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+
+			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
+				return mockGroupService
+			})
 
 			manager := &groupController{
 				service: mockGroupService,

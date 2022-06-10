@@ -265,4 +265,49 @@ var _ = Describe("GroupService", func() {
 			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByMembersWithTx")
 		})
 	})
+
+	Describe("ListThinSubjectGroupsBySubjectPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.ListEffectRelationBySubjectPKs fail", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().ListEffectRelationBySubjectPKs([]int64{1, 2}).Return(
+				nil, errors.New("error"),
+			)
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			_, err := manager.ListEffectThinSubjectGroupsBySubjectPKs([]int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListEffectRelationBySubjectPKs")
+		})
+
+		It("ok", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().ListEffectRelationBySubjectPKs([]int64{1, 2}).Return(
+				[]dao.EffectSubjectRelation{
+					{
+						ParentPK:        1,
+						PolicyExpiredAt: 2,
+					},
+				}, nil,
+			)
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			subjectGroups, err := manager.ListEffectThinSubjectGroupsBySubjectPKs([]int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 2}}, subjectGroups)
+		})
+	})
 })

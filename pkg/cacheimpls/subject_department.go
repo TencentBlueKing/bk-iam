@@ -8,37 +8,35 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package pip
+package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/cacheimpls"
+	"iam/pkg/service"
 )
 
-// SubjectPIP ...
-const SubjectPIP = "SubjectPIP"
+func retrieveSubjectDepartment(key cache.Key) (interface{}, error) {
+	k := key.(SubjectPKCacheKey)
 
-// GetSubjectPK 获取subject的PK, note this will cache in local for 1 minutes
-func GetSubjectPK(_type, id string) (int64, error) {
-	// pk, err := cacheimpls.GetSubjectPK(_type, id)
-	pk, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	departmentSvc := service.NewDepartmentService()
+	departments, err := departmentSvc.GetSubjectDepartmentPKs(k.PK)
 	if err != nil {
-		return pk, errorx.Wrapf(err, SubjectPIP, "GetSubjectPK",
-			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, err
 	}
 
-	return pk, err
+	return departments, nil
 }
 
-// GetSubjectDetail ...
-func GetSubjectDepartmentPKs(pk int64) (departments []int64, err error) {
-	departments, err = cacheimpls.GetSubjectDepartmentPKs(pk)
-	if err != nil {
-		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDepartmentPKs",
-			"cacheimpls.GetSubjectDepartmentPKs pk=`%d` fail", pk)
-		return
+// GetSubjectDepartmentPKs ...
+func GetSubjectDepartmentPKs(pk int64) (departmentPKs []int64, err error) {
+	key := SubjectPKCacheKey{
+		PK: pk,
 	}
 
-	return departments, err
+	err = SubjectDepartmentCache.GetInto(key, &departmentPKs, retrieveSubjectDepartment)
+	err = errorx.Wrapf(err, CacheLayer, "GetSubjectDepartmentPKs",
+		"SubjectDepartmentCache.Get key=`%s` fail", key.Key())
+	return
 }

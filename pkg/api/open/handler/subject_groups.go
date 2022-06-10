@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
+	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
@@ -82,8 +83,8 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 		return
 	}
 
-	// NOTE: group被删除的时候, subjectDetail引用的并不会清理
-	subjectDetail, err := cacheimpls.GetSubjectDetail(subjectPK)
+	svc := service.NewGroupService()
+	groups, err := svc.ListEffectThinSubjectGroupsBySubjectPKs([]int64{subjectPK})
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
@@ -92,27 +93,34 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	nowUnix := time.Now().Unix()
 
 	// 1. get the subject's groups
-	groups := subjectDetail.SubjectGroups
 	groupPKs := set.NewFixedLengthInt64Set(len(groups))
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
 		if group.PolicyExpiredAt > nowUnix {
-			groupPKs.Add(group.PK)
+			groupPKs.Add(group.GroupPK)
 		}
 	}
 
-	// 2. get the subject-department's groups
-	deptPKs := subjectDetail.DepartmentPKs
-	if inherit && len(deptPKs) > 0 {
-		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
-		if newErr != nil {
-			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
-			util.SystemErrorJSONResponse(c, newErr)
+	if inherit {
+		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
+		if err != nil {
+			util.SystemErrorJSONResponse(c, err)
 			return
 		}
-		for _, sg := range subjectGroups {
-			if sg.PolicyExpiredAt > nowUnix {
-				groupPKs.Add(sg.PK)
+
+		if len(departmentPKs) > 0 {
+			// 从DB查询所有关联的groupPK
+			groups, err := svc.ListEffectThinSubjectGroupsBySubjectPKs(departmentPKs)
+			if err != nil {
+				util.SystemErrorJSONResponse(c, err)
+				return
+			}
+
+			for _, group := range groups {
+				// 仅仅在有效期内才需要
+				if group.PolicyExpiredAt > nowUnix {
+					groupPKs.Add(group.GroupPK)
+				}
 			}
 		}
 	}
