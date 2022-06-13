@@ -137,7 +137,7 @@ func (r *localCacheGroupAuthTypeRetriever) batchGetGroupAuthType(
 func (r *localCacheGroupAuthTypeRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) {
 	for _, groupAuthType := range groupAuthTypes {
 		key := r.genKey(groupAuthType.GroupPK)
-		r.cache.Set(key, groupAuthType.AuthType, groupAuthTypeLocalCacheTTL)
+		r.cache.Set(key, groupAuthType.AuthType, groupAuthTypeLocalCacheTTL*time.Second)
 	}
 }
 
