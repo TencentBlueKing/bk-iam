@@ -72,6 +72,5 @@ var _ = Describe("database", func() {
 				{GroupPK: 2, AuthType: types.AuthTypeNone},
 			}, groupAuthTypes)
 		})
-
 	})
 })

@@ -30,7 +30,6 @@ import (
 
 var _ = Describe("memory", func() {
 	Describe("genKey", func() {
-
 		It("ok", func() {
 			retriever := &localCacheGroupAuthTypeRetriever{
 				systemID: "test",
@@ -38,7 +37,6 @@ var _ = Describe("memory", func() {
 			key := retriever.genKey(1)
 			assert.Equal(GinkgoT(), "test:1", key)
 		})
-
 	})
 
 	Describe("batchGetGroupAuthType", func() {
@@ -116,7 +114,6 @@ var _ = Describe("memory", func() {
 				{GroupPK: 2, AuthType: 1},
 			}, groupAuthTypes)
 		})
-
 	})
 
 	Describe("batchSetGroupAuthTypeCache", func() {
@@ -147,7 +144,6 @@ var _ = Describe("memory", func() {
 			val, _ = cacheimpls.LocalGroupSystemAuthTypeCache.Get("test:2")
 			assert.Equal(GinkgoT(), int64(2), val.(int64))
 		})
-
 	})
 
 	Describe("Retrieve", func() {
@@ -233,6 +229,5 @@ var _ = Describe("memory", func() {
 				{GroupPK: 3, AuthType: 3},
 			}, groupAuthTypes)
 		})
-
 	})
 })
