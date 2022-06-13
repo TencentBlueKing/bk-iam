@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	gocache "github.com/wklken/go-cache"
 
+	"iam/pkg/abac/prp/group/mock"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
@@ -168,7 +169,7 @@ var _ = Describe("memory", func() {
 			}
 		})
 
-		It("ok", func() {
+		It("no missing retrieve ok", func() {
 			patches = gomonkey.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
 				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
 					return []rds.Z{}, nil
@@ -184,6 +185,52 @@ var _ = Describe("memory", func() {
 			assert.Equal(GinkgoT(), []types.GroupAuthType{
 				{GroupPK: 1, AuthType: 1},
 				{GroupPK: 2, AuthType: 1},
+			}, groupAuthTypes)
+		})
+
+		It("missing retrieve err", func() {
+			patches = gomonkey.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
+				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
+					return []rds.Z{}, nil
+				})
+
+			mockRetriever := mock.NewMockGroupAuthTypeRetriever(ctl)
+			mockRetriever.EXPECT().Retrieve([]int64{3}).Return(nil, errors.New("missingRetriever error"))
+
+			retriever := &localCacheGroupAuthTypeRetriever{
+				systemID:         "test",
+				cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
+				missingRetriever: mockRetriever,
+			}
+
+			_, err := retriever.Retrieve([]int64{1, 2, 3})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "missingRetriever")
+		})
+
+		It("missing retrieve ok", func() {
+			patches = gomonkey.ApplyMethod(reflect.TypeOf(cacheimpls.ChangeListCache), "ZRevRangeByScore",
+				func(c *redis.Cache, k string, min int64, max int64, offset int64, count int64) ([]rds.Z, error) {
+					return []rds.Z{}, nil
+				})
+
+			mockRetriever := mock.NewMockGroupAuthTypeRetriever(ctl)
+			mockRetriever.EXPECT().Retrieve([]int64{3}).Return(
+				[]types.GroupAuthType{{GroupPK: 3, AuthType: 3}}, nil,
+			)
+
+			retriever := &localCacheGroupAuthTypeRetriever{
+				systemID:         "test",
+				cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
+				missingRetriever: mockRetriever,
+			}
+
+			groupAuthTypes, err := retriever.Retrieve([]int64{1, 2, 3})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.GroupAuthType{
+				{GroupPK: 1, AuthType: 1},
+				{GroupPK: 2, AuthType: 1},
+				{GroupPK: 3, AuthType: 3},
 			}, groupAuthTypes)
 		})
 

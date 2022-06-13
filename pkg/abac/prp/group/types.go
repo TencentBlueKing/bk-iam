@@ -10,6 +10,8 @@
 
 package group
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 import "iam/pkg/service/types"
 
 type GroupAuthTypeRetriever interface {
