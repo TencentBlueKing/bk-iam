@@ -20,9 +20,9 @@ func splitGroupPKsToAuthTypeGroupPKs(
 	systemID string,
 	groupPKs []int64,
 ) (abacGroupPks []int64, rbacGroupPKs []int64, err error) {
-	l2 := group.NewServiceGroupAuthTypeRetriever(systemID)
+	l2 := group.NewDatabaseGroupAuthTypeRetriever(systemID)
 
-	l1 := group.NewLocalCacheGroupAuthTypeRetriever(systemID, l2)
+	l1 := group.NewMemoryGroupAuthTypeRetriever(systemID, l2)
 
 	groupAuthTypes, err := l1.Retrieve(groupPKs)
 	if err != nil {

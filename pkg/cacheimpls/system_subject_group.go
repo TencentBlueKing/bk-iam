@@ -66,7 +66,7 @@ func batchGetSystemSubjectGroups(
 	// batch get the subject_groups at one time
 	keys := make([]cache.Key, 0, len(pks))
 	for _, pk := range pks {
-		keys = append(keys, SubjectPKSystemCacheKey{
+		keys = append(keys, SystemSubjectPKCacheKey{
 			SystemID:  systemID,
 			SubjectPK: pk,
 		})
@@ -78,7 +78,7 @@ func batchGetSystemSubjectGroups(
 	}
 
 	for _, pk := range pks {
-		key := SubjectPKSystemCacheKey{SystemID: systemID, SubjectPK: pk}
+		key := SystemSubjectPKCacheKey{SystemID: systemID, SubjectPK: pk}
 		if data, ok := hitCacheResults[key]; ok {
 			// do unmarshal
 			var sg []types.ThinSubjectGroup
@@ -108,7 +108,7 @@ func setMissingSystemSubjectGroup(
 	for pk, sgs := range notCachedSubjectGroups {
 		hasGroupPKs.Add(pk)
 
-		key := SubjectPKSystemCacheKey{
+		key := SystemSubjectPKCacheKey{
 			SystemID:  systemID,
 			SubjectPK: pk,
 		}
@@ -120,7 +120,7 @@ func setMissingSystemSubjectGroup(
 	if len(missingPKs) != hasGroupPKs.Size() {
 		for _, pk := range missingPKs {
 			if !hasGroupPKs.Has(pk) {
-				key := SubjectPKSystemCacheKey{
+				key := SystemSubjectPKCacheKey{
 					SystemID:  systemID,
 					SubjectPK: pk,
 				}
@@ -166,7 +166,7 @@ func batchDeleteSubjectSystemGroupCache(systemIDs []string, subjectPKs []int64) 
 	keys := make([]cache.Key, 0, len(subjectPKs)*len(systemIDs))
 	for _, systemID := range systemIDs {
 		for _, subjectPK := range subjectPKs {
-			keys = append(keys, SubjectPKSystemCacheKey{
+			keys = append(keys, SystemSubjectPKCacheKey{
 				SystemID:  systemID,
 				SubjectPK: subjectPK,
 			})

@@ -37,13 +37,13 @@ func (k SubjectPKCacheKey) Key() string {
 	return strconv.FormatInt(k.PK, 10)
 }
 
-// SubjectPKSystemCacheKey ...
-type SubjectPKSystemCacheKey struct {
+// SystemSubjectPKCacheKey ...
+type SystemSubjectPKCacheKey struct {
 	SystemID  string
 	SubjectPK int64
 }
 
 // Key ...
-func (k SubjectPKSystemCacheKey) Key() string {
+func (k SystemSubjectPKCacheKey) Key() string {
 	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
 }

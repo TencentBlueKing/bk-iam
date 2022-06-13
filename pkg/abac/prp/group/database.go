@@ -17,19 +17,19 @@ import (
 	"iam/pkg/service/types"
 )
 
-type serviceGroupAuthTypeRetriever struct {
+type databaseGroupAuthTypeRetriever struct {
 	systemID string
 	service  service.GroupService
 }
 
-func NewServiceGroupAuthTypeRetriever(systemID string) GroupAuthTypeRetriever {
-	return &serviceGroupAuthTypeRetriever{
+func NewDatabaseGroupAuthTypeRetriever(systemID string) GroupAuthTypeRetriever {
+	return &databaseGroupAuthTypeRetriever{
 		systemID: systemID,
 		service:  service.NewGroupService(),
 	}
 }
 
-func (r *serviceGroupAuthTypeRetriever) Retrieve(
+func (r *databaseGroupAuthTypeRetriever) Retrieve(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, err error) {
 	groupAuthTypes, err = r.service.ListGroupAuthBySystemGroupPKs(r.systemID, groupPKs)

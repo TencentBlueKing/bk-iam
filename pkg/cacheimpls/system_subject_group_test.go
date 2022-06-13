@@ -39,7 +39,7 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 	}, []int64{1, 2, 3})
 
 	var sg []types.ThinSubjectGroup
-	SubjectSystemGroupCache.GetInto(SubjectPKSystemCacheKey{
+	SubjectSystemGroupCache.GetInto(SystemSubjectPKCacheKey{
 		SystemID:  "test",
 		SubjectPK: 1,
 	}, &sg, nil)
@@ -51,7 +51,7 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 		},
 	}, sg)
 
-	SubjectSystemGroupCache.GetInto(SubjectPKSystemCacheKey{
+	SubjectSystemGroupCache.GetInto(SystemSubjectPKCacheKey{
 		SystemID:  "test",
 		SubjectPK: 2,
 	}, &sg, nil)
@@ -77,7 +77,7 @@ func Test_batchDeleteSubjectSystemGroupCache(t *testing.T) {
 	assert.NoError(t, err)
 
 	var sg []types.ThinSubjectGroup
-	err = SubjectSystemGroupCache.Get(SubjectPKSystemCacheKey{
+	err = SubjectSystemGroupCache.Get(SystemSubjectPKCacheKey{
 		SystemID:  "test",
 		SubjectPK: 2,
 	}, &sg)

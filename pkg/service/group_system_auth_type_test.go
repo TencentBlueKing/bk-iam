@@ -408,4 +408,10 @@ var _ = Describe("GroupService", func() {
 			assert.True(GinkgoT(), changed)
 		})
 	})
+
+	Describe("chunks", func() {
+		It("ok", func() {
+			assert.Equal(GinkgoT(), [][]int{{0, 2}, {2, 4}, {4, 5}}, chunks(5, 2))
+		})
+	})
 })

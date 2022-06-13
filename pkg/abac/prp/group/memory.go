@@ -38,24 +38,24 @@ const (
 
 var changeList = common.NewChangeList(changeListTypeGroupAuthType, groupAuthTypeLocalCacheTTL, maxChangeListCount)
 
-type localCacheGroupAuthTypeRetriever struct {
+type memoryGroupAuthTypeRetriever struct {
 	systemID         string
 	cache            *gocache.Cache
 	missingRetriever GroupAuthTypeRetriever
 }
 
-func NewLocalCacheGroupAuthTypeRetriever(
+func NewMemoryGroupAuthTypeRetriever(
 	systemID string,
 	missingRetriever GroupAuthTypeRetriever,
 ) GroupAuthTypeRetriever {
-	return &localCacheGroupAuthTypeRetriever{
+	return &memoryGroupAuthTypeRetriever{
 		systemID:         systemID,
 		cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
 		missingRetriever: missingRetriever,
 	}
 }
 
-func (r *localCacheGroupAuthTypeRetriever) Retrieve(
+func (r *memoryGroupAuthTypeRetriever) Retrieve(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, err error) {
 	groupAuthTypes, missPKs := r.batchGetGroupAuthType(groupPKs)
@@ -77,11 +77,11 @@ func (r *localCacheGroupAuthTypeRetriever) Retrieve(
 	return groupAuthTypes, nil
 }
 
-func (r *localCacheGroupAuthTypeRetriever) genKey(groupPK int64) string {
+func (r *memoryGroupAuthTypeRetriever) genKey(groupPK int64) string {
 	return r.systemID + ":" + strconv.FormatInt(groupPK, 10)
 }
 
-func (r *localCacheGroupAuthTypeRetriever) batchGetGroupAuthType(
+func (r *memoryGroupAuthTypeRetriever) batchGetGroupAuthType(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, missPKs []int64) {
 	groupAuthTypes = make([]types.GroupAuthType, 0, len(groupPKs))
@@ -109,8 +109,8 @@ func (r *localCacheGroupAuthTypeRetriever) batchGetGroupAuthType(
 		// 判断value的过期时间与changeList的过期时间是否大于
 		groupPKStr := strconv.FormatInt(groupPK, 10)
 		if changedTS, ok := changedTimestamps[groupPKStr]; ok {
-			cacheSetTS := (item.Expiration / 1e9) - groupAuthTypeLocalCacheTTL
-			if cacheSetTS < changedTS {
+			cacheSetupTS := (item.Expiration / 1e9) - groupAuthTypeLocalCacheTTL
+			if cacheSetupTS < changedTS {
 				// not the newest
 				// 1. append to missing
 				missPKs = append(missPKs, groupPK)
@@ -134,10 +134,11 @@ func (r *localCacheGroupAuthTypeRetriever) batchGetGroupAuthType(
 	return groupAuthTypes, missPKs
 }
 
-func (r *localCacheGroupAuthTypeRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) {
+func (r *memoryGroupAuthTypeRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) {
+	ttl := groupAuthTypeLocalCacheTTL * time.Second
 	for _, groupAuthType := range groupAuthTypes {
 		key := r.genKey(groupAuthType.GroupPK)
-		r.cache.Set(key, groupAuthType.AuthType, groupAuthTypeLocalCacheTTL*time.Second)
+		r.cache.Set(key, groupAuthType.AuthType, ttl)
 	}
 }
 
