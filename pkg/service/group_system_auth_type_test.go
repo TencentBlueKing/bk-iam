@@ -21,6 +21,7 @@ import (
 
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
+	"iam/pkg/service/types"
 )
 
 var _ = Describe("GroupService", func() {
@@ -238,6 +239,173 @@ var _ = Describe("GroupService", func() {
 			systems, err := manager.ListGroupAuthSystemIDs(int64(1))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []string{"1", "2"}, systems)
+		})
+	})
+
+	Describe("ListGroupAuthBySystemGroupPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("authTypeManger.ListAuthTypeBySystemGroups fail", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().ListAuthTypeBySystemGroups("test", []int64{1, 2}).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &groupService{
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			_, err := manager.ListGroupAuthBySystemGroupPKs("test", []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListAuthTypeBySystemGroups")
+		})
+
+		It("ok", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().ListAuthTypeBySystemGroups("test", []int64{1, 2}).Return(
+				[]dao.GroupAuthType{{
+					AuthType: int64(1),
+					GroupPK:  int64(1),
+				}}, nil,
+			).AnyTimes()
+
+			manager := &groupService{
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			groupAuthTypes, err := manager.ListGroupAuthBySystemGroupPKs("test", []int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.GroupAuthType{
+				{
+					AuthType: int64(1),
+					GroupPK:  int64(1),
+				},
+			}, groupAuthTypes)
+		})
+
+		It("loop ok", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().ListAuthTypeBySystemGroups("test", gomock.Any()).Return(
+				[]dao.GroupAuthType{{
+					AuthType: int64(1),
+					GroupPK:  int64(1),
+				}}, nil,
+			)
+			mockGroupSystemAuthTypeManager.EXPECT().ListAuthTypeBySystemGroups("test", []int64{1}).Return(
+				[]dao.GroupAuthType{{
+					AuthType: int64(1),
+					GroupPK:  int64(2),
+				}}, nil,
+			)
+
+			groupPKs := make([]int64, 0, 1001)
+			for i := 0; i < 1000; i++ {
+				groupPKs = append(groupPKs, 0)
+			}
+			groupPKs = append(groupPKs, 1)
+
+			manager := &groupService{
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			groupAuthTypes, err := manager.ListGroupAuthBySystemGroupPKs("test", groupPKs)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.GroupAuthType{
+				{
+					AuthType: int64(1),
+					GroupPK:  int64(1),
+				},
+				{
+					AuthType: int64(1),
+					GroupPK:  int64(2),
+				},
+			}, groupAuthTypes)
+		})
+	})
+
+	Describe("AlterGroupAuthType", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("authTypeManger.DeleteBySystemGroupWithTx fail", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
+				int64(0), errors.New("error"),
+			).AnyTimes()
+
+			manager := &groupService{
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			_, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "DeleteBySystemGroupWithTx")
+		})
+
+		It("no need create subject system group, ok", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
+				int64(0), nil,
+			).AnyTimes()
+
+			manager := &groupService{
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			changed, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
+			assert.NoError(GinkgoT(), err)
+			assert.False(GinkgoT(), changed)
+		})
+
+		It("manager.ListMember fail", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
+				int64(1), nil,
+			).AnyTimes()
+			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &groupService{
+				manager:        mockSubjectRelationManger,
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			_, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListMember")
+		})
+
+		It("removeSubjectSystemGroup fail", func() {
+			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
+			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
+				int64(1), nil,
+			).AnyTimes()
+			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
+				[]dao.SubjectRelation{}, nil,
+			).AnyTimes()
+
+			manager := &groupService{
+				manager:        mockSubjectRelationManger,
+				authTypeManger: mockGroupSystemAuthTypeManager,
+			}
+
+			changed, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
+			assert.NoError(GinkgoT(), err)
+			assert.True(GinkgoT(), changed)
 		})
 	})
 })

@@ -153,6 +153,21 @@ func (mr *MockGroupServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(parentP
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectsBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListExistSubjectsBeforeExpiredAt), parentPKs, expiredAt)
 }
 
+// ListGroupAuthBySystemGroupPKs mocks base method.
+func (m *MockGroupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroupAuthBySystemGroupPKs", systemID, groupPKs)
+	ret0, _ := ret[0].([]types.GroupAuthType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroupAuthBySystemGroupPKs indicates an expected call of ListGroupAuthBySystemGroupPKs.
+func (mr *MockGroupServiceMockRecorder) ListGroupAuthBySystemGroupPKs(systemID, groupPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupAuthBySystemGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListGroupAuthBySystemGroupPKs), systemID, groupPKs)
+}
+
 // ListGroupAuthSystemIDs mocks base method.
 func (m *MockGroupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	m.ctrl.T.Helper()

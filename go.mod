@@ -7,7 +7,6 @@ require (
 	github.com/TencentBlueKing/gopkg v1.0.8
 	github.com/TencentBlueKing/iam-go-sdk v0.0.8
 	github.com/agiledragon/gomonkey/v2 v2.3.1
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/dlmiddlecote/sqlstats v1.0.2
 	github.com/fatih/structs v1.1.0
@@ -36,7 +35,7 @@ require (
 	github.com/swaggo/gin-swagger v1.4.2
 	github.com/swaggo/swag v1.8.1
 	github.com/vmihailenco/msgpack/v5 v5.3.5
-	github.com/wklken/go-cache v2.2.0+incompatible
+	github.com/wklken/go-cache v2.2.1+incompatible
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.21.0

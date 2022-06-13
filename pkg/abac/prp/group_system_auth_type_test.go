@@ -8,42 +8,4 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package cacheimpls
-
-import (
-	"strconv"
-)
-
-// 公共的 CacheKey; struct中内容相同的, 不应该重复key
-
-// ActionIDCacheKey ...
-type ActionIDCacheKey struct {
-	SystemID string
-	ActionID string
-}
-
-// Key ...
-func (k ActionIDCacheKey) Key() string {
-	return k.SystemID + ":" + k.ActionID
-}
-
-// SubjectPKCacheKey ...
-type SubjectPKCacheKey struct {
-	PK int64
-}
-
-// Key ...
-func (k SubjectPKCacheKey) Key() string {
-	return strconv.FormatInt(k.PK, 10)
-}
-
-// SubjectPKSystemCacheKey ...
-type SubjectPKSystemCacheKey struct {
-	SystemID  string
-	SubjectPK int64
-}
-
-// Key ...
-func (k SubjectPKSystemCacheKey) Key() string {
-	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
-}
+package prp_test

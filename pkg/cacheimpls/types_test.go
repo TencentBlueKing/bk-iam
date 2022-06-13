@@ -34,7 +34,7 @@ func TestSubjectPKCacheKey_Key(t *testing.T) {
 }
 
 func TestSystemSubjectPKCacheKey_Key(t *testing.T) {
-	key := SystemSubjectPKCacheKey{
+	key := SubjectPKSystemCacheKey{
 		SystemID:  "test",
 		SubjectPK: int64(1),
 	}

@@ -39,6 +39,7 @@ var (
 	LocalAPIGatewayJWTClientIDCache memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
+	LocalGroupSystemAuthTypeCache   *gocache.Cache
 
 	RemoteResourceCache     *redis.Cache
 	ResourceTypeCache       *redis.Cache
@@ -54,10 +55,10 @@ var (
 	ExpressionCache      *redis.Cache
 	TemporaryPolicyCache *redis.Cache
 
-	LocalPolicyCache         *gocache.Cache
-	LocalExpressionCache     *gocache.Cache
-	LocalTemporayPolicyCache *gocache.Cache
-	ChangeListCache          *redis.Cache
+	LocalPolicyCache          *gocache.Cache
+	LocalExpressionCache      *gocache.Cache
+	LocalTemporaryPolicyCache *gocache.Cache
+	ChangeListCache           *redis.Cache
 
 	ActionCacheCleaner       *cleaner.CacheCleaner
 	ActionListCacheCleaner   *cleaner.CacheCleaner
@@ -157,6 +158,10 @@ func InitCaches(disabled bool) {
 
 	LocalUnmarshaledExpressionCache = gocache.New(30*time.Minute, 5*time.Minute)
 
+	// 影响: 每次鉴权
+
+	LocalGroupSystemAuthTypeCache = gocache.New(10*time.Minute, 5*time.Minute)
+
 	//  ==========================
 
 	// NOTE: short key in 3 chars, make the redis key short enough, for better performance
@@ -219,7 +224,7 @@ func InitCaches(disabled bool) {
 
 	LocalPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	LocalExpressionCache = gocache.New(5*time.Minute, 5*time.Minute)
-	LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
+	LocalTemporaryPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	ChangeListCache = redis.NewCache("cl", 5*time.Minute)
 
 	PolicyCache = redis.NewCache(

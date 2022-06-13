@@ -233,7 +233,9 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
 		if err != nil {
-			err = errorWrapf(err, "convertSystemSubjectGroupsToThinSubjectGroup fail groups=`%s`", r.Groups)
+			err = errorWrapf(
+				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, groups=`%s`", r.Groups,
+			)
 			return nil, err
 		}
 

@@ -53,6 +53,7 @@ type GroupService interface {
 
 	// auth type
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
+	ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error)
 
 	// open api
 	ListEffectThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
