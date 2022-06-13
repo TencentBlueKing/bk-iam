@@ -220,3 +220,24 @@ func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, parentPK int64) 
 		}
 	}
 }
+
+// BatchDeleteGroupMemberSubjectSystemGroupCache 批量删除group的member的 group 缓存
+func BatchDeleteGroupMemberSubjectSystemGroupCache(systemID string, parentPK int64) {
+	svc := service.NewGroupService()
+	members, err := svc.ListMember(parentPK)
+	if err != nil {
+		log.WithError(err).Errorf(
+			"BatchDeleteGroupMemberSubjectSystemGroupCache fail systemID=`%s`, groupPK=`%d`", systemID, parentPK,
+		)
+	} else {
+		subjectPKs := make([]int64, 0, len(members))
+		for _, m := range members {
+			subjectPKs = append(subjectPKs, m.SubjectPK)
+		}
+
+		err = batchDeleteSubjectSystemGroupCache([]string{systemID}, subjectPKs)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
+}
