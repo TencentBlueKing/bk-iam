@@ -20,10 +20,6 @@ github.com/TencentBlueKing/iam-go-sdk/expression/eval
 ## explicit; go 1.14
 github.com/agiledragon/gomonkey/v2
 github.com/agiledragon/gomonkey/v2/creflect
-# github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-## explicit
-github.com/alecthomas/template
-github.com/alecthomas/template/parse
 # github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a
 ## explicit
 github.com/alicebob/gopher-json

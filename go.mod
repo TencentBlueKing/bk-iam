@@ -7,7 +7,6 @@ require (
 	github.com/TencentBlueKing/gopkg v1.0.8
 	github.com/TencentBlueKing/iam-go-sdk v0.0.8
 	github.com/agiledragon/gomonkey/v2 v2.3.1
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/dlmiddlecote/sqlstats v1.0.2
 	github.com/fatih/structs v1.1.0

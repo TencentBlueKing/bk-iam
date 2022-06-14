@@ -1,14 +1,4 @@
-/*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-package prp
+package pap
 
 import (
 	"database/sql"
@@ -21,14 +11,14 @@ import (
 )
 
 // ListSaaSBySubjectSystemTemplate 根据system和subject查询相关的policy的列表
-func (m *policyManager) ListSaaSBySubjectSystemTemplate(
+func (c *policyController) ListSaaSBySubjectSystemTemplate(
 	system, subjectType, subjectID string,
 	templateID int64,
 ) ([]types.SaaSPolicy, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "ListSaaSPolicyBySubjectSystemTemplate")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "ListSaaSPolicyBySubjectSystemTemplate")
 
 	// 查询subject pk
-	pk, err := m.subjectService.GetPK(subjectType, subjectID)
+	pk, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -36,7 +26,7 @@ func (m *policyManager) ListSaaSBySubjectSystemTemplate(
 	}
 
 	// 查询系统的所有action
-	actions, err := m.actionService.ListThinActionBySystem(system)
+	actions, err := c.actionService.ListThinActionBySystem(system)
 	if err != nil {
 		err = errorWrapf(err, "actionService.ListThinActionBySystem system=`%s` fail",
 			system)
@@ -53,7 +43,7 @@ func (m *policyManager) ListSaaSBySubjectSystemTemplate(
 	}
 
 	// 查询subject相关的policies
-	policies, err := m.policyService.ListThinBySubjectActionTemplate(pk, actionPKs, templateID)
+	policies, err := c.policyService.ListThinBySubjectActionTemplate(pk, actionPKs, templateID)
 	if (len(policies) == 0 && err == nil) || errors.Is(err, sql.ErrNoRows) {
 		return []types.SaaSPolicy{}, nil
 	}
@@ -66,33 +56,33 @@ func (m *policyManager) ListSaaSBySubjectSystemTemplate(
 	}
 
 	// 转换数据结构
-	return m.convertToSaaSPolicies(policies, actions), nil
+	return c.convertToSaaSPolicies(policies, actions), nil
 }
 
 // GetByActionTemplate ...
-func (m *policyManager) GetByActionTemplate(
+func (c *policyController) GetByActionTemplate(
 	system,
 	subjectType,
 	subjectID,
 	actionID string,
 	templateID int64,
 ) (policy types.AuthPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "GetCustomByAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "GetCustomByAction")
 	// 查询subject pk
-	pk, err := m.subjectService.GetPK(subjectType, subjectID)
+	pk, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
 		return
 	}
 
-	actionPK, err := m.actionService.GetActionPK(system, actionID)
+	actionPK, err := c.actionService.GetActionPK(system, actionID)
 	if err != nil {
 		err = errorWrapf(err, "actionService.Get system=`%s` actionID=`%s` fail", system, actionID)
 		return
 	}
 
-	svcTypesPolicy, err := m.policyService.GetByActionTemplate(pk, actionPK, 0)
+	svcTypesPolicy, err := c.policyService.GetByActionTemplate(pk, actionPK, 0)
 	if err != nil {
 		err = errorWrapf(err, "policyService.GetByActionTemplate subjectPK=`%d`, actionPK=`%d` fail", pk, actionPK)
 		return
@@ -107,14 +97,14 @@ func (m *policyManager) GetByActionTemplate(
 }
 
 // ListSaaSBySubjectTemplateBeforeExpiredAt 根据system和subject查询相关的policy的列表
-func (m *policyManager) ListSaaSBySubjectTemplateBeforeExpiredAt(
+func (c *policyController) ListSaaSBySubjectTemplateBeforeExpiredAt(
 	subjectType, subjectID string,
 	templateID, expiredAt int64,
 ) ([]types.SaaSPolicy, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "ListSaaSBySubjectTemplateBeforeExpiredAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "ListSaaSBySubjectTemplateBeforeExpiredAt")
 
 	// 查询subject pk
-	pk, err := m.subjectService.GetPK(subjectType, subjectID)
+	pk, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -122,7 +112,7 @@ func (m *policyManager) ListSaaSBySubjectTemplateBeforeExpiredAt(
 	}
 
 	// 查询subject相关的policies
-	policies, err := m.policyService.ListThinBySubjectTemplateBeforeExpiredAt(pk, templateID, expiredAt)
+	policies, err := c.policyService.ListThinBySubjectTemplateBeforeExpiredAt(pk, templateID, expiredAt)
 	if (len(policies) == 0 && err == nil) || errors.Is(err, sql.ErrNoRows) {
 		return []types.SaaSPolicy{}, nil
 	}
@@ -133,17 +123,17 @@ func (m *policyManager) ListSaaSBySubjectTemplateBeforeExpiredAt(
 		actionPKs = append(actionPKs, p.ActionPK)
 	}
 
-	actions, err := m.actionService.ListThinActionByPKs(actionPKs)
+	actions, err := c.actionService.ListThinActionByPKs(actionPKs)
 	if err != nil {
 		err = errorWrapf(err, "actionService.ListThinActionByPKs actionPKs=`%v` fail", actionPKs)
 		return nil, err
 	}
 
 	// 转换数据结构
-	return m.convertToSaaSPolicies(policies, actions), nil
+	return c.convertToSaaSPolicies(policies, actions), nil
 }
 
-func (m *policyManager) convertToSaaSPolicies(
+func (c *policyController) convertToSaaSPolicies(
 	policies []svcTypes.ThinPolicy,
 	actions []svcTypes.ThinAction,
 ) []types.SaaSPolicy {

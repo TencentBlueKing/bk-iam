@@ -1,14 +1,4 @@
-/*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-package prp
+package pap
 
 import (
 	"database/sql"
@@ -16,6 +6,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"iam/pkg/abac/prp"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
@@ -33,7 +24,7 @@ var ErrActionNotExists = errors.New("action not exists")
 func convertToServicePolicies(
 	subjectPK int64, policies []types.Policy, actionMap map[string]int64,
 ) ([]svctypes.Policy, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "convertServicePolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "convertServicePolicies")
 
 	svcPolicies := make([]svctypes.Policy, 0, len(policies))
 	for _, p := range policies {
@@ -58,7 +49,7 @@ func convertToServicePolicies(
 func convertToServiceTemporaryPolicies(
 	subjectPK int64, policies []types.Policy, actionMap map[string]int64,
 ) ([]svctypes.TemporaryPolicy, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "convertToServiceTemporaryPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "convertToServiceTemporaryPolicies")
 
 	svcTemporaryPolicies := make([]svctypes.TemporaryPolicy, 0, len(policies))
 	for _, p := range policies {
@@ -77,13 +68,13 @@ func convertToServiceTemporaryPolicies(
 	return svcTemporaryPolicies, nil
 }
 
-func (m *policyManager) querySubjectActionForAlterPolicies(
+func (c *policyController) querySubjectActionForAlterPolicies(
 	system, subjectType, subjectID string,
 ) (subjectPK int64, actionPKMap map[string]int64, actionPKWithResourceTypeSet *set.Int64Set, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "querySubjectActionForAlterPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "querySubjectActionForAlterPolicies")
 
 	// 1. 查询 subject subjectPK
-	subjectPK, err = m.subjectService.GetPK(subjectType, subjectID)
+	subjectPK, err = c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -91,7 +82,7 @@ func (m *policyManager) querySubjectActionForAlterPolicies(
 	}
 
 	// 2. 查询操作列表
-	actions, err := m.actionService.ListThinActionBySystem(system)
+	actions, err := c.actionService.ListThinActionBySystem(system)
 	if err != nil {
 		err = errorWrapf(err, "actionService.ListThinActionBySystem system=`%s` fail", system)
 		return
@@ -102,7 +93,7 @@ func (m *policyManager) querySubjectActionForAlterPolicies(
 	}
 
 	// 3. 查询关联了资源类型的操作pk set
-	actionResourceTypes, err := m.actionService.ListActionResourceTypeIDByActionSystem(system)
+	actionResourceTypes, err := c.actionService.ListActionResourceTypeIDByActionSystem(system)
 	if err != nil {
 		err = errorWrapf(err, "actionService.ListActionResourceTypeIDByActionSystem system=`%s` fail", system)
 		return
@@ -116,11 +107,11 @@ func (m *policyManager) querySubjectActionForAlterPolicies(
 }
 
 // DeleteByIDs 通过IDs批量删除策略
-func (m *policyManager) DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "DeletePoliciesByIDs")
+func (c *policyController) DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "DeletePoliciesByIDs")
 
 	// 1. 查询 subject pk
-	pk, err := m.subjectService.GetPK(subjectType, subjectID)
+	pk, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -131,7 +122,7 @@ func (m *policyManager) DeleteByIDs(system string, subjectType, subjectID string
 		// NOTE: delete cache here => 可以查actionPK
 		defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{pk})
 
-		err := m.policyService.DeleteByPKs(pk, policyIDs)
+		err := c.policyService.DeleteByPKs(pk, policyIDs)
 		if err != nil {
 			err = errorWrapf(err, "policyService.DeleteByPKs pk=`%d`, policyIDs=`%+v` fail",
 				pk, policyIDs)
@@ -142,18 +133,18 @@ func (m *policyManager) DeleteByIDs(system string, subjectType, subjectID string
 }
 
 // AlterCustomPolicies alter subject custom policies
-func (m *policyManager) AlterCustomPolicies(
+func (c *policyController) AlterCustomPolicies(
 	system, subjectType, subjectID string,
 	createPolicies, updatePolicies []types.Policy,
 	deletePolicyIDs []int64,
 ) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "AlterPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "AlterPolicies")
 
 	// 1. 查询subject action 相关的信息
-	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := m.querySubjectActionForAlterPolicies(
+	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
 		system, subjectType, subjectID)
 	if err != nil {
-		err = errorWrapf(err, "m.querySubjectActionForAlterPolicies system=`%s` fail", system)
+		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
 		return
 	}
 
@@ -185,7 +176,7 @@ func (m *policyManager) AlterCustomPolicies(
 	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
 
 	// 3. service执行 create, update, delete
-	updatedActionPKExpressionPKs, err := m.policyService.AlterCustomPolicies(
+	updatedActionPKExpressionPKs, err := c.policyService.AlterCustomPolicies(
 		subjectPK, cps, ups, deletePolicyIDs, actionPKWithResourceTypeSet)
 	if err != nil {
 		err = errorWrapf(err, "policyService.AlterPolicies system=`%s`, subjectPK=`%d` fail", system, subjectPK)
@@ -198,17 +189,17 @@ func (m *policyManager) AlterCustomPolicies(
 }
 
 // CreateAndDeleteTemplatePolicies create and delete subject template policies
-func (m *policyManager) CreateAndDeleteTemplatePolicies(
+func (c *policyController) CreateAndDeleteTemplatePolicies(
 	system, subjectType, subjectID string, templateID int64,
 	createPolicies []types.Policy, deletePolicyIDs []int64,
 ) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "CreateAndDeleteTemplatePolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "CreateAndDeleteTemplatePolicies")
 
 	// 1. 查询subject action 相关的信息
-	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := m.querySubjectActionForAlterPolicies(
+	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
 		system, subjectType, subjectID)
 	if err != nil {
-		err = errorWrapf(err, "m.querySubjectActionForAlterPolicies system=`%s` fail", system)
+		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
 		return
 	}
 
@@ -224,7 +215,7 @@ func (m *policyManager) CreateAndDeleteTemplatePolicies(
 	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
 
 	// 3. service执行 create, delete
-	err = m.policyService.CreateAndDeleteTemplatePolicies(
+	err = c.policyService.CreateAndDeleteTemplatePolicies(
 		subjectPK, templateID, cps, deletePolicyIDs, actionPKWithResourceTypeSet)
 	if err != nil {
 		err = errorWrapf(err, "policyService.CreateAndDeleteTemplatePolicies system=`%s`, subjectPK=`%d` fail",
@@ -236,16 +227,16 @@ func (m *policyManager) CreateAndDeleteTemplatePolicies(
 }
 
 // UpdateTemplatePolicies update subject template policies
-func (m *policyManager) UpdateTemplatePolicies(
+func (c *policyController) UpdateTemplatePolicies(
 	system, subjectType, subjectID string, policies []types.Policy,
 ) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "UpdateTemplatePolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "UpdateTemplatePolicies")
 
 	// 1. 查询subject action 相关的信息
-	subjectPK, actionMap, actionPKWithResourceTypeSet, err := m.querySubjectActionForAlterPolicies(
+	subjectPK, actionMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
 		system, subjectType, subjectID)
 	if err != nil {
-		err = errorWrapf(err, "m.querySubjectActionForAlterPolicies system=`%s` fail", system)
+		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
 		return
 	}
 
@@ -261,7 +252,7 @@ func (m *policyManager) UpdateTemplatePolicies(
 	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
 
 	// 3. service执行 update
-	err = m.policyService.UpdateTemplatePolicies(subjectPK, ups, actionPKWithResourceTypeSet)
+	err = c.policyService.UpdateTemplatePolicies(subjectPK, ups, actionPKWithResourceTypeSet)
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -276,11 +267,11 @@ func (m *policyManager) UpdateTemplatePolicies(
 }
 
 // DeleteTemplatePolicies delete subject template policies
-func (m *policyManager) DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "DeleteTemplatePolicies")
+func (c *policyController) DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) (err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "DeleteTemplatePolicies")
 
 	// 1. 查询 subject subjectPK
-	subjectPK, err := m.subjectService.GetPK(subjectType, subjectID)
+	subjectPK, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -291,7 +282,7 @@ func (m *policyManager) DeleteTemplatePolicies(system, subjectType, subjectID st
 	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
 
 	// 2. service执行 delete
-	err = m.policyService.DeleteTemplatePolicies(subjectPK, templateID)
+	err = c.policyService.DeleteTemplatePolicies(subjectPK, templateID)
 	if err != nil {
 		err = errorWrapf(err, "policyService.DeleteTemplatePolicies subjectPK=`%d`, templateID=`%s` fail",
 			subjectPK, templateID)
@@ -302,13 +293,13 @@ func (m *policyManager) DeleteTemplatePolicies(system, subjectType, subjectID st
 }
 
 // UpdateSubjectPoliciesExpiredAt 更新过期时间
-func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
+func (c *policyController) UpdateSubjectPoliciesExpiredAt(
 	subjectType, subjectID string, policies []types.PolicyPKExpiredAt,
 ) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "RenewExpiredAtByIDs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "RenewExpiredAtByIDs")
 
 	// 1. 查询 subject pk
-	subjectPK, err := m.subjectService.GetPK(subjectType, subjectID)
+	subjectPK, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -326,7 +317,7 @@ func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
 		idExpiredAtMap[p.PK] = p.ExpiredAt
 	}
 
-	ps, err := m.policyService.ListQueryByPKs(pks)
+	ps, err := c.policyService.ListQueryByPKs(pks)
 	if err != nil {
 		err = errorWrapf(err, "policyService.ListQueryByPKs pks=`%+v` fail", pks)
 		return err
@@ -346,7 +337,7 @@ func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
 	}
 
 	// 按系统删除缓存
-	systemSet, err := m.queryPoliciesSystemSet(updatePolicies)
+	systemSet, err := c.queryPoliciesSystemSet(updatePolicies)
 	if err != nil {
 		err = errorWrapf(err, "getSystemSetFromPolicyIDs pks=`%v` fail", pks)
 		return err
@@ -355,7 +346,7 @@ func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
 	// 清理缓存 => NOTE: 这里是可以知道actionPK的!!!!1
 	defer policy.BatchDeleteSystemSubjectPKsFromCache(systemSet.ToSlice(), []int64{subjectPK})
 
-	err = m.policyService.UpdateExpiredAt(updatePolicies)
+	err = c.policyService.UpdateExpiredAt(updatePolicies)
 	if err != nil {
 		err = errorWrapf(err, "policyService.UpdateExpiredAt policies=`%+v` fail", ps)
 		return err
@@ -364,8 +355,8 @@ func (m *policyManager) UpdateSubjectPoliciesExpiredAt(
 	return nil
 }
 
-func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) (*set.StringSet, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "RenewExpiredAtByIDs")
+func (c *policyController) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) (*set.StringSet, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "RenewExpiredAtByIDs")
 
 	actionPKs := make([]int64, 0, len(policies))
 	for _, p := range policies {
@@ -373,7 +364,7 @@ func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) 
 	}
 
 	// 2. 查询所有的action
-	actions, err := m.actionService.ListThinActionByPKs(actionPKs)
+	actions, err := c.actionService.ListThinActionByPKs(actionPKs)
 	if err != nil {
 		err = errorWrapf(err, "actionService.ListThinActionByPKs actionPKs=`%+v` fail", actionPKs)
 		return nil, err
@@ -389,11 +380,11 @@ func (m *policyManager) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) 
 }
 
 // DeleteByActionID 通过ActionID批量删除策略
-func (m *policyManager) DeleteByActionID(system, actionID string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "`DeleteByActionID`")
+func (c *policyController) DeleteByActionID(system, actionID string) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionID`")
 
 	// 1. 查询 action pk
-	actionPK, err := m.actionService.GetActionPK(system, actionID)
+	actionPK, err := c.actionService.GetActionPK(system, actionID)
 	if err != nil {
 		// if action already deleted, just return
 		if errors.Is(err, sql.ErrNoRows) {
@@ -404,7 +395,7 @@ func (m *policyManager) DeleteByActionID(system, actionID string) error {
 		return err
 	}
 
-	err = m.policyService.DeleteByActionPK(actionPK)
+	err = c.policyService.DeleteByActionPK(actionPK)
 	if err != nil {
 		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
 		return err
@@ -414,17 +405,17 @@ func (m *policyManager) DeleteByActionID(system, actionID string) error {
 }
 
 // CreateTemporaryPolicies create subject temporary policies
-func (m *policyManager) CreateTemporaryPolicies(
+func (c *policyController) CreateTemporaryPolicies(
 	system, subjectType, subjectID string,
 	policies []types.Policy,
 ) (pks []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "CreateTemporaryPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "CreateTemporaryPolicies")
 
 	// 1. 查询subject action 相关的信息
-	subjectPK, actionPKMap, _, err := m.querySubjectActionForAlterPolicies(
+	subjectPK, actionPKMap, _, err := c.querySubjectActionForAlterPolicies(
 		system, subjectType, subjectID)
 	if err != nil {
-		err = errorWrapf(err, "m.querySubjectActionForAlterPolicies system=`%s` fail", system)
+		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
 		return
 	}
 
@@ -437,12 +428,10 @@ func (m *policyManager) CreateTemporaryPolicies(
 	}
 
 	// NOTE: delete the temporary policy cache before leave
-	defer newTemporaryPolicyRedisCache(
-		system, m.temporaryPolicyService,
-	).DeleteBySubject(subjectPK)
+	defer prp.DeleteTemporaryPolicyBySystemSubjectFromCache(system, subjectPK)
 
 	// 3. 执行创建
-	pks, err = m.temporaryPolicyService.Create(ps)
+	pks, err = c.temporaryPolicyService.Create(ps)
 	if err != nil {
 		err = errorWrapf(err, "temporaryPolicyService.Create system=`%s`, subjectPK=`%d` fail",
 			system, subjectPK)
@@ -451,11 +440,11 @@ func (m *policyManager) CreateTemporaryPolicies(
 }
 
 // DeleteTemporaryByIDs 通过IDs批量删除临时策略
-func (m *policyManager) DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "DeleteTemporaryByIDs")
+func (c *policyController) DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "DeleteTemporaryByIDs")
 
 	// 1. 查询 subject pk
-	pk, err := m.subjectService.GetPK(subjectType, subjectID)
+	pk, err := c.subjectService.GetPK(subjectType, subjectID)
 	if err != nil {
 		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
 			subjectType, subjectID)
@@ -464,11 +453,9 @@ func (m *policyManager) DeleteTemporaryByIDs(system string, subjectType, subject
 	// 判断policyIDs是否为空，避免执行无效SQL
 	if len(policyIDs) > 0 {
 		// NOTE: delete cache here
-		defer newTemporaryPolicyRedisCache(
-			system, m.temporaryPolicyService,
-		).DeleteBySubject(pk)
+		defer prp.DeleteTemporaryPolicyBySystemSubjectFromCache(system, pk)
 
-		err := m.temporaryPolicyService.DeleteByPKs(pk, policyIDs)
+		err := c.temporaryPolicyService.DeleteByPKs(pk, policyIDs)
 		if err != nil {
 			err = errorWrapf(err, "temporaryPolicyService.DeleteByPKs pk=`%d`, policyIDs=`%+v` fail",
 				pk, policyIDs)
@@ -479,11 +466,11 @@ func (m *policyManager) DeleteTemporaryByIDs(system string, subjectType, subject
 }
 
 // DeleteTemporaryBeforeExpiredAt 删除指定过期时间前的临时权限
-func (m *policyManager) DeleteTemporaryBeforeExpiredAt(expiredAt int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "`DeleteTemporaryBeforeExpiredAt`")
+func (c *policyController) DeleteTemporaryBeforeExpiredAt(expiredAt int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteTemporaryBeforeExpiredAt`")
 
 	// NOTE: 这里删除一定要是已过期的策略, 不用清除缓存
-	err := m.temporaryPolicyService.DeleteBeforeExpireAt(expiredAt)
+	err := c.temporaryPolicyService.DeleteBeforeExpireAt(expiredAt)
 	if err != nil {
 		err = errorWrapf(err, "temporaryPolicyService.DeleteBeforeExpireAt expiredAt=`%d`` fail",
 			expiredAt)
