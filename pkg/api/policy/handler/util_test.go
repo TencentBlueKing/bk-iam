@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
@@ -217,7 +218,6 @@ func TestAnyExpression(t *testing.T) {
 }
 
 var _ = Describe("util", func() {
-
 	Describe("validateSystemSuperUser", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -279,7 +279,6 @@ var _ = Describe("util", func() {
 	})
 
 	Describe("buildResourceID", func() {
-
 		It("empty", func() {
 			uid := buildResourceID([]resource{})
 			assert.Equal(GinkgoT(), uid, "")
@@ -315,15 +314,15 @@ var _ = Describe("util", func() {
 })
 
 func Test_validateSystemMatchClient(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 	retrieveFunc := func(key cache.Key) (interface{}, error) {
 		return []string{"test"}, nil
 	}
 	mockCache := memory.NewCache(
 		"mockCache", false, retrieveFunc, expiration, nil)
 	cacheimpls.LocalSystemClientsCache = mockCache
+
+	config.SecurityAuditAppCode = set.NewStringSetWithValues([]string{"audit_app"})
 
 	type args struct {
 		systemID string
@@ -339,6 +338,14 @@ func Test_validateSystemMatchClient(t *testing.T) {
 			args: args{
 				systemID: "test",
 				clientID: "test",
+			},
+			want: true,
+		},
+		{
+			name: "right, secure audit app",
+			args: args{
+				systemID: "test",
+				clientID: "audit_app",
 			},
 			want: true,
 		},

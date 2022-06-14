@@ -55,7 +55,10 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 				return
 			}
 			if len(apiGatewayPublicKey) == 0 {
-				util.UnauthorizedJSONResponse(c, "iam apigateway public key is not configured, not support request from apigateway")
+				util.UnauthorizedJSONResponse(
+					c,
+					"iam apigateway public key is not configured, not support request from apigateway",
+				)
 				c.Abort()
 				return
 			}
@@ -119,8 +122,11 @@ func ShareClientMiddleware() gin.HandlerFunc {
 		log.Debug("Middleware: ShareClientMiddleware")
 
 		appCode := util.GetClientID(c)
-		if !config.ShareAppCodeSet.Has(appCode) {
-			util.UnauthorizedJSONResponse(c, "share client app code wrong, app_code is not in the share client whitelist")
+		if !config.SecurityAuditAppCode.Has(appCode) {
+			util.UnauthorizedJSONResponse(
+				c,
+				"share client app code wrong, app_code is not in the share client whitelist",
+			)
 			c.Abort()
 			return
 		}
