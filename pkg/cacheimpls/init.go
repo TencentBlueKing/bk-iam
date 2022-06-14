@@ -51,9 +51,10 @@ var (
 	ActionDetailCache       *redis.Cache
 	ActionListCache         *redis.Cache
 
-	PolicyCache          *redis.Cache
-	ExpressionCache      *redis.Cache
-	TemporaryPolicyCache *redis.Cache
+	PolicyCache              *redis.Cache
+	ExpressionCache          *redis.Cache
+	TemporaryPolicyCache     *redis.Cache
+	GroupSystemAuthTypeCache *redis.Cache
 
 	LocalPolicyCache          *gocache.Cache
 	LocalExpressionCache      *gocache.Cache
@@ -242,6 +243,11 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
+	GroupSystemAuthTypeCache = redis.NewCache(
+		"gat",
+		30*time.Minute,
+	)
+
 	ActionCacheCleaner = cleaner.NewCacheCleaner("ActionCacheCleaner", actionCacheDeleter{})
 	go ActionCacheCleaner.Run()
 
@@ -263,6 +269,9 @@ var PolicyCacheDisabled = false
 
 // PolicyCacheExpiration 策略缓存默认保留7天
 var PolicyCacheExpiration = 7 * 24 * time.Hour
+
+// GroupSystemAuthTypeCacheExpiration 策略缓存默认保留7天
+var GroupSystemAuthTypeCacheExpiration = 7 * 24 * time.Hour
 
 // InitPolicyCacheSettings ...
 func InitPolicyCacheSettings(disabled bool, expirationDays int64) {

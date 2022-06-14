@@ -154,6 +154,7 @@ func DeleteGroupAuthTypeCache(systemID string, groupPK int64) error {
 	err := multierr.Combine(
 		changeList.AddToChangeList(keyMembers),
 		changeList.Truncate([]string{systemID}),
+		deleteRedisGroupAuthTypeCache(systemID, groupPK),
 	)
 
 	return err
