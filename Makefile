@@ -10,9 +10,13 @@ init:
 	# for make doc
 	go install github.com/swaggo/swag/cmd/swag@v1.8.1
 	# for make mock
-	go install github.com/golang/mock/mockgen@v1.4.4
+	go install github.com/golang/mock/mockgen@v1.6.0
 	# for ginkgo
 	go install github.com/onsi/ginkgo/v2/ginkgo@latest
+	# for gofumpt
+	go install mvdan.cc/gofumpt@latest
+	# for golines
+	go install github.com/segmentio/golines@latest
 
 dep:
 	go mod tidy
@@ -37,6 +41,10 @@ lint:
 lint-dupl:
 	export GOFLAGS=-mod=vendor
 	golangci-lint run --no-config --disable-all --enable=dupl
+
+fmt:
+	golines ./ -m 120 -w --base-formatter gofmt --no-reformat-tags
+	gofumpt -l -w .
 
 test:
 # Apple Silicon
