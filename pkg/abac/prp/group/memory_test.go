@@ -31,7 +31,7 @@ import (
 var _ = Describe("memory", func() {
 	Describe("genKey", func() {
 		It("ok", func() {
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 			}
 			key := retriever.genKey(1)
@@ -64,7 +64,7 @@ var _ = Describe("memory", func() {
 					return nil, errors.New("ZRevRangeByScore fail")
 				})
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 			}
 
@@ -78,7 +78,7 @@ var _ = Describe("memory", func() {
 					return []rds.Z{}, nil
 				})
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 				cache:    cacheimpls.LocalGroupSystemAuthTypeCache,
 			}
@@ -103,7 +103,7 @@ var _ = Describe("memory", func() {
 					}, nil
 				})
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 				cache:    cacheimpls.LocalGroupSystemAuthTypeCache,
 			}
@@ -128,7 +128,7 @@ var _ = Describe("memory", func() {
 		})
 
 		It("ok", func() {
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 				cache:    cacheimpls.LocalGroupSystemAuthTypeCache,
 			}
@@ -171,7 +171,7 @@ var _ = Describe("memory", func() {
 					return []rds.Z{}, nil
 				})
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID: "test",
 				cache:    cacheimpls.LocalGroupSystemAuthTypeCache,
 			}
@@ -193,7 +193,7 @@ var _ = Describe("memory", func() {
 			mockRetriever := mock.NewMockGroupAuthTypeRetriever(ctl)
 			mockRetriever.EXPECT().Retrieve([]int64{3}).Return(nil, errors.New("missingRetriever error"))
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID:         "test",
 				cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
 				missingRetriever: mockRetriever,
@@ -215,7 +215,7 @@ var _ = Describe("memory", func() {
 				[]types.GroupAuthType{{GroupPK: 3, AuthType: 3}}, nil,
 			)
 
-			retriever := &memoryGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeMemoryRetriever{
 				systemID:         "test",
 				cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
 				missingRetriever: mockRetriever,

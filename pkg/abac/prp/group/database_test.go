@@ -42,7 +42,7 @@ var _ = Describe("database", func() {
 				nil, errors.New("error"),
 			)
 
-			retriever := &databaseGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeDatabaseRetriever{
 				systemID: "test",
 				service:  mockGroupService,
 			}
@@ -60,7 +60,7 @@ var _ = Describe("database", func() {
 				}, nil,
 			)
 
-			retriever := &databaseGroupAuthTypeRetriever{
+			retriever := &groupAuthTypeDatabaseRetriever{
 				systemID: "test",
 				service:  mockGroupService,
 			}

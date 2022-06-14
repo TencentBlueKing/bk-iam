@@ -27,12 +27,12 @@ import (
 
 var _ = Describe("Redis", func() {
 	It("newRedisRetriever", func() {
-		r := NewRedisGroupAuthTypeRetriever("test", nil)
+		r := NewGroupAuthTypeRedisRetriever("test", nil)
 		assert.NotNil(GinkgoT(), r)
 	})
 
 	It("genKey", func() {
-		r := &redisGroupAuthTypeRetriever{
+		r := &groupAuthTypeRedisRetriever{
 			keyPrefix: "test:",
 		}
 		k := r.genKey(456)
@@ -41,9 +41,9 @@ var _ = Describe("Redis", func() {
 	})
 
 	Describe("parseKey", func() {
-		var r *redisGroupAuthTypeRetriever
+		var r *groupAuthTypeRedisRetriever
 		BeforeEach(func() {
-			r = &redisGroupAuthTypeRetriever{
+			r = &groupAuthTypeRedisRetriever{
 				keyPrefix: "test:",
 			}
 		})
@@ -62,10 +62,10 @@ var _ = Describe("Redis", func() {
 	})
 
 	Describe("batchSetGroupAuthTypeCache", func() {
-		var r *redisGroupAuthTypeRetriever
+		var r *groupAuthTypeRedisRetriever
 		BeforeEach(func() {
 			cacheimpls.GroupSystemAuthTypeCache = redis.NewMockCache("test", 5*time.Minute)
-			r = &redisGroupAuthTypeRetriever{
+			r = &groupAuthTypeRedisRetriever{
 				keyPrefix: "test:",
 			}
 		})
@@ -92,10 +92,10 @@ var _ = Describe("Redis", func() {
 	})
 
 	Describe("batchGetGroupAuthType", func() {
-		var r *redisGroupAuthTypeRetriever
+		var r *groupAuthTypeRedisRetriever
 		BeforeEach(func() {
 			cacheimpls.GroupSystemAuthTypeCache = redis.NewMockCache("test", 5*time.Minute)
-			r = &redisGroupAuthTypeRetriever{
+			r = &groupAuthTypeRedisRetriever{
 				keyPrefix: "test:",
 			}
 		})
@@ -122,12 +122,12 @@ var _ = Describe("Redis", func() {
 
 	Describe("Retrieve", func() {
 		var ctl *gomock.Controller
-		var r *redisGroupAuthTypeRetriever
+		var r *groupAuthTypeRedisRetriever
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 
 			cacheimpls.GroupSystemAuthTypeCache = redis.NewMockCache("test", 5*time.Minute)
-			r = &redisGroupAuthTypeRetriever{
+			r = &groupAuthTypeRedisRetriever{
 				keyPrefix: "test:",
 			}
 		})
@@ -200,10 +200,10 @@ var _ = Describe("Redis", func() {
 	})
 
 	Describe("deleteRedisGroupAuthTypeCache", func() {
-		var r *redisGroupAuthTypeRetriever
+		var r *groupAuthTypeRedisRetriever
 		BeforeEach(func() {
 			cacheimpls.GroupSystemAuthTypeCache = redis.NewMockCache("test", 5*time.Minute)
-			r = &redisGroupAuthTypeRetriever{
+			r = &groupAuthTypeRedisRetriever{
 				keyPrefix: "test:",
 			}
 		})

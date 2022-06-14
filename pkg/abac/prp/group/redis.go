@@ -29,28 +29,28 @@ const RedisLayer = "GroupRedisLayer"
 
 const RandExpireSeconds = 60
 
-type redisGroupAuthTypeRetriever struct {
+type groupAuthTypeRedisRetriever struct {
 	systemID         string
 	missingRetriever GroupAuthTypeRetriever
 	keyPrefix        string
 }
 
-func NewRedisGroupAuthTypeRetriever(
+func NewGroupAuthTypeRedisRetriever(
 	systemID string,
 	missingRetriever GroupAuthTypeRetriever,
 ) GroupAuthTypeRetriever {
-	return &redisGroupAuthTypeRetriever{
+	return &groupAuthTypeRedisRetriever{
 		systemID:         systemID,
 		missingRetriever: missingRetriever,
 		keyPrefix:        systemID + ":",
 	}
 }
 
-func (r *redisGroupAuthTypeRetriever) genKey(groupPK int64) cache.Key {
+func (r *groupAuthTypeRedisRetriever) genKey(groupPK int64) cache.Key {
 	return cache.NewStringKey(r.keyPrefix + strconv.FormatInt(groupPK, 10))
 }
 
-func (r *redisGroupAuthTypeRetriever) parseKey(key string) (groupPK int64, err error) {
+func (r *groupAuthTypeRedisRetriever) parseKey(key string) (groupPK int64, err error) {
 	groupPKStr := strings.TrimPrefix(key, r.keyPrefix)
 
 	groupPK, err = strconv.ParseInt(groupPKStr, 10, 64)
@@ -62,7 +62,7 @@ func (r *redisGroupAuthTypeRetriever) parseKey(key string) (groupPK int64, err e
 	return groupPK, nil
 }
 
-func (r *redisGroupAuthTypeRetriever) Retrieve(
+func (r *groupAuthTypeRedisRetriever) Retrieve(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RedisLayer, "Retrieve")
@@ -90,7 +90,7 @@ func (r *redisGroupAuthTypeRetriever) Retrieve(
 	return groupAuthTypes, nil
 }
 
-func (r *redisGroupAuthTypeRetriever) batchGetGroupAuthType(
+func (r *groupAuthTypeRedisRetriever) batchGetGroupAuthType(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, missPKs []int64, err error) {
 	// build for batch get
@@ -138,7 +138,7 @@ func (r *redisGroupAuthTypeRetriever) batchGetGroupAuthType(
 	return groupAuthTypes, missPKs, nil
 }
 
-func (r *redisGroupAuthTypeRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) error {
+func (r *groupAuthTypeRedisRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) error {
 	cacheKvs := make([]redis.KV, 0, len(groupAuthTypes))
 	// batch set the subject_groups at one time
 	for _, groupAuthType := range groupAuthTypes {

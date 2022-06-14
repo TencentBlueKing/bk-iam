@@ -38,24 +38,24 @@ const (
 
 var changeList = common.NewChangeList(changeListTypeGroupAuthType, groupAuthTypeLocalCacheTTL, maxChangeListCount)
 
-type memoryGroupAuthTypeRetriever struct {
+type groupAuthTypeMemoryRetriever struct {
 	systemID         string
 	cache            *gocache.Cache
 	missingRetriever GroupAuthTypeRetriever
 }
 
-func NewMemoryGroupAuthTypeRetriever(
+func NewGroupAuthTypeMemoryRetriever(
 	systemID string,
 	missingRetriever GroupAuthTypeRetriever,
 ) GroupAuthTypeRetriever {
-	return &memoryGroupAuthTypeRetriever{
+	return &groupAuthTypeMemoryRetriever{
 		systemID:         systemID,
 		cache:            cacheimpls.LocalGroupSystemAuthTypeCache,
 		missingRetriever: missingRetriever,
 	}
 }
 
-func (r *memoryGroupAuthTypeRetriever) Retrieve(
+func (r *groupAuthTypeMemoryRetriever) Retrieve(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, err error) {
 	groupAuthTypes, missPKs := r.batchGetGroupAuthType(groupPKs)
@@ -77,11 +77,11 @@ func (r *memoryGroupAuthTypeRetriever) Retrieve(
 	return groupAuthTypes, nil
 }
 
-func (r *memoryGroupAuthTypeRetriever) genKey(groupPK int64) string {
+func (r *groupAuthTypeMemoryRetriever) genKey(groupPK int64) string {
 	return r.systemID + ":" + strconv.FormatInt(groupPK, 10)
 }
 
-func (r *memoryGroupAuthTypeRetriever) batchGetGroupAuthType(
+func (r *groupAuthTypeMemoryRetriever) batchGetGroupAuthType(
 	groupPKs []int64,
 ) (groupAuthTypes []types.GroupAuthType, missPKs []int64) {
 	groupAuthTypes = make([]types.GroupAuthType, 0, len(groupPKs))
@@ -134,7 +134,7 @@ func (r *memoryGroupAuthTypeRetriever) batchGetGroupAuthType(
 	return groupAuthTypes, missPKs
 }
 
-func (r *memoryGroupAuthTypeRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) {
+func (r *groupAuthTypeMemoryRetriever) batchSetGroupAuthTypeCache(groupAuthTypes []types.GroupAuthType) {
 	ttl := groupAuthTypeLocalCacheTTL * time.Second
 	for _, groupAuthType := range groupAuthTypes {
 		key := r.genKey(groupAuthType.GroupPK)
