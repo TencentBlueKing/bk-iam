@@ -237,5 +237,6 @@ func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy)
 }
 
 func DeleteTemporaryPolicyBySystemSubjectFromCache(systemID string, subjectPK int64) error {
-	return newTemporaryPolicyRedisCache(systemID, service.NewTemporaryPolicyService()).DeleteBySubject(subjectPK)
+	tpRedisCache := newTemporaryPolicyRedisCache(systemID, service.NewTemporaryPolicyService())
+	return tpRedisCache.DeleteBySubject(subjectPK)
 }

@@ -1,3 +1,13 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package dao
 
 import (
@@ -24,7 +34,8 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mockData := []interface{}{GroupResourcePolicyPKActionPKs{PK: int64(1), ActionPKs: "[1,2,3]"}}
 		mockRows := database.NewMockRows(mock, mockData...)
 		mock.ExpectQuery(
-			"^SELECT pk, action_pks FROM group_resource_policy WHERE group_pk = (.*) AND template_id = (.*) AND system_id = (.*) AND action_related_resource_type_pk = (.*) AND resource_type_pk = (.*) AND resource_id = (.*) LIMIT 1$",
+			"^SELECT pk, action_pks FROM group_resource_policy WHERE group_pk = (.*) AND template_id = (.*) AND "+
+				"system_id = (.*) AND action_related_resource_type_pk = (.*) AND resource_type_pk = (.*) AND resource_id = (.*) LIMIT 1$",
 		).WithArgs(
 			int64(1), int64(2), "test", int64(3), int64(4), "resource_id",
 		).WillReturnRows(mockRows)
@@ -36,7 +47,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		assert.Equal(GinkgoT(), "[1,2,3]", pkActionPKs.ActionPKs)
 	})
 
-	It("BulkInsertWithTx", func() {
+	It("BulkCreateWithTx", func() {
 		mock.ExpectBegin()
 		mock.ExpectExec(
 			`INSERT INTO group_resource_policy`,
@@ -48,7 +59,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		tx, err := db.Beginx()
 		assert.NoError(GinkgoT(), err)
 
-		err = manager.BulkInsertWithTx(tx, []GroupResourcePolicy{
+		err = manager.BulkCreateWithTx(tx, []GroupResourcePolicy{
 			{
 				GroupPK:                     int64(1),
 				TemplateID:                  int64(2),

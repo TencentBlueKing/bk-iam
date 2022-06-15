@@ -50,9 +50,9 @@ func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkDeleteByPKsWithTx(tx, 
 }
 
 // BulkInsertWithTx mocks base method.
-func (m *MockGroupResourcePolicyManager) BulkInsertWithTx(tx *sqlx.Tx, groupResourcePolicies []dao.GroupResourcePolicy) error {
+func (m *MockGroupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, groupResourcePolicies []dao.GroupResourcePolicy) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkInsertWithTx", tx, groupResourcePolicies)
+	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, groupResourcePolicies)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -60,7 +60,7 @@ func (m *MockGroupResourcePolicyManager) BulkInsertWithTx(tx *sqlx.Tx, groupReso
 // BulkInsertWithTx indicates an expected call of BulkInsertWithTx.
 func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkInsertWithTx(tx, groupResourcePolicies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkInsertWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkInsertWithTx), tx, groupResourcePolicies)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkCreateWithTx), tx, groupResourcePolicies)
 }
 
 // BulkUpdateActionPKsWithTx mocks base method.
