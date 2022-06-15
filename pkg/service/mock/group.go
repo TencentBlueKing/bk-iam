@@ -35,6 +35,21 @@ func (m *MockGroupService) EXPECT() *MockGroupServiceMockRecorder {
 	return m.recorder
 }
 
+// AlterGroupAuthType mocks base method.
+func (m *MockGroupService) AlterGroupAuthType(tx *sqlx.Tx, systemID string, groupPK, authType int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlterGroupAuthType", tx, systemID, groupPK, authType)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AlterGroupAuthType indicates an expected call of AlterGroupAuthType.
+func (mr *MockGroupServiceMockRecorder) AlterGroupAuthType(tx, systemID, groupPK, authType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlterGroupAuthType", reflect.TypeOf((*MockGroupService)(nil).AlterGroupAuthType), tx, systemID, groupPK, authType)
+}
+
 // BulkCreateGroupMembersWithTx mocks base method.
 func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error {
 	m.ctrl.T.Helper()
@@ -151,6 +166,21 @@ func (m *MockGroupService) ListExistSubjectsBeforeExpiredAt(parentPKs []int64, e
 func (mr *MockGroupServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(parentPKs, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectsBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListExistSubjectsBeforeExpiredAt), parentPKs, expiredAt)
+}
+
+// ListGroupAuthBySystemGroupPKs mocks base method.
+func (m *MockGroupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroupAuthBySystemGroupPKs", systemID, groupPKs)
+	ret0, _ := ret[0].([]types.GroupAuthType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroupAuthBySystemGroupPKs indicates an expected call of ListGroupAuthBySystemGroupPKs.
+func (mr *MockGroupServiceMockRecorder) ListGroupAuthBySystemGroupPKs(systemID, groupPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupAuthBySystemGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListGroupAuthBySystemGroupPKs), systemID, groupPKs)
 }
 
 // ListGroupAuthSystemIDs mocks base method.

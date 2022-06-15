@@ -8,32 +8,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package types
+package group
 
-// AllowEmptyFields ...
-type AllowEmptyFields struct {
-	keys map[string]struct{}
-}
+import (
+	"testing"
 
-// NewAllowEmptyFields ...
-func NewAllowEmptyFields() AllowEmptyFields {
-	return AllowEmptyFields{keys: map[string]struct{}{}}
-}
-
-// HasKey ...
-func (a *AllowEmptyFields) HasKey(key string) bool {
-	_, ok := a.keys[key]
-	return ok
-}
-
-// AddKey ...
-func (a *AllowEmptyFields) AddKey(key string) {
-	a.keys[key] = struct{}{}
-}
-
-const (
-	AuthTypeNone int64 = 0
-	AuthTypeABAC int64 = 1
-	AuthTypeRBAC int64 = 2
-	AuthTypeAll  int64 = 7 // 预留一位 4, ALL 为 7
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
+
+func TestGroup(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Group Suite")
+}

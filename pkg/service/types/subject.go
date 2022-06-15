@@ -61,3 +61,9 @@ type ThinSubjectGroup struct {
 	GroupPK         int64 `json:"group_pk" msgpack:"p"`
 	PolicyExpiredAt int64 `json:"policy_expired_at" msgpack:"pe"`
 }
+
+// GroupAuthType 用于鉴权查询
+type GroupAuthType struct {
+	GroupPK  int64 `json:"group_pk"`
+	AuthType int64 `json:"auth_type"`
+}

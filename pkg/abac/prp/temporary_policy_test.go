@@ -118,7 +118,7 @@ var _ = Describe("Redis", func() {
 			c = &temporaryPolicyLocalCache{
 				temporaryPolicyService: nil,
 			}
-			cacheimpls.LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
+			cacheimpls.LocalTemporaryPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 		})
 		AfterEach(func() {
 			ctl.Finish()

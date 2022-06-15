@@ -205,7 +205,7 @@ func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPoli
 	missPKs := make([]int64, 0, len(pks))
 	for _, pk := range pks {
 		key := strconv.FormatInt(pk, 10)
-		value, found := cacheimpls.LocalTemporayPolicyCache.Get(key)
+		value, found := cacheimpls.LocalTemporaryPolicyCache.Get(key)
 		if !found {
 			missPKs = append(missPKs, pk)
 			continue
@@ -232,6 +232,6 @@ func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy)
 		key := strconv.FormatInt(p.PK, 10)
 		ttl := p.ExpiredAt - nowTimestamp + TemporaryPolicyCacheDelaySeconds
 
-		cacheimpls.LocalTemporayPolicyCache.Set(key, p, time.Duration(ttl))
+		cacheimpls.LocalTemporaryPolicyCache.Set(key, p, time.Duration(ttl))
 	}
 }

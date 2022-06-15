@@ -8,32 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package types
+package group
 
-// AllowEmptyFields ...
-type AllowEmptyFields struct {
-	keys map[string]struct{}
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
+import "iam/pkg/service/types"
+
+type GroupAuthTypeRetriever interface {
+	Retrieve(groupPKs []int64) (groupAuthTypes []types.GroupAuthType, err error)
 }
-
-// NewAllowEmptyFields ...
-func NewAllowEmptyFields() AllowEmptyFields {
-	return AllowEmptyFields{keys: map[string]struct{}{}}
-}
-
-// HasKey ...
-func (a *AllowEmptyFields) HasKey(key string) bool {
-	_, ok := a.keys[key]
-	return ok
-}
-
-// AddKey ...
-func (a *AllowEmptyFields) AddKey(key string) {
-	a.keys[key] = struct{}{}
-}
-
-const (
-	AuthTypeNone int64 = 0
-	AuthTypeABAC int64 = 1
-	AuthTypeRBAC int64 = 2
-	AuthTypeAll  int64 = 7 // 预留一位 4, ALL 为 7
-)
