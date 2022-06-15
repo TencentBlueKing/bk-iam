@@ -72,7 +72,7 @@ func Query(c *gin.Context) {
 	}
 
 	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok", AnyExpression)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", AnyExpression)
 		return
 	}
 
@@ -164,7 +164,7 @@ func BatchQueryByActions(c *gin.Context) {
 				Condition: AnyExpression,
 			})
 		}
-		util.SuccessJSONResponse(c, "ok", policies)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", policies)
 		return
 	}
 
@@ -276,7 +276,7 @@ func QueryByExtResources(c *gin.Context) {
 			extResourcesWithAttr = append(extResourcesWithAttr, extResourceWithAttr)
 		}
 
-		util.SuccessJSONResponse(c, "ok", map[string]interface{}{
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", map[string]interface{}{
 			"expression":    AnyExpression,
 			"ext_resources": extResourcesWithAttr,
 		})

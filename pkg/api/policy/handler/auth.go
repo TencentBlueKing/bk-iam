@@ -74,7 +74,7 @@ func Auth(c *gin.Context) {
 	}
 
 	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok", authResponse{
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", authResponse{
 			Allowed: true,
 		})
 		return
@@ -164,7 +164,7 @@ func BatchAuthByActions(c *gin.Context) {
 		for _, action := range body.Actions {
 			result[action.ID] = true
 		}
-		util.SuccessJSONResponse(c, "ok", result)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", result)
 		return
 	}
 
@@ -263,7 +263,7 @@ func BatchAuthByResources(c *gin.Context) {
 			data[buildResourceID(r)] = true
 		}
 
-		util.SuccessJSONResponse(c, "ok", data)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", data)
 		return
 	}
 
