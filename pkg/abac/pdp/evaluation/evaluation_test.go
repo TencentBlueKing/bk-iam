@@ -198,7 +198,7 @@ var _ = Describe("Evaluation", func() {
 
 	Describe("evalPolicy", func() {
 		It("ctx.Action.WithoutResourceType", func() {
-			c.Action.FillAttributes(1, []types.ActionResourceType{})
+			c.Action.FillAttributes(1, 1, []types.ActionResourceType{})
 			allowed, err := evalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)
@@ -347,7 +347,7 @@ var _ = Describe("Evaluation", func() {
 	// TODO: partialEvalPolicy
 	Describe("partialEvalPolicy", func() {
 		It("ctx.Action.WithoutResourceType", func() {
-			c.Action.FillAttributes(1, []types.ActionResourceType{})
+			c.Action.FillAttributes(1, 1, []types.ActionResourceType{})
 			allowed, cond, err := partialEvalPolicy(c, policy, time.Now())
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), allowed)

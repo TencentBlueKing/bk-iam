@@ -21,6 +21,7 @@ types定义的数据结构的加载层
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
@@ -41,6 +42,8 @@ type ActionService interface {
 	GetActionPK(system, id string) (int64, error)
 
 	Get(system, id string) (types.Action, error)
+
+	GetAuthType(system, id string) (int64, error)
 
 	// ListBySystem, 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
 	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
@@ -632,4 +635,21 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 		})
 	}
 	return instanceSelections, nil
+}
+
+// GetAuthType 获取action 的授权类型
+func (l *actionService) GetAuthType(system, id string) (int64, error) {
+	authTypeStr, err := l.saasManager.GetAuthType(system, id)
+	if err != nil {
+		return 0, errorx.Wrapf(err, ActionSVC, "GetAuthType", "system=`%s`, id=`%s`", system, id)
+	}
+
+	switch authTypeStr {
+	case "", "abac":
+		return types.AuthTypeABAC, nil
+	case "rbac":
+		return types.AuthTypeRBAC, nil
+	}
+
+	return 0, errors.New("unknown auth type")
 }

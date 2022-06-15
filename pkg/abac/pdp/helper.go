@@ -41,6 +41,7 @@ func queryPolicies(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
 	withoutCache bool,
 	entry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -48,7 +49,7 @@ func queryPolicies(
 
 	manager := prp.NewPolicyManager()
 
-	policies, err = manager.ListBySubjectAction(system, subject, action, withoutCache, entry)
+	policies, err = manager.ListBySubjectAction(system, subject, action, effectGroupPKs, withoutCache, entry)
 	if err != nil {
 		err = errorWrapf(err,
 			"ListBySubjectAction system=`%s`, subject=`%s`, action=`%s`, withoutCache=`%t` fail",
@@ -127,9 +128,19 @@ func queryAndPartialEvalConditions(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
+	// 3. 查询关联的group pks
+	debug.AddStep(entry, "Get Effect AuthType Group PKs")
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject)
+	if err != nil {
+		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
+		return nil, err
+	}
+	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
+	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
-	policies, err := queryPolicies(r.System, r.Subject, r.Action, withoutCache, entry)
+	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return nil, nil
@@ -200,12 +211,30 @@ func fillActionDetail(r *request.Request) error {
 	id := r.Action.ID
 
 	// TODO: to local cache? but, how to notify the changes in /api/query? do nothing currently!
-	pk, actionResourceTypes, err := pip.GetActionDetail(system, id)
+	pk, authType, actionResourceTypes, err := pip.GetActionDetail(system, id)
 	if err != nil {
 		err = errorWrapf(err, "GetActionDetail system=`%s`, id=`%s` fail", system, id)
 		return err
 	}
 
-	r.Action.FillAttributes(pk, actionResourceTypes)
+	r.Action.FillAttributes(pk, authType, actionResourceTypes)
 	return nil
+}
+
+// getEffectAuthTypeGroupPKs 获取authType分组的group pks
+func getEffectAuthTypeGroupPKs(
+	systemID string,
+	subject types.Subject,
+) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+	groupPKs, err := prp.GetEffectGroupPKs(systemID, subject)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsToAuthTypeGroupPKs(systemID, groupPKs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return abacGroupPKs, rbacGroupPKs, nil
 }

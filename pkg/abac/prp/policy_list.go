@@ -98,12 +98,13 @@ func (m *policyManager) ListBySubjectAction(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
 	// 1. 查询一般权限
 	policies, err = m.listBySubjectAction(
-		system, subject, action, withoutCache, parentEntry,
+		system, subject, action, effectGroupPKs, withoutCache, parentEntry,
 	)
 	if err != nil {
 		return
@@ -128,6 +129,7 @@ func (m *policyManager) listBySubjectAction(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -140,13 +142,16 @@ func (m *policyManager) listBySubjectAction(
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	// 通过subject对象获取PK
-	effectSubjectPKs, err := getEffectSubjectPKs(system, subject)
+	subjectPK, err := subject.Attribute.GetPK()
 	if err != nil {
-		err = errorWrapf(err, "getEffectSubjectPKs subject=`%+v` fail", subject)
-		return
+		err = errorWrapf(err, "subject.Attribute.GetPK subject=`%+v` fail", subject)
+		return nil, err
 	}
-	debug.WithValue(entry, "subjectPKs", effectSubjectPKs)
+
+	effectSubjectPKs := make([]int64, 0, len(effectGroupPKs)+1)
+	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
+	effectSubjectPKs = append(effectSubjectPKs, effectGroupPKs...)
+	debug.WithValue(entry, "effectSubjectPKs", effectSubjectPKs)
 
 	// 2. get action pk
 	debug.AddStep(entry, "Get Action PK")

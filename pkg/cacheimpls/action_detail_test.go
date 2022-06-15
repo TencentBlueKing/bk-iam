@@ -38,6 +38,7 @@ func TestGetActionDetail(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 	mockService.EXPECT().GetActionPK("test", "create").Return(int64(64), nil).AnyTimes()
+	mockService.EXPECT().GetAuthType("test", "create").Return(int64(1), nil).AnyTimes()
 
 	patches := gomonkey.ApplyFunc(service.NewActionService,
 		func() service.ActionService {
@@ -52,5 +53,6 @@ func TestGetActionDetail(t *testing.T) {
 	detail, err := GetActionDetail("test", "create")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(64), detail.PK)
+	assert.Equal(t, int64(1), detail.AuthType)
 	assert.Len(t, detail.ResourceTypes, 1)
 }

@@ -21,7 +21,7 @@ import (
 const ActionPIP = "ActionPIP"
 
 // GetActionDetail ...
-func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceType, err error) {
+func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.ActionResourceType, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
 
 	detail, err := cacheimpls.GetActionDetail(system, id)
@@ -32,7 +32,6 @@ func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceTy
 	}
 
 	// 数据转换
-	pk = detail.PK
 	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
 	for _, art := range detail.ResourceTypes {
 		arts = append(arts, types.ActionResourceType{
@@ -40,5 +39,5 @@ func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceTy
 			Type:   art.ID,
 		})
 	}
-	return pk, arts, nil
+	return detail.PK, detail.AuthType, arts, nil
 }

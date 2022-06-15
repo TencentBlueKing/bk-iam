@@ -28,7 +28,7 @@ type PolicyManager interface {
 
 	GetByActionTemplate(
 		system, subjectType, subjectID, actionID string, templateID int64) (policy types.AuthPolicy, err error)
-	ListBySubjectAction(system string, subject types.Subject, action types.Action,
+	ListBySubjectAction(system string, subject types.Subject, action types.Action, effectGroupPKs []int64,
 		withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) // 需要对service查询来的policy去重
 
 	ListSaaSBySubjectSystemTemplate(system, subjectType, subjectID string, templateID int64) ([]types.SaaSPolicy,

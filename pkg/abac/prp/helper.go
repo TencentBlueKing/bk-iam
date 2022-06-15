@@ -29,7 +29,7 @@ TODO:
 
 */
 
-func getEffectSubjectPKs(systemID string, subject types.Subject) ([]int64, error) {
+func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "getEffectSubjectPKs")
 
 	subjectPK, err := subject.Attribute.GetPK()
@@ -63,12 +63,5 @@ func getEffectSubjectPKs(systemID string, subject types.Subject) ([]int64, error
 		}
 	}
 
-	// 2. collect all pks
-	effectSubjectPKs := make([]int64, 0, 1+groupPKSet.Size())
-	// 将用户自身添加进去
-	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
-	// 用户加入的用户组 + 用户继承组织加入的用户组
-	effectSubjectPKs = append(effectSubjectPKs, groupPKSet.ToSlice()...)
-
-	return effectSubjectPKs, nil
+	return groupPKSet.ToSlice(), nil
 }

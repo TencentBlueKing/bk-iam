@@ -205,7 +205,7 @@ func InitCaches(disabled bool) {
 	)
 
 	ActionDetailCache = redis.NewCache(
-		"act_dtl",
+		"act_dtl:2",
 		30*time.Minute,
 	)
 

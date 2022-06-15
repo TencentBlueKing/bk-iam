@@ -8,22 +8,29 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package types
+package pdp
 
-// ThinActionResourceType 用于鉴权的操作关联的资源类型.
-type ThinActionResourceType struct {
-	System string
-	ID     string
-}
+import (
+	"iam/pkg/abac/types"
+	"iam/pkg/logging/debug"
+)
 
-// ActionDetail 用于复合缓存
-type ActionDetail struct {
-	// action pk
-	PK int64
+func rbacEval(
+	system string,
+	action types.Action,
+	resources []types.Resource,
+	effectGroupPKs []int64,
+	withoutCache bool,
+	entry *debug.Entry,
+) (isPass bool, err error) {
+	/*
+		TODO rbac鉴权逻辑:
 
-	// action auth type
-	AuthType int64
-
-	// action resource types
-	ResourceTypes []ThinActionResourceType
+			1. 解析出鉴权的resources中所有的节点, 并去重, 并且需要查询到所有resource_type_pk
+			2. 查询操作的 action_resource_type_pk
+			3. 使用 system_id, resource_type_pk, resource_id, action_resource_type_pk 查询 group_resource_policy, 得到 group_pk, action_pks
+			4. 筛选出 action_pks 中包含 action_pk 的 group_pk
+			5. 得到的group_pk与rbacGroupPKs比较, 如果包含, 则通过鉴权
+	*/
+	return false, nil
 }

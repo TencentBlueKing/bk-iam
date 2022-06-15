@@ -78,6 +78,21 @@ func (mr *MockSaaSActionManagerMockRecorder) Get(system, actionID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSaaSActionManager)(nil).Get), system, actionID)
 }
 
+// GetAuthType mocks base method.
+func (m *MockSaaSActionManager) GetAuthType(system, actionID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthType", system, actionID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthType indicates an expected call of GetAuthType.
+func (mr *MockSaaSActionManagerMockRecorder) GetAuthType(system, actionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthType", reflect.TypeOf((*MockSaaSActionManager)(nil).GetAuthType), system, actionID)
+}
+
 // ListBySystem mocks base method.
 func (m *MockSaaSActionManager) ListBySystem(system string) ([]sdao.SaaSAction, error) {
 	m.ctrl.T.Helper()
