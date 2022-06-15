@@ -63,7 +63,12 @@ func (l *subjectBlackListService) BulkCreate(subjectPKs []int64) error {
 		}
 		subjectBlackList = append(subjectBlackList, dao.SubjectBlackList{SubjectPK: subjectPK})
 	}
-	return l.manager.BulkCreate(subjectBlackList)
+
+	err = l.manager.BulkCreate(subjectBlackList)
+	if err != nil {
+		return errorWrapf(err, "manager.BulkCreate subjectPKs=`%+v` fail", subjectPKs)
+	}
+	return nil
 }
 
 // BulkDelete ...

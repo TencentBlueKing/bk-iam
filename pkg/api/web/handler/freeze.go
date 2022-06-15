@@ -76,7 +76,7 @@ func batchSubjectBlackListExecute(c *gin.Context, doFunc func(subjectPKs []int64
 
 	err := doFunc(subjectPKs)
 	if err != nil {
-		util.SystemErrorJSONResponse(c, fmt.Errorf("subjectBlackListSVC.BulkCreate fail, %w", err))
+		util.SystemErrorJSONResponse(c, fmt.Errorf("subjectBlackListSVC.BulkCreate or BulkDelete fail, %w", err))
 		return
 	}
 
