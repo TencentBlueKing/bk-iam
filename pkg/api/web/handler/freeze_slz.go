@@ -11,6 +11,6 @@
 package handler
 
 type freezedSubjectSerializer struct {
-	Type string `json:"type"`
-	ID   string `json:"id"`
+	Type string `json:"type" binding:"required,oneof=user"`
+	ID   string `json:"id" binding:"required"`
 }

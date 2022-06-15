@@ -65,7 +65,7 @@ func (m *subjectBlackListManager) BulkCreate(subjectBlackList []SubjectBlackList
 	if len(subjectBlackList) == 0 {
 		return nil
 	}
-	sql := `INSERT INTO subject_role (
+	sql := `INSERT INTO subject_black_list (
 		subject_pk
 	) VALUES (
 		:subject_pk)`

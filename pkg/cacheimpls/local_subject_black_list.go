@@ -24,6 +24,7 @@ import (
 
 /*
  * > 冻结解冻功能, 全局的黑名单
+ * 注意: cache不提供主动delete功能, 只能 TTL 失效重查; 防止变更导致缓存一直失效带来的系统抖动
  */
 
 var (
@@ -68,7 +69,7 @@ func IsSubjectInBlackList(subjectType, subjectID string) bool {
 	}
 
 	var ok bool
-	subjectBlackList, ok := value.(set.Int64Set)
+	subjectBlackList, ok := value.(*set.Int64Set)
 	if !ok {
 		// NOTE: 获取失败, 打日志, 黑名单失效, 但是不影响正常逻辑
 		err = errors.New("not []set.Int64Set in cache")
@@ -77,9 +78,4 @@ func IsSubjectInBlackList(subjectType, subjectID string) bool {
 		return false
 	}
 	return subjectBlackList.Has(subjectPK)
-}
-
-// DeleteSubjectBlackListCache ...
-func DeleteSubjectBlackListCache() error {
-	return LocalSubjectBlackListCache.Delete(globalSubjectBlackListKey)
 }
