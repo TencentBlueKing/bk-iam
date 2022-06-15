@@ -35,5 +35,5 @@ const (
 	AuthTypeNone int64 = 0
 	AuthTypeABAC int64 = 1
 	AuthTypeRBAC int64 = 2
-	AuthTypeAll  int64 = 3
+	AuthTypeAll  int64 = 7 // 预留一位 4, ALL 为 7
 )

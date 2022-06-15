@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
@@ -107,7 +108,7 @@ func (r *groupAuthTypeRedisRetriever) batchGetGroupAuthType(
 
 	// the key can identify the hit or miss, here we only need system + subjectPK
 	groupAuthTypes = make([]types.GroupAuthType, 0, len(hitValues))
-	hitPKs := make(map[int64]bool, len(hitValues))
+	hitPKs := set.NewInt64Set()
 	for hkf, value := range hitValues {
 		groupPK, err := r.parseKey(hkf.Key())
 		if err != nil {
@@ -125,12 +126,12 @@ func (r *groupAuthTypeRedisRetriever) batchGetGroupAuthType(
 			GroupPK:  groupPK,
 			AuthType: authType,
 		})
-		hitPKs[groupPK] = true
+		hitPKs.Add(groupPK)
 	}
 
 	// the missing groupPKs
 	for _, groupPK := range groupPKs {
-		if _, ok := hitPKs[groupPK]; !ok {
+		if !hitPKs.Has(groupPK) {
 			missPKs = append(missPKs, groupPK)
 		}
 	}
