@@ -12,6 +12,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -57,6 +58,15 @@ func Auth(c *gin.Context) {
 		return
 	}
 
+	// check blacklist
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -71,7 +81,7 @@ func Auth(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	copyRequestFromAuthBody(req, &body)
 
 	// 鉴权
@@ -133,6 +143,15 @@ func BatchAuthByActions(c *gin.Context) {
 	}
 
 	result := make(authByActionsResponse, len(body.Actions))
+
+	// check blacklist
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
 
 	// super admin and system admin
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
@@ -224,6 +243,14 @@ func BatchAuthByResources(c *gin.Context) {
 
 	data := make(authByResourcesResponse, len(body.ResourcesList))
 
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	// super admin and system admin
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
@@ -241,7 +268,7 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 
 	// 隔离结构体
-	var req = request.NewRequest()
+	req := request.NewRequest()
 	copyRequestFromAuthByResourcesBody(req, &body)
 
 	// 鉴权
