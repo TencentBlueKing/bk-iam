@@ -8,17 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp_test
+package types
 
-import (
-	. "github.com/onsi/ginkgo/v2"
-)
+type ResourceChangedContent struct {
+	ResourceTypePK int64
+	ResourceID     string
 
-var _ = Describe("PolicyListSaas", func() {
-	Describe("convertSaaSPoliciesType", func() {
-	})
-	Describe("ListSaaSBySubjectSystemTemplate", func() {
-	})
-	Describe("GetByActionTemplate", func() {
-	})
-})
+	ActionRelatedResourceTypePK int64
+	CreatedActionPKs            []int64
+	DeletedActionPKs            []int64
+}

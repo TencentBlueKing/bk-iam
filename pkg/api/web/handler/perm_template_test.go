@@ -16,9 +16,9 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
+	"iam/pkg/abac/pap"
 
-	"iam/pkg/abac/prp"
-	"iam/pkg/abac/prp/mock"
+	"iam/pkg/abac/pap/mock"
 	"iam/pkg/util"
 )
 
@@ -65,14 +65,14 @@ func TestCreateAndDeleteTemplatePolicies(t *testing.T) {
 
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
-		mockManager := mock.NewMockPolicyManager(ctl)
-		mockManager.EXPECT().CreateAndDeleteTemplatePolicies(
+		mockPolicyCtl := mock.NewMockPolicyController(ctl)
+		mockPolicyCtl.EXPECT().CreateAndDeleteTemplatePolicies(
 			"test", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		).Return(
 			errors.New("create policies fail"),
 		).AnyTimes()
-		patches = gomonkey.ApplyFunc(prp.NewPolicyManager, func() prp.PolicyManager {
-			return mockManager
+		patches = gomonkey.ApplyFunc(pap.NewPolicyController, func() pap.PolicyController {
+			return mockPolicyCtl
 		})
 		defer restMock()
 
@@ -88,14 +88,14 @@ func TestCreateAndDeleteTemplatePolicies(t *testing.T) {
 
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
-		mockManager := mock.NewMockPolicyManager(ctl)
-		mockManager.EXPECT().CreateAndDeleteTemplatePolicies(
+		mockPolicyCtl := mock.NewMockPolicyController(ctl)
+		mockPolicyCtl.EXPECT().CreateAndDeleteTemplatePolicies(
 			"test", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		).Return(
 			nil,
 		).AnyTimes()
-		patches = gomonkey.ApplyFunc(prp.NewPolicyManager, func() prp.PolicyManager {
-			return mockManager
+		patches = gomonkey.ApplyFunc(pap.NewPolicyController, func() pap.PolicyController {
+			return mockPolicyCtl
 		})
 		defer restMock()
 
@@ -151,14 +151,14 @@ func TestUpdateTemplatePolicies(t *testing.T) {
 
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
-		mockManager := mock.NewMockPolicyManager(ctl)
-		mockManager.EXPECT().UpdateTemplatePolicies(
+		mockPolicyCtl := mock.NewMockPolicyController(ctl)
+		mockPolicyCtl.EXPECT().UpdateTemplatePolicies(
 			"test", gomock.Any(), gomock.Any(), gomock.Any(),
 		).Return(
 			errors.New("update policies fail"),
 		).AnyTimes()
-		patches = gomonkey.ApplyFunc(prp.NewPolicyManager, func() prp.PolicyManager {
-			return mockManager
+		patches = gomonkey.ApplyFunc(pap.NewPolicyController, func() pap.PolicyController {
+			return mockPolicyCtl
 		})
 		defer restMock()
 
@@ -181,14 +181,14 @@ func TestUpdateTemplatePolicies(t *testing.T) {
 
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
-		mockManager := mock.NewMockPolicyManager(ctl)
-		mockManager.EXPECT().UpdateTemplatePolicies(
+		mockPolicyCtl := mock.NewMockPolicyController(ctl)
+		mockPolicyCtl.EXPECT().UpdateTemplatePolicies(
 			"test", gomock.Any(), gomock.Any(), gomock.Any(),
 		).Return(
 			nil,
 		).AnyTimes()
-		patches = gomonkey.ApplyFunc(prp.NewPolicyManager, func() prp.PolicyManager {
-			return mockManager
+		patches = gomonkey.ApplyFunc(pap.NewPolicyController, func() pap.PolicyController {
+			return mockPolicyCtl
 		})
 		defer restMock()
 
