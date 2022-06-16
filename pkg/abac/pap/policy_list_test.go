@@ -8,19 +8,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp_test
+package pap
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 )
 
-var _ = Describe("PolicyList", func() {
-	Describe("convertToAuthPolicy", func() {
+var _ = Describe("PolicyListSaas", func() {
+	Describe("convertSaaSPoliciesType", func() {
 	})
-	Describe("ListBySubjectAction", func() {
+	Describe("ListSaaSBySubjectSystemTemplate", func() {
 	})
-	Describe("getPoliciesFromCache", func() {
-	})
-	Describe("GetExpressionsFromCache", func() {
+	Describe("GetByActionTemplate", func() {
 	})
 })

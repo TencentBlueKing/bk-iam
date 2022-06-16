@@ -8,15 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package pap
 
 import (
 	"errors"
-	"reflect"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
-	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	svctypes "iam/pkg/service/types"
 
@@ -46,11 +45,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.DeleteByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteByIDs("test", "user", "test", []int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -72,12 +71,12 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.DeleteByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteByIDs("test", "user", "test", []int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.DeleteByPKs")
 		})
@@ -99,12 +98,12 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.DeleteByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteByIDs("test", "user", "test", []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -128,11 +127,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -148,12 +147,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ThinAction{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListThinActionBySystem")
 		})
@@ -172,12 +171,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListActionResourceTypeIDByActionSystem")
 		})
@@ -196,12 +195,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{{
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{{
 				Action: types.Action{
 					ID: "test",
 				},
@@ -224,12 +223,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{{
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{{
 				Action: types.Action{
 					ID: "test",
 				},
@@ -263,13 +262,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.AlterPolicies")
 		})
@@ -299,13 +298,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
+			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -329,11 +328,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{})
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -344,11 +343,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(1), nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{})
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -362,12 +361,12 @@ var _ = Describe("PolicyCurd", func() {
 				nil, errors.New("list policy fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
 				PK:        1,
 				ExpiredAt: 1,
 			}})
@@ -385,12 +384,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.QueryPolicy{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
 				PK:        1,
 				ExpiredAt: 1,
 			}})
@@ -415,13 +414,13 @@ var _ = Describe("PolicyCurd", func() {
 				nil, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
 				PK:        1,
 				ExpiredAt: 1,
 			}})
@@ -454,13 +453,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
 				PK:        1,
 				ExpiredAt: 1,
 			}})
@@ -487,7 +486,7 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ThinAction{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 				actionService:  mockActionService,
@@ -498,7 +497,7 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			err := manager.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
+			err := policyCtl.UpdateSubjectPoliciesExpiredAt("user", "test", []types.PolicyPKExpiredAt{{
 				PK:        1,
 				ExpiredAt: 1,
 			}})
@@ -525,11 +524,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies(
+			err := policyCtl.CreateAndDeleteTemplatePolicies(
 				"test",
 				"user",
 				"test",
@@ -552,12 +551,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ThinAction{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies(
+			err := policyCtl.CreateAndDeleteTemplatePolicies(
 				"test",
 				"user",
 				"test",
@@ -583,12 +582,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies(
+			err := policyCtl.CreateAndDeleteTemplatePolicies(
 				"test",
 				"user",
 				"test",
@@ -614,12 +613,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{{
+			err := policyCtl.CreateAndDeleteTemplatePolicies("test", "user", "test", int64(1), []types.Policy{{
 				Action: types.Action{
 					ID: "test",
 				},
@@ -651,13 +650,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies(
+			err := policyCtl.CreateAndDeleteTemplatePolicies(
 				"test",
 				"user",
 				"test",
@@ -692,13 +691,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.CreateAndDeleteTemplatePolicies(
+			err := policyCtl.CreateAndDeleteTemplatePolicies(
 				"test",
 				"user",
 				"test",
@@ -729,11 +728,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -749,12 +748,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ThinAction{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListThinActionBySystem")
 		})
@@ -773,12 +772,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListActionResourceTypeIDByActionSystem")
 		})
@@ -797,12 +796,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{{
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{{
 				Action: types.Action{
 					ID: "test",
 				},
@@ -834,13 +833,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.UpdateTemplatePolicies")
 		})
@@ -868,13 +867,13 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
+			err := policyCtl.UpdateTemplatePolicies("test", "user", "test", []types.Policy{})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -898,11 +897,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.DeleteTemplatePolicies("test", "user", "test", int64(1))
+			err := policyCtl.DeleteTemplatePolicies("test", "user", "test", int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -924,12 +923,12 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.DeleteTemplatePolicies("test", "user", "test", int64(1))
+			err := policyCtl.DeleteTemplatePolicies("test", "user", "test", int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.DeleteTemplatePolicies")
 		})
@@ -951,12 +950,12 @@ var _ = Describe("PolicyCurd", func() {
 					return nil
 				})
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
 			}
 
-			err := manager.DeleteTemplatePolicies("test", "user", "test", int64(1))
+			err := policyCtl.DeleteTemplatePolicies("test", "user", "test", int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -980,11 +979,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			err := manager.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -1001,24 +1000,17 @@ var _ = Describe("PolicyCurd", func() {
 				errors.New("delete fail"),
 			).AnyTimes()
 
-			mockTemporaryPolicyRedisCache := &temporaryPolicyRedisCache{}
-			patches = gomonkey.ApplyMethod(
-				reflect.TypeOf(mockTemporaryPolicyRedisCache), "DeleteBySubject",
-				func(c *temporaryPolicyRedisCache, subjectPK int64) error {
+			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+				func(systemID string, subjectPK int64) error {
 					return nil
 				})
 
-			patches = gomonkey.ApplyFunc(newTemporaryPolicyRedisCache,
-				func(systemID string, svc service.TemporaryPolicyService) *temporaryPolicyRedisCache {
-					return mockTemporaryPolicyRedisCache
-				})
-
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService:         mockSubjectService,
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			err := manager.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "temporaryPolicyService.DeleteByPKs")
 		})
@@ -1035,24 +1027,17 @@ var _ = Describe("PolicyCurd", func() {
 				nil,
 			).AnyTimes()
 
-			mockTemporaryPolicyRedisCache := &temporaryPolicyRedisCache{}
-			patches = gomonkey.ApplyMethod(
-				reflect.TypeOf(mockTemporaryPolicyRedisCache), "DeleteBySubject",
-				func(c *temporaryPolicyRedisCache, subjectPK int64) error {
+			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+				func(systemID string, subjectPK int64) error {
 					return nil
 				})
 
-			patches = gomonkey.ApplyFunc(newTemporaryPolicyRedisCache,
-				func(systemID string, svc service.TemporaryPolicyService) *temporaryPolicyRedisCache {
-					return mockTemporaryPolicyRedisCache
-				})
-
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService:         mockSubjectService,
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			err := manager.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
+			err := policyCtl.DeleteTemporaryByIDs("test", "user", "test", []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
@@ -1076,11 +1061,11 @@ var _ = Describe("PolicyCurd", func() {
 				int64(0), errors.New("get pk fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 			}
 
-			_, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
+			_, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectService.GetPK")
 		})
@@ -1096,12 +1081,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ThinAction{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			_, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
+			_, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListThinActionBySystem")
 		})
@@ -1120,12 +1105,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, errors.New("list action fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			_, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
+			_, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "actionService.ListActionResourceTypeIDByActionSystem")
 		})
@@ -1144,12 +1129,12 @@ var _ = Describe("PolicyCurd", func() {
 				[]svctypes.ActionResourceTypeID{}, nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 			}
 
-			_, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{{
+			_, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{{
 				Action: types.Action{
 					ID: "test",
 				},
@@ -1178,25 +1163,18 @@ var _ = Describe("PolicyCurd", func() {
 				[]int64{}, errors.New("create fail"),
 			).AnyTimes()
 
-			mockTemporaryPolicyRedisCache := &temporaryPolicyRedisCache{}
-			patches = gomonkey.ApplyMethod(
-				reflect.TypeOf(mockTemporaryPolicyRedisCache), "DeleteBySubject",
-				func(c *temporaryPolicyRedisCache, subjectPK int64) error {
+			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+				func(systemID string, subjectPK int64) error {
 					return nil
 				})
 
-			patches = gomonkey.ApplyFunc(newTemporaryPolicyRedisCache,
-				func(systemID string, svc service.TemporaryPolicyService) *temporaryPolicyRedisCache {
-					return mockTemporaryPolicyRedisCache
-				})
-
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService:         mockSubjectService,
 				actionService:          mockActionService,
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			_, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
+			_, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "temporaryPolicyService.Create")
 		})
@@ -1221,25 +1199,18 @@ var _ = Describe("PolicyCurd", func() {
 				[]int64{1}, nil,
 			).AnyTimes()
 
-			mockTemporaryPolicyRedisCache := &temporaryPolicyRedisCache{}
-			patches = gomonkey.ApplyMethod(
-				reflect.TypeOf(mockTemporaryPolicyRedisCache), "DeleteBySubject",
-				func(c *temporaryPolicyRedisCache, subjectPK int64) error {
+			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+				func(systemID string, subjectPK int64) error {
 					return nil
 				})
 
-			patches = gomonkey.ApplyFunc(newTemporaryPolicyRedisCache,
-				func(systemID string, svc service.TemporaryPolicyService) *temporaryPolicyRedisCache {
-					return mockTemporaryPolicyRedisCache
-				})
-
-			manager := &policyManager{
+			policyCtl := &policyController{
 				subjectService:         mockSubjectService,
 				actionService:          mockActionService,
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			pks, err := manager.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
+			pks, err := policyCtl.CreateTemporaryPolicies("test", "user", "test", []types.Policy{})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1}, pks)
 		})
@@ -1266,11 +1237,11 @@ var _ = Describe("PolicyCurd", func() {
 				errors.New("delete fail"),
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			err := manager.DeleteTemporaryBeforeExpiredAt(int64(1))
+			err := policyCtl.DeleteTemporaryBeforeExpiredAt(int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "temporaryPolicyService.DeleteBeforeExpireAt")
 		})
@@ -1283,11 +1254,11 @@ var _ = Describe("PolicyCurd", func() {
 				nil,
 			).AnyTimes()
 
-			manager := &policyManager{
+			policyCtl := &policyController{
 				temporaryPolicyService: mockTemporaryPolicyService,
 			}
 
-			err := manager.DeleteTemporaryBeforeExpiredAt(int64(1))
+			err := policyCtl.DeleteTemporaryBeforeExpiredAt(int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
 	})
