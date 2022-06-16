@@ -122,6 +122,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return nil, nil, errors.New("getEffectAuthTypeGroupPKs fail")
 			})
@@ -148,6 +149,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -183,6 +185,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -222,6 +225,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -261,6 +265,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -302,6 +307,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -341,6 +347,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -707,6 +714,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})
@@ -737,6 +745,7 @@ var _ = Describe("Entrance", func() {
 			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
 				system string,
 				subject types.Subject,
+				action types.Action,
 			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 				return []int64{1, 2}, nil, nil
 			})

@@ -25,7 +25,6 @@ import (
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
-	svcTypes "iam/pkg/service/types"
 )
 
 /*
@@ -120,7 +119,7 @@ func Eval(
 
 	// 3. 查询关联的group pks
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
-	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject)
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
 		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
 		return false, err
@@ -128,17 +127,8 @@ func Eval(
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
 
-	// 4. 判断action的类型, 走不同的分支
-	debug.AddStep(entry, "Get Action AuthType")
-	actionAuthType, err := r.Action.Attribute.GetAuthType()
-	if err != nil {
-		err = errorWrapf(err, "GetAuthType actionID=`%d` fail", r.Action.ID)
-		return false, err
-	}
-	debug.WithValue(entry, "actionAuthType", actionAuthType)
-
-	// 5. actionAuthType为rbac优先走rbac鉴权逻辑
-	if actionAuthType == svcTypes.AuthTypeRBAC && len(rbacGroupPKs) > 0 {
+	// 4. actionAuthType为rbac优先走rbac鉴权逻辑
+	if len(rbacGroupPKs) > 0 {
 		debug.AddStep(entry, "RBAC Eval")
 		isPass, err = rbacEval(r.System, r.Action, r.Resources, rbacGroupPKs, withoutCache, entry)
 		if err != nil {
@@ -152,7 +142,7 @@ func Eval(
 		}
 	}
 
-	// 6. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
+	// 5. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
 	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withoutCache, entry)
 	if err != nil {
@@ -352,13 +342,15 @@ func QueryAuthPolicies(
 
 	// 3. 查询关联的group pks
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
-	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject)
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
 		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
 		return
 	}
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
+	// TODO 支持RBAC group pks的policy查询
 
 	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")

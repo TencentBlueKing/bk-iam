@@ -25,6 +25,7 @@ import (
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/logging/debug"
+	svcTypes "iam/pkg/service/types"
 )
 
 // PDPHelper ...
@@ -130,13 +131,15 @@ func queryAndPartialEvalConditions(
 
 	// 3. 查询关联的group pks
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
-	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject)
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
 		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
 		return nil, err
 	}
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
+	// TODO 支持rbac group pks的policy查询
 
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
@@ -225,16 +228,27 @@ func fillActionDetail(r *request.Request) error {
 func getEffectAuthTypeGroupPKs(
 	systemID string,
 	subject types.Subject,
+	action types.Action,
 ) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
 	groupPKs, err := prp.GetEffectGroupPKs(systemID, subject)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsToAuthTypeGroupPKs(systemID, groupPKs)
+	actionAuthType, err := action.Attribute.GetAuthType()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return abacGroupPKs, rbacGroupPKs, nil
+	// NOTE: 当前只有action的auth type是RBAC时才需要分离出 abac/rbac group pks
+	if actionAuthType == svcTypes.AuthTypeRBAC {
+		abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsToAuthTypeGroupPKs(systemID, groupPKs)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return abacGroupPKs, rbacGroupPKs, nil
+	}
+
+	return groupPKs, nil, nil
 }

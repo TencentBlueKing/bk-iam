@@ -142,16 +142,11 @@ func (m *policyManager) listBySubjectAction(
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	subjectPK, err := subject.Attribute.GetPK()
+	effectSubjectPKs, err := m.getEffectSubjectPKs(subject, effectGroupPKs)
 	if err != nil {
-		err = errorWrapf(err, "subject.Attribute.GetPK subject=`%+v` fail", subject)
-		return nil, err
+		err = errorWrapf(err, "Get Effect Subject PKs")
+		return
 	}
-
-	effectSubjectPKs := make([]int64, 0, len(effectGroupPKs)+1)
-	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
-	effectSubjectPKs = append(effectSubjectPKs, effectGroupPKs...)
-	debug.WithValue(entry, "effectSubjectPKs", effectSubjectPKs)
 
 	// 2. get action pk
 	debug.AddStep(entry, "Get Action PK")
@@ -259,6 +254,18 @@ func (m *policyManager) listBySubjectAction(
 	// debug.WithValue(entry, "return policies", policies)
 	reportTooLargeReturnedPolicies(len(policies), system, action.ID, subject.Type, subject.ID)
 	return policies, nil
+}
+
+func (*policyManager) getEffectSubjectPKs(subject types.Subject, effectGroupPKs []int64) ([]int64, error) {
+	subjectPK, err := subject.Attribute.GetPK()
+	if err != nil {
+		return nil, err
+	}
+
+	effectSubjectPKs := make([]int64, 0, len(effectGroupPKs)+1)
+	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
+	effectSubjectPKs = append(effectSubjectPKs, effectGroupPKs...)
+	return effectSubjectPKs, nil
 }
 
 // listTemporaryBySubjectAction 查询临时权限

@@ -253,6 +253,13 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 	_, isForce := c.GetQuery("force")
 
+	/*
+		TODO 2种变更方式
+		1. 走RBAC逻辑
+			- 遍历resource走rbac鉴权, 如果有资源pass, 则记录结果, no pass则回落到abac鉴权
+		2. 走query的逻辑, 分别查询abac与rbac的策略并合并, 遍历走abac鉴权
+	*/
+
 	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
