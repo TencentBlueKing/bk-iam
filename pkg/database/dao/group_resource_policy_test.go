@@ -11,7 +11,10 @@
 package dao
 
 import (
+	"fmt"
+
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
@@ -24,27 +27,44 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock    sqlmock.Sqlmock
 		db      *sqlx.DB
 		manager GroupResourcePolicyManager
+		policy  GroupResourcePolicy
 	)
 	BeforeEach(func() {
 		db, mock = database.NewMockSqlxDB()
 		manager = &groupResourcePolicyManager{DB: db}
+		policy = GroupResourcePolicy{
+			GroupPK:                     int64(1),
+			TemplateID:                  int64(2),
+			SystemID:                    "test",
+			ActionPKs:                   "[1,2,3]",
+			ActionRelatedResourceTypePK: int64(3),
+			ResourceTypePK:              int64(4),
+			ResourceID:                  "resource_id",
+		}
+		policy.Signature = stringx.MD5Hash(
+			fmt.Sprintf(
+				"%d:%d:%s:%d:%d:%s",
+				policy.GroupPK, policy.TemplateID, policy.SystemID,
+				policy.ActionRelatedResourceTypePK, policy.ResourceTypePK, policy.ResourceID,
+			),
+		)
 	})
 
-	It("GetPKAndActionPKs", func() {
-		mockData := []interface{}{GroupResourcePolicyPKActionPKs{PK: int64(1), ActionPKs: "[1,2,3]"}}
-		mockRows := database.NewMockRows(mock, mockData...)
+	It("ListBySignatures", func() {
+		policy.PK = int64(1)
+		mockRows := database.NewMockRows(mock, []interface{}{policy}...)
 		mock.ExpectQuery(
-			"^SELECT pk, action_pks FROM group_resource_policy WHERE group_pk = (.*) AND template_id = (.*) AND "+
-				"system_id = (.*) AND action_related_resource_type_pk = (.*) AND resource_type_pk = (.*) AND resource_id = (.*) LIMIT 1$",
-		).WithArgs(
-			int64(1), int64(2), "test", int64(3), int64(4), "resource_id",
-		).WillReturnRows(mockRows)
+			"^SELECT pk, signature, group_pk, template_id, system_id," +
+				" action_pks, action_related_resource_type_pk, resource_type_pk, resource_id" +
+				" FROM group_resource_policy WHERE signature IN (.*)$",
+		).WithArgs(policy.Signature).WillReturnRows(mockRows)
 
-		pkActionPKs, err := manager.GetPKAndActionPKs(int64(1), int64(2), "test", int64(3), int64(4), "resource_id")
+		policies, err := manager.ListBySignatures([]string{policy.Signature})
 
 		assert.NoError(GinkgoT(), err)
-		assert.Equal(GinkgoT(), int64(1), pkActionPKs.PK)
-		assert.Equal(GinkgoT(), "[1,2,3]", pkActionPKs.ActionPKs)
+		assert.Len(GinkgoT(), policies, 1)
+		assert.Equal(GinkgoT(), int64(1), policies[0].PK)
+		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
 	})
 
 	It("BulkCreateWithTx", func() {
@@ -52,46 +72,34 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock.ExpectExec(
 			`INSERT INTO group_resource_policy`,
 		).WithArgs(
-			int64(1), int64(2), "test", "[1,2,3]", int64(3), int64(4), "resource_id",
+			policy.Signature, policy.GroupPK, policy.TemplateID, policy.SystemID,
+			policy.ActionPKs, policy.ActionRelatedResourceTypePK, policy.ResourceTypePK, policy.ResourceID,
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx, err := db.Beginx()
 		assert.NoError(GinkgoT(), err)
 
-		err = manager.BulkCreateWithTx(tx, []GroupResourcePolicy{
-			{
-				GroupPK:                     int64(1),
-				TemplateID:                  int64(2),
-				SystemID:                    "test",
-				ActionPKs:                   "[1,2,3]",
-				ActionRelatedResourceTypePK: int64(3),
-				ResourceTypePK:              int64(4),
-				ResourceID:                  "resource_id",
-			},
-		})
+		err = manager.BulkCreateWithTx(tx, []GroupResourcePolicy{policy})
 		tx.Commit()
 
 		assert.NoError(GinkgoT(), err)
 	})
 
 	It("BulkUpdateActionPKsWithTx", func() {
+		policy.PK = int64(1)
+
 		mock.ExpectBegin()
 		mock.ExpectPrepare(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`)
 		mock.ExpectExec(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`).
-			WithArgs("[1,2,3]", int64(1)).
+			WithArgs(policy.ActionPKs, policy.PK).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
 
 		tx, err := db.Beginx()
 		assert.NoError(GinkgoT(), err)
 
-		err = manager.BulkUpdateActionPKsWithTx(tx, []GroupResourcePolicyPKActionPKs{
-			{
-				PK:        int64(1),
-				ActionPKs: "[1,2,3]",
-			},
-		})
+		err = manager.BulkUpdateActionPKsWithTx(tx, []GroupResourcePolicy{policy})
 		tx.Commit()
 
 		assert.NoError(GinkgoT(), err)

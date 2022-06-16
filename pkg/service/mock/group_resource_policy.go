@@ -5,7 +5,11 @@
 package mock
 
 import (
+	types "iam/pkg/service/types"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockGroupResourcePolicyService is a mock of GroupResourcePolicyService interface.
@@ -29,4 +33,18 @@ func NewMockGroupResourcePolicyService(ctrl *gomock.Controller) *MockGroupResour
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGroupResourcePolicyService) EXPECT() *MockGroupResourcePolicyServiceMockRecorder {
 	return m.recorder
+}
+
+// Alter mocks base method.
+func (m *MockGroupResourcePolicyService) Alter(tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Alter", tx, groupPK, templateID, systemID, resourceChangedContents)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Alter indicates an expected call of Alter.
+func (mr *MockGroupResourcePolicyServiceMockRecorder) Alter(tx, groupPK, templateID, systemID, resourceChangedContents interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).Alter), tx, groupPK, templateID, systemID, resourceChangedContents)
 }

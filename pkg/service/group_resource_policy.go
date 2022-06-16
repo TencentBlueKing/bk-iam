@@ -11,12 +11,11 @@
 package service
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 
@@ -44,52 +43,39 @@ func NewGroupResourcePolicyService() GroupResourcePolicyService {
 	}
 }
 
-// preprocessChangedContent : 预处理分析出对于单个资源权限的变更，是创建、更新还是删除 DB记录
-func (s *groupResourcePolicyService) preprocessChangedContent(
+// calculateSignature : 用于计算出group resource policy的唯一索引Signature
+func (s *groupResourcePolicyService) calculateSignature(
 	groupPK, templateID int64,
 	systemID string,
 	rcc types.ResourceChangedContent,
-) (
-	createdPolicy *dao.GroupResourcePolicy,
-	updatedActionPKs *dao.GroupResourcePolicyPKActionPKs,
-	deletedPK int64,
-	err error,
-) {
-	// 查询是否有记录
-	pkActionPKs, err := s.manager.GetPKAndActionPKs(
+) string {
+	// Note: 由于字符串类型的system_id并不会出现冒号分隔符，所以
+	//  前缀groupPK, templateID, systemID, rcc.ActionRelatedResourceTypePK, rcc.ResourceTypePK可保证唯一性
+	//  即使resource_id包含了冒号分隔符，由于前缀已保证了唯一性，所以最终整个字符串也是唯一的
+	signature := fmt.Sprintf(
+		"%d:%d:%s:%d:%d:%s",
 		groupPK, templateID, systemID, rcc.ActionRelatedResourceTypePK, rcc.ResourceTypePK, rcc.ResourceID,
 	)
+	return stringx.MD5Hash(signature)
+}
 
-	// 无则创建
-	if errors.Is(err, sql.ErrNoRows) {
-		// 不存在记录，其deleted action必然为空
-		actionPKs, err := jsoniter.MarshalToString(rcc.CreatedActionPKs)
+// calculateChangedActionPKs : 使用旧的ActionPKs和要变更的内容，计算出最终变更的ActionPKs
+func (s *groupResourcePolicyService) calculateChangedActionPKs(
+	oldActionPKs string, rcc types.ResourceChangedContent,
+) (string, error) {
+	// 将ActionPKs从Json字符串转为列表格式
+	var oldActionPKList []int64
+	if len(oldActionPKs) > 0 {
+		err := jsoniter.UnmarshalFromString(oldActionPKs, &oldActionPKList)
 		if err != nil {
-			return nil, nil, 0, fmt.Errorf(
-				"jsoniter.MarshalToString for createdRecord fail actionPKs=`%v`, err: %w", rcc.CreatedActionPKs, err,
+			return "", fmt.Errorf(
+				"jsoniter.UnmarshalFromString fail actionPKs=`%s`, err: %w", oldActionPKs, err,
 			)
 		}
-		createdPolicy = &dao.GroupResourcePolicy{
-			GroupPK:                     groupPK,
-			TemplateID:                  templateID,
-			SystemID:                    systemID,
-			ActionPKs:                   actionPKs,
-			ActionRelatedResourceTypePK: rcc.ActionRelatedResourceTypePK,
-			ResourceTypePK:              rcc.ResourceTypePK,
-			ResourceID:                  rcc.ResourceID,
-		}
-		return createdPolicy, nil, 0, nil
 	}
 
-	// 对ActionPKs进行增删Action的变更
-	var oldActionPKs []int64
-	err = jsoniter.UnmarshalFromString(pkActionPKs.ActionPKs, &oldActionPKs)
-	if err != nil {
-		return nil, nil, 0, fmt.Errorf(
-			"jsoniter.UnmarshalFromString for updateRecord fail actionPKs=`%s`, err: %w", pkActionPKs.ActionPKs, err,
-		)
-	}
-	actionPKSet := set.NewInt64SetWithValues(oldActionPKs)
+	// 使用set对新增和删除的Action进行变更
+	actionPKSet := set.NewInt64SetWithValues(oldActionPKList)
 	// 添加需要新增的操作
 	actionPKSet.Append(rcc.CreatedActionPKs...)
 	// 移除将被删除的操作
@@ -100,25 +86,17 @@ func (s *groupResourcePolicyService) preprocessChangedContent(
 		}
 	}
 
-	// 如果被删空了，则需要删除记录
+	// 如果被删空了，则直接返回，不需要再进行json dumps
 	if actionPKSet.Size() == 0 {
-		return nil, nil, pkActionPKs.PK, nil
+		return "", nil
 	}
 
 	actionPKs, err := jsoniter.MarshalToString(actionPKSet.ToSlice())
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf(
-			"jsoniter.MarshalToString for updatedRecord fail actionPKs=`%v`, err: %w",
-			actionPKs,
-			err,
-		)
+		return "", fmt.Errorf("jsoniter.MarshalToString fail actionPKs=`%v`, err: %w", actionPKs, err)
 	}
 
-	updatedActionPKs = &dao.GroupResourcePolicyPKActionPKs{
-		PK:        pkActionPKs.PK,
-		ActionPKs: actionPKs,
-	}
-	return nil, updatedActionPKs, 0, nil
+	return actionPKs, nil
 }
 
 func (s *groupResourcePolicyService) Alter(
@@ -127,60 +105,96 @@ func (s *groupResourcePolicyService) Alter(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "Alter")
 
 	// Note: 底层这里没有保证并发同时修改的问题，而是顶层调用者SaaS通过分布式锁保证的
-	// 1. 遍历每个资源其修改的Action，查询记录并变更ActionPKs
-	// TODO: 看看是否有批量查询的优化空间
-	createdGroupResourcePolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
-	updatedActionPKss := make([]dao.GroupResourcePolicyPKActionPKs, 0, len(resourceChangedContents))
-	deletedPKs := make([]int64, 0, len(resourceChangedContents))
+	// 1. 计算每条策略的signature=md5(group_pk:template_id:system_id:action_related_resource_type_pk:resource_type_pk:resource_id)
+	signatures := make([]string, 0, len(resourceChangedContents))
 	for _, rcc := range resourceChangedContents {
-		// 分析出该用户组的资源权限需要如何变更
-		createdPolicy, updatedActionPKs, deletedPK, err := s.preprocessChangedContent(
-			groupPK,
-			templateID,
-			systemID,
-			rcc,
+		signature := s.calculateSignature(groupPK, templateID, systemID, rcc)
+		signatures = append(signatures, signature)
+	}
+
+	// 2. 查询每条策略
+	policies, err := s.manager.ListBySignatures(signatures)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"manager.ListBySignatures fail, groupPK=`%d`, templateID=`%d`, systemID=`%s`, resourceChangedContents=`%v`",
+			groupPK, templateID, systemID, resourceChangedContents,
 		)
+	}
+	signatureToPolicyMap := make(map[string]dao.GroupResourcePolicy, len(policies))
+	for _, p := range policies {
+		signatureToPolicyMap[p.Signature] = p
+	}
+
+	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
+	createdPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
+	updatedPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
+	deletedPolicyPKs := make([]int64, 0, len(resourceChangedContents))
+	for _, rcc := range resourceChangedContents {
+		signature := s.calculateSignature(groupPK, templateID, systemID, rcc)
+		policy, found := signatureToPolicyMap[signature]
+
+		// 根据变更内容，计算出变更后的ActionPKs Json字符串
+		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc)
 		if err != nil {
 			return errorWrapf(
 				err,
-				"preprocessChangedContent fail groupPK=`%d`, templateID=`%d`, systemID=`%s`, resourceChangedContent=`%v`",
+				"calculateChangedActionPKs fail, signature=`%s`, groupPK=`%d`, templateID=`%d`,"+
+					" systemID=`%s`, resourceChangedContent=`%v`",
+				signature,
 				groupPK,
 				templateID,
 				systemID,
 				rcc,
 			)
 		}
-		// 不进行单独变更，集中批量变更
-		if createdPolicy != nil {
-			createdGroupResourcePolicies = append(createdGroupResourcePolicies, *createdPolicy)
+
+		// 3.1 找不到，则需要新增记录
+		if !found {
+			createdPolicies = append(createdPolicies, dao.GroupResourcePolicy{
+				Signature:                   signature,
+				GroupPK:                     groupPK,
+				TemplateID:                  templateID,
+				SystemID:                    systemID,
+				ActionPKs:                   actionPKs,
+				ActionRelatedResourceTypePK: rcc.ActionRelatedResourceTypePK,
+				ResourceTypePK:              rcc.ResourceTypePK,
+				ResourceID:                  rcc.ResourceID,
+			})
+			continue
 		}
-		if updatedActionPKs != nil {
-			updatedActionPKss = append(updatedActionPKss, *updatedActionPKs)
+
+		// 3.2 若变更后的ActionPKs为空，则删除整条策略
+		if actionPKs == "" {
+			deletedPolicyPKs = append(deletedPolicyPKs, policy.PK)
+			continue
 		}
-		if deletedPK != 0 {
-			deletedPKs = append(deletedPKs, deletedPK)
-		}
+
+		// 3.3 只更新ActionPKs
+		policy.ActionPKs = actionPKs
+		updatedPolicies = append(updatedPolicies, policy)
 	}
 
+	// 4. 变更
 	// 增
-	if len(createdGroupResourcePolicies) > 0 {
-		err := s.manager.BulkCreateWithTx(tx, createdGroupResourcePolicies)
+	if len(createdPolicies) > 0 {
+		err := s.manager.BulkCreateWithTx(tx, createdPolicies)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkCreateWithTx fail policies=`%v`", createdGroupResourcePolicies)
+			return errorWrapf(err, "manager.BulkCreateWithTx fail policies=`%v`", createdPolicies)
 		}
 	}
 	// 删
-	if len(deletedPKs) > 0 {
-		err := s.manager.BulkDeleteByPKsWithTx(tx, deletedPKs)
+	if len(deletedPolicyPKs) > 0 {
+		err := s.manager.BulkDeleteByPKsWithTx(tx, deletedPolicyPKs)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkDeleteByPKsWithTx fail pks=`%v`", deletedPKs)
+			return errorWrapf(err, "manager.BulkDeleteByPKsWithTx fail pks=`%v`", deletedPolicyPKs)
 		}
 	}
 	// 改
-	if len(updatedActionPKss) > 0 {
-		err := s.manager.BulkUpdateActionPKsWithTx(tx, updatedActionPKss)
+	if len(updatedPolicies) > 0 {
+		err := s.manager.BulkUpdateActionPKsWithTx(tx, updatedPolicies)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkUpdateActionPKsWithTx fail pkActionPKss=`%v`", updatedActionPKss)
+			return errorWrapf(err, "manager.BulkUpdateActionPKsWithTx fail policies=`%v`", updatedPolicies)
 		}
 	}
 

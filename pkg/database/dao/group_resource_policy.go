@@ -13,6 +13,9 @@ package dao
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
@@ -20,6 +23,11 @@ import (
 
 type GroupResourcePolicy struct {
 	PK int64 `db:"pk"`
+	// signature字段主要是替换唯一索引
+	// resource_id + resource_type_pk + system_id + action_related_resource_type_pk + group_pk + template_id
+	//  避免过多字段的索引，导致插入变更性能较差
+	//  signature = md5(group_pk:template_id:system_id:action_related_resource_type_pk:resource_type_pk:resource_id)
+	Signature string `db:"signature"`
 
 	GroupPK    int64  `db:"group_pk"`    // 用户组对应subject的自增列ID
 	TemplateID int64  `db:"template_id"` // 模板ID，自定义权限则为0
@@ -33,21 +41,10 @@ type GroupResourcePolicy struct {
 	ResourceID     string `db:"resource_id"`
 }
 
-// GroupResourcePolicyPKActionPKs keep the PrimaryKey and action_pks
-type GroupResourcePolicyPKActionPKs struct {
-	PK        int64  `db:"pk"`
-	ActionPKs string `db:"action_pks"` // json存储了action_pk列表
-}
-
 type GroupResourcePolicyManager interface {
-	GetPKAndActionPKs(
-		groupPK, templateID int64,
-		systemID string,
-		actionRelatedResourceTypePK, resourceTypePK int64,
-		resourceID string,
-	) (pkActionPKs GroupResourcePolicyPKActionPKs, err error)
-	BulkCreateWithTx(tx *sqlx.Tx, groupResourcePolicies []GroupResourcePolicy) error
-	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, pkActionPKss []GroupResourcePolicyPKActionPKs) error
+	ListBySignatures(signatures []string) (policies []GroupResourcePolicy, err error)
+	BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
+	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
 }
 
@@ -61,37 +58,38 @@ func NewGroupResourcePolicyManager() GroupResourcePolicyManager {
 	}
 }
 
-func (m *groupResourcePolicyManager) GetPKAndActionPKs(
-	groupPK, templateID int64,
-	systemID string,
-	actionRelatedResourceTypePK, resourceTypePK int64,
-	resourceID string,
-) (pkActionPKs GroupResourcePolicyPKActionPKs, err error) {
+func (m *groupResourcePolicyManager) ListBySignatures(signatures []string) (policies []GroupResourcePolicy, err error) {
+	if len(signatures) == 0 {
+		return
+	}
+
 	query := `SELECT 
-		pk, 
-		action_pks
+		pk,
+		signature,
+		group_pk,
+		template_id,
+		system_id,
+		action_pks,
+		action_related_resource_type_pk,
+		resource_type_pk,
+		resource_id
 		FROM group_resource_policy
-		WHERE group_pk = ?
-		AND template_id = ? 
-		AND system_id = ? 
-		AND action_related_resource_type_pk = ? 
-		AND resource_type_pk = ?
-		AND resource_id = ?
-		LIMIT 1`
-	err = database.SqlxGet(
-		m.DB, &pkActionPKs, query,
-		groupPK, templateID, systemID, actionRelatedResourceTypePK, resourceTypePK, resourceID,
-	)
+		WHERE signature IN (?)`
+	err = database.SqlxSelect(m.DB, &policies, query, signatures)
+	if errors.Is(err, sql.ErrNoRows) {
+		return policies, nil
+	}
 	return
 }
 
-func (m *groupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, groupResourcePolicies []GroupResourcePolicy) error {
+func (m *groupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error {
 	// 防御，避免空数据时SQL执行报错
-	if len(groupResourcePolicies) == 0 {
+	if len(policies) == 0 {
 		return nil
 	}
 
 	sql := `INSERT INTO group_resource_policy (
+		signature,
 		group_pk,
 		template_id,
 		system_id,
@@ -100,6 +98,7 @@ func (m *groupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, groupResource
 		resource_type_pk,
 		resource_id
 	) VALUES (
+		:signature,
 		:group_pk,
 		:template_id,
 		:system_id,
@@ -109,20 +108,17 @@ func (m *groupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, groupResource
 		:resource_id
 	)`
 
-	return database.SqlxBulkInsertWithTx(tx, sql, groupResourcePolicies)
+	return database.SqlxBulkInsertWithTx(tx, sql, policies)
 }
 
-func (m *groupResourcePolicyManager) BulkUpdateActionPKsWithTx(
-	tx *sqlx.Tx,
-	pkActionPKss []GroupResourcePolicyPKActionPKs,
-) error {
+func (m *groupResourcePolicyManager) BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error {
 	// 防御，避免空数据时SQL执行报错
-	if len(pkActionPKss) == 0 {
+	if len(policies) == 0 {
 		return nil
 	}
 
 	sql := `UPDATE group_resource_policy SET action_pks = :action_pks WHERE pk = :pk`
-	return database.SqlxBulkUpdateWithTx(tx, sql, pkActionPKss)
+	return database.SqlxBulkUpdateWithTx(tx, sql, policies)
 }
 
 func (m *groupResourcePolicyManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {

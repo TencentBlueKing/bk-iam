@@ -35,6 +35,20 @@ func (m *MockGroupResourcePolicyManager) EXPECT() *MockGroupResourcePolicyManage
 	return m.recorder
 }
 
+// BulkCreateWithTx mocks base method.
+func (m *MockGroupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []dao.GroupResourcePolicy) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, policies)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
+func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkCreateWithTx(tx, policies interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkCreateWithTx), tx, policies)
+}
+
 // BulkDeleteByPKsWithTx mocks base method.
 func (m *MockGroupResourcePolicyManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
 	m.ctrl.T.Helper()
@@ -49,45 +63,31 @@ func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkDeleteByPKsWithTx(tx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
 
-// BulkInsertWithTx mocks base method.
-func (m *MockGroupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, groupResourcePolicies []dao.GroupResourcePolicy) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, groupResourcePolicies)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkInsertWithTx indicates an expected call of BulkInsertWithTx.
-func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkInsertWithTx(tx, groupResourcePolicies interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkCreateWithTx), tx, groupResourcePolicies)
-}
-
 // BulkUpdateActionPKsWithTx mocks base method.
-func (m *MockGroupResourcePolicyManager) BulkUpdateActionPKsWithTx(tx *sqlx.Tx, pkActionPKss []dao.GroupResourcePolicyPKActionPKs) error {
+func (m *MockGroupResourcePolicyManager) BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []dao.GroupResourcePolicy) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateActionPKsWithTx", tx, pkActionPKss)
+	ret := m.ctrl.Call(m, "BulkUpdateActionPKsWithTx", tx, policies)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BulkUpdateActionPKsWithTx indicates an expected call of BulkUpdateActionPKsWithTx.
-func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkUpdateActionPKsWithTx(tx, pkActionPKss interface{}) *gomock.Call {
+func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkUpdateActionPKsWithTx(tx, policies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateActionPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkUpdateActionPKsWithTx), tx, pkActionPKss)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateActionPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkUpdateActionPKsWithTx), tx, policies)
 }
 
-// GetPKAndActionPKs mocks base method.
-func (m *MockGroupResourcePolicyManager) GetPKAndActionPKs(groupPK, templateID int64, systemID string, actionRelatedResourceTypePK, resourceTypePK int64, resourceID string) (dao.GroupResourcePolicyPKActionPKs, error) {
+// ListBySignatures mocks base method.
+func (m *MockGroupResourcePolicyManager) ListBySignatures(signatures []string) ([]dao.GroupResourcePolicy, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPKAndActionPKs", groupPK, templateID, systemID, actionRelatedResourceTypePK, resourceTypePK, resourceID)
-	ret0, _ := ret[0].(dao.GroupResourcePolicyPKActionPKs)
+	ret := m.ctrl.Call(m, "ListBySignatures", signatures)
+	ret0, _ := ret[0].([]dao.GroupResourcePolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPKAndActionPKs indicates an expected call of GetPKAndActionPKs.
-func (mr *MockGroupResourcePolicyManagerMockRecorder) GetPKAndActionPKs(groupPK, templateID, systemID, actionRelatedResourceTypePK, resourceTypePK, resourceID interface{}) *gomock.Call {
+// ListBySignatures indicates an expected call of ListBySignatures.
+func (mr *MockGroupResourcePolicyManagerMockRecorder) ListBySignatures(signatures interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPKAndActionPKs", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).GetPKAndActionPKs), groupPK, templateID, systemID, actionRelatedResourceTypePK, resourceTypePK, resourceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySignatures", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).ListBySignatures), signatures)
 }
