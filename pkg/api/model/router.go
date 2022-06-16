@@ -71,9 +71,6 @@ func Register(r *gin.RouterGroup) {
 }
 
 func RegisterShare(r *gin.RouterGroup) {
-	// GET /api/v1/model/share/systems
-	r.GET("/systems", handler.ShareListSystem)
-
 	// all resource in system
 	s := r.Group("/systems/:system_id")
 	s.Use(common.SystemExists())
