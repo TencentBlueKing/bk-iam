@@ -39,6 +39,7 @@ var (
 	LocalAPIGatewayJWTClientIDCache memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
+	LocalSubjectBlackListCache      memory.Cache
 
 	RemoteResourceCache *redis.Cache
 	ResourceTypeCache   *redis.Cache
@@ -156,6 +157,15 @@ func InitCaches(disabled bool) {
 	// 无影响, 重算而已不查db
 
 	LocalUnmarshaledExpressionCache = gocache.New(30*time.Minute, 5*time.Minute)
+
+	// 影响: 所有鉴权接口
+	LocalSubjectBlackListCache = memory.NewCache(
+		"local_subject_black_list",
+		disabled,
+		retrieveSubjectBlackList,
+		60*time.Second,
+		newRandomDuration(10),
+	)
 
 	//  ==========================
 

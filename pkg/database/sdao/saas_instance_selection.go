@@ -64,7 +64,8 @@ func (m *saasInstanceSelectionManager) Get(system, id string) (instanceSelection
 
 // ListBySystem ...
 func (m *saasInstanceSelectionManager) ListBySystem(system string) (
-	saasInstanceSelections []SaaSInstanceSelection, err error) {
+	saasInstanceSelections []SaaSInstanceSelection, err error,
+) {
 	err = m.selectBySystem(&saasInstanceSelections, system)
 	if errors.Is(err, sql.ErrNoRows) {
 		return saasInstanceSelections, nil
@@ -89,6 +90,10 @@ func (m *saasInstanceSelectionManager) Update(system, instanceSelectionID string
 	expr, data, err := database.ParseUpdateStruct(sis, sis.AllowBlankFields)
 	if err != nil {
 		return fmt.Errorf("parse update struct fail. %w", err)
+	}
+	// if all fields are blank, the parsed expr will be empty string, return, otherwise will SQL syntax error
+	if expr == "" {
+		return nil
 	}
 
 	// 2. build sql

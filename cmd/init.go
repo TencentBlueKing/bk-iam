@@ -151,8 +151,8 @@ func initSupportShieldFeatures() {
 	config.InitSupportShieldFeatures(globalConfig.SupportShieldFeatures)
 }
 
-func initShareAppCode() {
-	config.InitShareAppCode(globalConfig.ShareAppCode)
+func initSecurityAuditAppCode() {
+	config.InitSecurityAuditAppCode(globalConfig.SecurityAuditAppCode)
 }
 
 func initComponents() {
