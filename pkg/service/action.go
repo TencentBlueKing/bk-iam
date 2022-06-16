@@ -645,9 +645,9 @@ func (l *actionService) GetAuthType(system, id string) (int64, error) {
 	}
 
 	switch authTypeStr {
-	case "", "abac":
+	case "", types.AuthTypeABACStr:
 		return types.AuthTypeABAC, nil
-	case "rbac":
+	case types.AuthTypeRBACStr:
 		return types.AuthTypeRBAC, nil
 	}
 

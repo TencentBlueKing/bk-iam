@@ -8,35 +8,29 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package types
+package sdao
 
-// AllowEmptyFields ...
-type AllowEmptyFields struct {
-	keys map[string]struct{}
-}
+import (
+	"testing"
 
-// NewAllowEmptyFields ...
-func NewAllowEmptyFields() AllowEmptyFields {
-	return AllowEmptyFields{keys: map[string]struct{}{}}
-}
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/assert"
 
-// HasKey ...
-func (a *AllowEmptyFields) HasKey(key string) bool {
-	_, ok := a.keys[key]
-	return ok
-}
-
-// AddKey ...
-func (a *AllowEmptyFields) AddKey(key string) {
-	a.keys[key] = struct{}{}
-}
-
-const (
-	AuthTypeNone int64 = 0
-	AuthTypeABAC int64 = 1
-	AuthTypeRBAC int64 = 2
-	AuthTypeAll  int64 = 15
-
-	AuthTypeABACStr = "abac"
-	AuthTypeRBACStr = "rbac"
+	"iam/pkg/database"
 )
+
+func Test_actionManager_GetPK(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT auth_type FROM saas_action WHERE system_id = (.*) AND id = (.*) LIMIT 1`
+		mockRows := sqlmock.NewRows([]string{"auth_type"}).
+			AddRow("abac")
+		mock.ExpectQuery(mockQuery).WithArgs("iam", "edit").WillReturnRows(mockRows)
+
+		manager := &saasActionManager{DB: db}
+		authType, err := manager.GetAuthType("iam", "edit")
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, authType, "abac")
+	})
+}

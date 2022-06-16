@@ -242,7 +242,7 @@ func getEffectAuthTypeGroupPKs(
 
 	// NOTE: 当前只有action的auth type是RBAC时才需要分离出 abac/rbac group pks
 	if actionAuthType == svcTypes.AuthTypeRBAC {
-		abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsToAuthTypeGroupPKs(systemID, groupPKs)
+		abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsByAuthType(systemID, groupPKs)
 		if err != nil {
 			return nil, nil, err
 		}

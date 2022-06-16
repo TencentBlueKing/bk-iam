@@ -130,10 +130,28 @@ var _ = Describe("attribute", func() {
 			assert.Equal(GinkgoT(), int64(1), pk)
 		})
 
+		It("GetAuthType", func() {
+			_, err := a.GetAuthType()
+			assert.Error(GinkgoT(), err)
+
+			a.Attribute[types.AuthTypeAttrName] = int64(1)
+			pk, err := a.GetAuthType()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), pk)
+		})
+
 		It("SetPK", func() {
 			a.SetPK(1)
 			assert.True(GinkgoT(), a.Has(types.PKAttrName))
 			v, err := a.GetPK()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), v)
+		})
+
+		It("SetAuthType", func() {
+			a.SetAuthType(1)
+			assert.True(GinkgoT(), a.Has(types.AuthTypeAttrName))
+			v, err := a.GetAuthType()
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(1), v)
 		})
