@@ -121,7 +121,13 @@ func Eval(
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
 	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
-		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
+		err = errorWrapf(
+			err,
+			"GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+v`, action=`%+v` fail",
+			r.System,
+			r.Subject,
+			r.Action,
+		)
 		return false, err
 	}
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
@@ -138,7 +144,7 @@ func Eval(
 		}
 
 		if isPass {
-			return
+			return isPass, nil
 		}
 	}
 
@@ -344,7 +350,13 @@ func QueryAuthPolicies(
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
 	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
-		err = errorWrapf(err, "GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+d` fail", r.System, r.Subject)
+		err = errorWrapf(
+			err,
+			"GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+v`, action=`%+v` fail",
+			r.System,
+			r.Subject,
+			r.Action,
+		)
 		return
 	}
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
