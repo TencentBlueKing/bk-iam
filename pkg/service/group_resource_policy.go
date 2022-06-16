@@ -69,7 +69,7 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 		err := jsoniter.UnmarshalFromString(oldActionPKs, &oldActionPKList)
 		if err != nil {
 			return "", fmt.Errorf(
-				"jsoniter.UnmarshalFromString fail actionPKs=`%s`, err: %w", oldActionPKs, err,
+				"jsoniter.UnmarshalFromString actionPKs=`%s` fail, err: %w", oldActionPKs, err,
 			)
 		}
 	}
@@ -93,7 +93,7 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 
 	actionPKs, err := jsoniter.MarshalToString(actionPKSet.ToSlice())
 	if err != nil {
-		return "", fmt.Errorf("jsoniter.MarshalToString fail actionPKs=`%v`, err: %w", actionPKs, err)
+		return "", fmt.Errorf("jsoniter.MarshalToString actionPKs=`%v` fail, err: %w", actionPKs, err)
 	}
 
 	return actionPKs, nil

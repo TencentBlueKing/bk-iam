@@ -88,7 +88,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		Context("calculateChangedActionPKs", func() {
 			It("json loads error", func() {
 				aks, err := interSvc.calculateChangedActionPKs("[x]", types.ResourceChangedContent{})
-				assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString fail", err.Error())
+				assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString (.*) fail", err.Error())
 				assert.Equal(GinkgoT(), "", aks)
 			})
 			It("old_action_pks empty", func() {
