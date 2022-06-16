@@ -1,3 +1,7 @@
+# 1.11.7
+
+- add api for subject freeze/unfreeze
+
 # 1.11.6
 
 - action model change check use []ActionBaseInfo

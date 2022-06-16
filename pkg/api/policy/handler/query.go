@@ -12,6 +12,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ import (
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -55,6 +57,14 @@ func Query(c *gin.Context) {
 		return
 	}
 
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -62,7 +72,7 @@ func Query(c *gin.Context) {
 	}
 
 	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok", AnyExpression)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", AnyExpression)
 		return
 	}
 
@@ -133,6 +143,14 @@ func BatchQueryByActions(c *gin.Context) {
 
 	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
 
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -146,7 +164,7 @@ func BatchQueryByActions(c *gin.Context) {
 				Condition: AnyExpression,
 			})
 		}
-		util.SuccessJSONResponse(c, "ok", policies)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", policies)
 		return
 	}
 
@@ -226,6 +244,14 @@ func QueryByExtResources(c *gin.Context) {
 		return
 	}
 
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -250,7 +276,7 @@ func QueryByExtResources(c *gin.Context) {
 			extResourcesWithAttr = append(extResourcesWithAttr, extResourceWithAttr)
 		}
 
-		util.SuccessJSONResponse(c, "ok", map[string]interface{}{
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", map[string]interface{}{
 			"expression":    AnyExpression,
 			"ext_resources": extResourcesWithAttr,
 		})

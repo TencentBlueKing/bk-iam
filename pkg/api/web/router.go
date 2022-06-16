@@ -182,5 +182,15 @@ func Register(r *gin.RouterGroup) {
 
 		// 清理未引用的expression
 		r.DELETE("/unreferenced-expressions", handler.DeleteUnreferencedExpressions)
-	}
+  }
+  
+	fg := r.Group("/freeze/subjects")
+	{
+		// 查询冻结用户列表
+		fg.GET("", handler.ListFreezedSubjects)
+		// 批量冻结
+		fg.POST("", handler.BatchFreezeSubjects)
+		// 批量解冻
+		fg.DELETE("", handler.BatchUnfreezeSubjects)
+   }
 }

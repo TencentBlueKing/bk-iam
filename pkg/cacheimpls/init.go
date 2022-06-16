@@ -40,6 +40,7 @@ var (
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
 	LocalGroupSystemAuthTypeCache   *gocache.Cache
+  LocalSubjectBlackListCache      memory.Cache
 
 	RemoteResourceCache     *redis.Cache
 	ResourceTypeCache       *redis.Cache
@@ -60,6 +61,7 @@ var (
 	LocalExpressionCache      *gocache.Cache
 	LocalTemporaryPolicyCache *gocache.Cache
 	ChangeListCache           *redis.Cache
+
 
 	ActionCacheCleaner       *cleaner.CacheCleaner
 	ActionListCacheCleaner   *cleaner.CacheCleaner
@@ -162,6 +164,16 @@ func InitCaches(disabled bool) {
 	// 影响: 每次鉴权
 
 	LocalGroupSystemAuthTypeCache = gocache.New(10*time.Minute, 5*time.Minute)
+
+  // 影响: 所有鉴权接口
+  
+	LocalSubjectBlackListCache = memory.NewCache(
+		"local_subject_black_list",
+		disabled,
+		retrieveSubjectBlackList,
+		60*time.Second,
+		newRandomDuration(10),
+	)
 
 	//  ==========================
 

@@ -19,7 +19,7 @@ var (
 	SuperAppCodeSet          *set.StringSet
 	SuperUserSet             *set.StringSet
 	SupportShieldFeaturesSet *set.StringSet
-	ShareAppCodeSet          *set.StringSet
+	SecurityAuditAppCode     *set.StringSet
 )
 
 // InitSuperAppCode ...
@@ -56,7 +56,7 @@ func InitSupportShieldFeatures(supportShieldFeatures []string) {
 	SupportShieldFeaturesSet.Append(defaultSupportShieldFeatures...)
 }
 
-// InitShareAppCode read the value from config, parse to set
-func InitShareAppCode(shareAppCode string) {
-	ShareAppCodeSet = set.SplitStringToSet(shareAppCode, ",")
+// InitSecurityAuditAppCode read the value from config, parse to set
+func InitSecurityAuditAppCode(securityAuditAppCode string) {
+	SecurityAuditAppCode = set.SplitStringToSet(securityAuditAppCode, ",")
 }
