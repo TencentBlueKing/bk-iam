@@ -97,7 +97,7 @@ func reportTooLargeReturnedPolicies(count int, system, actionID, subjectType, su
 
 // PolicyManager ...
 type PolicyManager interface {
-	ListBySubjectAction(system string, subject types.Subject, action types.Action,
+	ListBySubjectAction(system string, subject types.Subject, action types.Action, effectGroupPKs []int64,
 		withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) // 需要对service查询来的policy去重
 
 	GetExpressionsFromCache(actionPK int64, expressionPKs []int64) ([]svctypes.AuthExpression, error)
@@ -124,12 +124,13 @@ func (m *policyManager) ListBySubjectAction(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
 	// 1. 查询一般权限
 	policies, err = m.listBySubjectAction(
-		system, subject, action, withoutCache, parentEntry,
+		system, subject, action, effectGroupPKs, withoutCache, parentEntry,
 	)
 	if err != nil {
 		return
@@ -154,6 +155,7 @@ func (m *policyManager) listBySubjectAction(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -166,13 +168,11 @@ func (m *policyManager) listBySubjectAction(
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	// 通过subject对象获取PK
-	effectSubjectPKs, err := getEffectSubjectPKs(system, subject)
+	effectSubjectPKs, err := m.getEffectSubjectPKs(subject, effectGroupPKs)
 	if err != nil {
-		err = errorWrapf(err, "getEffectSubjectPKs subject=`%+v` fail", subject)
+		err = errorWrapf(err, "Get Effect Subject PKs")
 		return
 	}
-	debug.WithValue(entry, "subjectPKs", effectSubjectPKs)
 
 	// 2. get action pk
 	debug.AddStep(entry, "Get Action PK")
@@ -280,6 +280,18 @@ func (m *policyManager) listBySubjectAction(
 	// debug.WithValue(entry, "return policies", policies)
 	reportTooLargeReturnedPolicies(len(policies), system, action.ID, subject.Type, subject.ID)
 	return policies, nil
+}
+
+func (*policyManager) getEffectSubjectPKs(subject types.Subject, effectGroupPKs []int64) ([]int64, error) {
+	subjectPK, err := subject.Attribute.GetPK()
+	if err != nil {
+		return nil, err
+	}
+
+	effectSubjectPKs := make([]int64, 0, len(effectGroupPKs)+1)
+	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
+	effectSubjectPKs = append(effectSubjectPKs, effectGroupPKs...)
+	return effectSubjectPKs, nil
 }
 
 // listTemporaryBySubjectAction 查询临时权限

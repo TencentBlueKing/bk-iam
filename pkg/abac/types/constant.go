@@ -14,8 +14,9 @@ package types
 const (
 	ResourceTypeAttrName = "resource_type"
 
-	PKAttrName   = "pk"
-	DeptAttrName = "department"
+	PKAttrName       = "pk"
+	AuthTypeAttrName = "auth_type"
+	DeptAttrName     = "department"
 
 	IamPath       = "_bk_iam_path_"
 	IamPathSuffix = "." + IamPath

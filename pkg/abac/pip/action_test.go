@@ -43,7 +43,7 @@ var _ = Describe("Action", func() {
 				},
 			)
 
-			_, _, err := pip.GetActionDetail("bk_test", "edit")
+			_, _, _, err := pip.GetActionDetail("bk_test", "edit")
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "get GetActionDetail fail")
 		})
@@ -52,7 +52,7 @@ var _ = Describe("Action", func() {
 			patches = gomonkey.ApplyFunc(
 				cacheimpls.GetActionDetail,
 				func(system, id string) (types.ActionDetail, error) {
-					return types.ActionDetail{PK: 123, ResourceTypes: []types.ThinActionResourceType{
+					return types.ActionDetail{PK: 123, AuthType: 1, ResourceTypes: []types.ThinActionResourceType{
 						{
 							System: "test",
 							ID:     "abc",
@@ -61,9 +61,10 @@ var _ = Describe("Action", func() {
 				},
 			)
 
-			pk, rts, err := pip.GetActionDetail("bk_test", "edit")
+			pk, authType, rts, err := pip.GetActionDetail("bk_test", "edit")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(123), pk)
+			assert.Equal(GinkgoT(), int64(1), authType)
 			assert.Len(GinkgoT(), rts, 1)
 		})
 	})

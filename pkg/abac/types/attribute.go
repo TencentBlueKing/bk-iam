@@ -113,9 +113,19 @@ func (a *ActionAttribute) GetPK() (int64, error) {
 	return a.GetInt64(PKAttrName)
 }
 
+// GetAuthType 获取authType
+func (a *ActionAttribute) GetAuthType() (int64, error) {
+	return a.GetInt64(AuthTypeAttrName)
+}
+
 // SetPK 设置pk
 func (a *ActionAttribute) SetPK(pk int64) {
 	a.Set(PKAttrName, pk)
+}
+
+// SetPK 设置pk
+func (a *ActionAttribute) SetAuthType(authType int64) {
+	a.Set(AuthTypeAttrName, authType)
 }
 
 // GetResourceTypes 获取资源类型

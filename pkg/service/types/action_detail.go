@@ -21,6 +21,9 @@ type ActionDetail struct {
 	// action pk
 	PK int64
 
+	// action auth type
+	AuthType int64
+
 	// action resource types
 	ResourceTypes []ThinActionResourceType
 }

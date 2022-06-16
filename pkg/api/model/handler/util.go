@@ -21,9 +21,6 @@ const (
 	SelectionModeAll       = "all"
 	SelectionModeInstance  = "instance"
 	SelectionModeAttribute = "attribute"
-
-	AuthTypeABAC = "abac"
-	AuthTypeRBAC = "rbac"
 )
 
 func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.ActionResourceType {
@@ -66,7 +63,7 @@ func convertToRelatedEnvironments(res []relatedEnvironment) []svctypes.ActionEnv
 
 func convertAuthType(authType string) string {
 	if authType == "" {
-		return AuthTypeABAC
+		return svctypes.AuthTypeABACStr
 	}
 	return authType
 }

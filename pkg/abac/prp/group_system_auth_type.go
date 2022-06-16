@@ -15,8 +15,8 @@ import (
 	"iam/pkg/service/types"
 )
 
-// splitGroupPKsToAuthTypeGroupPKs 将传入的system groupPKs拆分成ABAC和RBAC groupPKs
-func splitGroupPKsToAuthTypeGroupPKs(
+// SplitGroupPKsByAuthType 将传入的system groupPKs拆分成ABAC和RBAC groupPKs
+func SplitGroupPKsByAuthType(
 	systemID string,
 	groupPKs []int64,
 ) (abacGroupPks []int64, rbacGroupPKs []int64, err error) {

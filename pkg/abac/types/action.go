@@ -27,8 +27,9 @@ func NewAction() Action {
 }
 
 // FillAttributes 填充action属性
-func (a *Action) FillAttributes(pk int64, actionResourceTypes []ActionResourceType) {
+func (a *Action) FillAttributes(pk int64, authType int64, actionResourceTypes []ActionResourceType) {
 	a.Attribute.SetPK(pk)
+	a.Attribute.SetAuthType(authType)
 	a.Attribute.SetResourceTypes(actionResourceTypes)
 }
 

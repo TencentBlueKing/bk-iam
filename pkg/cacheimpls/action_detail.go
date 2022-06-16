@@ -27,6 +27,12 @@ func retrieveActionDetail(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
+	// 从saas_action拿 auth_type
+	authType, err := svc.GetAuthType(k.SystemID, k.ActionID)
+	if err != nil {
+		return nil, err
+	}
+
 	resourceTypes, err := svc.ListThinActionResourceTypes(k.SystemID, k.ActionID)
 	if err != nil {
 		return nil, err
@@ -36,6 +42,7 @@ func retrieveActionDetail(key cache.Key) (interface{}, error) {
 	// 如果要加新成员, 必须变更cache名字, 防止从已有缓存数据拿不到对应的字段产生bug
 	detail := types.ActionDetail{
 		PK:            pk,
+		AuthType:      authType,
 		ResourceTypes: resourceTypes,
 	}
 	return detail, nil

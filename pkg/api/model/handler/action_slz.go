@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"iam/pkg/api/common"
+	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -209,7 +210,7 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 // 2. if len(data.RelatedResourceTypes) > 0, auth_type should be "abac" OR "rbac"
 //     2.1 if auth_type == "rbac", the related_resource_type[selection_mode] should be 'instance'
 func validateActionAuthType(authType string, relatedResourceTypes []relatedResourceType) (bool, string) {
-	if authType == AuthTypeRBAC {
+	if authType == types.AuthTypeRBACStr {
 		// 1
 		if len(relatedResourceTypes) == 0 {
 			return false, "action without relatedResourceTypes, auth_type should be 'abac'(or empty), can't be 'rbac'"
