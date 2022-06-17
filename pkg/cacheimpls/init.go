@@ -41,6 +41,7 @@ var (
 	LocalUnmarshaledExpressionCache *gocache.Cache
 	LocalGroupSystemAuthTypeCache   *gocache.Cache
 	LocalActionDetailCache          memory.Cache
+	LocalSubjectBlackListCache      memory.Cache
 
 	RemoteResourceCache     *redis.Cache
 	ResourceTypeCache       *redis.Cache
@@ -170,6 +171,16 @@ func InitCaches(disabled bool) {
 		retrieveActionDetailForLocal,
 		30*time.Minute,
 		nil,
+	)
+
+	// 影响: 所有鉴权接口
+
+	LocalSubjectBlackListCache = memory.NewCache(
+		"local_subject_black_list",
+		disabled,
+		retrieveSubjectBlackList,
+		60*time.Second,
+		newRandomDuration(10),
 	)
 
 	//  ==========================

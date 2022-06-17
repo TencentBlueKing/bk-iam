@@ -87,6 +87,62 @@ var _ = Describe("Utils", func() {
 			}))
 		})
 	})
+
+	Describe("ParseUpdateStruct", func() {
+		type TestAction struct {
+			AllowBlankFields
+
+			System  string `db:"system_id"`
+			Name    string `db:"name"`
+			NameEn  string `db:"name_en"`
+			Version int64  `db:"version"`
+		}
+
+		var a TestAction
+		var allowBlankFields AllowBlankFields
+		BeforeEach(func() {
+			allowBlankFields = NewAllowBlankFields()
+			allowBlankFields.AddKey("Name")
+			a = TestAction{
+				AllowBlankFields: allowBlankFields,
+				System:           "test",
+				Name:             "",
+				NameEn:           "",
+				Version:          1,
+			}
+		})
+
+		It("ok", func() {
+			expr, data, err := ParseUpdateStruct(a, a.AllowBlankFields)
+			assert.Equal(GinkgoT(), "system_id=:system_id, name=:name, version=:version", expr)
+			assert.NoError(GinkgoT(), err)
+
+			systemID, ok := data["system_id"]
+			assert.True(GinkgoT(), ok)
+			assert.Equal(GinkgoT(), "test", systemID)
+
+			name, ok := data["name"]
+			assert.True(GinkgoT(), ok)
+			assert.Equal(GinkgoT(), "", name)
+
+			_, ok = data["name_en"]
+			assert.False(GinkgoT(), ok)
+
+			version, ok := data["version"]
+			assert.True(GinkgoT(), ok)
+			assert.Equal(GinkgoT(), int64(1), version)
+		})
+
+		It("empty", func() {
+			allowBlankFields = NewAllowBlankFields()
+			a = TestAction{}
+
+			expr, data, err := ParseUpdateStruct(a, a.AllowBlankFields)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "", expr)
+			assert.Empty(GinkgoT(), data)
+		})
+	})
 })
 
 func TestLogSlowSQL(t *testing.T) {
@@ -107,46 +163,6 @@ func TestIsBlank(t *testing.T) {
 	assert.True(t, isBlank(reflect.ValueOf(false)))
 	assert.True(t, isBlank(reflect.ValueOf(0)))
 	assert.True(t, isBlank(reflect.ValueOf(0.0)))
-}
-
-func TestParseUpdateStruct(t *testing.T) {
-	type TestAction struct {
-		AllowBlankFields
-
-		System  string `db:"system_id"`
-		Name    string `db:"name"`
-		NameEn  string `db:"name_en"`
-		Version int64  `db:"version"`
-	}
-
-	allowBlankFields := NewAllowBlankFields()
-	allowBlankFields.AddKey("Name")
-	a := TestAction{
-		AllowBlankFields: allowBlankFields,
-		System:           "test",
-		Name:             "",
-		NameEn:           "",
-		Version:          1,
-	}
-
-	expr, data, err := ParseUpdateStruct(a, a.AllowBlankFields)
-	assert.Equal(t, "system_id=:system_id, name=:name, version=:version", expr)
-	assert.NoError(t, err)
-
-	systemID, ok := data["system_id"]
-	assert.True(t, ok)
-	assert.Equal(t, "test", systemID)
-
-	name, ok := data["name"]
-	assert.True(t, ok)
-	assert.Equal(t, "", name)
-
-	_, ok = data["name_en"]
-	assert.False(t, ok)
-
-	version, ok := data["version"]
-	assert.True(t, ok)
-	assert.Equal(t, int64(1), version)
 }
 
 func truncateInterface(v interface{}) string {

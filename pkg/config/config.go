@@ -136,8 +136,8 @@ type Config struct {
 	SuperUser string
 	// 产品上支持接入系统配置屏蔽的功能
 	SupportShieldFeatures []string
-	// 内部系统app_code, 共享权限模型白名单
-	ShareAppCode string
+	// 安全app_code, 共享权限模型白名单, 并且可以作为各个系统合法clients调用权限相关接口
+	SecurityAuditAppCode string
 
 	Databases   []Database
 	DatabaseMap map[string]Database
