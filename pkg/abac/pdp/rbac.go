@@ -28,7 +28,8 @@ func rbacEval(
 
 			1. 解析出鉴权的resources中所有的节点, 并去重, 并且需要查询到所有resource_type_pk
 			2. 查询操作的 action_resource_type_pk
-			3. 使用 system_id, resource_type_pk, resource_id, action_resource_type_pk 查询 group_resource_policy, 得到 group_pk, action_pks
+			3. 使用 system_id, resource_type_pk, resource_id, action_resource_type_pk
+			   查询 group_resource_policy, 得到 group_pk, action_pks
 			4. 筛选出 action_pks 中包含 action_pk 的 group_pk
 			5. 得到的group_pk与rbacGroupPKs比较, 如果包含, 则通过鉴权
 	*/
