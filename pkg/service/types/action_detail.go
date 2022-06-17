@@ -10,10 +10,22 @@
 
 package types
 
+type ThinResourceType struct {
+	PK     int64
+	System string
+	ID     string
+}
+
 // ThinActionResourceType 用于鉴权的操作关联的资源类型.
 type ThinActionResourceType struct {
 	System string
 	ID     string
+
+	// resource_type pk
+	PK int64
+
+	// 代表所有实例视图涉及到的资源类型
+	ResourceTypeOfInstanceSelections []ThinResourceType
 }
 
 // ActionDetail 用于复合缓存

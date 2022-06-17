@@ -24,66 +24,66 @@ import (
 )
 
 var _ = Describe("ActionService", func() {
-	Describe("ListActionResourceTypes cases(in action_resource_type)", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("ok", func() {
-			returned := []dao.ActionResourceType{
-				{
-					ResourceTypeSystem: "bk_cmdb",
-					ResourceTypeID:     "host",
-				},
-				{
-					ResourceTypeSystem: "bk_job",
-					ResourceTypeID:     "job",
-				},
-			}
-
-			expected := []types.ThinActionResourceType{
-				{
-					System: "bk_cmdb",
-					ID:     "host",
-				},
-				{
-					System: "bk_job",
-					ID:     "job",
-				},
-			}
-
-			mockActionResourceTypeManager := mock.NewMockActionResourceTypeManager(ctl)
-			mockActionResourceTypeManager.EXPECT().ListResourceTypeByAction(
-				gomock.Any(), gomock.Any()).Return(returned, nil)
-
-			svc := &actionService{
-				actionResourceTypeManager: mockActionResourceTypeManager,
-			}
-
-			sgs, err := svc.ListThinActionResourceTypes("bk_job", "job_execute")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expected, sgs)
-		})
-
-		It("error", func() {
-			mockActionResourceTypeManager := mock.NewMockActionResourceTypeManager(ctl)
-			mockActionResourceTypeManager.EXPECT().ListResourceTypeByAction(
-				gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
-
-			svc := &actionService{
-				actionResourceTypeManager: mockActionResourceTypeManager,
-			}
-
-			_, err := svc.ListThinActionResourceTypes("bk_job", "job_execute")
-			assert.Error(GinkgoT(), err)
-		})
-	})
+	// Describe("ListActionResourceTypes cases(in action_resource_type)", func() {
+	// 	var ctl *gomock.Controller
+	//
+	// 	BeforeEach(func() {
+	// 		ctl = gomock.NewController(GinkgoT())
+	// 	})
+	//
+	// 	AfterEach(func() {
+	// 		ctl.Finish()
+	// 	})
+	//
+	// 	It("ok", func() {
+	// 		returned := []dao.ActionResourceType{
+	// 			{
+	// 				ResourceTypeSystem: "bk_cmdb",
+	// 				ResourceTypeID:     "host",
+	// 			},
+	// 			{
+	// 				ResourceTypeSystem: "bk_job",
+	// 				ResourceTypeID:     "job",
+	// 			},
+	// 		}
+	//
+	// 		expected := []types.ThinActionResourceType{
+	// 			{
+	// 				System: "bk_cmdb",
+	// 				ID:     "host",
+	// 			},
+	// 			{
+	// 				System: "bk_job",
+	// 				ID:     "job",
+	// 			},
+	// 		}
+	//
+	// 		mockActionResourceTypeManager := mock.NewMockActionResourceTypeManager(ctl)
+	// 		mockActionResourceTypeManager.EXPECT().ListResourceTypeByAction(
+	// 			gomock.Any(), gomock.Any()).Return(returned, nil)
+	//
+	// 		svc := &actionService{
+	// 			actionResourceTypeManager: mockActionResourceTypeManager,
+	// 		}
+	//
+	// 		sgs, err := svc.ListThinActionResourceTypes("bk_job", "job_execute")
+	// 		assert.NoError(GinkgoT(), err)
+	// 		assert.Equal(GinkgoT(), expected, sgs)
+	// 	})
+	//
+	// 	It("error", func() {
+	// 		mockActionResourceTypeManager := mock.NewMockActionResourceTypeManager(ctl)
+	// 		mockActionResourceTypeManager.EXPECT().ListResourceTypeByAction(
+	// 			gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
+	//
+	// 		svc := &actionService{
+	// 			actionResourceTypeManager: mockActionResourceTypeManager,
+	// 		}
+	//
+	// 		_, err := svc.ListThinActionResourceTypes("bk_job", "job_execute")
+	// 		assert.Error(GinkgoT(), err)
+	// 	})
+	// })
 
 	Describe("ListActionResourceTypeIDByActionSystem", func() {
 		var ctl *gomock.Controller
