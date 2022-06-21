@@ -44,8 +44,18 @@ func (a *Action) WithoutResourceType() bool {
 	return false
 }
 
+type ThinResourceType struct {
+	PK     int64
+	System string
+	ID     string
+}
+
 // ActionResourceType 操作关联的资源类型
 type ActionResourceType struct {
+	PK     int64
 	System string
 	Type   string
+
+	// 代表所有实例视图涉及到的资源类型
+	ResourceTypeOfInstanceSelections []ThinResourceType
 }

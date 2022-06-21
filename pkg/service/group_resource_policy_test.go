@@ -238,4 +238,76 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 	})
+
+	Context("GetAuthorizedActionGroupMap", func() {
+		var (
+			ctl         *gomock.Controller
+			mockManager *mock.MockGroupResourcePolicyManager
+			svc         GroupResourcePolicyService
+		)
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+			mockManager = mock.NewMockGroupResourcePolicyManager(ctl)
+			svc = &groupResourcePolicyService{
+				manager: mockManager,
+			}
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.ListThinByResource error", func() {
+			mockManager.EXPECT().
+				ListThinByResource("test", int64(1), int64(2), "resource_test").
+				Return(nil, errors.New("error"))
+
+			_, err := svc.GetAuthorizedActionGroupMap("test", int64(1), int64(2), "resource_test")
+			assert.Error(GinkgoT(), err)
+			assert.Regexp(GinkgoT(), "manager.ListThinByResource fail", err.Error())
+		})
+
+		It("jsoniter.UnmarshalFromString error", func() {
+			mockManager.EXPECT().
+				ListThinByResource("test", int64(1), int64(2), "resource_test").
+				Return([]dao.ThinGroupResourcePolicy{{
+					GroupPK:   int64(1),
+					ActionPKs: "xxx",
+				}}, nil)
+
+			_, err := svc.GetAuthorizedActionGroupMap("test", int64(1), int64(2), "resource_test")
+			assert.Error(GinkgoT(), err)
+			assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString fail", err.Error())
+		})
+
+		It("ok", func() {
+			mockManager.EXPECT().
+				ListThinByResource("test", int64(1), int64(2), "resource_test").
+				Return([]dao.ThinGroupResourcePolicy{{
+					GroupPK:   int64(1),
+					ActionPKs: "[1,2,3]",
+				}, {
+					GroupPK:   int64(2),
+					ActionPKs: "[3]",
+				}, {
+					GroupPK:   int64(1),
+					ActionPKs: "[3,4]",
+				}}, nil)
+
+			actionGroupPKs, err := svc.GetAuthorizedActionGroupMap("test", int64(1), int64(2), "resource_test")
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), actionGroupPKs, 4)
+			for actionPK, groupPKs := range actionGroupPKs {
+				switch actionPK {
+				case int64(1):
+					assert.Equal(GinkgoT(), []int64{1}, groupPKs)
+				case int64(2):
+					assert.Equal(GinkgoT(), []int64{1}, groupPKs)
+				case int64(3):
+					assert.Len(GinkgoT(), groupPKs, 2)
+				case int64(4):
+					assert.Equal(GinkgoT(), []int64{1}, groupPKs)
+				}
+			}
+		})
+	})
 })

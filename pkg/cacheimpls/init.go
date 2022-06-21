@@ -54,6 +54,7 @@ var (
 	ActionListCache         *redis.Cache
 
 	PolicyCache              *redis.Cache
+	GroupResourcePolicyCache *redis.Cache
 	ExpressionCache          *redis.Cache
 	TemporaryPolicyCache     *redis.Cache
 	GroupSystemAuthTypeCache *redis.Cache
@@ -253,6 +254,11 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
+	GroupResourcePolicyCache = redis.NewCache(
+		"grp_res_pl",
+		30*time.Minute,
+	)
+
 	ExpressionCache = redis.NewCache(
 		"ex",
 		30*time.Minute,
@@ -289,6 +295,9 @@ var PolicyCacheDisabled = false
 
 // PolicyCacheExpiration 策略缓存默认保留7天
 var PolicyCacheExpiration = 7 * 24 * time.Hour
+
+// GroupResourcePolicyCacheExpiration 策略缓存默认保留7天
+var GroupResourcePolicyCacheExpiration = 7 * 24 * time.Hour
 
 // GroupSystemAuthTypeCacheExpiration 策略缓存默认保留7天
 var GroupSystemAuthTypeCacheExpiration = 7 * 24 * time.Hour

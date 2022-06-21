@@ -91,3 +91,18 @@ func (mr *MockGroupResourcePolicyManagerMockRecorder) ListBySignatures(signature
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySignatures", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).ListBySignatures), signatures)
 }
+
+// ListThinByResource mocks base method.
+func (m *MockGroupResourcePolicyManager) ListThinByResource(systemID string, actionResourceTypePK, resourceTypePK int64, resourceID string) ([]dao.ThinGroupResourcePolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListThinByResource", systemID, actionResourceTypePK, resourceTypePK, resourceID)
+	ret0, _ := ret[0].([]dao.ThinGroupResourcePolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListThinByResource indicates an expected call of ListThinByResource.
+func (mr *MockGroupResourcePolicyManagerMockRecorder) ListThinByResource(systemID, actionResourceTypePK, resourceTypePK, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinByResource", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).ListThinByResource), systemID, actionResourceTypePK, resourceTypePK, resourceID)
+}

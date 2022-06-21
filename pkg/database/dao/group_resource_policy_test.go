@@ -120,4 +120,28 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 
 		assert.NoError(GinkgoT(), err)
 	})
+
+	It("ListThinByResource", func() {
+		thinPolicy := ThinGroupResourcePolicy{
+			GroupPK:   int64(1),
+			ActionPKs: "[1,2,3]",
+		}
+		mockRows := database.NewMockRows(mock, []interface{}{thinPolicy}...)
+		mock.ExpectQuery(
+			`^SELECT 
+			group_pk, action_pks
+			FROM group_resource_policy
+			WHERE system_id = (.*)
+			AND action_related_resource_type_pk = (.*)
+			AND resource_type_pk = (.*)
+			AND resource_id = (.*)$`,
+		).WithArgs("test", int64(1), int64(2), "resource_test").WillReturnRows(mockRows)
+
+		policies, err := manager.ListThinByResource("test", int64(1), int64(2), "resource_test")
+
+		assert.NoError(GinkgoT(), err)
+		assert.Len(GinkgoT(), policies, 1)
+		assert.Equal(GinkgoT(), int64(1), policies[0].GroupPK)
+		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
+	})
 })

@@ -113,9 +113,7 @@ var _ = Describe("Redis", func() {
 
 			groupAuthTypes, missingPKs, err := r.batchGetGroupAuthType([]int64{1, 2, 3})
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.GroupAuthType{
-				{GroupPK: 1, AuthType: 1}, {GroupPK: 2, AuthType: 2},
-			}, groupAuthTypes)
+			assert.Len(GinkgoT(), groupAuthTypes, 2)
 			assert.Equal(GinkgoT(), []int64{3}, missingPKs)
 		})
 	})

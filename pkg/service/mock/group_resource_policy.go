@@ -48,3 +48,18 @@ func (mr *MockGroupResourcePolicyServiceMockRecorder) Alter(tx, groupPK, templat
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).Alter), tx, groupPK, templateID, systemID, resourceChangedContents)
 }
+
+// GetAuthorizedActionGroupMap mocks base method.
+func (m *MockGroupResourcePolicyService) GetAuthorizedActionGroupMap(systemID string, actionResourceTypePK, resourceTypePK int64, resourceTypeID string) (map[int64][]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthorizedActionGroupMap", systemID, actionResourceTypePK, resourceTypePK, resourceTypeID)
+	ret0, _ := ret[0].(map[int64][]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthorizedActionGroupMap indicates an expected call of GetAuthorizedActionGroupMap.
+func (mr *MockGroupResourcePolicyServiceMockRecorder) GetAuthorizedActionGroupMap(systemID, actionResourceTypePK, resourceTypePK, resourceTypeID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedActionGroupMap", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).GetAuthorizedActionGroupMap), systemID, actionResourceTypePK, resourceTypePK, resourceTypeID)
+}
