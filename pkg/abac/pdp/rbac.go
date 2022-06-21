@@ -25,7 +25,6 @@ func rbacEval(
 ) (isPass bool, err error) {
 	/*
 		TODO rbac鉴权逻辑:
-
 			1. 解析出鉴权的resources中所有的节点, 并去重, 并且需要查询到所有resource_type_pk
 			2. 查询操作的 action_resource_type_pk
 			3. 使用 system_id, resource_type_pk, resource_id, action_resource_type_pk

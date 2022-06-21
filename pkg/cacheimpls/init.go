@@ -40,6 +40,7 @@ var (
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
 	LocalGroupSystemAuthTypeCache   *gocache.Cache
+	LocalActionDetailCache          memory.Cache
 	LocalSubjectBlackListCache      memory.Cache
 
 	RemoteResourceCache     *redis.Cache
@@ -163,6 +164,14 @@ func InitCaches(disabled bool) {
 	// 影响: 每次鉴权
 
 	LocalGroupSystemAuthTypeCache = gocache.New(10*time.Minute, 5*time.Minute)
+
+	LocalActionDetailCache = memory.NewCache(
+		"local_act_dtl",
+		disabled,
+		retrieveActionDetailFromRedis,
+		30*time.Minute,
+		newRandomDuration(30),
+	)
 
 	// 影响: 所有鉴权接口
 
