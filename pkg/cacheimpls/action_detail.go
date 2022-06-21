@@ -48,11 +48,13 @@ func retrieveActionDetail(key cache.Key) (interface{}, error) {
 	return detail, nil
 }
 
+// GetActionDetail ...
 func GetActionDetail(systemID, actionID string) (detail types.ActionDetail, err error) {
 	key := ActionIDCacheKey{
 		SystemID: systemID,
 		ActionID: actionID,
 	}
+
 	err = ActionDetailCache.GetInto(key, &detail, retrieveActionDetail)
 	err = errorx.Wrapf(err, CacheLayer, "GetActionDetail",
 		"ActionDetailCache.GetInto key=`%s` fail", key.Key())
