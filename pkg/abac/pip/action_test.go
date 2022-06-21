@@ -37,7 +37,7 @@ var _ = Describe("Action", func() {
 
 		It("GetActionPK fail", func() {
 			patches = gomonkey.ApplyFunc(
-				cacheimpls.GetActionDetail,
+				cacheimpls.GetLocalActionDetail,
 				func(system, id string) (types.ActionDetail, error) {
 					return types.ActionDetail{}, errors.New("get GetActionDetail fail")
 				},
@@ -50,7 +50,7 @@ var _ = Describe("Action", func() {
 
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(
-				cacheimpls.GetActionDetail,
+				cacheimpls.GetLocalActionDetail,
 				func(system, id string) (types.ActionDetail, error) {
 					return types.ActionDetail{PK: 123, AuthType: 1, ResourceTypes: []types.ThinActionResourceType{
 						{

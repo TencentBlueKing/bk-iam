@@ -11,8 +11,6 @@
 package cacheimpls
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
@@ -50,34 +48,13 @@ func retrieveActionDetail(key cache.Key) (interface{}, error) {
 	return detail, nil
 }
 
-func retrieveActionDetailForLocal(key cache.Key) (interface{}, error) {
-	detail := types.ActionDetail{}
-
-	// Note: 这里是三级缓存，LocalMemory失效后，从Redis Cache里获取，并不直接查询DB
-	err := ActionDetailCache.GetInto(key, &detail, retrieveActionDetail)
-	err = errorx.Wrapf(err, CacheLayer, "retrieveActionDetailForLocal",
-		"ActionDetailCache.GetInto key=`%s` fail", key.Key())
-
-	return detail, err
-}
-
 func GetActionDetail(systemID, actionID string) (detail types.ActionDetail, err error) {
 	key := ActionIDCacheKey{
 		SystemID: systemID,
 		ActionID: actionID,
 	}
-	var value interface{}
-	value, err = LocalActionDetailCache.Get(key)
-	if err != nil {
-		return detail, errorx.Wrapf(err, CacheLayer, "GetActionDetail",
-			"LocalActionDetailCache.Get key=`%s` fail", key.Key())
-	}
-
-	var ok bool
-	detail, ok = value.(types.ActionDetail)
-	if !ok {
-		err = errors.New("not types.ActionDetail in cache")
-		return
-	}
+	err = ActionDetailCache.GetInto(key, &detail, retrieveActionDetail)
+	err = errorx.Wrapf(err, CacheLayer, "GetActionDetail",
+		"ActionDetailCache.GetInto key=`%s` fail", key.Key())
 	return
 }

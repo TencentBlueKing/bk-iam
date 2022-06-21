@@ -8,36 +8,40 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package pip
+package cacheimpls
 
 import (
+	"errors"
+
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
+	"iam/pkg/service/types"
 )
 
-// ActionPIP ...
-const ActionPIP = "ActionPIP"
+func retrieveActionDetailFromRedis(key cache.Key) (interface{}, error) {
+	k := key.(ActionIDCacheKey)
+	return GetActionDetail(k.SystemID, k.ActionID)
+}
 
-// GetActionDetail ...
-func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.ActionResourceType, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
-
-	detail, err := cacheimpls.GetLocalActionDetail(system, id)
+func GetLocalActionDetail(systemID, actionID string) (detail types.ActionDetail, err error) {
+	key := ActionIDCacheKey{
+		SystemID: systemID,
+		ActionID: actionID,
+	}
+	var value interface{}
+	value, err = LocalActionDetailCache.Get(key)
 	if err != nil {
-		err = errorWrapf(err,
-			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
+		return detail, errorx.Wrapf(err, CacheLayer, "GetLocalActionDetail",
+			"LocalActionDetailCache.Get key=`%s` fail", key.Key())
+	}
+
+	var ok bool
+	detail, ok = value.(types.ActionDetail)
+	if !ok {
+		err = errors.New("not types.ActionDetail in cache")
 		return
 	}
 
-	// 数据转换
-	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
-	for _, art := range detail.ResourceTypes {
-		arts = append(arts, types.ActionResourceType{
-			System: art.System,
-			Type:   art.ID,
-		})
-	}
-	return detail.PK, detail.AuthType, arts, nil
+	return
 }

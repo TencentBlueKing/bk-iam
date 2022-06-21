@@ -168,7 +168,7 @@ func InitCaches(disabled bool) {
 	LocalActionDetailCache = memory.NewCache(
 		"local_act_dtl",
 		disabled,
-		retrieveActionDetailForLocal,
+		retrieveActionDetailFromRedis,
 		30*time.Minute,
 		newRandomDuration(30),
 	)

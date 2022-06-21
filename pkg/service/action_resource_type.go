@@ -16,16 +16,17 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
+	"iam/pkg/database/sdao"
 
 	"iam/pkg/service/types"
 )
 
-type miniResourceType struct {
+type rawResourceType struct {
 	System string
 	ID     string
 }
 
-func (r *miniResourceType) UniqueKey() string {
+func (r *rawResourceType) UniqueKey() string {
 	return r.System + ":" + r.ID
 }
 
@@ -48,7 +49,7 @@ func (l *actionService) ListThinActionResourceTypes(
 	// 解析实例视图，用于后面查询实例视图的ResourceTypeChain
 	relatedInstanceSelectionsList := make([][]types.ReferenceInstanceSelection, 0, len(arts))
 	allInstanceSelections := []types.ReferenceInstanceSelection{}
-	allResourceTypes := []miniResourceType{}
+	allResourceTypes := []rawResourceType{}
 	for _, art := range arts {
 		ris, err := l.parseRelatedInstanceSelections(art.RelatedInstanceSelections)
 		if err != nil {
@@ -63,7 +64,7 @@ func (l *actionService) ListThinActionResourceTypes(
 		allInstanceSelections = append(allInstanceSelections, ris...)
 
 		// allResourceTypes 是为了后续查询resource type pk
-		allResourceTypes = append(allResourceTypes, miniResourceType{
+		allResourceTypes = append(allResourceTypes, rawResourceType{
 			System: art.ResourceTypeSystem,
 			ID:     art.ResourceTypeID,
 		})
@@ -87,19 +88,45 @@ func (l *actionService) ListThinActionResourceTypes(
 		return nil, errorWrapf(err, "queryResourceTypePK rts=`%+v` fail", allResourceTypes)
 	}
 
+	// 转换出最终数据
+	actionResourceTypes, err = l.convertToActionResourceTypes(
+		arts, relatedInstanceSelectionsList, allResourceTypeChains, resourceTypePKMap,
+	)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"convertToActionResourceTypes arts=`%+v`, risl=`%+v`, rtcs=`%+v` rtPKmap=`%+v`  fail",
+			arts,
+			relatedInstanceSelectionsList,
+			allResourceTypeChains,
+			resourceTypePKMap,
+		)
+	}
+
+	return actionResourceTypes, nil
+}
+
+func (l *actionService) convertToActionResourceTypes(
+	arts []sdao.SaaSActionResourceType,
+	relatedInstanceSelectionsList [][]types.ReferenceInstanceSelection,
+	allResourceTypeChains map[string][]rawResourceType,
+	resourceTypePKMap map[string]int64,
+) (actionResourceTypes []types.ThinActionResourceType, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "convertToActionResourceTypes")
 	// 组装数据
 	actionResourceTypes = make([]types.ThinActionResourceType, 0, len(arts))
 	for idx, art := range arts {
 		// Action关联的资源类型的PK
-		actionResourceTypePK, ok := resourceTypePKMap[fmt.Sprintf("%s:%s", art.ResourceTypeSystem, art.ResourceTypeID)]
+		actionResourceTypePK, ok := resourceTypePKMap[art.ResourceTypeSystem+":"+art.ResourceTypeID]
 		if !ok {
-			return nil, errorWrapf(
+			err = errorWrapf(
 				fmt.Errorf(
 					"pk of action related resource type not found, system=`%s`, id=`%s`",
 					art.ResourceTypeSystem, art.ResourceTypeID,
 				),
 				"",
 			)
+			return
 		}
 
 		// 关联的实例视图
@@ -113,10 +140,11 @@ func (l *actionService) ListThinActionResourceTypes(
 			for _, rt := range resourceTypeChain {
 				pk, ok := resourceTypePKMap[rt.UniqueKey()]
 				if !ok {
-					return nil, errorWrapf(
+					err = errorWrapf(
 						fmt.Errorf("pk of resource type in chain not found, system=`%s`, id=`%s`", rt.System, rt.ID),
 						"",
 					)
+					return
 				}
 				// 这里只是为了获取涉及的资源类型，所以不需要重复
 				if resourceTypePKSet.Has(pk) {
@@ -137,12 +165,11 @@ func (l *actionService) ListThinActionResourceTypes(
 			ResourceTypeOfInstanceSelections: thinResourceTypes,
 		})
 	}
-
 	return actionResourceTypes, nil
 }
 
 // queryResourceTypePK : 后续用于填充[]types.ThinActionResourceType数据结构里，所有涉及资源类型的PK
-func (l *actionService) queryResourceTypePK(allResourceTypes []miniResourceType) (map[string]int64, error) {
+func (l *actionService) queryResourceTypePK(allResourceTypes []rawResourceType) (map[string]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "queryResourceTypePK")
 
 	// 需要按照系统分组资源类型
@@ -166,8 +193,7 @@ func (l *actionService) queryResourceTypePK(allResourceTypes []miniResourceType)
 		}
 
 		for _, rt := range rts {
-			k := fmt.Sprintf("%s:%s", rt.System, rt.ID)
-			resourceTypePKMap[k] = rt.PK
+			resourceTypePKMap[rt.System+":"+rt.ID] = rt.PK
 		}
 	}
 
@@ -194,7 +220,7 @@ func (l *actionService) parseRelatedInstanceSelections(rawRelatedInstanceSelecti
 }
 
 func (l *actionService) queryResourceTypeChain(ris []types.ReferenceInstanceSelection) (
-	resourceTypeChains map[string][]miniResourceType, err error,
+	resourceTypeChains map[string][]rawResourceType, err error,
 ) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "queryResourceTypeChain")
 	// 按系统分组查询
@@ -222,7 +248,7 @@ func (l *actionService) queryResourceTypeChain(ris []types.ReferenceInstanceSele
 	}
 
 	// 遍历请求的每个实例视图，组装对应的ResourceTypeChain数据
-	resourceTypeChains = make(map[string][]miniResourceType, len(ris))
+	resourceTypeChains = make(map[string][]rawResourceType, len(ris))
 	for _, is := range ris {
 		key := is.System + ":" + is.ID
 		rawResourceTypeChain, ok := instanceSelectionToResourceTypeChainMap[key]
@@ -239,9 +265,9 @@ func (l *actionService) queryResourceTypeChain(ris []types.ReferenceInstanceSele
 			return
 		}
 
-		resourceTypeChain := make([]miniResourceType, 0, len(chain))
+		resourceTypeChain := make([]rawResourceType, 0, len(chain))
 		for _, c := range chain {
-			resourceTypeChain = append(resourceTypeChain, miniResourceType{System: c["system_id"], ID: c["id"]})
+			resourceTypeChain = append(resourceTypeChain, rawResourceType{System: c["system_id"], ID: c["id"]})
 		}
 
 		resourceTypeChains[key] = resourceTypeChain
