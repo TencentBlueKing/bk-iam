@@ -130,6 +130,15 @@ func parseResourceNode(
 	resource types.Resource,
 	actionResourceType types.ActionResourceType,
 ) ([]types.ResourceNode, error) {
+
+	if actionResourceType.System != resource.System || actionResourceType.Type != resource.Type {
+		return nil, fmt.Errorf(
+			"resource type not match, actionResourceType=`%+v`, resource=`%+v`",
+			actionResourceType,
+			resource,
+		)
+	}
+
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	nodeSet := set.NewStringSet()
 
@@ -189,14 +198,6 @@ func parseResourceNode(
 				}
 			}
 		}
-	}
-
-	if actionResourceType.System != resource.System || actionResourceType.Type != resource.Type {
-		return nil, fmt.Errorf(
-			"resource type not match, actionResourceType=`%+v`, resource=`%+v`",
-			actionResourceType,
-			resource,
-		)
 	}
 
 	node := types.ResourceNode{
