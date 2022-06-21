@@ -11,7 +11,6 @@
 package service
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -21,13 +20,13 @@ import (
 	"iam/pkg/service/types"
 )
 
-type MiniResourceType struct {
+type miniResourceType struct {
 	System string
 	ID     string
 }
 
-func (r *MiniResourceType) UniqueKey() string {
-	return fmt.Sprintf("%s:%s", r.System, r.ID)
+func (r *miniResourceType) UniqueKey() string {
+	return r.System + ":" + r.ID
 }
 
 // ListThinActionResourceTypes 获取操作关联的资源类型
@@ -46,22 +45,40 @@ func (l *actionService) ListThinActionResourceTypes(
 		return
 	}
 
-	// 解析实例视图，获取到每个relation资源对应的资源实例视图涉及的资源
-	miniResourceTypeOfInstancesSelections := make([][]MiniResourceType, 0, len(arts))
-	allResourceTypes := []MiniResourceType{}
+	// 解析实例视图，用于后面查询实例视图的ResourceTypeChain
+	relatedInstanceSelectionsList := make([][]types.ReferenceInstanceSelection, 0, len(arts))
+	allInstanceSelections := []types.ReferenceInstanceSelection{}
+	allResourceTypes := []miniResourceType{}
 	for _, art := range arts {
-		// 通过SaaS Action解析出实例视图里的所有资源类型
-		rts, err := l.parseInvolvedResourceTypes(art.RelatedInstanceSelections)
+		ris, err := l.parseRelatedInstanceSelections(art.RelatedInstanceSelections)
 		if err != nil {
-			return nil, errorWrapf(err, "parseInvolvedResourceTypes rawString=`%+v` fail",
+			return nil, errorWrapf(err, "parseRelatedInstanceSelections rawString=`%+v` fail",
 				art.RelatedInstanceSelections)
 		}
-		miniResourceTypeOfInstancesSelections = append(miniResourceTypeOfInstancesSelections, rts)
-		allResourceTypes = append(allResourceTypes, rts...)
-		allResourceTypes = append(allResourceTypes, MiniResourceType{
+
+		// relatedInstanceSelectionsList是为了记录顺序，后续便于填充
+		relatedInstanceSelectionsList = append(relatedInstanceSelectionsList, ris)
+
+		// allInstanceSelections是为了批量查询实例视图的ResourceTypeChain
+		allInstanceSelections = append(allInstanceSelections, ris...)
+
+		// allResourceTypes 是为了后续查询resource type pk
+		allResourceTypes = append(allResourceTypes, miniResourceType{
 			System: art.ResourceTypeSystem,
 			ID:     art.ResourceTypeID,
 		})
+	}
+
+	// 查询实例视图的ResourceTypeChain
+	allResourceTypeChains, err := l.queryResourceTypeChain(allInstanceSelections)
+	if err != nil {
+		return nil, errorWrapf(err, "queryResourceTypeChain allInstanceSelections=`%+v` fail",
+			allInstanceSelections)
+	}
+
+	// 获取到每个relation资源对应的资源实例视图涉及的资源
+	for _, resourceTypeChain := range allResourceTypeChains {
+		allResourceTypes = append(allResourceTypes, resourceTypeChain...)
 	}
 
 	// 查询所有ResourceType的PK
@@ -85,18 +102,32 @@ func (l *actionService) ListThinActionResourceTypes(
 			)
 		}
 
-		// 组装实例视图涉及的所有资源类型
-		chain := miniResourceTypeOfInstancesSelections[idx]
-		thinResourceTypes := make([]types.ThinResourceType, 0, len(chain))
-		for _, rt := range chain {
-			pk, ok := resourceTypePKMap[rt.UniqueKey()]
-			if !ok {
-				return nil, errorWrapf(
-					fmt.Errorf("pk of resource type in chain not found, system=`%s`, id=`%s`", rt.System, rt.ID),
-					"",
+		// 关联的实例视图
+		relatedInstanceSelections := relatedInstanceSelectionsList[idx]
+		// 遍历每个实例视图，获取其资源Chain，并获取Chain里的资源类型
+		thinResourceTypes := []types.ThinResourceType{}
+		resourceTypePKSet := set.NewInt64Set()
+		for _, is := range relatedInstanceSelections {
+			resourceTypeChain := allResourceTypeChains[is.System+":"+is.ID]
+			// 遍历每个资源类型
+			for _, rt := range resourceTypeChain {
+				pk, ok := resourceTypePKMap[rt.UniqueKey()]
+				if !ok {
+					return nil, errorWrapf(
+						fmt.Errorf("pk of resource type in chain not found, system=`%s`, id=`%s`", rt.System, rt.ID),
+						"",
+					)
+				}
+				// 这里只是为了获取涉及的资源类型，所以不需要重复
+				if resourceTypePKSet.Has(pk) {
+					continue
+				}
+				resourceTypePKSet.Add(pk)
+				thinResourceTypes = append(
+					thinResourceTypes,
+					types.ThinResourceType{PK: pk, System: rt.System, ID: rt.ID},
 				)
 			}
-			thinResourceTypes = append(thinResourceTypes, types.ThinResourceType{PK: pk, System: rt.System, ID: rt.ID})
 		}
 
 		actionResourceTypes = append(actionResourceTypes, types.ThinActionResourceType{
@@ -111,7 +142,7 @@ func (l *actionService) ListThinActionResourceTypes(
 }
 
 // queryResourceTypePK : 后续用于填充[]types.ThinActionResourceType数据结构里，所有涉及资源类型的PK
-func (l *actionService) queryResourceTypePK(allResourceTypes []MiniResourceType) (map[string]int64, error) {
+func (l *actionService) queryResourceTypePK(allResourceTypes []miniResourceType) (map[string]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "queryResourceTypePK")
 
 	// 需要按照系统分组资源类型
@@ -143,62 +174,80 @@ func (l *actionService) queryResourceTypePK(allResourceTypes []MiniResourceType)
 	return resourceTypePKMap, nil
 }
 
-// parseInvolvedResourceTypes 用于解析出Action关联实例视图涉及的资源类型
-func (l *actionService) parseInvolvedResourceTypes(rawRelatedInstanceSelections string) (
-	resourceTypes []MiniResourceType, err error,
+// parseRelatedInstanceSelections, 解析出实例视图（并不包含resource_type_chain）
+func (l *actionService) parseRelatedInstanceSelections(rawRelatedInstanceSelections string) (
+	relatedInstanceSelections []types.ReferenceInstanceSelection, err error,
 ) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "parseInvolvedResourceTypes")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "parseRelatedInstanceSelections")
 	// rawRelatedInstanceSelections is [{"system_id": a, "id": b}]
 	if rawRelatedInstanceSelections == "" {
 		return
 	}
 
-	relatedInstanceSelections := []types.ReferenceInstanceSelection{}
 	err = jsoniter.UnmarshalFromString(rawRelatedInstanceSelections, &relatedInstanceSelections)
 	if err != nil {
 		err = errorWrapf(err, "unmarshal rawRelatedInstanceSelections=`%s` fail", rawRelatedInstanceSelections)
 		return
 	}
 
-	// NOTE: here query one by one
-	for _, r := range relatedInstanceSelections {
-		is, err1 := l.saasInstanceSelectionManager.Get(r.System, r.ID)
-		if err1 != nil {
-			// NOTE: if not exists, continue
-			if err1 == sql.ErrNoRows {
-				continue
-			}
+	return
+}
 
-			err = errorWrapf(err1, "saasInstanceSelectionManager.Get system=`%s`, id=`%s` fail", r.System, r.ID)
-			return
+func (l *actionService) queryResourceTypeChain(ris []types.ReferenceInstanceSelection) (
+	resourceTypeChains map[string][]miniResourceType, err error,
+) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "queryResourceTypeChain")
+	// 按系统分组查询
+	systemIDSet := set.NewStringSet()
+	for _, is := range ris {
+		systemIDSet.Add(is.System)
+	}
+	systemIDs := systemIDSet.ToSlice()
+
+	// 按系统查询，并记录每个实例视图对应的resourceTypeChain
+	instanceSelectionToResourceTypeChainMap := map[string]string{}
+	for _, systemID := range systemIDs {
+		instanceSelections, err := l.saasInstanceSelectionManager.ListBySystem(systemID)
+		if err != nil {
+			return resourceTypeChains, errorWrapf(
+				err, "saasInstanceSelectionManager.ListBySystem systemID=`%s` fail", systemID,
+			)
+		}
+
+		// Note: 这里并不会将resourceTypeChain的json string解析为 struct，而是待确定是查询所需的再进行解析
+		for _, is := range instanceSelections {
+			key := is.System + ":" + is.ID
+			instanceSelectionToResourceTypeChainMap[key] = is.ResourceTypeChain
+		}
+	}
+
+	// 遍历请求的每个实例视图，组装对应的ResourceTypeChain数据
+	resourceTypeChains = make(map[string][]miniResourceType, len(ris))
+	for _, is := range ris {
+		key := is.System + ":" + is.ID
+		rawResourceTypeChain, ok := instanceSelectionToResourceTypeChainMap[key]
+		if !ok {
+			return resourceTypeChains, errorWrapf(
+				err, "instanceSelection not exists, systemID=`%s` id=`%s`", is.System, is.ID,
+			)
 		}
 
 		chain := []map[string]string{}
-		err = jsoniter.UnmarshalFromString(is.ResourceTypeChain, &chain)
+		err = jsoniter.UnmarshalFromString(rawResourceTypeChain, &chain)
 		if err != nil {
-			err = errorWrapf(err, "unmarshal instanceSelection.ResourceTypeChain=`%s` fail", is.ResourceTypeChain)
+			err = errorWrapf(err, "unmarshal instanceSelection.ResourceTypeChain=`%s` fail", rawResourceTypeChain)
 			return
 		}
 
+		resourceTypeChain := make([]miniResourceType, 0, len(chain))
 		for _, c := range chain {
-			resourceTypes = append(resourceTypes, MiniResourceType{System: c["system_id"], ID: c["id"]})
-		}
-	}
-
-	// 去重
-	deduplicatedResourceTypes := make([]MiniResourceType, 0, len(resourceTypes))
-	rtSet := set.NewFixedLengthStringSet(len(resourceTypes))
-	for _, rt := range resourceTypes {
-		k := rt.UniqueKey()
-		if rtSet.Has(k) {
-			continue
+			resourceTypeChain = append(resourceTypeChain, miniResourceType{System: c["system_id"], ID: c["id"]})
 		}
 
-		deduplicatedResourceTypes = append(deduplicatedResourceTypes, rt)
-		rtSet.Add(k)
+		resourceTypeChains[key] = resourceTypeChain
 	}
 
-	return deduplicatedResourceTypes, nil
+	return resourceTypeChains, nil
 }
 
 // ListActionResourceTypeIDByResourceTypeSystem ...

@@ -170,7 +170,7 @@ func InitCaches(disabled bool) {
 		disabled,
 		retrieveActionDetailForLocal,
 		30*time.Minute,
-		nil,
+		newRandomDuration(30),
 	)
 
 	// 影响: 所有鉴权接口

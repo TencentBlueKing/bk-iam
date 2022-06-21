@@ -52,6 +52,8 @@ func retrieveActionDetail(key cache.Key) (interface{}, error) {
 
 func retrieveActionDetailForLocal(key cache.Key) (interface{}, error) {
 	detail := types.ActionDetail{}
+
+	// Note: 这里是三级缓存，LocalMemory失效后，从Redis Cache里获取，并不直接查询DB
 	err := ActionDetailCache.GetInto(key, &detail, retrieveActionDetail)
 	err = errorx.Wrapf(err, CacheLayer, "retrieveActionDetailForLocal",
 		"ActionDetailCache.GetInto key=`%s` fail", key.Key())
