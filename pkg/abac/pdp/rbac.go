@@ -172,12 +172,18 @@ func parseResourceNode(
 	// 解析iam path
 	iamPaths, ok := resource.Attribute.Get(types.IamPath)
 	if ok {
-		iamPathNodes, err := parseIamPath(iamPaths, actionResourceType, nodeSet)
+		iamPathNodes, err := parseIamPath(iamPaths, actionResourceType)
 		if err != nil {
 			return nil, err
 		}
 
-		resourceNodes = append(resourceNodes, iamPathNodes...)
+		for _, node := range iamPathNodes {
+			uniqueID := node.UniqueID()
+			if !nodeSet.Has(uniqueID) {
+				resourceNodes = append(resourceNodes, node)
+				nodeSet.Add(uniqueID)
+			}
+		}
 	}
 
 	node := types.ResourceNode{
@@ -199,7 +205,6 @@ func parseResourceNode(
 func parseIamPath(
 	iamPaths interface{},
 	actionResourceType types.ActionResourceType,
-	nodeSet *set.StringSet,
 ) ([]types.ResourceNode, error) {
 	// 生成resource type id -> system/pk 映射
 	resourceTypeMap := make(map[string]types.ThinResourceType, 4)
@@ -249,11 +254,7 @@ func parseIamPath(
 				TypePK: rt.PK,
 			}
 
-			uniqueID := node.UniqueID()
-			if !nodeSet.Has(uniqueID) {
-				resourceNodes = append(resourceNodes, node)
-				nodeSet.Add(uniqueID)
-			}
+			resourceNodes = append(resourceNodes, node)
 		}
 	}
 	return resourceNodes, nil
