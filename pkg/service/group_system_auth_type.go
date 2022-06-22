@@ -13,6 +13,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
@@ -79,7 +80,13 @@ func (s *groupService) AlterGroupAuthType(
 				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
 			}
 
+			nowTS := time.Now().Unix()
 			for _, member := range members {
+				// NOTE: subject system group表中只需要保持未过期的记录
+				if member.PolicyExpiredAt < nowTS {
+					continue
+				}
+
 				err := s.addOrUpdateSubjectSystemGroup(
 					tx, member.SubjectPK, systemID, groupPK, member.PolicyExpiredAt,
 				)

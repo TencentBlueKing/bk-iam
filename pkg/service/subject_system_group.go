@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
@@ -155,6 +156,13 @@ func (l *groupService) removeSubjectSystemGroup(
 
 		if errors.Is(err, ErrNeedRetry) {
 			continue
+		}
+
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
+			// 数据不存在时记录日志
+			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
+				systemID, subjectPK, groupPK)
+			return nil
 		}
 
 		if err != nil {

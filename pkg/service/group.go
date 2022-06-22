@@ -13,12 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"database/sql"
-	"errors"
-
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
@@ -303,12 +299,6 @@ func (l *groupService) BulkDeleteGroupMembers(
 	for _, systemID := range systemIDs {
 		for _, subjectPK := range subjectPKs {
 			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, parentPK)
-			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
-				// 数据不存在时记录日志
-				log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
-					systemID, subjectPK, parentPK)
-			}
-
 			if err != nil {
 				return nil, errorWrapf(
 					err,
