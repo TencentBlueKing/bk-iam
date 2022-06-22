@@ -265,8 +265,7 @@ var _ = Describe("SubjectService", func() {
 			}
 
 			err := manager.removeSubjectSystemGroup(nil, int64(1), "system", int64(2))
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "no subject system group")
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("updateSubjectSystemGroup fail", func() {

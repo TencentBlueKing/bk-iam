@@ -7,9 +7,10 @@ CREATE TABLE group_resource_policy (
    `action_pks` TEXT NOT NULL,  /* JSON */
    `action_related_resource_type_pk` int(10) unsigned NOT NULL,
    `resource_type_pk` int(10) unsigned NOT NULL,
-   `resource_id` varchar(32) NOT NULL,
+   `resource_id` varchar(36) NOT NULL,
    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
    PRIMARY KEY (`pk`),
-   UNIQUE KEY `idx_uk` (`signature`)
+   UNIQUE KEY `idx_uk` (`signature`),
+   INDEX `idx_resource` (`resource_id(7)`, `action_related_resource_type_pk`, `resource_type_pk`, `system_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='policy with resource';

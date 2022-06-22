@@ -11,6 +11,7 @@
 package cacheimpls
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -46,4 +47,16 @@ type SystemSubjectPKCacheKey struct {
 // Key ...
 func (k SystemSubjectPKCacheKey) Key() string {
 	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
+}
+
+// SystemResourceCacheKey
+type SystemResourceCacheKey struct {
+	SystemID             string
+	ActionResourceTypePK int64
+	ResourceTypePK       int64
+	ResourceID           string
+}
+
+func (k SystemResourceCacheKey) Key() string {
+	return fmt.Sprintf("%s:%d:%d:%s", k.SystemID, k.ActionResourceTypePK, k.ResourceTypePK, k.ResourceID)
 }

@@ -31,6 +31,12 @@ type GroupResourcePolicyService interface {
 	Alter(
 		tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
 	) error
+
+	GetAuthorizedActionGroupMap(
+		systemID string,
+		actionResourceTypePK, resourceTypePK int64,
+		resourceTypeID string,
+	) (map[int64][]int64, error)
 }
 
 type groupResourcePolicyService struct {
@@ -199,4 +205,57 @@ func (s *groupResourcePolicyService) Alter(
 	}
 
 	return nil
+}
+
+// GetAuthorizedActionGroupMap 查询有权限的用户组的操作
+func (s *groupResourcePolicyService) GetAuthorizedActionGroupMap(
+	systemID string,
+	actionResourceTypePK, resourceTypePK int64,
+	resourceID string,
+) (map[int64][]int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "GetAuthorizedActionGroupMap")
+
+	daoGroupResourcePolicies, err := s.manager.ListThinByResource(
+		systemID,
+		actionResourceTypePK,
+		resourceTypePK,
+		resourceID,
+	)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"manager.ListThinByResource fail, systemID=`%s`, actionResourceTypePK=`%d`, resourceTypePK=`%d`, resourceID=`%s`",
+			systemID,
+			actionResourceTypePK,
+			resourceTypePK,
+			resourceID,
+		)
+	}
+
+	actionGroupPKsSets := make(map[int64]*set.Int64Set, 5)
+	for _, daoGroupResourcePolicy := range daoGroupResourcePolicies {
+		var actionPKs []int64
+		if err := jsoniter.UnmarshalFromString(daoGroupResourcePolicy.ActionPKs, &actionPKs); err != nil {
+			return nil, errorWrapf(
+				err,
+				"jsoniter.UnmarshalFromString fail, actionPKs=`%s`",
+				daoGroupResourcePolicy.ActionPKs,
+			)
+		}
+
+		for _, actionPK := range actionPKs {
+			if _, found := actionGroupPKsSets[actionPK]; !found {
+				actionGroupPKsSets[actionPK] = set.NewInt64Set()
+			}
+
+			actionGroupPKsSets[actionPK].Add(daoGroupResourcePolicy.GroupPK)
+		}
+	}
+
+	actionGroupPKs := make(map[int64][]int64, len(actionGroupPKsSets))
+	for actionPK, actionGroupPKsSet := range actionGroupPKsSets {
+		actionGroupPKs[actionPK] = actionGroupPKsSet.ToSlice()
+	}
+
+	return actionGroupPKs, nil
 }

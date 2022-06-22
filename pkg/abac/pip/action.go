@@ -34,9 +34,21 @@ func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.
 	// 数据转换
 	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
 	for _, art := range detail.ResourceTypes {
+		resourceTypeOfInstanceSelections := make([]types.ThinResourceType, 0, len(art.ResourceTypeOfInstanceSelections))
+		for _, rt := range art.ResourceTypeOfInstanceSelections {
+			resourceTypeOfInstanceSelections = append(resourceTypeOfInstanceSelections, types.ThinResourceType{
+				PK:     rt.PK,
+				System: rt.System,
+				ID:     rt.ID,
+			})
+		}
+
 		arts = append(arts, types.ActionResourceType{
+			PK:     art.PK,
 			System: art.System,
 			Type:   art.ID,
+
+			ResourceTypeOfInstanceSelections: resourceTypeOfInstanceSelections,
 		})
 	}
 	return detail.PK, detail.AuthType, arts, nil

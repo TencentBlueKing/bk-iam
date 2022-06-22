@@ -41,11 +41,23 @@ type GroupResourcePolicy struct {
 	ResourceID     string `db:"resource_id"`
 }
 
+type ThinGroupResourcePolicy struct {
+	GroupPK   int64  `db:"group_pk"`
+	ActionPKs string `db:"action_pks"`
+}
+
 type GroupResourcePolicyManager interface {
 	ListBySignatures(signatures []string) (policies []GroupResourcePolicy, err error)
 	BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
+
+	// auth
+	ListThinByResource(
+		systemID string,
+		actionResourceTypePK, resourceTypePK int64,
+		resourceID string,
+	) (policies []ThinGroupResourcePolicy, err error)
 }
 
 type groupResourcePolicyManager struct {
@@ -128,4 +140,25 @@ func (m *groupResourcePolicyManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []in
 
 	sql := `DELETE FROM group_resource_policy WHERE pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, pks)
+}
+
+func (m *groupResourcePolicyManager) ListThinByResource(
+	systemID string,
+	actionResourceTypePK, resourceTypePK int64,
+	resourceID string,
+) (policies []ThinGroupResourcePolicy, err error) {
+	query := `SELECT 
+		group_pk,
+		action_pks
+		FROM group_resource_policy
+		WHERE system_id = ?
+		AND action_related_resource_type_pk = ?
+		AND resource_type_pk = ?
+		AND resource_id = ?`
+	err = database.SqlxSelect(m.DB, &policies, query, systemID, actionResourceTypePK, resourceTypePK, resourceID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return policies, nil
+	}
+
+	return policies, err
 }
