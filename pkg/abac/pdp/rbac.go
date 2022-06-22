@@ -92,32 +92,43 @@ func rbacEval(
 				resourceNode.TypePK,
 				resourceNode.ID,
 			)
+			if err != nil {
+				err = errorWrapf(
+					err,
+					"GetResourceActionAuthorizedGroupPKs fail, system=`%s` action=`%+v` resource=`%+v`",
+					system,
+					action,
+					resourceNode,
+				)
+				return
+			}
 		} else {
 			svc := service.NewGroupResourcePolicyService()
 			var actionGroupPKs map[int64][]int64
 			actionGroupPKs, err = svc.GetAuthorizedActionGroupMap(
 				system, actionResourceTypePK, resourceNode.TypePK, resourceNode.ID,
 			)
-			if err == nil {
-				groupPKs = actionGroupPKs[actionPK]
+			if err != nil {
+				err = errorWrapf(
+					err,
+					"svc.GetAuthorizedActionGroupMap fail, system=`%s` action=`%+v` resource=`%+v`",
+					system,
+					action,
+					resourceNode,
+				)
+				return
 			}
+
+			groupPKs = actionGroupPKs[actionPK]
 		}
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"GetResourceActionAuthorizedGroupPKs fail, system=`%s` action=`%+v` resource=`%+v`",
-				system,
-				action,
-				resourceNode,
-			)
-			return
-		}
+
 		debug.WithValue(entry, "resourceNode", resourceNode)
 		debug.WithValue(entry, "groupPKs", groupPKs)
 
 		// 5. 判断资源实例授权的用户组是否在effectGroupPKs中
 		for _, groupPK := range groupPKs {
 			if effectGroupPKSet.Has(groupPK) {
+				debug.WithValue(entry, "pass groupPK", groupPK)
 				return true, nil
 			}
 		}
@@ -130,7 +141,6 @@ func parseResourceNode(
 	resource types.Resource,
 	actionResourceType types.ActionResourceType,
 ) ([]types.ResourceNode, error) {
-
 	if actionResourceType.System != resource.System || actionResourceType.Type != resource.Type {
 		return nil, fmt.Errorf(
 			"resource type not match, actionResourceType=`%+v`, resource=`%+v`",
@@ -142,62 +152,15 @@ func parseResourceNode(
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	nodeSet := set.NewStringSet()
 
-	// 生成resource type -> system/pk 映射
-	resourceTypeMap := make(map[string]types.ThinResourceType, 4)
-	for _, rt := range actionResourceType.ResourceTypeOfInstanceSelections {
-		resourceTypeMap[rt.ID] = rt
-	}
-
-	// 解析资源属性
+	// 解析iam path
 	iamPaths, ok := resource.Attribute.Get(types.IamPath)
 	if ok {
-		paths := make([]string, 0, 2)
-		switch vs := iamPaths.(type) {
-		case []interface{}: // 处理属性为array的情况
-			for _, v := range vs {
-				if s, ok := v.(string); ok {
-					paths = append(paths, s)
-				} else {
-					return nil, errors.New("iamPath is not string")
-				}
-			}
-		case string:
-			paths = append(paths, vs)
-		default:
-			return nil, errors.New("iamPath is not string or array")
+		iamPathNodes, err := parseIamPath(iamPaths, actionResourceType, nodeSet)
+		if err != nil {
+			return nil, err
 		}
 
-		for _, path := range paths {
-			if path == "" {
-				continue
-			}
-
-			nodes := strings.Split(strings.Trim(path, "/"), "/")
-			for _, node := range nodes {
-				parts := strings.Split(node, ",")
-				if len(parts) != 2 {
-					return nil, errors.New("iamPath is not valid")
-				}
-
-				resourceTypeID := parts[0]
-				rt, ok := resourceTypeMap[resourceTypeID]
-				if !ok {
-					return nil, fmt.Errorf("iamPath resource type not found, resourceTypeID=%s", resourceTypeID)
-				}
-
-				node := types.ResourceNode{
-					System: rt.System,
-					Type:   resourceTypeID,
-					ID:     parts[1],
-					TypePK: rt.PK,
-				}
-
-				if !nodeSet.Has(node.String()) {
-					resourceNodes = append(resourceNodes, node)
-					nodeSet.Add(node.String())
-				}
-			}
-		}
+		resourceNodes = append(resourceNodes, iamPathNodes...)
 	}
 
 	node := types.ResourceNode{
@@ -207,10 +170,74 @@ func parseResourceNode(
 		TypePK: actionResourceType.PK,
 	}
 
-	if !nodeSet.Has(node.String()) {
+	uniqueID := node.UniqueID()
+	if !nodeSet.Has(uniqueID) {
 		resourceNodes = append(resourceNodes, node)
-		nodeSet.Add(node.String())
+		nodeSet.Add(uniqueID)
 	}
 
+	return resourceNodes, nil
+}
+
+func parseIamPath(
+	iamPaths interface{},
+	actionResourceType types.ActionResourceType,
+	nodeSet *set.StringSet,
+) ([]types.ResourceNode, error) {
+	// 生成resource type id -> system/pk 映射
+	resourceTypeMap := make(map[string]types.ThinResourceType, 4)
+	for _, rt := range actionResourceType.ResourceTypeOfInstanceSelections {
+		resourceTypeMap[rt.ID] = rt
+	}
+
+	resourceNodes := make([]types.ResourceNode, 0, 2)
+	paths := make([]string, 0, 2)
+	switch vs := iamPaths.(type) {
+	case []interface{}:
+		for _, v := range vs {
+			if s, ok := v.(string); ok {
+				paths = append(paths, s)
+			} else {
+				return nil, errors.New("iamPath is not string")
+			}
+		}
+	case string:
+		paths = append(paths, vs)
+	default:
+		return nil, errors.New("iamPath is not string or array")
+	}
+
+	for _, path := range paths {
+		if path == "" {
+			continue
+		}
+
+		nodes := strings.Split(strings.Trim(path, "/"), "/")
+		for _, node := range nodes {
+			parts := strings.Split(node, ",")
+			if len(parts) != 2 {
+				return nil, errors.New("iamPath is not valid")
+			}
+
+			resourceTypeID := parts[0]
+			rt, ok := resourceTypeMap[resourceTypeID]
+			if !ok {
+				return nil, fmt.Errorf("iamPath resource type not found, resourceTypeID=%s", resourceTypeID)
+			}
+
+			node := types.ResourceNode{
+				System: rt.System,
+				Type:   resourceTypeID,
+				ID:     parts[1],
+				TypePK: rt.PK,
+			}
+
+			uniqueID := node.UniqueID()
+			if !nodeSet.Has(uniqueID) {
+				resourceNodes = append(resourceNodes, node)
+				nodeSet.Add(uniqueID)
+			}
+		}
+	}
 	return resourceNodes, nil
 }

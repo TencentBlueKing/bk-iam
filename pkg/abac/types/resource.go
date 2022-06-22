@@ -46,6 +46,6 @@ type ResourceNode struct {
 	TypePK int64
 }
 
-func (r *ResourceNode) String() string {
+func (r *ResourceNode) UniqueID() string {
 	return r.System + ":" + r.Type + ":" + r.ID
 }

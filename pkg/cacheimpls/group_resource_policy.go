@@ -43,7 +43,17 @@ func GetResourceActionAuthorizedGroupPKs(
 		return groupPKs, nil
 	}
 
-	actionGroupPKs, err := retrieveResourceAuthorizedActionGroup(key)
+	return retrieveResourceActionAuthorizedGroupPKs(key, actionPK)
+}
+
+func retrieveResourceActionAuthorizedGroupPKs(key SystemResourceCacheKey, actionPK int64) ([]int64, error) {
+	svc := service.NewGroupResourcePolicyService()
+	actionGroupPKs, err := svc.GetAuthorizedActionGroupMap(
+		key.SystemID,
+		key.ActionResourceTypePK,
+		key.ResourceTypePK,
+		key.ResourceID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -114,24 +124,6 @@ func getResourceActionAuthorizedGroupPKsFromCache(key cache.Key, actionPK int64)
 	}
 
 	return groupPKs, nil
-}
-
-// retrieveResourceAuthorizedActionGroup 从数据库拿操作与资源信息拿rbac授权的用户组
-func retrieveResourceAuthorizedActionGroup(key cache.Key) (map[int64][]int64, error) {
-	k := key.(SystemResourceCacheKey)
-
-	svc := service.NewGroupResourcePolicyService()
-	actionGroupPKs, err := svc.GetAuthorizedActionGroupMap(
-		k.SystemID,
-		k.ActionResourceTypePK,
-		k.ResourceTypePK,
-		k.ResourceID,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return actionGroupPKs, nil
 }
 
 // DeleteResourceAuthorizedGroupPKs 删除资源授权的group pks缓存

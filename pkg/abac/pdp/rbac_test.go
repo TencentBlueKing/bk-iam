@@ -415,7 +415,7 @@ var _ = Describe("rbac", func() {
 
 			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "GetResourceActionAuthorizedGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "svc.GetAuthorizedActionGroupMap")
 		})
 
 		It("not pass withCache", func() {

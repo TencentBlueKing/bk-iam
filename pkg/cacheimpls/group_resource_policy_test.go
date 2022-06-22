@@ -98,6 +98,11 @@ func Test_getResourceActionAuthorizedGroupPKsFromCache(t *testing.T) {
 }
 
 func Test_retrieveResourceAuthorizedActionGroup(t *testing.T) {
+	expiration := 5 * time.Minute
+	mockCache := redis.NewMockCache("mockCache", expiration)
+
+	GroupResourcePolicyCache = mockCache
+
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
@@ -121,12 +126,9 @@ func Test_retrieveResourceAuthorizedActionGroup(t *testing.T) {
 		ResourceID:           "resource_test",
 	}
 
-	actionGroupPKs, err := retrieveResourceAuthorizedActionGroup(key)
+	groupPKs, err := retrieveResourceActionAuthorizedGroupPKs(key, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, map[int64][]int64{
-		1: {1, 2, 3},
-		2: {4, 5, 6},
-	}, actionGroupPKs)
+	assert.Equal(t, []int64{1, 2, 3}, groupPKs)
 }
 
 func TestGetResourceActionAuthorizedGroupPKs(t *testing.T) {

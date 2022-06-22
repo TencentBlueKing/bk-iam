@@ -27,7 +27,7 @@ var _ = Describe("resource", func() {
 				TypePK: 1,
 			}
 
-			assert.Equal(GinkgoT(), "test:obj:123", resourceNode.String())
+			assert.Equal(GinkgoT(), "test:obj:123", resourceNode.UniqueID())
 		})
 	})
 })
