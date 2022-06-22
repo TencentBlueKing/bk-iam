@@ -62,3 +62,18 @@ func (mr *MockResourceTypeManagerMockRecorder) BulkDeleteWithTx(tx, system, ids 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockResourceTypeManager)(nil).BulkDeleteWithTx), tx, system, ids)
 }
+
+// ListByIDs mocks base method.
+func (m *MockResourceTypeManager) ListByIDs(system string, ids []string) ([]dao.ResourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByIDs", system, ids)
+	ret0, _ := ret[0].([]dao.ResourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByIDs indicates an expected call of ListByIDs.
+func (mr *MockResourceTypeManagerMockRecorder) ListByIDs(system, ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByIDs", reflect.TypeOf((*MockResourceTypeManager)(nil).ListByIDs), system, ids)
+}
