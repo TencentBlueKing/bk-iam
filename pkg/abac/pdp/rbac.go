@@ -48,9 +48,15 @@ func rbacEval(
 	}
 	debug.WithValue(entry, "actionResourceTypes", actionResourceTypes)
 
-	if len(resources) != 1 || len(actionResourceTypes) != 1 {
-		// NOTE: 能做RBAC鉴权的操作的资源类型只能有一个
-		err = errorWrapf(errors.New("rbacEval only support action with one resource type"), "")
+	// 检验资源类型是否匹配
+	err = validResourceType(resources, actionResourceTypes)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"validResourceType fail, resources=`%+v`, actionResourceTypes=`%+v`",
+			resources,
+			actionResourceTypes,
+		)
 		return
 	}
 
@@ -136,19 +142,30 @@ func rbacEval(
 	return false, nil
 }
 
-// parseResourceNode 解析资源节点并去重
-func parseResourceNode(
-	resource types.Resource,
-	actionResourceType types.ActionResourceType,
-) ([]types.ResourceNode, error) {
+func validResourceType(resources []types.Resource, actionResourceTypes []types.ActionResourceType) error {
+	if len(resources) != 1 || len(actionResourceTypes) != 1 {
+		// NOTE: 能做RBAC鉴权的操作的资源类型只能有一个
+		return errors.New("rbacEval only support action with one resource type")
+	}
+
+	resource := resources[0]
+	actionResourceType := actionResourceTypes[0]
 	if actionResourceType.System != resource.System || actionResourceType.Type != resource.Type {
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"resource type not match, actionResourceType=`%+v`, resource=`%+v`",
 			actionResourceType,
 			resource,
 		)
 	}
 
+	return nil
+}
+
+// parseResourceNode 解析资源节点并去重
+func parseResourceNode(
+	resource types.Resource,
+	actionResourceType types.ActionResourceType,
+) ([]types.ResourceNode, error) {
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	nodeSet := set.NewStringSet()
 

@@ -25,6 +25,65 @@ import (
 )
 
 var _ = Describe("rbac", func() {
+	Describe("validResourceType", func() {
+		var actionResourceTypes []types.ActionResourceType
+		BeforeEach(func() {
+			actionResourceTypes = []types.ActionResourceType{{
+				System: "test",
+				Type:   "t1",
+				PK:     1,
+				ResourceTypeOfInstanceSelections: []types.ThinResourceType{
+					{
+						System: "cmdb",
+						ID:     "biz",
+						PK:     2,
+					},
+					{
+						System: "test",
+						ID:     "set",
+						PK:     3,
+					},
+					{
+						System: "test",
+						ID:     "module",
+						PK:     4,
+					},
+					{
+						System: "test",
+						ID:     "func",
+						PK:     5,
+					},
+				},
+			}}
+		})
+
+		It("resource type not found error", func() {
+			err := validResourceType([]types.Resource{{
+				System: "test",
+				Type:   "t2",
+				ID:     "id1",
+				Attribute: map[string]interface{}{
+					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
+				},
+			}}, actionResourceTypes)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
+		})
+
+		It("resource type system not match error", func() {
+			err := validResourceType([]types.Resource{{
+				System: "test1",
+				Type:   "t1",
+				ID:     "id1",
+				Attribute: map[string]interface{}{
+					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
+				},
+			}}, actionResourceTypes)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
+		})
+	})
+
 	Describe("parseResourceNode", func() {
 		var actionResourceType types.ActionResourceType
 		BeforeEach(func() {
@@ -259,32 +318,6 @@ var _ = Describe("rbac", func() {
 			}, actionResourceType)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "iamPath resource type not found")
-		})
-
-		It("resource type not found error", func() {
-			_, err := parseResourceNode(types.Resource{
-				System: "test",
-				Type:   "t2",
-				ID:     "id1",
-				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
-				},
-			}, actionResourceType)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
-		})
-
-		It("resource type system not match error", func() {
-			_, err := parseResourceNode(types.Resource{
-				System: "test1",
-				Type:   "t1",
-				ID:     "id1",
-				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
-				},
-			}, actionResourceType)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
 		})
 	})
 
