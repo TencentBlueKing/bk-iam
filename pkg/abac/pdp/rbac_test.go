@@ -379,7 +379,7 @@ var _ = Describe("rbac", func() {
 
 		It("action.Attribute.GetResourceTypes fail", func() {
 			action = types.NewAction()
-			_, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "action.Attribute.GetResourceTypes")
 		})
@@ -400,7 +400,7 @@ var _ = Describe("rbac", func() {
 					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4",
 				},
 			}}
-			_, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "rbacEval only support action with one resource type")
 		})
@@ -416,7 +416,7 @@ var _ = Describe("rbac", func() {
 				Type:   "t2",
 				PK:     1,
 			}})
-			_, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "rbacEval only support action with one resource type")
 		})
@@ -430,7 +430,7 @@ var _ = Describe("rbac", func() {
 				return nil, errors.New("test")
 			})
 
-			_, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetResourceActionAuthorizedGroupPKs")
 		})
@@ -446,7 +446,7 @@ var _ = Describe("rbac", func() {
 				func() service.GroupResourcePolicyService { return mockSvc },
 			)
 
-			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
+			_, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "svc.GetAuthorizedActionGroupMap")
 		})
@@ -460,7 +460,7 @@ var _ = Describe("rbac", func() {
 				return []int64{3}, nil
 			})
 
-			isPass, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			isPass, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), isPass)
 		})
@@ -476,7 +476,7 @@ var _ = Describe("rbac", func() {
 				func() service.GroupResourcePolicyService { return mockSvc },
 			)
 
-			isPass, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
+			isPass, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
 			assert.NoError(GinkgoT(), err)
 			assert.False(GinkgoT(), isPass)
 		})
@@ -490,7 +490,7 @@ var _ = Describe("rbac", func() {
 				return []int64{3, 1, 4, 5}, nil
 			})
 
-			isPass, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
+			isPass, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), isPass)
 		})
@@ -506,7 +506,7 @@ var _ = Describe("rbac", func() {
 				func() service.GroupResourcePolicyService { return mockSvc },
 			)
 
-			isPass, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
+			isPass, err := rbacEval("test", action, resources, effectGroupPKs, true, nil)
 			assert.NoError(GinkgoT(), err)
 			assert.True(GinkgoT(), isPass)
 		})

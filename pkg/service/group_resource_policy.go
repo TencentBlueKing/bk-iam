@@ -213,7 +213,7 @@ func (s *groupResourcePolicyService) GetAuthorizedActionGroupMap(
 	actionResourceTypePK, resourceTypePK int64,
 	resourceID string,
 ) (map[int64][]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "ListGroupAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "GetAuthorizedActionGroupMap")
 
 	daoGroupResourcePolicies, err := s.manager.ListThinByResource(
 		systemID,

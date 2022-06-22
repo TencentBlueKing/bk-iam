@@ -62,7 +62,7 @@ func rbacEval(
 
 	// 2. 解析资源实例的以及属性, 返回出可能被授权的资源实例节点
 	debug.AddStep(entry, "Parse Resource Nodes")
-	// 从resources中解析出用于rbac鉴权的资源实例节点
+	// 从resources中解析出用于rbac鉴权的资源实例节点 NOTE: 支持rbac鉴权的资源类型只能有一个
 	resourceNodes, err := parseResourceNode(resources[0], actionResourceTypes[0])
 	if err != nil {
 		err = errorWrapf(
@@ -91,24 +91,6 @@ func rbacEval(
 		debug.AddStep(entry, "Get Resource ActionAuthorized Group PKs")
 		var groupPKs []int64
 		if withoutCache {
-			groupPKs, err = cacheimpls.GetResourceActionAuthorizedGroupPKs(
-				system,
-				actionPK,
-				actionResourceTypePK,
-				resourceNode.TypePK,
-				resourceNode.ID,
-			)
-			if err != nil {
-				err = errorWrapf(
-					err,
-					"GetResourceActionAuthorizedGroupPKs fail, system=`%s` action=`%+v` resource=`%+v`",
-					system,
-					action,
-					resourceNode,
-				)
-				return
-			}
-		} else {
 			svc := service.NewGroupResourcePolicyService()
 			var actionGroupPKs map[int64][]int64
 			actionGroupPKs, err = svc.GetAuthorizedActionGroupMap(
@@ -126,6 +108,24 @@ func rbacEval(
 			}
 
 			groupPKs = actionGroupPKs[actionPK]
+		} else {
+			groupPKs, err = cacheimpls.GetResourceActionAuthorizedGroupPKs(
+				system,
+				actionPK,
+				actionResourceTypePK,
+				resourceNode.TypePK,
+				resourceNode.ID,
+			)
+			if err != nil {
+				err = errorWrapf(
+					err,
+					"GetResourceActionAuthorizedGroupPKs fail, system=`%s` action=`%+v` resource=`%+v`",
+					system,
+					action,
+					resourceNode,
+				)
+				return
+			}
 		}
 
 		debug.WithValue(entry, "resourceNode", resourceNode)
