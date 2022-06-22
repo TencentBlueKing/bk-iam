@@ -22,8 +22,8 @@ import (
 )
 
 type rawResourceType struct {
-	System string
-	ID     string
+	System string `json:"system_id"`
+	ID     string `json:"id"`
 }
 
 func (r *rawResourceType) UniqueKey() string {
@@ -95,7 +95,7 @@ func (l *actionService) ListThinActionResourceTypes(
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"convertToActionResourceTypes arts=`%+v`, risl=`%+v`, rtcs=`%+v` rtPKmap=`%+v`  fail",
+			"convertToActionResourceTypes arts=`%+v`, risl=`%+v`, rtcs=`%+v` rtPKmap=`%+v` fail",
 			arts,
 			relatedInstanceSelectionsList,
 			allResourceTypeChains,
@@ -254,23 +254,18 @@ func (l *actionService) queryResourceTypeChain(ris []types.ReferenceInstanceSele
 		rawResourceTypeChain, ok := instanceSelectionToResourceTypeChainMap[key]
 		if !ok {
 			return resourceTypeChains, errorWrapf(
-				err, "instanceSelection not exists, systemID=`%s` id=`%s`", is.System, is.ID,
+				fmt.Errorf("instanceSelection not exists, systemID=`%s` id=`%s`", is.System, is.ID),
+				"",
 			)
 		}
 
-		chain := []map[string]string{}
+		chain := []rawResourceType{}
 		err = jsoniter.UnmarshalFromString(rawResourceTypeChain, &chain)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal instanceSelection.ResourceTypeChain=`%s` fail", rawResourceTypeChain)
 			return
 		}
-
-		resourceTypeChain := make([]rawResourceType, 0, len(chain))
-		for _, c := range chain {
-			resourceTypeChain = append(resourceTypeChain, rawResourceType{System: c["system_id"], ID: c["id"]})
-		}
-
-		resourceTypeChains[key] = resourceTypeChain
+		resourceTypeChains[key] = chain
 	}
 
 	return resourceTypeChains, nil
