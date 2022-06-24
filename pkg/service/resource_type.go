@@ -30,6 +30,7 @@ const ResourceTypeSVC = "ResourceTypeSVC"
 // ResourceTypeService ...
 type ResourceTypeService interface {
 	ListBySystem(system string) ([]types.ResourceType, error)
+	ListThinByIDs(systemID string, resourceTypeIDs []string) ([]types.ThinResourceType, error)
 
 	BulkCreate(system string, resourceTypes []types.ResourceType) error
 	Update(system, resourceTypeID string, resourceType types.ResourceType) error
@@ -261,4 +262,29 @@ func (l *resourceTypeService) BulkDelete(system string, resourceTypeIDs []string
 	}
 
 	return tx.Commit()
+}
+
+func (s *resourceTypeService) ListThinByIDs(systemID string, resourceTypeIDs []string) (
+	resourceTypes []types.ThinResourceType, err error,
+) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ResourceTypeSVC, "ListThinByIDs")
+
+	rts, err := s.manager.ListByIDs(systemID, resourceTypeIDs)
+	if err != nil {
+		return resourceTypes, errorWrapf(
+			err,
+			"resourceTypeManager.ListByIDs system=`%s`, ids=`%v` fail", systemID, resourceTypeIDs,
+		)
+	}
+
+	resourceTypes = make([]types.ThinResourceType, 0, len(rts))
+	for _, rt := range rts {
+		resourceTypes = append(resourceTypes, types.ThinResourceType{
+			PK:     rt.PK,
+			System: rt.System,
+			ID:     rt.ID,
+		})
+	}
+
+	return
 }

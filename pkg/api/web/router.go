@@ -194,3 +194,13 @@ func Register(r *gin.RouterGroup) {
 		fg.DELETE("", handler.BatchUnfreezeSubjects)
 	}
 }
+
+// RegisterV2 ...
+func RegisterV2(r *gin.RouterGroup) {
+	s := r.Group("/systems/:system_id")
+	s.Use(common.SystemExists())
+	{
+		// policies 变更
+		s.POST("/policies", handler.AlterPoliciesV2)
+	}
+}

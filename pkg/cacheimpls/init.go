@@ -170,7 +170,7 @@ func InitCaches(disabled bool) {
 		"local_act_dtl",
 		disabled,
 		retrieveActionDetailFromRedis,
-		30*time.Minute,
+		10*time.Minute,
 		newRandomDuration(30),
 	)
 

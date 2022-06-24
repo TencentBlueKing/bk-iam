@@ -63,19 +63,13 @@ type policyController struct {
 	actionService          service.ActionService
 	policyService          service.PolicyService
 	temporaryPolicyService service.TemporaryPolicyService
-
-	// RBAC
-	groupResourcePolicyService service.GroupResourcePolicyService
-	groupService               service.GroupService
 }
 
 func NewPolicyController() PolicyController {
 	return &policyController{
-		subjectService:             service.NewSubjectService(),
-		actionService:              service.NewActionService(),
-		policyService:              service.NewPolicyService(),
-		temporaryPolicyService:     service.NewTemporaryPolicyService(),
-		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
-		groupService:               service.NewGroupService(),
+		subjectService:         service.NewSubjectService(),
+		actionService:          service.NewActionService(),
+		policyService:          service.NewPolicyService(),
+		temporaryPolicyService: service.NewTemporaryPolicyService(),
 	}
 }
