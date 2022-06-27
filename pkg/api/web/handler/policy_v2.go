@@ -44,14 +44,18 @@ func AlterPoliciesV2(c *gin.Context) {
 
 	createPolicies := make([]types.Policy, 0, len(body.CreatePolicies))
 	for _, p := range body.CreatePolicies {
-		createPolicies = append(createPolicies,
-			convertToInternalTypesPolicy(systemID, subject, 0, service.PolicyTemplateIDCustom, p))
+		createPolicies = append(
+			createPolicies,
+			convertToInternalTypesPolicy(systemID, subject, 0, service.PolicyTemplateIDCustom, p),
+		)
 	}
 
 	updatePolicies := make([]types.Policy, 0, len(body.UpdatePolicies))
 	for _, p := range body.UpdatePolicies {
-		updatePolicies = append(updatePolicies,
-			convertToInternalTypesPolicy(systemID, subject, p.ID, service.PolicyTemplateIDCustom, p.policy))
+		updatePolicies = append(
+			updatePolicies,
+			convertToInternalTypesPolicy(systemID, subject, p.ID, service.PolicyTemplateIDCustom, p.policy),
+		)
 	}
 
 	resourceChangedActions := make([]types.ResourceChangedAction, 0, len(body.ResourceActions))
@@ -79,15 +83,12 @@ func AlterPoliciesV2(c *gin.Context) {
 			err,
 			"Handler",
 			"AlterPoliciesV2",
-			"systemID=`%s`, subjectType=`%s`, subjectID=`%s`, createPolicies=`%+v`, "+
-				"updatePolicies=`%+v` resourceActions=`%+v groupAuthType=`%s``",
-			systemID,
-			body.Subject.Type,
-			body.Subject.ID,
-			createPolicies,
-			updatePolicies,
-			resourceChangedActions,
-			body.GroupAuthType,
+			"systemID=`%s`, subjectType=`%s`, subjectID=`%s`, templateID=`%d`, "+
+				"createPolicies=`%+v`, updatePolicies=`%+v` deletePolicyIDs=`%+v`, "+
+				"resourceActions=`%+v groupAuthType=`%s``",
+			systemID, body.Subject.Type, body.Subject.ID, body.TemplateID,
+			createPolicies, updatePolicies, body.DeletePolicyIDs,
+			resourceChangedActions, body.GroupAuthType,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return

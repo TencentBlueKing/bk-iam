@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	svctypes "iam/pkg/service/types"
+	svcTypes "iam/pkg/service/types"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
@@ -113,11 +113,16 @@ func (c *policyControllerV2) Alter(
 
 	// DB事务提交
 	err = tx.Commit()
+	if err != nil {
+		err = errorWrapf(err, "tx commit fail")
+		return
+	}
 
 	// 4. 清理缓存
 	// 4.1 ABAC相关缓存
 	if len(createPolicies) > 0 || len(updatePolicies) > 0 || len(deletePolicyIDs) > 0 {
 		policy.DeleteSystemSubjectPKsFromCache(systemID, []int64{subjectPK})
+		// 只有自定义权限才需要清理Expression，模板权限不需要清理Expression，因为模板的Expression是复用的，有定时任务自动清理
 		if templateID == 0 && len(updatedActionPKExpressionPKs) > 0 {
 			expression.BatchDeleteExpressionsFromCache(updatedActionPKExpressionPKs)
 		}
@@ -182,76 +187,38 @@ func (c *policyControllerV2) alterABACPolicies(
 
 	// 自定义权限
 	if templateID == 0 {
-		updatedActionPKExpressionPKs, err = c.alterABACCustomPolicies(
+		// service执行 create, update, delete
+		updatedActionPKExpressionPKs, err = c.policyService.AlterCustomPoliciesWithTx(
 			tx, subjectPK, cps, ups, deletePolicyIDs, actionPKWithResourceTypeSet,
 		)
 		if err != nil {
-			err = errorWrapf(err, "c.alterABACCustomPolicies subjectPK=`%d` fail", subjectPK)
+			err = errorWrapf(err, "policyService.AlterPolicies subjectPK=`%d` fail", subjectPK)
 			return
 		}
-
+		// Note: 这里必须直接返回，否则会走到模板权限逻辑
 		return
 	}
 
 	// 模板权限
-	err = c.alterABACTemplatePolicies(tx, subjectPK, templateID, cps, ups, deletePolicyIDs, actionPKWithResourceTypeSet)
-	if err != nil {
-		err = errorWrapf(err, "c.alterABACTemplatePolicies subjectPK=`%d` fail", subjectPK)
-		return
-	}
-
-	return updatedActionPKExpressionPKs, nil
-}
-
-func (c *policyControllerV2) alterABACCustomPolicies(
-	tx *sqlx.Tx,
-	subjectPK int64,
-	createPolicies []svctypes.Policy,
-	updatePolicies []svctypes.Policy,
-	deletePolicyIDs []int64,
-	actionPKWithResourceTypeSet *set.Int64Set,
-) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterABACCustomPolicies")
-
-	// service执行 create, update, delete
-	updatedActionPKExpressionPKs, err = c.policyService.AlterCustomPoliciesWithTx(
-		tx, subjectPK, createPolicies, updatePolicies, deletePolicyIDs, actionPKWithResourceTypeSet,
-	)
-	if err != nil {
-		err = errorWrapf(err, "policyService.AlterPolicies subjectPK=`%d` fail", subjectPK)
-		return
-	}
-	return
-}
-
-func (c *policyControllerV2) alterABACTemplatePolicies(
-	tx *sqlx.Tx,
-	subjectPK, templateID int64,
-	createPolicies []svctypes.Policy,
-	updatePolicies []svctypes.Policy,
-	deletePolicyIDs []int64,
-	actionPKWithResourceTypeSet *set.Int64Set,
-) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterABACTemplatePolicies")
-
+	// 创建&删除
 	if len(createPolicies) > 0 || len(updatePolicies) > 0 {
 		err = c.policyService.CreateAndDeleteTemplatePoliciesWithTx(
-			tx, subjectPK, templateID, createPolicies, deletePolicyIDs, actionPKWithResourceTypeSet)
+			tx, subjectPK, templateID, cps, deletePolicyIDs, actionPKWithResourceTypeSet)
 		if err != nil {
 			err = errorWrapf(err, "policyService.CreateAndDeleteTemplatePolicies subjectPK=`%d` fail", subjectPK)
 			return
 		}
 	}
-
+	// 更新
 	if len(updatePolicies) > 0 {
-		err = c.policyService.UpdateTemplatePoliciesWithTx(tx, subjectPK, updatePolicies, actionPKWithResourceTypeSet)
+		err = c.policyService.UpdateTemplatePoliciesWithTx(tx, subjectPK, ups, actionPKWithResourceTypeSet)
 		if err != nil {
 			err = errorWrapf(err, "policyService.UpdateTemplatePolicies subjectPK=`%d` fail", subjectPK)
 			return
 		}
 	}
 
-	return nil
+	return updatedActionPKExpressionPKs, nil
 }
 
 func (c *policyControllerV2) alterRBACPolicies(
@@ -259,11 +226,11 @@ func (c *policyControllerV2) alterRBACPolicies(
 	groupPK, templateID int64,
 	systemID string,
 	resourceChangedActions []types.ResourceChangedAction,
-) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
+) (resourceChangedContents []svcTypes.ResourceChangedContent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterRBACPolicy")
 
 	// 避免无需变更情况，也进行各种数据查询
-	if len(resourceChangedContents) == 0 {
+	if len(resourceChangedActions) == 0 {
 		return
 	}
 
@@ -293,7 +260,7 @@ func (c *policyControllerV2) alterRBACPolicies(
 
 func (c *policyControllerV2) convertToResourceChangedContent(
 	systemID string, resourceChangedActions []types.ResourceChangedAction,
-) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
+) (resourceChangedContents []svcTypes.ResourceChangedContent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "convertToResourceChangedContent")
 
 	// 1. 查询每个操作的详情
@@ -313,16 +280,16 @@ func (c *policyControllerV2) convertToResourceChangedContent(
 	}
 
 	// 3. 组装数据
-	resourceChangedContents = make([]svctypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
+	resourceChangedContents = make([]svcTypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
 	for _, rca := range resourceChangedActions {
 		// 根据ActionRelatedResourceTypePK对Action进行分组
-		relatedResourceTypePKToChangedActionMap := c.groupActionByActionRelatedResourceTypePK(
+		relatedResourceTypePKToChangedActionMap := c.groupByActionRelatedResourceTypePK(
 			rca.CreatedActionIDs, rca.DeletedActionIDs, &actionDetailMap,
 		)
 		// 组织最终数据
 		resourceTypePK := resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type]
 		for relatedResourceTypePK, ca := range relatedResourceTypePKToChangedActionMap {
-			resourceChangedContents = append(resourceChangedContents, svctypes.ResourceChangedContent{
+			resourceChangedContents = append(resourceChangedContents, svcTypes.ResourceChangedContent{
 				ResourceTypePK:              resourceTypePK,
 				ResourceID:                  rca.Resource.ID,
 				ActionRelatedResourceTypePK: relatedResourceTypePK,
@@ -370,7 +337,7 @@ func (c *policyControllerV2) queryResourceTypePK(
 
 func (c *policyControllerV2) queryActionDetail(
 	systemID string, resourceChangedActions *[]types.ResourceChangedAction,
-) (actionDetailMap map[string]svctypes.ActionDetail, err error) {
+) (actionDetailMap map[string]svcTypes.ActionDetail, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "queryActionDetail")
 
 	// 1. 只查询有需要的Action
@@ -381,7 +348,7 @@ func (c *policyControllerV2) queryActionDetail(
 	}
 
 	// 2. 遍历Action，从缓存里查询每个Action的Detail
-	actionDetailMap = make(map[string]svctypes.ActionDetail, actionIDSet.Size())
+	actionDetailMap = make(map[string]svcTypes.ActionDetail, actionIDSet.Size())
 	for _, actionID := range actionIDSet.ToSlice() {
 		detail, err := cacheimpls.GetActionDetail(systemID, actionID)
 		if err != nil {
@@ -400,9 +367,9 @@ type changedAction struct {
 	DeletedActionPKs []int64
 }
 
-func (c *policyControllerV2) groupActionByActionRelatedResourceTypePK(
+func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	createdActionIDs, deletedActionIDs []string,
-	actionDetailMap *map[string]svctypes.ActionDetail,
+	actionDetailMap *map[string]svcTypes.ActionDetail,
 ) (relatedResourceTypePKToChangedActionMap map[int64]changedAction) {
 	// 记录每个relatedResourceTypePK对应的changedAction
 	changedActions := []changedAction{}

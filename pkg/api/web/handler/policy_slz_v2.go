@@ -15,12 +15,14 @@ type policiesAlterSerializerV2 struct {
 	GroupAuthType string `json:"group_auth_type" binding:"required, oneof=all rbac abac none"`
 }
 
+type resourceSerializer struct {
+	SystemID string `json:"system_id" binding:"required"`
+	Type     string `json:"type" binding:"required"`
+	ID       string `json:"id" binding:"required"`
+}
+
 type resourceAction struct {
-	Resource struct {
-		SystemID string `json:"system_id" binding:"required"`
-		Type     string `json:"type" binding:"required"`
-		ID       string `json:"id" binding:"required"`
-	} `json:"resource" binding:"required"`
-	CreatedActionIDs []string `json:"created_action_ids" binding:"required"`
-	DeletedActionIDs []string `json:"deleted_action_ids" binding:"required"`
+	Resource         resourceSerializer `json:"resource" binding:"required"`
+	CreatedActionIDs []string           `json:"created_action_ids" binding:"required"`
+	DeletedActionIDs []string           `json:"deleted_action_ids" binding:"required"`
 }

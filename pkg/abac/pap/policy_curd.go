@@ -21,7 +21,7 @@ import (
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
-	svctypes "iam/pkg/service/types"
+	svcTypes "iam/pkg/service/types"
 )
 
 // NOTE: **important** / **重要**
@@ -33,17 +33,17 @@ var ErrActionNotExists = errors.New("action not exists")
 
 func convertToServicePolicies(
 	subjectPK int64, policies []types.Policy, actionMap map[string]int64,
-) ([]svctypes.Policy, error) {
+) ([]svcTypes.Policy, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "convertServicePolicies")
 
-	svcPolicies := make([]svctypes.Policy, 0, len(policies))
+	svcPolicies := make([]svcTypes.Policy, 0, len(policies))
 	for _, p := range policies {
 		actionPK, ok := actionMap[p.Action.ID]
 		if !ok {
 			err := errorWrapf(ErrActionNotExists, "actionID=`%s` fail", p.Action.ID)
 			return nil, err
 		}
-		svcPolicies = append(svcPolicies, svctypes.Policy{
+		svcPolicies = append(svcPolicies, svcTypes.Policy{
 			Version:    p.Version,
 			ID:         p.ID,
 			SubjectPK:  subjectPK,
@@ -58,17 +58,17 @@ func convertToServicePolicies(
 
 func convertToServiceTemporaryPolicies(
 	subjectPK int64, policies []types.Policy, actionMap map[string]int64,
-) ([]svctypes.TemporaryPolicy, error) {
+) ([]svcTypes.TemporaryPolicy, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "convertToServiceTemporaryPolicies")
 
-	svcTemporaryPolicies := make([]svctypes.TemporaryPolicy, 0, len(policies))
+	svcTemporaryPolicies := make([]svcTypes.TemporaryPolicy, 0, len(policies))
 	for _, p := range policies {
 		actionPK, ok := actionMap[p.Action.ID]
 		if !ok {
 			err := errorWrapf(ErrActionNotExists, "actionID=`%s` fail", p.Action.ID)
 			return nil, err
 		}
-		svcTemporaryPolicies = append(svcTemporaryPolicies, svctypes.TemporaryPolicy{
+		svcTemporaryPolicies = append(svcTemporaryPolicies, svcTypes.TemporaryPolicy{
 			SubjectPK:  subjectPK,
 			ActionPK:   actionPK,
 			Expression: p.Expression,
@@ -333,7 +333,7 @@ func (c *policyController) UpdateSubjectPoliciesExpiredAt(
 		return err
 	}
 
-	updatePolicies := make([]svctypes.QueryPolicy, 0, len(ps))
+	updatePolicies := make([]svcTypes.QueryPolicy, 0, len(ps))
 
 	for _, p := range ps {
 		if p.SubjectPK == subjectPK && (p.ExpiredAt < idExpiredAtMap[p.PK]) {
@@ -365,7 +365,7 @@ func (c *policyController) UpdateSubjectPoliciesExpiredAt(
 	return nil
 }
 
-func (c *policyController) queryPoliciesSystemSet(policies []svctypes.QueryPolicy) (*set.StringSet, error) {
+func (c *policyController) queryPoliciesSystemSet(policies []svcTypes.QueryPolicy) (*set.StringSet, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "RenewExpiredAtByIDs")
 
 	actionPKs := make([]int64, 0, len(policies))
