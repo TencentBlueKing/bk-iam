@@ -13,6 +13,7 @@ package pdp
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -86,9 +87,9 @@ func rbacEval(
 	actionResourceTypePK := actionResourceTypes[0].PK
 
 	// 4. 遍历查询资源实例节点授权的groupPKs
+	debug.AddStep(entry, "Get Resource ActionAuthorized Group PKs")
 	effectGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
-	for _, resourceNode := range resourceNodes {
-		debug.AddStep(entry, "Get Resource ActionAuthorized Group PKs")
+	for i, resourceNode := range resourceNodes {
 		var groupPKs []int64
 		if withoutCache {
 			svc := service.NewGroupResourcePolicyService()
@@ -128,13 +129,15 @@ func rbacEval(
 			}
 		}
 
-		debug.WithValue(entry, "resourceNode", resourceNode)
-		debug.WithValue(entry, "groupPKs", groupPKs)
+		debug.WithValue(entry, "loop"+strconv.Itoa(i), map[string]interface{}{
+			"resourceNode": resourceNode,
+			"groupPKs":     groupPKs,
+		})
 
 		// 5. 判断资源实例授权的用户组是否在effectGroupPKs中
 		for _, groupPK := range groupPKs {
 			if effectGroupPKSet.Has(groupPK) {
-				debug.WithValue(entry, "pass groupPK", groupPK)
+				debug.WithValue(entry, "passGroupPK", groupPK)
 				return true, nil
 			}
 		}

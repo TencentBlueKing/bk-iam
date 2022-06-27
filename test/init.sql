@@ -131,10 +131,24 @@ INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `policy_expired_at`) 
 /* base system info: demo */
 INSERT INTO `system_info` VALUES ('demo','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `resource_type` VALUES (1,'demo','app','2021-06-24 07:23:13','2021-06-24 07:23:13');
-INSERT INTO `action` VALUES (1,'demo','access_developer_center','2021-06-24 07:23:13','2021-06-24 07:23:13'),(2,'demo','develop_app','2021-06-24 07:31:28','2021-06-24 07:31:28');
-INSERT INTO `action_resource_type` VALUES (1,'demo','develop_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28');
-INSERT INTO `saas_action` VALUES (1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','','create', 0, 1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
-INSERT INTO `saas_action_resource_type` VALUES (1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
+INSERT INTO `action` VALUES
+(1,'demo','access_developer_center','2021-06-24 07:23:13','2021-06-24 07:23:13'),
+(2,'demo','develop_app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(3,'demo','view_app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(4,'demo','edit_app','2021-06-24 07:31:28','2021-06-24 07:31:28');
+INSERT INTO `action_resource_type` VALUES
+(1,'demo','develop_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(2,'demo','view_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(3,'demo','edit_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28');
+INSERT INTO `saas_action` VALUES
+(1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','','create', 0, 1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),
+(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
+(3,'demo','view_app','查看应用','view app','一个用户是否能够查看应用','Is allowed to view app','[\"access_developer_center\"]','rbac','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
+(4,'demo','edit_app','编辑应用','view app','一个用户是否能够编辑应用','Is allowed to edit app','[\"access_developer_center\"]','rbac','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
+INSERT INTO `saas_action_resource_type` VALUES
+(1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(2,'demo','view_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(3,'demo','edit_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `saas_instance_selection` VALUES (1,'demo','app_view','应用视图','app_view',0,'[{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',0,1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
 INSERT INTO `saas_system_info` VALUES ('demo','Demo平台','Demo','A demo SaaS for quick start','A demo SaaS for quick start.','demo,bk_iam_app','{\"token\":\"63yr6hs11bsqa8u4d9i0acbpjuuyizaw\",\"host\":\"http://127.0.0.1:5000\",\"auth\":\"basic\",\"healthz\":\"/healthz/\"}','2021-06-24 07:23:13','2021-06-24 07:31:28');
@@ -235,6 +249,7 @@ INSERT INTO `temporary_policy` (`subject_pk`, `action_pk`, `expression`, `expire
 
 
 -- subject_system_group
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 100, "{\"2100\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 102, "{\"2102\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 103, "{\"2103\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 104, "{\"2104\":4102444800}");
@@ -260,3 +275,9 @@ INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALU
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2144, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2146, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2148, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2100, 2);
+
+
+-- group_resource_policy
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("780baed36c484a10def90f99f493628e", 2100, 0, "demo", "[3]", 1, 1, "001");

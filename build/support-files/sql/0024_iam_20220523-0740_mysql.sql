@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`group_resource_policy` (
    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
    PRIMARY KEY (`pk`),
    UNIQUE KEY `idx_uk` (`signature`),
-   INDEX `idx_resource` (`resource_id(9)`, `action_related_resource_type_pk`, `resource_type_pk`, `system_id`)
+   INDEX `idx_resource` (`resource_id`(9), `action_related_resource_type_pk`, `resource_type_pk`, `system_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='policy with resource';

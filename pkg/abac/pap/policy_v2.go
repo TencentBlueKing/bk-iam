@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	svctypes "iam/pkg/service/types"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
@@ -25,6 +24,7 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	"iam/pkg/service"
+	svctypes "iam/pkg/service/types"
 )
 
 const PolicyCTLV2 = "PolicyCTLV2"
@@ -59,6 +59,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 
 		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 		groupService:               service.NewGroupService(),
+		resourceTypeService:        service.NewResourceTypeService(),
 	}
 }
 
