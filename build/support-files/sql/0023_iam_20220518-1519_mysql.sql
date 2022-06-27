@@ -1,4 +1,4 @@
-CREATE TABLE `bkiam`.`subject_system_group` (
+CREATE TABLE IF NOT EXISTS `bkiam`.`subject_system_group` (
   `pk` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `system_id` varchar(32) NOT NULL,
   `subject_pk` int(10) unsigned NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE `bkiam`.`subject_system_group` (
   UNIQUE KEY `idx_uk_subject_system` (`subject_pk`,`system_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `bkiam`.`group_system_auth_type` (
+CREATE TABLE IF NOT EXISTS `bkiam`.`group_system_auth_type` (
   `pk` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `system_id` varchar(32) NOT NULL,
   `group_pk` int(10) unsigned NOT NULL,

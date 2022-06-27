@@ -39,4 +39,21 @@ const (
 
 	AuthTypeABACStr = "abac"
 	AuthTypeRBACStr = "rbac"
+	AuthTypeNoneStr = "none"
+	AuthTypeAllStr  = "all"
 )
+
+func ConvertToAuthTypeInt(authTypeStr string) int64 {
+	switch authTypeStr {
+	case AuthTypeABACStr:
+		return AuthTypeABAC
+	case AuthTypeRBACStr:
+		return AuthTypeRBAC
+	case AuthTypeNoneStr:
+		return AuthTypeNone
+	case AuthTypeAllStr:
+		return AuthTypeAll
+	}
+
+	return AuthTypeNone
+}
