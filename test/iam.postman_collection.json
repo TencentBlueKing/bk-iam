@@ -7885,7 +7885,7 @@
 					"response": []
 				},
 				{
-					"name": "alter_policies_v2",
+					"name": "alter_policies_v2 (rbac)",
 					"event": [
 						{
 							"listen": "test",
@@ -7916,7 +7916,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"subject\": {\n\t\t\"type\": \"group\",\n\t\t\"id\": \"group101\"\n\t},\n    \"template_id\": 0,\n\t\"create_policies\": [\n\t\t{\n\t\t\t\"action_id\": \"develop_app\",\n\t\t\t\"resource_expression\": \"[{\\\"system\\\": \\\"demo\\\", \\\"type\\\": \\\"app\\\", \\\"expression\\\": {\\\"OR\\\": {\\\"content\\\": [{\\\"Any\\\": {\\\"id\\\": []}}]}}}]\",\n\t\t\t\"environment\": \"\",\n\t\t\t\"expired_at\": 4102444800\n\t\t}\n\t],\n\t\"update_policies\": [],\n\t\"delete_policy_ids\": [],\n    \"resource_actions\": [\n        {\n            \"resource\": {\n                \"system_id\": \"demo\",\n                \"type\": \"app\",\n                \"id\": \"002\"\n            },\n            \"created_action_ids\": [\"view_app\"],\n            \"deleted_action_ids\": []\n        }\n    ],\n    \"group_auth_type\": \"rbac\"\n}",
+							"raw": "{\n\t\"subject\": {\n\t\t\"type\": \"group\",\n\t\t\"id\": \"group100\"\n\t},\n    \"template_id\": 0,\n\t\"create_policies\": [],\n\t\"update_policies\": [],\n\t\"delete_policy_ids\": [],\n    \"resource_actions\": [\n        {\n            \"resource\": {\n                \"system_id\": \"demo\",\n                \"type\": \"app\",\n                \"id\": \"001\"\n            },\n            \"created_action_ids\": [\"edit_app\"],\n            \"deleted_action_ids\": [\"view_app\"]\n        }\n    ],\n    \"group_auth_type\": \"rbac\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
