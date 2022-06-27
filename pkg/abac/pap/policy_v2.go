@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	svcTypes "iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
@@ -226,7 +226,7 @@ func (c *policyControllerV2) alterRBACPolicies(
 	groupPK, templateID int64,
 	systemID string,
 	resourceChangedActions []types.ResourceChangedAction,
-) (resourceChangedContents []svcTypes.ResourceChangedContent, err error) {
+) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterRBACPolicy")
 
 	// 避免无需变更情况，也进行各种数据查询
@@ -260,7 +260,7 @@ func (c *policyControllerV2) alterRBACPolicies(
 
 func (c *policyControllerV2) convertToResourceChangedContent(
 	systemID string, resourceChangedActions []types.ResourceChangedAction,
-) (resourceChangedContents []svcTypes.ResourceChangedContent, err error) {
+) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "convertToResourceChangedContent")
 
 	// 1. 查询每个操作的详情
@@ -280,7 +280,7 @@ func (c *policyControllerV2) convertToResourceChangedContent(
 	}
 
 	// 3. 组装数据
-	resourceChangedContents = make([]svcTypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
+	resourceChangedContents = make([]svctypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
 	for _, rca := range resourceChangedActions {
 		// 根据ActionRelatedResourceTypePK对Action进行分组
 		relatedResourceTypePKToChangedActionMap := c.groupByActionRelatedResourceTypePK(
@@ -289,7 +289,7 @@ func (c *policyControllerV2) convertToResourceChangedContent(
 		// 组织最终数据
 		resourceTypePK := resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type]
 		for relatedResourceTypePK, ca := range relatedResourceTypePKToChangedActionMap {
-			resourceChangedContents = append(resourceChangedContents, svcTypes.ResourceChangedContent{
+			resourceChangedContents = append(resourceChangedContents, svctypes.ResourceChangedContent{
 				ResourceTypePK:              resourceTypePK,
 				ResourceID:                  rca.Resource.ID,
 				ActionRelatedResourceTypePK: relatedResourceTypePK,
@@ -337,7 +337,7 @@ func (c *policyControllerV2) queryResourceTypePK(
 
 func (c *policyControllerV2) queryActionDetail(
 	systemID string, resourceChangedActions *[]types.ResourceChangedAction,
-) (actionDetailMap map[string]svcTypes.ActionDetail, err error) {
+) (actionDetailMap map[string]svctypes.ActionDetail, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "queryActionDetail")
 
 	// 1. 只查询有需要的Action
@@ -348,7 +348,7 @@ func (c *policyControllerV2) queryActionDetail(
 	}
 
 	// 2. 遍历Action，从缓存里查询每个Action的Detail
-	actionDetailMap = make(map[string]svcTypes.ActionDetail, actionIDSet.Size())
+	actionDetailMap = make(map[string]svctypes.ActionDetail, actionIDSet.Size())
 	for _, actionID := range actionIDSet.ToSlice() {
 		detail, err := cacheimpls.GetActionDetail(systemID, actionID)
 		if err != nil {
@@ -369,10 +369,10 @@ type changedAction struct {
 
 func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	createdActionIDs, deletedActionIDs []string,
-	actionDetailMap *map[string]svcTypes.ActionDetail,
+	actionDetailMap *map[string]svctypes.ActionDetail,
 ) (relatedResourceTypePKToChangedActionMap map[int64]changedAction) {
 	// 记录每个relatedResourceTypePK对应的changedAction
-	changedActions := []changedAction{}
+	changedActions := make([]changedAction, 0, len(createdActionIDs)+len(deletedActionIDs))
 	// Note: relateResourceTypePKToIndex用于记录其对应ChangedAction在changedActions数组里的位置
 	relateResourceTypePKToIndex := map[int64]int{}
 
