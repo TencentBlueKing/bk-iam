@@ -3,8 +3,7 @@ package handler
 // 变更策略的 body
 type policiesAlterSerializerV2 struct {
 	Subject    subject `json:"subject" binding:"required"`
-	TemplateID int64   `json:"template_id" binding:"required"`
-	SystemID   string
+	TemplateID int64   `json:"template_id" binding:"omitempty"`
 
 	CreatePolicies  []policy       `json:"create_policies" binding:"required"`
 	UpdatePolicies  []updatePolicy `json:"update_policies" binding:"required"`
@@ -12,7 +11,7 @@ type policiesAlterSerializerV2 struct {
 
 	ResourceActions []resourceAction `json:"resource_actions" binding:"required"`
 
-	GroupAuthType string `json:"group_auth_type" binding:"required, oneof=all rbac abac none"`
+	GroupAuthType string `json:"group_auth_type" binding:"required,oneof=all rbac abac none"`
 }
 
 type resourceSerializer struct {
