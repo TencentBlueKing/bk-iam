@@ -230,7 +230,7 @@ func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64,
 func (m *subjectRelationManager) ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error) {
 	groupPKs := []int64{}
 	query := `SELECT
-		 parent_pk,
+		 parent_pk
 		 FROM subject_relation
 		 WHERE subject_pk = ?`
 

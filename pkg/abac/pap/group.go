@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -105,22 +106,6 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	// groupIDs to groupPKs
-	groupPKToGroupID := make(map[int64]string, len(groupIDs))
-	for _, groupID := range groupIDs {
-		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
-		if err != nil {
-			return nil, errorWrapf(
-				err,
-				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
-				types.GroupType,
-				groupID,
-			)
-		}
-
-		groupPKToGroupID[groupPK] = groupID
-	}
-
 	// do check, get subject all group pks from cache
 	allGroupPKs, err := cacheimpls.GetSubjectAllGroupPKs(subjectPK)
 	if err != nil {
@@ -129,9 +114,33 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
 	existGroupPKSet := set.NewInt64SetWithValues(allGroupPKs)
 
-	// build result
+	// the result
 	groupIDBelong := make(map[string]bool, len(groupIDs))
-	for groupPK, groupID := range groupPKToGroupID {
+	for _, groupID := range groupIDs {
+		// if groupID is empty, skip
+		if groupID == "" {
+			continue
+		}
+
+		// get the groupPK via groupID
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
+
+				// NOTE: set to false if the groupID is not exist
+				groupIDBelong[groupID] = false
+				continue
+			}
+
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
+				types.GroupType,
+				groupID,
+			)
+		}
+
 		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
 	}
 
