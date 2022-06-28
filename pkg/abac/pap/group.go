@@ -106,7 +106,6 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 	}
 
 	// groupIDs to groupPKs
-	groupPKs := make([]int64, 0, len(groupIDs))
 	groupPKToGroupID := make(map[int64]string, len(groupIDs))
 	for _, groupID := range groupIDs {
 		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
@@ -118,22 +117,17 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 				groupID,
 			)
 		}
-		groupPKs = append(groupPKs, groupPK)
 
 		groupPKToGroupID[groupPK] = groupID
 	}
 
-	// do check
-	existGroupPKs, err := c.service.ListSubjectExistParentPks(subjectPK, groupPKs)
+	// do check, get subject all group pks from cache
+	allGroupPKs, err := cacheimpls.GetSubjectAllGroupPKs(subjectPK)
 	if err != nil {
-		return nil, errorWrapf(
-			err,
-			"service.ListSubjectExistParentPks subjectPK=`%s`, groupPKs=`%+v` fail",
-			subjectPK,
-			groupPKs,
-		)
+		return nil, errorWrapf(err, "cacheimpls.GetSubjectAllGroupPKs subjectPK=`%d` fail", subjectPK)
 	}
-	existGroupPKSet := set.NewInt64SetWithValues(existGroupPKs)
+	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
+	existGroupPKSet := set.NewInt64SetWithValues(allGroupPKs)
 
 	// build result
 	groupIDBelong := make(map[string]bool, len(groupIDs))
@@ -363,7 +357,7 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 清理缓存
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// 清理subject system group 缓存
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
@@ -417,7 +411,7 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)

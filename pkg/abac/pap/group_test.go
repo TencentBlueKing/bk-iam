@@ -43,7 +43,7 @@ var _ = Describe("GroupController", func() {
 
 				return 0, nil
 			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
 				return nil
 			})
 		})
@@ -273,7 +273,7 @@ var _ = Describe("GroupController", func() {
 
 				return 0, nil
 			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
 				return nil
 			})
 		})

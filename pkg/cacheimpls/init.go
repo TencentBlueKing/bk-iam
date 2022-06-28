@@ -48,10 +48,12 @@ var (
 	SubjectDepartmentCache  *redis.Cache
 	SubjectPKCache          *redis.Cache
 	SubjectSystemGroupCache *redis.Cache
-	SystemCache             *redis.Cache
-	ActionPKCache           *redis.Cache
-	ActionDetailCache       *redis.Cache
-	ActionListCache         *redis.Cache
+	SubjectAllGroupPKsCache *redis.Cache
+
+	SystemCache       *redis.Cache
+	ActionPKCache     *redis.Cache
+	ActionDetailCache *redis.Cache
+	ActionListCache   *redis.Cache
 
 	PolicyCache              *redis.Cache
 	GroupResourcePolicyCache *redis.Cache
@@ -64,11 +66,12 @@ var (
 	LocalTemporaryPolicyCache *gocache.Cache
 	ChangeListCache           *redis.Cache
 
-	ActionCacheCleaner       *cleaner.CacheCleaner
-	ActionListCacheCleaner   *cleaner.CacheCleaner
-	ResourceTypeCacheCleaner *cleaner.CacheCleaner
-	SubjectCacheCleaner      *cleaner.CacheCleaner
-	SystemCacheCleaner       *cleaner.CacheCleaner
+	ActionCacheCleaner            *cleaner.CacheCleaner
+	ActionListCacheCleaner        *cleaner.CacheCleaner
+	ResourceTypeCacheCleaner      *cleaner.CacheCleaner
+	SubjectDepartmentCacheCleaner *cleaner.CacheCleaner
+	SubjectGroupCacheCleaner      *cleaner.CacheCleaner
+	SystemCacheCleaner            *cleaner.CacheCleaner
 )
 
 // ErrNotExceptedTypeFromCache ...
@@ -239,6 +242,12 @@ func InitCaches(disabled bool) {
 		"sub_dep",
 		30*time.Minute,
 	)
+
+	SubjectAllGroupPKsCache = redis.NewCache(
+		"sub_grp_pks",
+		30*time.Minute,
+	)
+
 	ActionListCache = redis.NewCache(
 		"all_act:2",
 		30*time.Minute,
@@ -283,8 +292,14 @@ func InitCaches(disabled bool) {
 	ResourceTypeCacheCleaner = cleaner.NewCacheCleaner("ResourceTypeCacheCleaner", resourceTypeCacheDeleter{})
 	go ResourceTypeCacheCleaner.Run()
 
-	SubjectCacheCleaner = cleaner.NewCacheCleaner("SubjectCacheCleaner", subjectCacheDeleter{})
-	go SubjectCacheCleaner.Run()
+	SubjectDepartmentCacheCleaner = cleaner.NewCacheCleaner(
+		"SubjectDepartmentCacheCleaner",
+		subjectDepartmentCacheDeleter{},
+	)
+	go SubjectDepartmentCacheCleaner.Run()
+
+	SubjectGroupCacheCleaner = cleaner.NewCacheCleaner("SubjectGroupCacheCleaner", subjectGroupCacheDeleter{})
+	go SubjectGroupCacheCleaner.Run()
 
 	SystemCacheCleaner = cleaner.NewCacheCleaner("SystemCacheCleaner", systemCacheDeleter{})
 	go SystemCacheCleaner.Run()

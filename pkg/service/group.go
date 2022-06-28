@@ -32,7 +32,7 @@ type GroupService interface {
 	// web api
 	ListSubjectGroups(subjectPK, beforeExpiredAt int64) ([]types.SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
-	ListSubjectExistParentPks(subjectPK int64, parentPKs []int64) ([]int64, error)
+	ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 
@@ -150,21 +150,17 @@ func (l *groupService) ListExistSubjectsBeforeExpiredAt(
 	return existGroupPKs, err
 }
 
-func (l *groupService) ListSubjectExistParentPks(
-	subjectPK int64,
-	parentPKs []int64,
-) (existParentPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectExistParentPks")
-	existParentPKs, err = l.manager.ListSubjectExistParentPks(subjectPK, parentPKs)
+func (l *groupService) ListSubjectAllGroupPKs(subjectPK int64) (groupPKs []int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectAllGroupPKs")
+	groupPKs, err = l.manager.ListSubjectAllGroupPKs(subjectPK)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.ListSubjectExistParentPks subjectPK=`%d`, parentPKs=`%+v` fail",
+			"manager.ListSubjectAllGroupPKs subjectPK=`%d` fail",
 			subjectPK,
-			parentPKs,
 		)
 	}
-	return existParentPKs, nil
+	return groupPKs, nil
 }
 
 // from subject_member.go

@@ -58,7 +58,7 @@ type SubjectRelationManager interface {
 	ListRelation(subjectPK int64) ([]SubjectRelation, error)
 	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
 	ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
-	ListSubjectExistParentPks(subjectPK int64, parentPKs []int64) ([]int64, error)
+	ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error)
 
 	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
@@ -227,20 +227,19 @@ func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64,
 	return expiredParentPKs, err
 }
 
-func (m *subjectRelationManager) ListSubjectExistParentPks(subjectPK int64, parentPKs []int64) ([]int64, error) {
-	existParentPKs := []int64{}
+func (m *subjectRelationManager) ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error) {
+	groupPKs := []int64{}
 	query := `SELECT
 		 parent_pk,
 		 FROM subject_relation
-		 WHERE subject_pk = ?
-		 AND parent_pk IN (?)`
+		 WHERE subject_pk = ?`
 
-	err := database.SqlxSelect(m.DB, &existParentPKs, query, subjectPK, parentPKs)
+	err := database.SqlxSelect(m.DB, &groupPKs, query, subjectPK)
 	if errors.Is(err, sql.ErrNoRows) {
-		return existParentPKs, nil
+		return groupPKs, nil
 	}
 
-	return existParentPKs, err
+	return groupPKs, err
 }
 
 func (m *subjectRelationManager) selectRelation(relations *[]SubjectRelation, subjectPK int64) error {
