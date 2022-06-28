@@ -201,6 +201,18 @@ INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) 
 INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (2147,2,18,4102444800);
 INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (2148,2,19,4102444800);
 
+-- user 102 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (102,3,20,4102444800);
+-- user 103 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (103,3,21,4102444800);
+-- group 2103 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (2103,3,22,4102444800);
+-- department 122 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (122,3,23,4102444800);
+-- department 123 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (123,3,24,4102444800);
+-- group 2123 view_app 001
+INSERT INTO `policy` (`subject_pk`, `action_pk`, `expression_pk`, `expired_at`) VALUES (2123,3,25,4102444800);
 
 -- expression, not the signature should be not be the same
 INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (1,
@@ -241,7 +253,18 @@ INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (18,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
 INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (19,
     '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
-
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (20,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (21,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (22,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"003\"]}}}]','e6fed929a53050eef5a3db05f4eeac0d');
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (23,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (24,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"001\"]}}}]','EA3BD3486B9ABF5343872EDFB6799F80');
+INSERT INTO `expression` (`pk`, `expression`, `signature`) VALUES (25,
+    '[{\"system\": \"demo\", \"type\": \"app\", \"expression\": {\"StringEquals\":{\"id\":[\"003\"]}}}]','e6fed929a53050eef5a3db05f4eeac0d');
 
 -- temporary policy
 INSERT INTO `temporary_policy` (`subject_pk`, `action_pk`, `expression`, `expired_at`) VALUES (11,2,
@@ -249,13 +272,14 @@ INSERT INTO `temporary_policy` (`subject_pk`, `action_pk`, `expression`, `expire
 
 
 -- subject_system_group
-INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 100, "{\"2100\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 101, "{\"2101\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 102, "{\"2102\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 103, "{\"2103\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 104, "{\"2104\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 141, "{\"2141\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 145, "{\"2145\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 147, "{\"2147\":4102444800}");
+INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1121, "{\"2121\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1122, "{\"2122\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1123, "{\"2123\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1144, "{\"2144\":4102444800}");
@@ -264,20 +288,31 @@ INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES 
 
 
 -- group_system_auth_type
-INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2102, 1);
-INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2103, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2102, 15);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2103, 15);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2104, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2141, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2145, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2147, 1);
-INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2122, 1);
-INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2123, 1);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2122, 15);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2123, 15);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2144, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2146, 1);
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2148, 1);
-INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2100, 2);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2101, 2);
+INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2121, 2);
 
 
 -- group_resource_policy
 INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
-("780baed36c484a10def90f99f493628e", 2100, 0, "demo", "[3]", 1, 1, "001");
+("31f1e78c359a7a72e30fd44183a65393", 2101, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("ff0466e71c9fbaeaa2b03b12b3334580", 2102, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("96472121965ee2d957d5715622167726", 2103, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("28d8a608c979b5c857a5a70ec0890c35", 2121, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("c00c26df7ac48fcc906739fb6231d68f", 2122, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("fcfd3ca21011b55c08c40021087f97a0", 2123, 0, "demo", "[3]", 1, 1, "002");
