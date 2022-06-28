@@ -182,3 +182,22 @@ func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func Test_subjectRelationManager_ListSubjectAllGroupPKs(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT parent_pk FROM subject_relation
+		 WHERE subject_pk =`
+		mockRows := sqlmock.NewRows(
+			[]string{
+				"parent_pk",
+			},
+		).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(123)).WillReturnRows(mockRows)
+
+		manager := &subjectRelationManager{DB: db}
+		relations, err := manager.ListSubjectAllGroupPKs(int64(123))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}

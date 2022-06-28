@@ -11,6 +11,7 @@
 package pap
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -333,6 +334,98 @@ var _ = Describe("GroupController", func() {
 			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[string]int64{"user": 1, "department": 0}, typeCount)
+		})
+	})
+
+	Describe("CheckSubjectExistGroups", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+				if _type == "user" && id == "1" {
+					return int64(1), nil
+				}
+				if _type == "user" && id == "2" {
+					return int64(2), nil
+				}
+				if _type == "group" && id == "10" {
+					return int64(10), nil
+				}
+
+				if _type == "group" && id == "20" {
+					return int64(20), nil
+				}
+
+				return 0, sql.ErrNoRows
+			})
+
+			// patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
+			// 	return []int64{10, 20, 30}, nil
+			// })
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			patches.Reset()
+		})
+
+		It("get user subject PK fail", func() {
+			c := &groupController{
+				service: mock.NewMockGroupService(ctl),
+			}
+
+			_, err := c.CheckSubjectExistGroups("user", "notexist", []string{"10", "20"})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetSubjectPK")
+		})
+
+		It("get subject all group pks fail", func() {
+			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
+				return nil, errors.New("error")
+			})
+
+			c := &groupController{
+				service: mock.NewMockGroupService(ctl),
+			}
+
+			_, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20"})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetSubjectAllGroupPKs")
+		})
+
+		It("ok, all groupID valid", func() {
+			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
+				return []int64{10, 30}, nil
+			})
+
+			c := &groupController{
+				service: mock.NewMockGroupService(ctl),
+			}
+
+			groupIDBelong, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20"})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), groupIDBelong, 2)
+			assert.True(GinkgoT(), groupIDBelong["10"])
+			assert.False(GinkgoT(), groupIDBelong["20"])
+		})
+
+		It("ok, has invalid groupID", func() {
+			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
+				return []int64{10, 30}, nil
+			})
+
+			c := &groupController{
+				service: mock.NewMockGroupService(ctl),
+			}
+
+			groupIDBelong, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20", "invalid"})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), groupIDBelong, 3)
+			assert.True(GinkgoT(), groupIDBelong["10"])
+			assert.False(GinkgoT(), groupIDBelong["20"])
+			assert.False(GinkgoT(), groupIDBelong["invalid"])
 		})
 	})
 })
