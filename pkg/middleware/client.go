@@ -122,7 +122,7 @@ func ShareClientMiddleware() gin.HandlerFunc {
 		log.Debug("Middleware: ShareClientMiddleware")
 
 		appCode := util.GetClientID(c)
-		if !config.ShareAppCodeSet.Has(appCode) {
+		if !config.SecurityAuditAppCode.Has(appCode) {
 			util.UnauthorizedJSONResponse(
 				c,
 				"share client app code wrong, app_code is not in the share client whitelist",

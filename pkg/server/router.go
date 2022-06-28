@@ -52,6 +52,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	webRouter.Use(middleware.SuperClientMiddleware())
 	web.Register(webRouter)
 
+	webRouterV2 := router.Group("/api/v2/web")
+	webRouterV2.Use(middleware.Metrics())
+	webRouterV2.Use(middleware.WebLogger())
+	webRouterV2.Use(middleware.NewClientAuthMiddleware(cfg))
+	webRouterV2.Use(middleware.SuperClientMiddleware())
+	web.RegisterV2(webRouterV2)
+
 	// policy apis for auth/query
 	policyRouter := router.Group("/api/v1/policy")
 	policyRouter.Use(middleware.Metrics())

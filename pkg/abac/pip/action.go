@@ -21,10 +21,10 @@ import (
 const ActionPIP = "ActionPIP"
 
 // GetActionDetail ...
-func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceType, err error) {
+func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.ActionResourceType, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
 
-	detail, err := cacheimpls.GetActionDetail(system, id)
+	detail, err := cacheimpls.GetLocalActionDetail(system, id)
 	if err != nil {
 		err = errorWrapf(err,
 			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
@@ -32,13 +32,24 @@ func GetActionDetail(system, id string) (pk int64, arts []types.ActionResourceTy
 	}
 
 	// 数据转换
-	pk = detail.PK
 	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
 	for _, art := range detail.ResourceTypes {
+		resourceTypeOfInstanceSelections := make([]types.ThinResourceType, 0, len(art.ResourceTypeOfInstanceSelections))
+		for _, rt := range art.ResourceTypeOfInstanceSelections {
+			resourceTypeOfInstanceSelections = append(resourceTypeOfInstanceSelections, types.ThinResourceType{
+				PK:     rt.PK,
+				System: rt.System,
+				ID:     rt.ID,
+			})
+		}
+
 		arts = append(arts, types.ActionResourceType{
+			PK:     art.PK,
 			System: art.System,
 			Type:   art.ID,
+
+			ResourceTypeOfInstanceSelections: resourceTypeOfInstanceSelections,
 		})
 	}
-	return pk, arts, nil
+	return detail.PK, detail.AuthType, arts, nil
 }

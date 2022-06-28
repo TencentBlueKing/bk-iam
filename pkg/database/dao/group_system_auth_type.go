@@ -11,6 +11,9 @@
 package dao
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
@@ -72,6 +75,9 @@ func (m *groupSystemAuthTypeManager) ListAuthTypeBySystemGroups(
 
 	var authTypes []GroupAuthType
 	err := m.selectAuthTypeBySystemGroups(&authTypes, systemID, groupPKs)
+	if errors.Is(err, sql.ErrNoRows) {
+		return authTypes, nil
+	}
 	return authTypes, err
 }
 

@@ -49,6 +49,9 @@ type SaaSActionManager interface {
 	BulkCreateWithTx(tx *sqlx.Tx, saasActions []SaaSAction) error
 	Update(tx *sqlx.Tx, system, actionID string, saasAction SaaSAction) error
 	BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error
+
+	// for auth
+	GetAuthType(system, actionID string) (autType string, err error)
 }
 
 type saasActionManager struct {
@@ -65,6 +68,12 @@ func NewSaaSActionManager() SaaSActionManager {
 // Get ...
 func (m *saasActionManager) Get(system, actionID string) (action SaaSAction, err error) {
 	err = m.getByActionID(&action, system, actionID)
+	return
+}
+
+// GetAuthType ...
+func (m *saasActionManager) GetAuthType(system, actionID string) (autType string, err error) {
+	err = m.getAuthTypeByActionID(&autType, system, actionID)
 	return
 }
 
@@ -91,6 +100,10 @@ func (m *saasActionManager) Update(tx *sqlx.Tx, system, actionID string, saasAct
 	expr, data, err := database.ParseUpdateStruct(saasAction, saasAction.AllowBlankFields)
 	if err != nil {
 		return fmt.Errorf("parse update struct fail. %w", err)
+	}
+	// if all fields are blank, the parsed expr will be empty string, return, otherwise will SQL syntax error
+	if expr == "" {
+		return nil
 	}
 
 	// 2. build sql
@@ -179,4 +192,14 @@ func (m *saasActionManager) getByActionID(saasAction *SaaSAction, system, action
 		AND id = ?
 		LIMIT 1`
 	return database.SqlxGet(m.DB, saasAction, query, system, actionID)
+}
+
+func (m *saasActionManager) getAuthTypeByActionID(authType *string, system, actionID string) error {
+	query := `SELECT
+		auth_type
+		FROM saas_action
+		WHERE system_id = ?
+		AND id = ?
+		LIMIT 1`
+	return database.SqlxGet(m.DB, authType, query, system, actionID)
 }

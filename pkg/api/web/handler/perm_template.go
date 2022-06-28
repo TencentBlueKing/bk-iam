@@ -14,7 +14,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/abac/prp"
+	"iam/pkg/abac/pap"
 	"iam/pkg/abac/types"
 	"iam/pkg/util"
 )
@@ -56,8 +56,8 @@ func CreateAndDeleteTemplatePolicies(c *gin.Context) {
 			convertToInternalTypesPolicy(systemID, subject, 0, body.TemplateID, p))
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.CreateAndDeleteTemplatePolicies(systemID, body.Subject.Type, body.Subject.ID, body.TemplateID,
+	ctl := pap.NewPolicyController()
+	err := ctl.CreateAndDeleteTemplatePolicies(systemID, body.Subject.Type, body.Subject.ID, body.TemplateID,
 		createPolicies, body.DeletePolicyIDs)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "CreateAndDeleteTemplatePolicies",
@@ -108,8 +108,8 @@ func UpdateTemplatePolicies(c *gin.Context) {
 			convertToInternalTypesPolicy(systemID, subject, p.ID, body.TemplateID, p.policy))
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.UpdateTemplatePolicies(systemID, body.Subject.Type, body.Subject.ID,
+	ctl := pap.NewPolicyController()
+	err := ctl.UpdateTemplatePolicies(systemID, body.Subject.Type, body.Subject.ID,
 		updatePolicies)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "UpdateTemplatePolicies",
@@ -142,8 +142,8 @@ func DeleteSubjectTemplatePolicies(c *gin.Context) {
 		return
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.DeleteTemplatePolicies(body.SystemID, body.SubjectType, body.SubjectID, body.TemplateID)
+	ctl := pap.NewPolicyController()
+	err := ctl.DeleteTemplatePolicies(body.SystemID, body.SubjectType, body.SubjectID, body.TemplateID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "DeleteTemplatePolicies",
 			"systemID=`%s`, subjectType=`%s`, subjectID=`%s`, templateID=`%d`",

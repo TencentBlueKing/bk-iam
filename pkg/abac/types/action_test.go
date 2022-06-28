@@ -33,17 +33,22 @@ var _ = Describe("action", func() {
 
 			It("ok", func() {
 				expectedPK := int64(123)
+				expectedAuthType := int64(1)
 				expectedArt := []types.ActionResourceType{
 					{
 						System: "bk_test",
 						Type:   "obj",
 					},
 				}
-				a.FillAttributes(expectedPK, expectedArt)
+				a.FillAttributes(expectedPK, expectedAuthType, expectedArt)
 
 				pk, err := a.Attribute.GetPK()
 				assert.NoError(GinkgoT(), err)
 				assert.Equal(GinkgoT(), expectedPK, pk)
+
+				authType, err := a.Attribute.GetAuthType()
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), expectedAuthType, authType)
 
 				rt, err := a.Attribute.GetResourceTypes()
 				assert.NoError(GinkgoT(), err)

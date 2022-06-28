@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
@@ -157,6 +158,13 @@ func (l *groupService) removeSubjectSystemGroup(
 			continue
 		}
 
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
+			// 数据不存在时记录日志
+			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
+				systemID, subjectPK, groupPK)
+			return nil
+		}
+
 		if err != nil {
 			err = errorWrapf(
 				err, "removeSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupPK: %d",
@@ -233,7 +241,9 @@ func (l *groupService) ListEffectThinSubjectGroups(
 
 		thinSubjectGroup, err := convertSystemSubjectGroupsToThinSubjectGroup(r.Groups)
 		if err != nil {
-			err = errorWrapf(err, "convertSystemSubjectGroupsToThinSubjectGroup fail groups=`%s`", r.Groups)
+			err = errorWrapf(
+				err, "convertSystemSubjectGroupsToThinSubjectGroup fail, groups=`%s`", r.Groups,
+			)
 			return nil, err
 		}
 

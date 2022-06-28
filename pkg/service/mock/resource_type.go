@@ -92,6 +92,21 @@ func (mr *MockResourceTypeServiceMockRecorder) ListBySystem(system interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockResourceTypeService)(nil).ListBySystem), system)
 }
 
+// ListThinByIDs mocks base method.
+func (m *MockResourceTypeService) ListThinByIDs(systemID string, resourceTypeIDs []string) ([]types.ThinResourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListThinByIDs", systemID, resourceTypeIDs)
+	ret0, _ := ret[0].([]types.ThinResourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListThinByIDs indicates an expected call of ListThinByIDs.
+func (mr *MockResourceTypeServiceMockRecorder) ListThinByIDs(systemID, resourceTypeIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinByIDs", reflect.TypeOf((*MockResourceTypeService)(nil).ListThinByIDs), systemID, resourceTypeIDs)
+}
+
 // Update mocks base method.
 func (m *MockResourceTypeService) Update(system, resourceTypeID string, resourceType types.ResourceType) error {
 	m.ctrl.T.Helper()

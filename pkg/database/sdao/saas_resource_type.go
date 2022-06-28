@@ -92,6 +92,10 @@ func (m *saasResourceTypeManager) Update(system, resourceTypeID string, rt SaaSR
 	if err != nil {
 		return fmt.Errorf("parse update struct fail. %w", err)
 	}
+	// if all fields are blank, the parsed expr will be empty string, return, otherwise will SQL syntax error
+	if expr == "" {
+		return nil
+	}
 
 	// 2. build sql
 	sql := "UPDATE saas_resource_type SET " + expr + " WHERE system_id=:system_id AND id=:id"

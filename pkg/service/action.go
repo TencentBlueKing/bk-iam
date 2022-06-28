@@ -21,6 +21,7 @@ types定义的数据结构的加载层
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
@@ -42,7 +43,9 @@ type ActionService interface {
 
 	Get(system, id string) (types.Action, error)
 
-	// ListBySystem, 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
+	GetAuthType(system, id string) (int64, error)
+
+	// ListBySystem 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
 	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
 	ListBySystem(system string) ([]types.Action, error)
 
@@ -76,6 +79,7 @@ type ActionService interface {
 type actionService struct {
 	manager                       dao.ActionManager
 	actionResourceTypeManager     dao.ActionResourceTypeManager
+	resourceTypeManager           dao.ResourceTypeManager
 	saasManager                   sdao.SaaSActionManager
 	saasActionResourceTypeManager sdao.SaaSActionResourceTypeManager
 	saasInstanceSelectionManager  sdao.SaaSInstanceSelectionManager
@@ -86,6 +90,7 @@ func NewActionService() ActionService {
 	return &actionService{
 		manager:                       dao.NewActionManager(),
 		actionResourceTypeManager:     dao.NewActionResourceTypeManager(),
+		resourceTypeManager:           dao.NewResourceTypeManager(),
 		saasManager:                   sdao.NewSaaSActionManager(),
 		saasActionResourceTypeManager: sdao.NewSaaSActionResourceTypeManager(),
 		saasInstanceSelectionManager:  sdao.NewSaaSInstanceSelectionManager(),
@@ -632,4 +637,21 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 		})
 	}
 	return instanceSelections, nil
+}
+
+// GetAuthType 获取action 的授权类型
+func (l *actionService) GetAuthType(system, id string) (int64, error) {
+	authTypeStr, err := l.saasManager.GetAuthType(system, id)
+	if err != nil {
+		return 0, errorx.Wrapf(err, ActionSVC, "GetAuthType", "system=`%s`, id=`%s`", system, id)
+	}
+
+	switch authTypeStr {
+	case "", types.AuthTypeABACStr:
+		return types.AuthTypeABAC, nil
+	case types.AuthTypeRBACStr:
+		return types.AuthTypeRBAC, nil
+	}
+
+	return 0, errors.New("unknown auth type")
 }

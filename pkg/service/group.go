@@ -13,12 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"database/sql"
-	"errors"
-
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
@@ -54,6 +50,8 @@ type GroupService interface {
 
 	// auth type
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
+	ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error)
+	AlterGroupAuthType(tx *sqlx.Tx, systemID string, groupPK int64, authType int64) (changed bool, err error)
 
 	// open api
 	ListEffectThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
@@ -319,12 +317,6 @@ func (l *groupService) BulkDeleteGroupMembers(
 	for _, systemID := range systemIDs {
 		for _, subjectPK := range subjectPKs {
 			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, parentPK)
-			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
-				// 数据不存在时记录日志
-				log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
-					systemID, subjectPK, parentPK)
-			}
-
 			if err != nil {
 				return nil, errorWrapf(
 					err,

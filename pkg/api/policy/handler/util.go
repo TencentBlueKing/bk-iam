@@ -153,7 +153,9 @@ func buildResourceID(rs []resource) string {
 	return strings.Join(nodes, "/")
 }
 
-// ValidateSystemMatchClient ...
+// ValidateSystemMatchClient will check if the client can call the system's policy/[query/auth]
+// note that, the audit app_code can access all system's policy/[query/auth]
+// so, this function should be only called in this module: policy/handler
 func ValidateSystemMatchClient(systemID, clientID string) error {
 	if systemID == "" || clientID == "" {
 		return fmt.Errorf("system_id or client_id do not allow empty")
@@ -162,6 +164,11 @@ func ValidateSystemMatchClient(systemID, clientID string) error {
 	validClients, err := cacheimpls.GetSystemClients(systemID)
 	if err != nil {
 		return fmt.Errorf("get system(%s) valid clients fail, err=%w", systemID, err)
+	}
+
+	// security audit app can be the valid client of all systems
+	if config.SecurityAuditAppCode.Has(clientID) {
+		return nil
 	}
 
 	for _, c := range validClients {

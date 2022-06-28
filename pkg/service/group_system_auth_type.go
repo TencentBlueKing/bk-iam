@@ -13,16 +13,100 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
+	"iam/pkg/service/types"
 )
 
 // ErrConcurrencyConflict ...
 var ErrConcurrencyConflict = errors.New("concurrency conflict")
+
+// AlterGroupAuthType 变更group的auth type
+func (s *groupService) AlterGroupAuthType(
+	tx *sqlx.Tx,
+	systemID string,
+	groupPK int64,
+	authType int64,
+) (changed bool, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "AlterGroupAuthType")
+
+	if authType == types.AuthTypeNone {
+		count, err := s.authTypeManger.DeleteBySystemGroupWithTx(tx, systemID, groupPK)
+		if err != nil {
+			return false, errorWrapf(
+				err, "authTypeManger.DeleteBySystemGroupWithTx systemID=`%s` groupPK=`%d` fail",
+				systemID, groupPK,
+			)
+		}
+
+		// 用户组auth type变更为none, 则删除用户组成员与系统的关联
+		if count == 1 {
+			// 查询用户组所有的成员并删除subject system group
+			members, err := s.manager.ListMember(groupPK)
+			if err != nil {
+				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+			}
+
+			for _, member := range members {
+				err := s.removeSubjectSystemGroup(tx, member.SubjectPK, systemID, groupPK)
+				if err != nil {
+					return false, errorWrapf(
+						err, "removeSubjectSystemGroup member=`%d` systemID=`%s` groupPK=`%d` fail",
+						member.SubjectPK, systemID, groupPK,
+					)
+				}
+			}
+
+			return true, nil
+		}
+	} else {
+		created, count, err := s.createOrUpdateGroupAuthType(tx, systemID, groupPK, authType)
+		if err != nil {
+			return false, errorWrapf(
+				err, "createOrUpdateGroupAuthType systemID=`%s` groupPK=`%d` authType=`%d` fail",
+				systemID, groupPK, authType,
+			)
+		}
+
+		if created {
+			// 查询用户组所有的成员并添加subject system group
+			members, err := s.manager.ListMember(groupPK)
+			if err != nil {
+				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+			}
+
+			nowTS := time.Now().Unix()
+			for _, member := range members {
+				// NOTE: subject system group表中只需要保持未过期的记录
+				if member.PolicyExpiredAt < nowTS {
+					continue
+				}
+
+				err := s.addOrUpdateSubjectSystemGroup(
+					tx, member.SubjectPK, systemID, groupPK, member.PolicyExpiredAt,
+				)
+				if err != nil {
+					return false, errorWrapf(
+						err, "addOrUpdateSubjectSystemGroup member=`%d` systemID=`%s` groupPK=`%d` fail",
+						member.SubjectPK, systemID, groupPK,
+					)
+				}
+			}
+		}
+
+		// 返回有变更
+		if count == 1 {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
 
 // createOrUpdateGroupAuthType ...
 func (s *groupService) createOrUpdateGroupAuthType(
@@ -102,4 +186,46 @@ func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	}
 
 	return systems, nil
+}
+
+// ListGroupAuthByGroupPKs 查询groups的授权类型
+func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthByGroupPKs")
+
+	groupAuthTypes := make([]types.GroupAuthType, 0, len(groupPKs))
+	// 分段查询, 避免SQL参数过多
+	for _, part := range chunks(len(groupPKs), 1000) {
+		daoGroupAuthTypes, err := s.authTypeManger.ListAuthTypeBySystemGroups(systemID, groupPKs[part[0]:part[1]])
+		if err != nil {
+			err = errorWrapf(
+				err, "authTypeManger.ListAuthTypeBySystemGroups systemID=`%s` groupPKs=`%+v` fail",
+				systemID, groupPKs,
+			)
+			return nil, err
+		}
+
+		for _, daoGroupAuthType := range daoGroupAuthTypes {
+			groupAuthTypes = append(groupAuthTypes, types.GroupAuthType{
+				GroupPK:  daoGroupAuthType.GroupPK,
+				AuthType: daoGroupAuthType.AuthType,
+			})
+		}
+	}
+
+	return groupAuthTypes, nil
+}
+
+func chunks(total int, step int) [][]int {
+	chunks := make([][]int, 0, (total/step)+1)
+
+	for i := 0; i < total; i += step {
+		end := i + step
+		if end > total {
+			end = total
+		}
+
+		chunks = append(chunks, []int{i, end})
+	}
+
+	return chunks
 }

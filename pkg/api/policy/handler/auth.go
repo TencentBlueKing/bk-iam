@@ -12,6 +12,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -57,6 +58,15 @@ func Auth(c *gin.Context) {
 		return
 	}
 
+	// check blacklist
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
@@ -64,7 +74,7 @@ func Auth(c *gin.Context) {
 	}
 
 	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok", authResponse{
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", authResponse{
 			Allowed: true,
 		})
 		return
@@ -134,6 +144,15 @@ func BatchAuthByActions(c *gin.Context) {
 
 	result := make(authByActionsResponse, len(body.Actions))
 
+	// check blacklist
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	// super admin and system admin
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
@@ -145,7 +164,7 @@ func BatchAuthByActions(c *gin.Context) {
 		for _, action := range body.Actions {
 			result[action.ID] = true
 		}
-		util.SuccessJSONResponse(c, "ok", result)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", result)
 		return
 	}
 
@@ -224,6 +243,14 @@ func BatchAuthByResources(c *gin.Context) {
 
 	data := make(authByResourcesResponse, len(body.ResourcesList))
 
+	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
+		)
+		return
+	}
+
 	// super admin and system admin
 	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
 	if err != nil {
@@ -236,7 +263,7 @@ func BatchAuthByResources(c *gin.Context) {
 			data[buildResourceID(r)] = true
 		}
 
-		util.SuccessJSONResponse(c, "ok", data)
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", data)
 		return
 	}
 
@@ -252,6 +279,13 @@ func BatchAuthByResources(c *gin.Context) {
 		defer debug.EntryPool.Put(entry)
 	}
 	_, isForce := c.GetQuery("force")
+
+	/*
+		TODO 2种变更方式
+		1. 走RBAC逻辑
+			- 遍历resource走rbac鉴权, 如果有资源pass, 则记录结果, no pass则回落到abac鉴权
+		2. 走query的逻辑, 分别查询abac与rbac的策略并合并, 遍历走abac鉴权
+	*/
 
 	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies

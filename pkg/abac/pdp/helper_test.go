@@ -51,19 +51,19 @@ var _ = Describe("Helper", func() {
 
 		It("error", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
 				nil, errors.New("err"))
 
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, false, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
 			assert.Empty(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 		})
 
 		It("empty", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
 				[]types.AuthPolicy{}, nil)
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, false, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
 			assert.Empty(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.True(GinkgoT(), errors.Is(err, ErrNoPolicies))
@@ -71,7 +71,7 @@ var _ = Describe("Helper", func() {
 
 		It("ok", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
 				[]types.AuthPolicy{
 					{
 						Version:    "1",
@@ -81,7 +81,7 @@ var _ = Describe("Helper", func() {
 					},
 				}, nil)
 
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, false, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})
@@ -129,6 +129,8 @@ var _ = Describe("Helper", func() {
 
 		It("ValidateActionRemoteResource error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -143,6 +145,8 @@ var _ = Describe("Helper", func() {
 
 		It("FillSubject error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -161,6 +165,8 @@ var _ = Describe("Helper", func() {
 
 		It("QueryPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -170,9 +176,17 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
+			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -186,6 +200,8 @@ var _ = Describe("Helper", func() {
 
 		It("PartialEvalPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -195,9 +211,17 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
+			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -217,6 +241,8 @@ var _ = Describe("Helper", func() {
 
 		It("PartialEvalPolicies empty", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -226,9 +252,17 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
+			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -247,6 +281,8 @@ var _ = Describe("Helper", func() {
 
 		It("PartialEvalPolicies ok", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionRemoteResource",
@@ -256,9 +292,17 @@ var _ = Describe("Helper", func() {
 			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
 			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
+			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -342,10 +386,10 @@ var _ = Describe("Helper", func() {
 
 		It("GetActionDetail fail", func() {
 			patches = gomonkey.ApplyFunc(pip.GetActionDetail,
-				func(system, id string) (pk int64,
+				func(system, id string) (pk int64, authType int64,
 					arts []types.ActionResourceType, err error,
 				) {
-					return -1, nil, errors.New("get GetActionDetail fail")
+					return -1, 0, nil, errors.New("get GetActionDetail fail")
 				})
 
 			err := fillActionDetail(r)
@@ -355,10 +399,10 @@ var _ = Describe("Helper", func() {
 
 		It("ok", func() {
 			patches = gomonkey.ApplyFunc(pip.GetActionDetail,
-				func(system, id string) (pk int64,
+				func(system, id string) (pk int64, authType int64,
 					arts []types.ActionResourceType, err error,
 				) {
-					return 123, []types.ActionResourceType{}, nil
+					return 123, 1, []types.ActionResourceType{}, nil
 				})
 
 			err := fillActionDetail(r)

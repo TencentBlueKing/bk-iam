@@ -62,6 +62,13 @@ type PolicyService interface {
 	UpdateExpiredAt(policies []types.QueryPolicy) error
 	AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 		actionPKWithResourceTypeSet *set.Int64Set) (map[int64][]int64, error)
+	AlterCustomPoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK int64,
+		createPolicies, updatePolicies []types.Policy,
+		deletePolicyIDs []int64,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) (map[int64][]int64, error)
 
 	DeleteByPKs(subjectPK int64, pks []int64) error
 
@@ -69,7 +76,20 @@ type PolicyService interface {
 
 	CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64,
 		actionPKWithResourceTypeSet *set.Int64Set) error
+	CreateAndDeleteTemplatePoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK, templateID int64,
+		createPolicies []types.Policy,
+		deletePolicyIDs []int64,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) error
 	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error
+	UpdateTemplatePoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK int64,
+		policies []types.Policy,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) error
 	DeleteTemplatePolicies(subjectPK int64, templateID int64) error
 
 	// for pap
@@ -243,10 +263,41 @@ func (s *policyService) AlterCustomPolicies(
 	deletePolicyIDs []int64,
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterCustomPolicies")
+
+	// 使用事务
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		err = errorWrapf(err, "define tx fail")
+		return
+	}
+
+	updatedActionPKExpressionPKs, err = s.AlterCustomPoliciesWithTx(
+		tx, subjectPK,
+		createPolicies, updatePolicies, deletePolicyIDs,
+		actionPKWithResourceTypeSet,
+	)
+	if err != nil {
+		err = errorWrapf(err, "s.AlterCustomPoliciesWithTx subjectPK=`%d` fail", subjectPK)
+		return
+	}
+
+	err = tx.Commit()
+	return updatedActionPKExpressionPKs, err
+}
+
+func (s *policyService) AlterCustomPoliciesWithTx(
+	tx *sqlx.Tx,
+	subjectPK int64,
+	createPolicies, updatePolicies []types.Policy,
+	deletePolicyIDs []int64,
+	actionPKWithResourceTypeSet *set.Int64Set,
+) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
 	// 自定义权限每个policy对应一个expression
 	// 创建policy的同时创建expression
 	// 修改policy时直接修改关联的expression
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterCustomPoliciesWithTx")
 
 	daoCreateExpressions := make([]dao.Expression, 0, len(createPolicies))
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
@@ -325,15 +376,6 @@ func (s *policyService) AlterCustomPolicies(
 		}
 	}
 
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
-	}
-
 	expressionPKs, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
 	if err != nil {
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
@@ -370,7 +412,6 @@ func (s *policyService) AlterCustomPolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return updatedActionPKExpressionPKs, err
 }
 
@@ -626,7 +667,6 @@ func (s *policyService) generateSignatureExpressionPKMap(
 	return signatureExpressionPKMap, nil
 }
 
-// CreateAndDeleteTemplatePolicies subject create and delete template policies
 func (s *policyService) CreateAndDeleteTemplatePolicies(
 	subjectPK, templateID int64,
 	createPolicies []types.Policy,
@@ -634,7 +674,6 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "CreateAndDeleteTemplatePolicies")
-
 	// 使用事务
 	tx, err := database.GenerateDefaultDBTx()
 	defer database.RollBackWithLog(tx)
@@ -642,6 +681,31 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 		err = errorWrapf(err, "define tx fail")
 		return
 	}
+
+	err = s.CreateAndDeleteTemplatePoliciesWithTx(
+		tx, subjectPK, templateID, createPolicies, deletePolicyIDs, actionPKWithResourceTypeSet,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"s.CreateAndDeleteTemplatePoliciesWithTx subjectPK=`%d` templateID=`%s` fail", subjectPK, templateID,
+		)
+		return
+	}
+
+	err = tx.Commit()
+	return
+}
+
+// CreateAndDeleteTemplatePoliciesWithTx subject create and delete template policies
+func (s *policyService) CreateAndDeleteTemplatePoliciesWithTx(
+	tx *sqlx.Tx,
+	subjectPK, templateID int64,
+	createPolicies []types.Policy,
+	deletePolicyIDs []int64,
+	actionPKWithResourceTypeSet *set.Int64Set,
+) (err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "CreateAndDeleteTemplatePolicies")
 
 	// 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
@@ -693,7 +757,6 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return err
 }
 
@@ -704,6 +767,33 @@ func (s *policyService) UpdateTemplatePolicies(
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePolicies")
+
+	// 使用事务
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		err = errorWrapf(err, "define tx fail")
+		return
+	}
+	err = s.UpdateTemplatePoliciesWithTx(tx, subjectPK, policies, actionPKWithResourceTypeSet)
+	if err != nil {
+		err = errorWrapf(err, "s.UpdateTemplatePoliciesWithTx subjectPK=`%d` fail", subjectPK)
+		return
+	}
+
+	err = tx.Commit()
+
+	return err
+}
+
+// UpdateTemplatePoliciesWithTx subject update template policies
+func (s *policyService) UpdateTemplatePoliciesWithTx(
+	tx *sqlx.Tx,
+	subjectPK int64,
+	policies []types.Policy,
+	actionPKWithResourceTypeSet *set.Int64Set,
+) (err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePoliciesWithTx")
 
 	// 1. 查询要更新的policies数据
 	policyPKs := make([]int64, 0, len(policies))
@@ -718,14 +808,6 @@ func (s *policyService) UpdateTemplatePolicies(
 	daoPolicyMap := make(map[int64]dao.Policy, len(daoPolicies))
 	for _, p := range daoPolicies {
 		daoPolicyMap[p.PK] = p
-	}
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
 	}
 
 	// 2. 生成 signature -> expression pk map
@@ -775,7 +857,6 @@ func (s *policyService) UpdateTemplatePolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return err
 }
 
