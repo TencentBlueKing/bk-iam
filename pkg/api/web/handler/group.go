@@ -83,7 +83,9 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
-	// subject.type= & subject.id= & group_ids=1,2,3,4
+	// input: subject.type= & subject.id= & group_ids=1,2,3,4
+	// output: 个人组 + 个人-部门-组 列表中, 是否包含了这批 group_ids
+	// 条件: 有效的, 即未过期的
 	groupIDs := strings.Split(query.GroupIDs, ",")
 	if len(groupIDs) > 100 {
 		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
@@ -91,7 +93,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	groupIDBelong, err := ctl.CheckSubjectExistGroups(query.Type, query.ID, groupIDs)
+	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, query.Inherit, groupIDs)
 	if err != nil {
 		err = errorx.Wrapf(
 			err,

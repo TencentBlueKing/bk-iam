@@ -58,7 +58,7 @@ type SubjectRelationManager interface {
 	ListRelation(subjectPK int64) ([]SubjectRelation, error)
 	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
 	ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
-	ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error)
+	ListExistSubjectGroupPKsAfterExpiredAt(subjectPKs []int64, parentPKs []int64, expiredAt int64) ([]int64, error)
 
 	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
@@ -227,14 +227,21 @@ func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64,
 	return expiredParentPKs, err
 }
 
-func (m *subjectRelationManager) ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error) {
+func (m *subjectRelationManager) ListExistSubjectGroupPKsAfterExpiredAt(
+	subjectPKs []int64,
+	parentPKs []int64,
+	expiredAt int64,
+) ([]int64, error) {
 	groupPKs := []int64{}
+
 	query := `SELECT
 		 parent_pk
 		 FROM subject_relation
-		 WHERE subject_pk = ?`
+		 WHERE subject_pk in (?)
+		 AND parent_pk in (?)
+		 AND policy_expired_at > ?`
 
-	err := database.SqlxSelect(m.DB, &groupPKs, query, subjectPK)
+	err := database.SqlxSelect(m.DB, &groupPKs, query, subjectPKs, parentPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return groupPKs, nil
 	}

@@ -13,6 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -32,7 +34,7 @@ type GroupService interface {
 	// web api
 	ListSubjectGroups(subjectPK, beforeExpiredAt int64) ([]types.SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
-	ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error)
+	ListExistEffectSubjectGroupPKs(subjectPKs []int64, parentPKs []int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 
@@ -150,14 +152,21 @@ func (l *groupService) ListExistSubjectsBeforeExpiredAt(
 	return existGroupPKs, err
 }
 
-func (l *groupService) ListSubjectAllGroupPKs(subjectPK int64) (groupPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectAllGroupPKs")
-	groupPKs, err = l.manager.ListSubjectAllGroupPKs(subjectPK)
+func (l *groupService) ListExistEffectSubjectGroupPKs(
+	subjectPKs []int64,
+	parentPKs []int64,
+) (groupPKs []int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListExistEffectSubjectGroupPKs")
+
+	// 过期时间必须大于当前时间
+	now := time.Now().Unix()
+
+	groupPKs, err = l.manager.ListExistSubjectGroupPKsAfterExpiredAt(subjectPKs, parentPKs, now)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.ListSubjectAllGroupPKs subjectPK=`%d` fail",
-			subjectPK,
+			"manager.ListExistSubjectGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
+			subjectPKs, parentPKs, now,
 		)
 	}
 	return groupPKs, nil

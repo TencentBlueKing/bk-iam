@@ -137,6 +137,21 @@ func (mr *MockSubjectRelationManagerMockRecorder) ListEffectRelationBySubjectPKs
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectRelationBySubjectPKs", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListEffectRelationBySubjectPKs), subjectPKs)
 }
 
+// ListExistSubjectGroupPKsAfterExpiredAt mocks base method.
+func (m *MockSubjectRelationManager) ListExistSubjectGroupPKsAfterExpiredAt(subjectPKs, parentPKs []int64, expiredAt int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListExistSubjectGroupPKsAfterExpiredAt", subjectPKs, parentPKs, expiredAt)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListExistSubjectGroupPKsAfterExpiredAt indicates an expected call of ListExistSubjectGroupPKsAfterExpiredAt.
+func (mr *MockSubjectRelationManagerMockRecorder) ListExistSubjectGroupPKsAfterExpiredAt(subjectPKs, parentPKs, expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectGroupPKsAfterExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListExistSubjectGroupPKsAfterExpiredAt), subjectPKs, parentPKs, expiredAt)
+}
+
 // ListMember mocks base method.
 func (m *MockSubjectRelationManager) ListMember(parentPK int64) ([]dao.SubjectRelation, error) {
 	m.ctrl.T.Helper()
@@ -225,21 +240,6 @@ func (m *MockSubjectRelationManager) ListRelationBeforeExpiredAt(subjectPK, expi
 func (mr *MockSubjectRelationManagerMockRecorder) ListRelationBeforeExpiredAt(subjectPK, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListRelationBeforeExpiredAt), subjectPK, expiredAt)
-}
-
-// ListSubjectAllGroupPKs mocks base method.
-func (m *MockSubjectRelationManager) ListSubjectAllGroupPKs(subjectPK int64) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSubjectAllGroupPKs", subjectPK)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListSubjectAllGroupPKs indicates an expected call of ListSubjectAllGroupPKs.
-func (mr *MockSubjectRelationManagerMockRecorder) ListSubjectAllGroupPKs(subjectPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectAllGroupPKs", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListSubjectAllGroupPKs), subjectPK)
 }
 
 // UpdateExpiredAtWithTx mocks base method.

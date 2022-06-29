@@ -361,9 +361,9 @@ var _ = Describe("GroupController", func() {
 				return 0, sql.ErrNoRows
 			})
 
-			// patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
-			// 	return []int64{10, 20, 30}, nil
-			// })
+			patches.ApplyFunc(cacheimpls.GetSubjectDepartmentPKs, func(subjectPK int64) ([]int64, error) {
+				return []int64{10, 20, 30}, nil
+			})
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -375,36 +375,38 @@ var _ = Describe("GroupController", func() {
 				service: mock.NewMockGroupService(ctl),
 			}
 
-			_, err := c.CheckSubjectExistGroups("user", "notexist", []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "notexist", true, []string{"10", "20"})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetSubjectPK")
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetLocalSubjectPK")
 		})
 
 		It("get subject all group pks fail", func() {
-			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
-				return nil, errors.New("error")
-			})
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
 
 			c := &groupController{
-				service: mock.NewMockGroupService(ctl),
+				service: mockGroupService,
 			}
 
-			_, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
 
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetSubjectAllGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListExistEffectSubjectGroupPKs")
 		})
 
 		It("ok, all groupID valid", func() {
-			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
-				return []int64{10, 30}, nil
-			})
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]int64{10, 30}, nil,
+			).AnyTimes()
 
 			c := &groupController{
-				service: mock.NewMockGroupService(ctl),
+				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
 			assert.True(GinkgoT(), groupIDBelong["10"])
@@ -412,15 +414,16 @@ var _ = Describe("GroupController", func() {
 		})
 
 		It("ok, has invalid groupID", func() {
-			patches.ApplyFunc(cacheimpls.GetSubjectAllGroupPKs, func(subjectPK int64) ([]int64, error) {
-				return []int64{10, 30}, nil
-			})
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]int64{10, 30}, nil,
+			).AnyTimes()
 
 			c := &groupController{
-				service: mock.NewMockGroupService(ctl),
+				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectExistGroups("user", "1", []string{"10", "20", "invalid"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20", "invalid"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
 			assert.True(GinkgoT(), groupIDBelong["10"])

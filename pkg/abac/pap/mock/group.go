@@ -34,19 +34,19 @@ func (m *MockGroupController) EXPECT() *MockGroupControllerMockRecorder {
 	return m.recorder
 }
 
-// CheckSubjectExistGroups mocks base method.
-func (m *MockGroupController) CheckSubjectExistGroups(_type, id string, groupIDs []string) (map[string]bool, error) {
+// CheckSubjectEffectGroups mocks base method.
+func (m *MockGroupController) CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckSubjectExistGroups", _type, id, groupIDs)
+	ret := m.ctrl.Call(m, "CheckSubjectEffectGroups", _type, id, inherit, groupIDs)
 	ret0, _ := ret[0].(map[string]bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CheckSubjectExistGroups indicates an expected call of CheckSubjectExistGroups.
-func (mr *MockGroupControllerMockRecorder) CheckSubjectExistGroups(_type, id, groupIDs interface{}) *gomock.Call {
+// CheckSubjectEffectGroups indicates an expected call of CheckSubjectEffectGroups.
+func (mr *MockGroupControllerMockRecorder) CheckSubjectEffectGroups(_type, id, inherit, groupIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSubjectExistGroups", reflect.TypeOf((*MockGroupController)(nil).CheckSubjectExistGroups), _type, id, groupIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSubjectEffectGroups", reflect.TypeOf((*MockGroupController)(nil).CheckSubjectEffectGroups), _type, id, inherit, groupIDs)
 }
 
 // CreateOrUpdateGroupMembers mocks base method.

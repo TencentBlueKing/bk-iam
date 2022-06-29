@@ -32,7 +32,7 @@ const GroupCTL = "GroupCTL"
 type GroupController interface {
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
-	CheckSubjectExistGroups(_type, id string, groupIDs []string) (map[string]bool, error)
+	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
 	GetMemberCount(_type, id string) (int64, error)
 	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
@@ -97,25 +97,31 @@ func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, e
 	return existSubjects, nil
 }
 
-func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []string) (map[string]bool, error) {
+func (c *groupController) CheckSubjectEffectGroups(
+	_type, id string,
+	inherit bool,
+	groupIDs []string,
+) (map[string]bool, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
 
 	// subject Type+ID to PK
 	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	// do check, get subject all group pks from cache
-	allGroupPKs, err := cacheimpls.GetSubjectAllGroupPKs(subjectPK)
-	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectAllGroupPKs subjectPK=`%d` fail", subjectPK)
-	}
-	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
-	existGroupPKSet := set.NewInt64SetWithValues(allGroupPKs)
+	subjectPKs := []int64{subjectPK}
+	if inherit {
+		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
+		if err != nil {
+			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
+		}
 
-	// the result
-	groupIDBelong := make(map[string]bool, len(groupIDs))
+		subjectPKs = append(subjectPKs, departmentPKs...)
+	}
+
+	groupIDToGroupPK := make(map[string]int64, len(groupIDs))
+	groupPKs := make([]int64, 0, len(groupIDs))
 	for _, groupID := range groupIDs {
 		// if groupID is empty, skip
 		if groupID == "" {
@@ -129,7 +135,6 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
 
 				// NOTE: set to false if the groupID is not exist
-				groupIDBelong[groupID] = false
 				continue
 			}
 
@@ -141,6 +146,29 @@ func (c *groupController) CheckSubjectExistGroups(_type, id string, groupIDs []s
 			)
 		}
 
+		groupPKs = append(groupPKs, groupPK)
+		groupIDToGroupPK[groupID] = groupPK
+	}
+
+	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
+	effectGroupPKs, err := c.service.ListExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"service.ListExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
+			subjectPKs,
+			groupPKs,
+		)
+	}
+	existGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
+
+	// the result
+	groupIDBelong := make(map[string]bool, len(groupIDs))
+	for _, groupID := range groupIDs {
+		groupPK, ok := groupIDToGroupPK[groupID]
+		if !ok {
+			groupIDBelong[groupID] = false
+		}
 		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
 	}
 
