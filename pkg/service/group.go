@@ -132,15 +132,24 @@ func (l *groupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expi
 func (l *groupService) ListPagingSubjectGroups(
 	subjectPK, beforeExpiredAt, limit, offset int64,
 ) (subjectGroups []types.SubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectGroups")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListPagingSubjectGroups")
+
 	var relations []dao.SubjectRelation
 	if beforeExpiredAt == 0 {
 		relations, err = l.manager.ListPagingRelation(subjectPK, limit, offset)
 	} else {
 		relations, err = l.manager.ListPagingRelationBeforeExpiredAt(subjectPK, beforeExpiredAt, limit, offset)
 	}
+
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "manager.ListPagingRelation subjectPK=`%d` fail", subjectPK)
+		return subjectGroups, errorWrapf(
+			err,
+			"manager.ListPagingRelationBeforeExpiredAt subjectPK=`%d`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK,
+			beforeExpiredAt,
+			limit,
+			offset,
+		)
 	}
 
 	subjectGroups = make([]types.SubjectGroup, 0, len(relations))

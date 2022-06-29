@@ -85,7 +85,17 @@ func ListSubjectGroups(c *gin.Context) {
 		query.Offset,
 	)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.ListPagingSubjectGroups", "type=`%s`, id=`%s`", query.Type, query.ID)
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListPagingSubjectGroups",
+			"type=`%s`, id=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			query.Type,
+			query.ID,
+			query.BeforeExpiredAt,
+			query.Limit,
+			query.Offset,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

@@ -125,16 +125,16 @@ func (c *groupController) ListPagingSubjectGroups(
 	beforeExpiredAt, limit, offset int64,
 ) ([]SubjectGroup, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListSubjectGroups")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcSubjectGroups, err := c.service.ListPagingSubjectGroups(parentPK, beforeExpiredAt, limit, offset)
+	svcSubjectGroups, err := c.service.ListPagingSubjectGroups(subjectPK, beforeExpiredAt, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListSubjectGroups parentPK=`%s`, beforeExpiredAt=`%d` fail",
-			parentPK, beforeExpiredAt,
+			err, "service.ListPagingSubjectGroups subjectPK=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK, beforeExpiredAt, limit, offset,
 		)
 	}
 
