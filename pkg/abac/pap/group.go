@@ -111,7 +111,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 	}
 
 	subjectPKs := []int64{subjectPK}
-	if inherit {
+	if inherit && _type == types.UserType {
 		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
 		if err != nil {
 			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
