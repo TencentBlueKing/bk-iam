@@ -133,8 +133,6 @@ func (c *groupController) CheckSubjectEffectGroups(
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
-
-				// NOTE: set to false if the groupID is not exist
 				continue
 			}
 

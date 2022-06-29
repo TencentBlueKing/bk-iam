@@ -149,7 +149,7 @@ func Register(r *gin.RouterGroup) {
 		// TODO: 需要考虑分页了 => https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
 		r.GET("/subject-groups", handler.ListSubjectGroups)
 
-		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5
+		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5&inherit=true
 		r.GET("/subjects-groups/belong", handler.CheckSubjectGroupsBelong)
 	}
 
