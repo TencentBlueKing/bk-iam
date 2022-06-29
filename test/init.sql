@@ -154,7 +154,9 @@ INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `policy_expired_at`) 
 
 /* base system info: demo */
 INSERT INTO `system_info` VALUES ('demo','2021-06-24 07:23:13','2021-06-24 07:23:13');
-INSERT INTO `resource_type` VALUES (1,'demo','app','2021-06-24 07:23:13','2021-06-24 07:23:13');
+INSERT INTO `resource_type` VALUES
+(1,'demo','app','2021-06-24 07:23:13','2021-06-24 07:23:13'),
+(2,'demo','project','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `action` VALUES
 (1,'demo','access_developer_center','2021-06-24 07:23:13','2021-06-24 07:23:13'),
 (2,'demo','develop_app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
@@ -171,9 +173,11 @@ INSERT INTO `saas_action` VALUES
 (4,'demo','edit_app','编辑应用','view app','一个用户是否能够编辑应用','Is allowed to edit app','[\"access_developer_center\"]','rbac','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
 INSERT INTO `saas_action_resource_type` VALUES
 (1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
-(2,'demo','view_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
-(3,'demo','edit_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
-INSERT INTO `saas_instance_selection` VALUES (1,'demo','app_view','应用视图','app_view',0,'[{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13');
+(2,'demo','view_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"},{\"id\":\"project_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
+(3,'demo','edit_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"},{\"id\":\"project_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28');
+INSERT INTO `saas_instance_selection` VALUES
+(1,'demo','app_view','应用视图','app_view',0,'[{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13'),
+(2,'demo','project_view','项目视图','project_view',0,'[{\"system_id\":\"demo\",\"id\":\"project\"},{\"system_id\":\"demo\",\"id\":\"app\"}]','2021-06-24 07:23:13','2021-06-24 07:23:13');
 INSERT INTO `saas_resource_type` VALUES (1,'demo','app','SaaS应用','application','SaaS应用','SaaS application','[]','{\"path\":\"/api/v1/iam/apps\"}',0,1,'2021-06-24 07:23:13','2021-06-24 07:31:28');
 INSERT INTO `saas_system_info` VALUES ('demo','Demo平台','Demo','A demo SaaS for quick start','A demo SaaS for quick start.','demo,bk_iam_app','{\"token\":\"63yr6hs11bsqa8u4d9i0acbpjuuyizaw\",\"host\":\"http://127.0.0.1:5000\",\"auth\":\"basic\",\"healthz\":\"/healthz/\"}','2021-06-24 07:23:13','2021-06-24 07:31:28');
 
@@ -348,3 +352,5 @@ INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `sy
 ("c99c79d3321cb5c289e72b7fbd876758", 2126, 0, "demo", "[3]", 1, 1, "002");
 INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("e848ca9bc61dfe3dce55a3a17f46e2b9", 2127, 0, "demo", "[3]", 1, 1, "002");
+INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+("647fd04120c00f5ebca00131f3636719", 2105, 0, "demo", "[3]", 1, 2, "002");
