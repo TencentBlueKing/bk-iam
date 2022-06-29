@@ -3441,6 +3441,72 @@
 					"response": []
 				},
 				{
+					"name": "rbac user101 view app iam path 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user101\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/app,001/app,002/\"]\n        }\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "rbac user102 view app 002",
 					"event": [
 						{
