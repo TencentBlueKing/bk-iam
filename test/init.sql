@@ -302,7 +302,6 @@ INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES 
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 141, "{\"2141\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 145, "{\"2145\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 147, "{\"2147\":4102444800}");
-INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1121, "{\"2121\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1122, "{\"2122\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1123, "{\"2123\":4102444800}");
 INSERT INTO `subject_system_group` (`system_id`, `subject_pk`, `groups`) VALUES ("demo", 1144, "{\"2144\":4102444800}");
