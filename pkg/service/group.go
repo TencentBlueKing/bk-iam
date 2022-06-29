@@ -30,7 +30,8 @@ type GroupService interface {
 	ListEffectThinSubjectGroups(systemID string, pks []int64) (map[int64][]types.ThinSubjectGroup, error)
 
 	// web api
-	ListSubjectGroups(subjectPK, beforeExpiredAt int64) ([]types.SubjectGroup, error)
+	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
+	ListPagingSubjectGroups(subjectPK, beforeExpiredAt int64, limit, offset int64) ([]types.SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
@@ -107,19 +108,39 @@ func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKs(
 	return subjectGroups, nil
 }
 
-// ListSubjectGroups ...
-func (l *groupService) ListSubjectGroups(
-	subjectPK, beforeExpiredAt int64,
+// GetSubjectGroupCountBeforeExpiredAt ...
+func (l *groupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (count int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "GetSubjectGroupCountBeforeExpiredAt")
+
+	if expiredAt == 0 {
+		count, err = l.manager.GetSubjectGroupCount(subjectPK)
+	} else {
+		count, err = l.manager.GetSubjectGroupCountBeforeExpiredAt(subjectPK, expiredAt)
+	}
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"manager.GetSubjectGroupCountBeforeExpiredAt subjectPK=`%d, expiredAt=`%d` fail",
+			subjectPK,
+			expiredAt,
+		)
+	}
+	return count, nil
+}
+
+// ListPagingSubjectGroups ...
+func (l *groupService) ListPagingSubjectGroups(
+	subjectPK, beforeExpiredAt, limit, offset int64,
 ) (subjectGroups []types.SubjectGroup, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectGroups")
 	var relations []dao.SubjectRelation
 	if beforeExpiredAt == 0 {
-		relations, err = l.manager.ListRelation(subjectPK)
+		relations, err = l.manager.ListPagingRelation(subjectPK, limit, offset)
 	} else {
-		relations, err = l.manager.ListRelationBeforeExpiredAt(subjectPK, beforeExpiredAt)
+		relations, err = l.manager.ListPagingRelationBeforeExpiredAt(subjectPK, beforeExpiredAt, limit, offset)
 	}
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "manager.ListSubjectGroups subjectPK=`%d` fail", subjectPK)
+		return subjectGroups, errorWrapf(err, "manager.ListPagingRelation subjectPK=`%d` fail", subjectPK)
 	}
 
 	subjectGroups = make([]types.SubjectGroup, 0, len(relations))

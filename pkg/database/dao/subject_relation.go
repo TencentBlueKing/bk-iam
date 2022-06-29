@@ -55,8 +55,11 @@ type EffectSubjectRelation struct {
 type SubjectRelationManager interface {
 	ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]EffectSubjectRelation, error)
 
-	ListRelation(subjectPK int64) ([]SubjectRelation, error)
-	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
+	GetSubjectGroupCount(subjectPK int64) (int64, error)
+	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
+	ListPagingRelation(subjectPK, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
+
 	ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
 
 	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
@@ -86,9 +89,33 @@ func NewSubjectRelationManager() SubjectRelationManager {
 	}
 }
 
+// GetSubjectGroupCount ...
+func (m *subjectRelationManager) GetSubjectGroupCount(subjectPK int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_relation
+		 WHERE subject_pk = ?`
+
+	err := database.SqlxGet(m.DB, &count, query, subjectPK)
+	return count, err
+}
+
 // ListRelation ...
-func (m *subjectRelationManager) ListRelation(subjectPK int64) (relations []SubjectRelation, err error) {
-	err = m.selectRelation(&relations, subjectPK)
+func (m *subjectRelationManager) ListPagingRelation(
+	subjectPK, limit, offset int64,
+) (relations []SubjectRelation, err error) {
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 ORDER BY pk DESC
+		 LIMIT ? OFFSET ?`
+	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -96,11 +123,35 @@ func (m *subjectRelationManager) ListRelation(subjectPK int64) (relations []Subj
 	return
 }
 
+// GetSubjectGroupCountBeforeExpiredAt ...
+func (m *subjectRelationManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 AND policy_expired_at < ?`
+	err := database.SqlxGet(m.DB, &count, query, subjectPK, expiredAt)
+
+	return count, err
+}
+
 // ListRelationBeforeExpiredAt ...
-func (m *subjectRelationManager) ListRelationBeforeExpiredAt(
-	subjectPK int64, expiredAt int64,
+func (m *subjectRelationManager) ListPagingRelationBeforeExpiredAt(
+	subjectPK, expiredAt, limit, offset int64,
 ) (relations []SubjectRelation, err error) {
-	err = m.selectRelationBeforeExpiredAt(&relations, subjectPK, expiredAt)
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 AND policy_expired_at < ?
+		 ORDER BY policy_expired_at DESC
+		 LIMIT ? OFFSET ?`
+	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, expiredAt, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -224,34 +275,6 @@ func (m *subjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64,
 		return expiredParentPKs, nil
 	}
 	return expiredParentPKs, err
-}
-
-func (m *subjectRelationManager) selectRelation(relations *[]SubjectRelation, subjectPK int64) error {
-	query := `SELECT
-		 pk,
-		 subject_pk,
-		 parent_pk,
-		 policy_expired_at,
-		 created_at
-		 FROM subject_relation
-		 WHERE subject_pk = ?`
-	return database.SqlxSelect(m.DB, relations, query, subjectPK)
-}
-
-func (m *subjectRelationManager) selectRelationBeforeExpiredAt(
-	relations *[]SubjectRelation, subjectPK int64, expiredAt int64,
-) error {
-	query := `SELECT
-		 pk,
-		 subject_pk,
-		 parent_pk,
-		 policy_expired_at,
-		 created_at
-		 FROM subject_relation
-		 WHERE subject_pk = ?
-		 AND policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC`
-	return database.SqlxSelect(m.DB, relations, query, subjectPK, expiredAt)
 }
 
 func (m *subjectRelationManager) selectEffectRelationBySubjectPKs(

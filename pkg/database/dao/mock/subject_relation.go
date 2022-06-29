@@ -122,6 +122,36 @@ func (mr *MockSubjectRelationManagerMockRecorder) GetMemberCountBeforeExpiredAt(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCountBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).GetMemberCountBeforeExpiredAt), parentPK, expiredAt)
 }
 
+// GetSubjectGroupCount mocks base method.
+func (m *MockSubjectRelationManager) GetSubjectGroupCount(subjectPK int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubjectGroupCount", subjectPK)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubjectGroupCount indicates an expected call of GetSubjectGroupCount.
+func (mr *MockSubjectRelationManagerMockRecorder) GetSubjectGroupCount(subjectPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectGroupCount", reflect.TypeOf((*MockSubjectRelationManager)(nil).GetSubjectGroupCount), subjectPK)
+}
+
+// GetSubjectGroupCountBeforeExpiredAt mocks base method.
+func (m *MockSubjectRelationManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK, expiredAt int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubjectGroupCountBeforeExpiredAt", subjectPK, expiredAt)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubjectGroupCountBeforeExpiredAt indicates an expected call of GetSubjectGroupCountBeforeExpiredAt.
+func (mr *MockSubjectRelationManagerMockRecorder) GetSubjectGroupCountBeforeExpiredAt(subjectPK, expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectGroupCountBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).GetSubjectGroupCountBeforeExpiredAt), subjectPK, expiredAt)
+}
+
 // ListEffectRelationBySubjectPKs mocks base method.
 func (m *MockSubjectRelationManager) ListEffectRelationBySubjectPKs(subjectPKs []int64) ([]dao.EffectSubjectRelation, error) {
 	m.ctrl.T.Helper()
@@ -182,6 +212,36 @@ func (mr *MockSubjectRelationManagerMockRecorder) ListPagingMemberBeforeExpiredA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMemberBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListPagingMemberBeforeExpiredAt), parentPK, expiredAt, limit, offset)
 }
 
+// ListPagingRelation mocks base method.
+func (m *MockSubjectRelationManager) ListPagingRelation(subjectPK, limit, offset int64) ([]dao.SubjectRelation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPagingRelation", subjectPK, limit, offset)
+	ret0, _ := ret[0].([]dao.SubjectRelation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPagingRelation indicates an expected call of ListPagingRelation.
+func (mr *MockSubjectRelationManagerMockRecorder) ListPagingRelation(subjectPK, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingRelation", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListPagingRelation), subjectPK, limit, offset)
+}
+
+// ListPagingRelationBeforeExpiredAt mocks base method.
+func (m *MockSubjectRelationManager) ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]dao.SubjectRelation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPagingRelationBeforeExpiredAt", subjectPK, expiredAt, limit, offset)
+	ret0, _ := ret[0].([]dao.SubjectRelation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPagingRelationBeforeExpiredAt indicates an expected call of ListPagingRelationBeforeExpiredAt.
+func (mr *MockSubjectRelationManagerMockRecorder) ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingRelationBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListPagingRelationBeforeExpiredAt), subjectPK, expiredAt, limit, offset)
+}
+
 // ListParentPKsBeforeExpiredAt mocks base method.
 func (m *MockSubjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
@@ -195,36 +255,6 @@ func (m *MockSubjectRelationManager) ListParentPKsBeforeExpiredAt(parentPKs []in
 func (mr *MockSubjectRelationManagerMockRecorder) ListParentPKsBeforeExpiredAt(parentPKs, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListParentPKsBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListParentPKsBeforeExpiredAt), parentPKs, expiredAt)
-}
-
-// ListRelation mocks base method.
-func (m *MockSubjectRelationManager) ListRelation(subjectPK int64) ([]dao.SubjectRelation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRelation", subjectPK)
-	ret0, _ := ret[0].([]dao.SubjectRelation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListRelation indicates an expected call of ListRelation.
-func (mr *MockSubjectRelationManagerMockRecorder) ListRelation(subjectPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelation", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListRelation), subjectPK)
-}
-
-// ListRelationBeforeExpiredAt mocks base method.
-func (m *MockSubjectRelationManager) ListRelationBeforeExpiredAt(subjectPK, expiredAt int64) ([]dao.SubjectRelation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRelationBeforeExpiredAt", subjectPK, expiredAt)
-	ret0, _ := ret[0].([]dao.SubjectRelation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListRelationBeforeExpiredAt indicates an expected call of ListRelationBeforeExpiredAt.
-func (mr *MockSubjectRelationManagerMockRecorder) ListRelationBeforeExpiredAt(subjectPK, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBeforeExpiredAt", reflect.TypeOf((*MockSubjectRelationManager)(nil).ListRelationBeforeExpiredAt), subjectPK, expiredAt)
 }
 
 // UpdateExpiredAtWithTx mocks base method.

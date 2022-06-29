@@ -51,19 +51,19 @@ func Test_subjectRelationManager_List(t *testing.T) {
 	})
 }
 
-func Test_subjectRelationManager_ListRelation(t *testing.T) {
+func Test_subjectRelationManager_ListPagingRelation(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT pk, subject_pk, parent_pk, policy_expired_at, created_at FROM subject_relation
-		 WHERE subject_pk =`
+		 WHERE subject_pk = (.*) ORDER BY pk DESC LIMIT (.*) OFFSET (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{
 				"pk", "subject_pk", "parent_pk", "policy_expired_at",
 			},
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10), int64(0)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListRelation(int64(1))
+		relations, err := manager.ListPagingRelation(int64(1), 10, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -90,7 +90,7 @@ func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
+func Test_subjectRelationManager_ListPagingRelationBeforeExpiredAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT
 		 pk,
@@ -101,16 +101,17 @@ func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 		 FROM subject_relation
 		 WHERE subject_pk = (.*)
 		 AND policy_expired_at < (.*)
-		 ORDER BY policy_expired_at DESC`
+		 ORDER BY policy_expired_at DESC
+		 LIMIT (.*) OFFSET (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{
 				"pk", "subject_pk", "parent_pk", "policy_expired_at",
 			},
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000)).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000), int64(10), int64(0)).WillReturnRows(mockRows)
 
 		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListRelationBeforeExpiredAt(int64(1), int64(1000))
+		relations, err := manager.ListPagingRelationBeforeExpiredAt(int64(1), int64(1000), 10, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
