@@ -64,6 +64,6 @@ type SubjectRelationForUpdate struct {
 // SubjectRelationForCreate 用于创建 subject-relation
 type SubjectRelationForCreate struct {
 	SubjectPK       int64 `json:"subject_pk"`
-	GroupPK         int64 `json:"parent_pk"`
+	GroupPK         int64 `json:"group_pk"`
 	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }

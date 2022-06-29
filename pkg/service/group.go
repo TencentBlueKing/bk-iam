@@ -427,7 +427,7 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) er
 	err := l.manager.BulkDeleteByGroupPKs(tx, pks)
 	if err != nil {
 		return errorWrapf(
-			err, "manager.BulkDeleteByGroupPKs parent_pks=`%+v` fail", pks)
+			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", pks)
 	}
 	// 批量其加入的用户组关系 subjectRelation
 	err = l.manager.BulkDeleteBySubjectPKs(tx, pks)
