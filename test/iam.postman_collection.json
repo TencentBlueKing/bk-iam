@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0f6de009-7edc-4785-ac4f-782c6a67f6c1",
+		"_postman_id": "4a4e8b14-9324-4a2d-9865-3d8f876fe1fb",
 		"name": "iam",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "10061835"
@@ -3375,7 +3375,7 @@
 					"response": []
 				},
 				{
-					"name": "user100  view app 001 (rbac)",
+					"name": "rbac user105 view app 002",
 					"event": [
 						{
 							"listen": "test",
@@ -3411,7 +3411,799 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user100\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"001\"\n    }]\n}",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user105 view app iam path 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/app,001/app,002/\"]\n        }\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user106 view app 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user106\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user107 view app 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user107\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user106 view app 001",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user106\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"001\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user107 view app 003",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user107\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user107 view app 004",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user107\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"004\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user125 view app 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user125\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user126 view app 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user126\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user127 view app 002",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user127\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"002\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user126 view app 001",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user126\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"001\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user127 view app 003",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user127\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/api/v1/policy/auth?debug",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"policy",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "debug",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rbac user127 view app 004",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"ok\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.code).to.eql(0);",
+									"    pm.expect(jsonData.data.allowed).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Bk-App-Code",
+								"value": "{{app_code}}",
+								"type": "text"
+							},
+							{
+								"key": "X-Bk-App-Secret",
+								"value": "{{app_secret}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user127\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"004\"\n    }]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
