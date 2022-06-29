@@ -168,6 +168,21 @@ func (mr *MockGroupServiceMockRecorder) ListEffectThinSubjectGroupsBySubjectPKs(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectThinSubjectGroupsBySubjectPKs", reflect.TypeOf((*MockGroupService)(nil).ListEffectThinSubjectGroupsBySubjectPKs), pks)
 }
 
+// ListExistEffectSubjectGroupPKs mocks base method.
+func (m *MockGroupService) ListExistEffectSubjectGroupPKs(subjectPKs, parentPKs []int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListExistEffectSubjectGroupPKs", subjectPKs, parentPKs)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListExistEffectSubjectGroupPKs indicates an expected call of ListExistEffectSubjectGroupPKs.
+func (mr *MockGroupServiceMockRecorder) ListExistEffectSubjectGroupPKs(subjectPKs, parentPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistEffectSubjectGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListExistEffectSubjectGroupPKs), subjectPKs, parentPKs)
+}
+
 // ListExistSubjectsBeforeExpiredAt mocks base method.
 func (m *MockGroupService) ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()

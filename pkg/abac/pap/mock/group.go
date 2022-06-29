@@ -34,6 +34,21 @@ func (m *MockGroupController) EXPECT() *MockGroupControllerMockRecorder {
 	return m.recorder
 }
 
+// CheckSubjectEffectGroups mocks base method.
+func (m *MockGroupController) CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckSubjectEffectGroups", _type, id, inherit, groupIDs)
+	ret0, _ := ret[0].(map[string]bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckSubjectEffectGroups indicates an expected call of CheckSubjectEffectGroups.
+func (mr *MockGroupControllerMockRecorder) CheckSubjectEffectGroups(_type, id, inherit, groupIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSubjectEffectGroups", reflect.TypeOf((*MockGroupController)(nil).CheckSubjectEffectGroups), _type, id, inherit, groupIDs)
+}
+
 // CreateOrUpdateGroupMembers mocks base method.
 func (m *MockGroupController) CreateOrUpdateGroupMembers(_type, id string, members []pap.GroupMember) (map[string]int64, error) {
 	m.ctrl.T.Helper()

@@ -14,7 +14,9 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -31,6 +33,7 @@ type GroupController interface {
 	GetSubjectGroupCountBeforeExpireAt(_type, id string, beforeExpiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
 	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
 	GetMemberCount(_type, id string) (int64, error)
 	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
@@ -117,6 +120,83 @@ func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, e
 	}
 
 	return existSubjects, nil
+}
+
+func (c *groupController) CheckSubjectEffectGroups(
+	_type, id string,
+	inherit bool,
+	groupIDs []string,
+) (map[string]bool, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
+
+	// subject Type+ID to PK
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	subjectPKs := []int64{subjectPK}
+	if inherit && _type == types.UserType {
+		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
+		if err != nil {
+			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
+		}
+
+		subjectPKs = append(subjectPKs, departmentPKs...)
+	}
+
+	groupIDToGroupPK := make(map[string]int64, len(groupIDs))
+	groupPKs := make([]int64, 0, len(groupIDs))
+	for _, groupID := range groupIDs {
+		// if groupID is empty, skip
+		if groupID == "" {
+			continue
+		}
+
+		// get the groupPK via groupID
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
+				continue
+			}
+
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
+				types.GroupType,
+				groupID,
+			)
+		}
+
+		groupPKs = append(groupPKs, groupPK)
+		groupIDToGroupPK[groupID] = groupPK
+	}
+
+	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
+	effectGroupPKs, err := c.service.ListExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"service.ListExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
+			subjectPKs,
+			groupPKs,
+		)
+	}
+	existGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
+
+	// the result
+	groupIDBelong := make(map[string]bool, len(groupIDs))
+	for _, groupID := range groupIDs {
+		groupPK, ok := groupIDToGroupPK[groupID]
+		if !ok {
+			groupIDBelong[groupID] = false
+			continue
+		}
+		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
+	}
+
+	return groupIDBelong, nil
 }
 
 // ListSubjectGroups ...
@@ -341,7 +421,7 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 清理缓存
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// 清理subject system group 缓存
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
@@ -395,7 +475,7 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)

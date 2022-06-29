@@ -310,4 +310,50 @@ var _ = Describe("GroupService", func() {
 			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 2}}, subjectGroups)
 		})
 	})
+
+	Describe("ListExistEffectSubjectGroupPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.ListExistEffectSubjectGroupPKs fail", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().
+				ListExistSubjectGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				Return(
+					nil, errors.New("error"),
+				).
+				AnyTimes()
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			_, err := manager.ListExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListExistSubjectGroupPKsAfterExpiredAt")
+		})
+
+		It("success", func() {
+			mockSubjectService := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectService.EXPECT().
+				ListExistSubjectGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				Return(
+					[]int64{1, 2, 3}, nil,
+				).
+				AnyTimes()
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			groupPKs, err := manager.ListExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			assert.NoError(GinkgoT(), err)
+			assert.ElementsMatch(GinkgoT(), []int64{1, 2, 3}, groupPKs)
+		})
+	})
 })

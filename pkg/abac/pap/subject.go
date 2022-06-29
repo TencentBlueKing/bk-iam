@@ -130,7 +130,8 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 
 	// 5. 清除缓存
 	// 清除涉及的所有缓存 [subjectGroup / subjectDetails]
-	cacheimpls.BatchDeleteSubjectCache(pks)
+	cacheimpls.BatchDeleteSubjectDepartmentCache(pks)
+	cacheimpls.BatchDeleteSubjectGroupCache(pks)
 
 	for _, s := range subjects {
 		cacheimpls.DeleteSubjectPK(s.Type, s.ID)

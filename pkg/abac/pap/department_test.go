@@ -240,7 +240,7 @@ var _ = Describe("DepartmentController", func() {
 
 				return 0, nil
 			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectDepartmentCache, func(pks []int64) error {
 				return nil
 			})
 			defer patches.Reset()
@@ -310,7 +310,7 @@ var _ = Describe("DepartmentController", func() {
 				nil,
 			).AnyTimes()
 
-			patches := gomonkey.ApplyFunc(cacheimpls.BatchDeleteSubjectCache, func(pks []int64) error {
+			patches := gomonkey.ApplyFunc(cacheimpls.BatchDeleteSubjectDepartmentCache, func(pks []int64) error {
 				return nil
 			})
 			defer patches.Reset()
