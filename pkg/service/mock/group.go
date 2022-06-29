@@ -168,21 +168,6 @@ func (mr *MockGroupServiceMockRecorder) ListExistEffectSubjectGroupPKs(subjectPK
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistEffectSubjectGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListExistEffectSubjectGroupPKs), subjectPKs, parentPKs)
 }
 
-// ListExistSubjectsBeforeExpiredAt mocks base method.
-func (m *MockGroupService) ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListExistSubjectsBeforeExpiredAt", parentPKs, expiredAt)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListExistSubjectsBeforeExpiredAt indicates an expected call of ListExistSubjectsBeforeExpiredAt.
-func (mr *MockGroupServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(parentPKs, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectsBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListExistSubjectsBeforeExpiredAt), parentPKs, expiredAt)
-}
-
 // ListGroupAuthBySystemGroupPKs mocks base method.
 func (m *MockGroupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
 	m.ctrl.T.Helper()
@@ -211,6 +196,21 @@ func (m *MockGroupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, erro
 func (mr *MockGroupServiceMockRecorder) ListGroupAuthSystemIDs(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupAuthSystemIDs", reflect.TypeOf((*MockGroupService)(nil).ListGroupAuthSystemIDs), groupPK)
+}
+
+// ListGroupPKsHasMemberBeforeExpiredAt mocks base method.
+func (m *MockGroupService) ListGroupPKsHasMemberBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroupPKsHasMemberBeforeExpiredAt", parentPKs, expiredAt)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroupPKsHasMemberBeforeExpiredAt indicates an expected call of ListGroupPKsHasMemberBeforeExpiredAt.
+func (mr *MockGroupServiceMockRecorder) ListGroupPKsHasMemberBeforeExpiredAt(parentPKs, expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupPKsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListGroupPKsHasMemberBeforeExpiredAt), parentPKs, expiredAt)
 }
 
 // ListMember mocks base method.

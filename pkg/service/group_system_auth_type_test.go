@@ -373,7 +373,7 @@ var _ = Describe("GroupService", func() {
 			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
 				int64(1), nil,
 			).AnyTimes()
-			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationManger := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
@@ -393,7 +393,7 @@ var _ = Describe("GroupService", func() {
 			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
 				int64(1), nil,
 			).AnyTimes()
-			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
+			mockSubjectRelationManger := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
 				[]dao.SubjectRelation{}, nil,
 			).AnyTimes()

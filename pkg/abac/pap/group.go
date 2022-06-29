@@ -31,7 +31,7 @@ const GroupCTL = "GroupCTL"
 
 type GroupController interface {
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]SubjectGroup, error)
-	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	ListGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
 	GetMemberCount(_type, id string) (int64, error)
@@ -59,20 +59,20 @@ func NewGroupController() GroupController {
 	}
 }
 
-func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListExistSubjectsBeforeExpiredAt")
+func (c *groupController) ListGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListGroupsHasMemberBeforeExpiredAt")
 
 	svcSubjects := convertToServiceSubjects(subjects)
-	subjectPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
+	groupPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
 	if err != nil {
 		return nil, errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	existSubjectPKs, err := c.service.ListExistSubjectsBeforeExpiredAt(subjectPKs, expiredAt)
+	existSubjectPKs, err := c.service.ListGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListExistSubjectsBeforeExpiredAt subjectPKs=`%+v`, expiredAt=`%d` fail",
-			subjectPKs, expiredAt,
+			err, "service.ListGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
+			groupPKs, expiredAt,
 		)
 	}
 
@@ -458,7 +458,7 @@ func (c *groupController) DeleteGroupMembers(
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
 	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
 	for _, m := range svcSubjectGroups {
-		subject, err := cacheimpls.GetSubjectByPK(m.ParentPK)
+		subject, err := cacheimpls.GetSubjectByPK(m.GroupPK)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				continue

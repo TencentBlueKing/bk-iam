@@ -254,9 +254,9 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 	})
 }
 
-// ListExistSubjectsBeforeExpiredAt 筛选出有成员过期的subjects
-func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "FilterSubjectsBeforeExpiredAt")
+// ListExistGroupsHasMemberBeforeExpiredAt 筛选出有成员过期的用户组
+func ListExistGroupsHasMemberBeforeExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListExistGroupsHasMemberBeforeExpiredAt")
 
 	var body filterSubjectsBeforeExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -272,15 +272,15 @@ func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Subjects)
 
 	ctl := pap.NewGroupController()
-	existSubjects, err := ctl.ListExistSubjectsBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
+	existGroups, err := ctl.ListGroupsHasMemberBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListExistSubjectsBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
+			err, "ctl.ListGroupsHasMemberBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
 			papSubjects, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	util.SuccessJSONResponse(c, "ok", existSubjects)
+	util.SuccessJSONResponse(c, "ok", existGroups)
 }

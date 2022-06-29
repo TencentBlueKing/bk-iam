@@ -13,7 +13,7 @@ package dao
 import (
 	"testing"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 
@@ -26,7 +26,7 @@ func Test_subjectRelationManager_GetCount(t *testing.T) {
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		cnt, err := manager.GetMemberCount(int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
@@ -43,7 +43,7 @@ func Test_subjectRelationManager_List(t *testing.T) {
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), 0, 10).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		relations, err := manager.ListPagingMember(int64(1), 0, 10)
 
 		assert.NoError(t, err, "query from db fail.")
@@ -62,7 +62,7 @@ func Test_subjectRelationManager_ListRelation(t *testing.T) {
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		relations, err := manager.ListRelation(int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
@@ -81,7 +81,7 @@ func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		cnt, err := manager.BulkDeleteByMembersWithTx(tx, int64(1), []int64{2})
 
 		tx.Commit()
@@ -109,7 +109,7 @@ func Test_subjectRelationManager_ListRelationBeforeExpiredAt(t *testing.T) {
 		).AddRow(int64(1), int64(2), int64(3), int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000)).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		relations, err := manager.ListRelationBeforeExpiredAt(int64(1), int64(1000))
 
 		assert.NoError(t, err, "query from db fail.")
@@ -123,7 +123,7 @@ func Test_subjectRelationManager_GetMemberCountBeforeExpiredAt(t *testing.T) {
 		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		cnt, err := manager.GetMemberCountBeforeExpiredAt(int64(1), int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
@@ -148,7 +148,7 @@ func Test_subjectRelationManager_UpdateExpiredAtWithTx(t *testing.T) {
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		err = manager.UpdateExpiredAtWithTx(tx, subjects)
 
 		tx.Commit()
@@ -167,14 +167,14 @@ func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 
 		relations := []SubjectRelation{{
 			SubjectPK:       2,
-			ParentPK:        1,
+			GroupPK:         1,
 			PolicyExpiredAt: 3,
 		}}
 
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
 
-		manager := &subjectRelationManager{DB: db}
+		manager := &subjectGroupManager{DB: db}
 		err = manager.BulkCreateWithTx(tx, relations)
 
 		tx.Commit()
@@ -198,8 +198,8 @@ func Test_subjectRelationManager_ListExistSubjectGroupPKsAfterExpiredAt(t *testi
 		).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1), int64(1656491305)).WillReturnRows(mockRows)
 
-		manager := &subjectRelationManager{DB: db}
-		relations, err := manager.ListExistSubjectGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, int64(1656491305))
+		manager := &subjectGroupManager{DB: db}
+		relations, err := manager.ListSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, int64(1656491305))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)

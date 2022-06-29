@@ -97,8 +97,9 @@ func Register(r *gin.RouterGroup) {
 		// 更新subject
 		r.PUT("/subjects", handler.BatchUpdateSubject)
 
+		// TODO: change the url? here is groups
 		// 筛选有过期成员的subjects
-		r.POST("/subjects/before_expired_at", handler.ListExistSubjectsBeforeExpiredAt)
+		r.POST("/subjects/before_expired_at", handler.ListExistGroupsHasMemberBeforeExpiredAt)
 	}
 
 	// group-members
