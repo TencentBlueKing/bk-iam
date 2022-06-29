@@ -132,7 +132,7 @@ var _ = Describe("GroupController", func() {
 				AnyTimes()
 			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
-				ParentPK:        1,
+				GroupPK:         1,
 				PolicyExpiredAt: int64(3),
 			}}).Return(
 				errors.New("error"),
@@ -220,7 +220,7 @@ var _ = Describe("GroupController", func() {
 				AnyTimes()
 			mockGroupService.EXPECT().BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelation{{
 				SubjectPK:       2,
-				ParentPK:        1,
+				GroupPK:         1,
 				PolicyExpiredAt: int64(3),
 			}}).Return(
 				nil,

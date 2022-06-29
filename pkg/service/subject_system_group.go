@@ -160,7 +160,7 @@ func (l *groupService) removeSubjectSystemGroup(
 
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
 			// 数据不存在时记录日志
-			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
+			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, groupPK=`%d`",
 				systemID, subjectPK, groupPK)
 			return nil
 		}

@@ -61,15 +61,15 @@ type SubjectGroupManager interface {
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
 
-	ListMember(parentPK int64) ([]SubjectRelation, error)
-	ListPagingMember(parentPK int64, limit, offset int64) ([]SubjectRelation, error)
+	ListMember(groupPK int64) ([]SubjectRelation, error)
+	ListPagingMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
 	ListPagingMemberBeforeExpiredAt(
-		parentPK int64, expiredAt int64, limit, offset int64,
+		groupPK int64, expiredAt int64, limit, offset int64,
 	) (members []SubjectRelation, err error)
-	GetMemberCount(parentPK int64) (int64, error)
-	GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt int64) (int64, error)
+	GetMemberCount(groupPK int64) (int64, error)
+	GetMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
 
-	BulkDeleteByMembersWithTx(tx *sqlx.Tx, parentPK int64, subjectPKs []int64) (int64, error)
+	BulkDeleteByMembersWithTx(tx *sqlx.Tx, groupPK int64, subjectPKs []int64) (int64, error)
 }
 
 type subjectGroupManager struct {
@@ -129,10 +129,10 @@ func (m *subjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(subject
 }
 
 // ListPagingMember ...
-func (m *subjectGroupManager) ListPagingMember(parentPK int64, limit, offset int64) (
+func (m *subjectGroupManager) ListPagingMember(groupPK int64, limit, offset int64) (
 	members []SubjectRelation, err error,
 ) {
-	err = m.selectPagingMembers(&members, parentPK, limit, offset)
+	err = m.selectPagingMembers(&members, groupPK, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -140,7 +140,7 @@ func (m *subjectGroupManager) ListPagingMember(parentPK int64, limit, offset int
 }
 
 // ListMember ...
-func (m *subjectGroupManager) ListMember(parentPK int64) (members []SubjectRelation, err error) {
+func (m *subjectGroupManager) ListMember(groupPK int64) (members []SubjectRelation, err error) {
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -149,7 +149,7 @@ func (m *subjectGroupManager) ListMember(parentPK int64) (members []SubjectRelat
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?`
-	err = database.SqlxSelect(m.DB, &members, query, parentPK)
+	err = database.SqlxSelect(m.DB, &members, query, groupPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -157,20 +157,20 @@ func (m *subjectGroupManager) ListMember(parentPK int64) (members []SubjectRelat
 }
 
 // GetMemberCount ...
-func (m *subjectGroupManager) GetMemberCount(parentPK int64) (int64, error) {
+func (m *subjectGroupManager) GetMemberCount(groupPK int64) (int64, error) {
 	var count int64
-	err := m.getMemberCount(&count, parentPK)
+	err := m.getMemberCount(&count, groupPK)
 	return count, err
 }
 
 // BulkDeleteByMembersWithTx ...
 func (m *subjectGroupManager) BulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, parentPK int64, subjectPKs []int64,
+	tx *sqlx.Tx, groupPK int64, subjectPKs []int64,
 ) (int64, error) {
 	if len(subjectPKs) == 0 {
 		return 0, nil
 	}
-	return m.bulkDeleteByMembersWithTx(tx, parentPK, subjectPKs)
+	return m.bulkDeleteByMembersWithTx(tx, groupPK, subjectPKs)
 }
 
 // BulkCreateWithTx ...
@@ -207,18 +207,18 @@ func (m *subjectGroupManager) UpdateExpiredAtWithTx(
 
 // GetMemberCountBeforeExpiredAt ...
 func (m *subjectGroupManager) GetMemberCountBeforeExpiredAt(
-	parentPK int64, expiredAt int64,
+	groupPK int64, expiredAt int64,
 ) (int64, error) {
 	var count int64
-	err := m.getMemberCountBeforeExpiredAt(&count, parentPK, expiredAt)
+	err := m.getMemberCountBeforeExpiredAt(&count, groupPK, expiredAt)
 	return count, err
 }
 
 // ListPagingMemberBeforeExpiredAt ...
 func (m *subjectGroupManager) ListPagingMemberBeforeExpiredAt(
-	parentPK int64, expiredAt int64, limit, offset int64,
+	groupPK int64, expiredAt int64, limit, offset int64,
 ) (members []SubjectRelation, err error) {
-	err = m.selectPagingMembersBeforeExpiredAt(&members, parentPK, expiredAt, limit, offset)
+	err = m.selectPagingMembersBeforeExpiredAt(&members, groupPK, expiredAt, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -292,7 +292,7 @@ func (m *subjectGroupManager) selectRelationBeforeExpiredAt(
 }
 
 func (m *subjectGroupManager) selectPagingMembers(
-	members *[]SubjectRelation, parentPK int64, limit, offset int64,
+	members *[]SubjectRelation, groupPK int64, limit, offset int64,
 ) error {
 	query := `SELECT
 		 pk,
@@ -304,11 +304,11 @@ func (m *subjectGroupManager) selectPagingMembers(
 		 WHERE parent_pk = ?
 		 ORDER BY pk DESC
 		 LIMIT ? OFFSET ?`
-	return database.SqlxSelect(m.DB, members, query, parentPK, limit, offset)
+	return database.SqlxSelect(m.DB, members, query, groupPK, limit, offset)
 }
 
 func (m *subjectGroupManager) selectPagingMembersBeforeExpiredAt(
-	members *[]SubjectRelation, parentPK int64, expiredAt int64, limit, offset int64,
+	members *[]SubjectRelation, groupPK int64, expiredAt int64, limit, offset int64,
 ) error {
 	query := `SELECT
 		 pk,
@@ -321,33 +321,33 @@ func (m *subjectGroupManager) selectPagingMembersBeforeExpiredAt(
 		 AND policy_expired_at < ?
 		 ORDER BY policy_expired_at DESC, pk DESC
 		 LIMIT ? OFFSET ?`
-	return database.SqlxSelect(m.DB, members, query, parentPK, expiredAt, limit, offset)
+	return database.SqlxSelect(m.DB, members, query, groupPK, expiredAt, limit, offset)
 }
 
-func (m *subjectGroupManager) getMemberCount(count *int64, parentPK int64) error {
+func (m *subjectGroupManager) getMemberCount(count *int64, groupPK int64) error {
 	query := `SELECT
 		 COUNT(*)
 		 FROM subject_relation
 		 WHERE parent_pk = ?`
-	return database.SqlxGet(m.DB, count, query, parentPK)
+	return database.SqlxGet(m.DB, count, query, groupPK)
 }
 
 func (m *subjectGroupManager) getMemberCountBeforeExpiredAt(
-	count *int64, parentPK int64, expiredAt int64,
+	count *int64, groupPK int64, expiredAt int64,
 ) error {
 	query := `SELECT
 		 COUNT(*)
 		 FROM subject_relation
 		 WHERE parent_pk = ?
 		 AND policy_expired_at < ?`
-	return database.SqlxGet(m.DB, count, query, parentPK, expiredAt)
+	return database.SqlxGet(m.DB, count, query, groupPK, expiredAt)
 }
 
 func (m *subjectGroupManager) bulkDeleteByMembersWithTx(
-	tx *sqlx.Tx, parentPK int64, subjectPKs []int64,
+	tx *sqlx.Tx, groupPK int64, subjectPKs []int64,
 ) (int64, error) {
 	sql := `DELETE FROM subject_relation WHERE parent_pk=? AND subject_pk in (?)`
-	return database.SqlxDeleteReturnRowsWithTx(tx, sql, parentPK, subjectPKs)
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, groupPK, subjectPKs)
 }
 
 func (m *subjectGroupManager) bulkInsertWithTx(tx *sqlx.Tx, relations []SubjectRelation) error {

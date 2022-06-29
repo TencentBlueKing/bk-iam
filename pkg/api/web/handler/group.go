@@ -98,7 +98,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 		err = errorx.Wrapf(
 			err,
 			"Handler",
-			"ctl.ListSubjectExistParentPks type=`%s`, id=`%s` fail",
+			"ctl.CheckSubjectEffectGroups type=`%s`, id=`%s` fail",
 			query.Type,
 			query.ID,
 		)

@@ -206,12 +206,12 @@ func BatchDeleteSubjectAllSystemGroupCache(subjectPKs []int64) {
 }
 
 // BatchDeleteSubjectAuthSystemGroupCache 批量删除subject group授权系统的 group 缓存
-func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, parentPK int64) {
+func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, groupPK int64) {
 	svc := service.NewGroupService()
-	systems, err := svc.ListGroupAuthSystemIDs(parentPK)
+	systems, err := svc.ListGroupAuthSystemIDs(groupPK)
 	if err != nil {
 		log.WithError(err).Errorf(
-			"BatchDeleteSubjectAuthSystemGroupCache fail subjectPKs=`%v`, groupPK=`%d`", subjectPKs, parentPK,
+			"BatchDeleteSubjectAuthSystemGroupCache fail subjectPKs=`%v`, groupPK=`%d`", subjectPKs, groupPK,
 		)
 	} else {
 		err = batchDeleteSubjectSystemGroupCache(systems, subjectPKs)
@@ -222,12 +222,12 @@ func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, parentPK int64) 
 }
 
 // BatchDeleteGroupMemberSubjectSystemGroupCache 批量删除group的member的 group 缓存
-func BatchDeleteGroupMemberSubjectSystemGroupCache(systemID string, parentPK int64) {
+func BatchDeleteGroupMemberSubjectSystemGroupCache(systemID string, groupPK int64) {
 	svc := service.NewGroupService()
-	members, err := svc.ListMember(parentPK)
+	members, err := svc.ListMember(groupPK)
 	if err != nil {
 		log.WithError(err).Errorf(
-			"BatchDeleteGroupMemberSubjectSystemGroupCache fail systemID=`%s`, groupPK=`%d`", systemID, parentPK,
+			"BatchDeleteGroupMemberSubjectSystemGroupCache fail systemID=`%s`, groupPK=`%d`", systemID, groupPK,
 		)
 	} else {
 		subjectPKs := make([]int64, 0, len(members))

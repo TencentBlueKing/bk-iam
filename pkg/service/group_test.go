@@ -222,7 +222,7 @@ var _ = Describe("GroupService", func() {
 			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelation{
 				{
 					SubjectPK:       1,
-					ParentPK:        2,
+					GroupPK:         2,
 					PolicyExpiredAt: 3,
 				},
 			})

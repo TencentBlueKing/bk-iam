@@ -51,17 +51,17 @@ func (mr *MockGroupServiceMockRecorder) AlterGroupAuthType(tx, systemID, groupPK
 }
 
 // BulkCreateGroupMembersWithTx mocks base method.
-func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error {
+func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelation) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateGroupMembersWithTx", tx, parentPK, relations)
+	ret := m.ctrl.Call(m, "BulkCreateGroupMembersWithTx", tx, groupPK, relations)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BulkCreateGroupMembersWithTx indicates an expected call of BulkCreateGroupMembersWithTx.
-func (mr *MockGroupServiceMockRecorder) BulkCreateGroupMembersWithTx(tx, parentPK, relations interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) BulkCreateGroupMembersWithTx(tx, groupPK, relations interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateGroupMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateGroupMembersWithTx), tx, parentPK, relations)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateGroupMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateGroupMembersWithTx), tx, groupPK, relations)
 }
 
 // BulkDeleteBySubjectPKsWithTx mocks base method.
@@ -79,48 +79,48 @@ func (mr *MockGroupServiceMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, pks int
 }
 
 // BulkDeleteGroupMembers mocks base method.
-func (m *MockGroupService) BulkDeleteGroupMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error) {
+func (m *MockGroupService) BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteGroupMembers", parentPK, userPKs, departmentPKs)
+	ret := m.ctrl.Call(m, "BulkDeleteGroupMembers", groupPK, userPKs, departmentPKs)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BulkDeleteGroupMembers indicates an expected call of BulkDeleteGroupMembers.
-func (mr *MockGroupServiceMockRecorder) BulkDeleteGroupMembers(parentPK, userPKs, departmentPKs interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) BulkDeleteGroupMembers(groupPK, userPKs, departmentPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteGroupMembers", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteGroupMembers), parentPK, userPKs, departmentPKs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteGroupMembers", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteGroupMembers), groupPK, userPKs, departmentPKs)
 }
 
 // GetMemberCount mocks base method.
-func (m *MockGroupService) GetMemberCount(parentPK int64) (int64, error) {
+func (m *MockGroupService) GetMemberCount(groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberCount", parentPK)
+	ret := m.ctrl.Call(m, "GetMemberCount", groupPK)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMemberCount indicates an expected call of GetMemberCount.
-func (mr *MockGroupServiceMockRecorder) GetMemberCount(parentPK interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) GetMemberCount(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCount", reflect.TypeOf((*MockGroupService)(nil).GetMemberCount), parentPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCount", reflect.TypeOf((*MockGroupService)(nil).GetMemberCount), groupPK)
 }
 
 // GetMemberCountBeforeExpiredAt mocks base method.
-func (m *MockGroupService) GetMemberCountBeforeExpiredAt(parentPK, expiredAt int64) (int64, error) {
+func (m *MockGroupService) GetMemberCountBeforeExpiredAt(groupPK, expiredAt int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberCountBeforeExpiredAt", parentPK, expiredAt)
+	ret := m.ctrl.Call(m, "GetMemberCountBeforeExpiredAt", groupPK, expiredAt)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMemberCountBeforeExpiredAt indicates an expected call of GetMemberCountBeforeExpiredAt.
-func (mr *MockGroupServiceMockRecorder) GetMemberCountBeforeExpiredAt(parentPK, expiredAt interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) GetMemberCountBeforeExpiredAt(groupPK, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetMemberCountBeforeExpiredAt), parentPK, expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetMemberCountBeforeExpiredAt), groupPK, expiredAt)
 }
 
 // ListEffectThinSubjectGroups mocks base method.
@@ -154,18 +154,18 @@ func (mr *MockGroupServiceMockRecorder) ListEffectThinSubjectGroupsBySubjectPKs(
 }
 
 // ListExistEffectSubjectGroupPKs mocks base method.
-func (m *MockGroupService) ListExistEffectSubjectGroupPKs(subjectPKs, parentPKs []int64) ([]int64, error) {
+func (m *MockGroupService) ListExistEffectSubjectGroupPKs(subjectPKs, groupPKs []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListExistEffectSubjectGroupPKs", subjectPKs, parentPKs)
+	ret := m.ctrl.Call(m, "ListExistEffectSubjectGroupPKs", subjectPKs, groupPKs)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListExistEffectSubjectGroupPKs indicates an expected call of ListExistEffectSubjectGroupPKs.
-func (mr *MockGroupServiceMockRecorder) ListExistEffectSubjectGroupPKs(subjectPKs, parentPKs interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) ListExistEffectSubjectGroupPKs(subjectPKs, groupPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistEffectSubjectGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListExistEffectSubjectGroupPKs), subjectPKs, parentPKs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistEffectSubjectGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListExistEffectSubjectGroupPKs), subjectPKs, groupPKs)
 }
 
 // ListGroupAuthBySystemGroupPKs mocks base method.
@@ -199,63 +199,63 @@ func (mr *MockGroupServiceMockRecorder) ListGroupAuthSystemIDs(groupPK interface
 }
 
 // ListGroupPKsHasMemberBeforeExpiredAt mocks base method.
-func (m *MockGroupService) ListGroupPKsHasMemberBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error) {
+func (m *MockGroupService) ListGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGroupPKsHasMemberBeforeExpiredAt", parentPKs, expiredAt)
+	ret := m.ctrl.Call(m, "ListGroupPKsHasMemberBeforeExpiredAt", groupPKs, expiredAt)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListGroupPKsHasMemberBeforeExpiredAt indicates an expected call of ListGroupPKsHasMemberBeforeExpiredAt.
-func (mr *MockGroupServiceMockRecorder) ListGroupPKsHasMemberBeforeExpiredAt(parentPKs, expiredAt interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) ListGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupPKsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListGroupPKsHasMemberBeforeExpiredAt), parentPKs, expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupPKsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListGroupPKsHasMemberBeforeExpiredAt), groupPKs, expiredAt)
 }
 
 // ListMember mocks base method.
-func (m *MockGroupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
+func (m *MockGroupService) ListMember(groupPK int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMember", parentPK)
+	ret := m.ctrl.Call(m, "ListMember", groupPK)
 	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListMember indicates an expected call of ListMember.
-func (mr *MockGroupServiceMockRecorder) ListMember(parentPK interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) ListMember(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMember", reflect.TypeOf((*MockGroupService)(nil).ListMember), parentPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMember", reflect.TypeOf((*MockGroupService)(nil).ListMember), groupPK)
 }
 
 // ListPagingMember mocks base method.
-func (m *MockGroupService) ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error) {
+func (m *MockGroupService) ListPagingMember(groupPK, limit, offset int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingMember", parentPK, limit, offset)
+	ret := m.ctrl.Call(m, "ListPagingMember", groupPK, limit, offset)
 	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListPagingMember indicates an expected call of ListPagingMember.
-func (mr *MockGroupServiceMockRecorder) ListPagingMember(parentPK, limit, offset interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) ListPagingMember(groupPK, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMember", reflect.TypeOf((*MockGroupService)(nil).ListPagingMember), parentPK, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMember", reflect.TypeOf((*MockGroupService)(nil).ListPagingMember), groupPK, limit, offset)
 }
 
 // ListPagingMemberBeforeExpiredAt mocks base method.
-func (m *MockGroupService) ListPagingMemberBeforeExpiredAt(parentPK, expiredAt, limit, offset int64) ([]types.GroupMember, error) {
+func (m *MockGroupService) ListPagingMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset int64) ([]types.GroupMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingMemberBeforeExpiredAt", parentPK, expiredAt, limit, offset)
+	ret := m.ctrl.Call(m, "ListPagingMemberBeforeExpiredAt", groupPK, expiredAt, limit, offset)
 	ret0, _ := ret[0].([]types.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListPagingMemberBeforeExpiredAt indicates an expected call of ListPagingMemberBeforeExpiredAt.
-func (mr *MockGroupServiceMockRecorder) ListPagingMemberBeforeExpiredAt(parentPK, expiredAt, limit, offset interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) ListPagingMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListPagingMemberBeforeExpiredAt), parentPK, expiredAt, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).ListPagingMemberBeforeExpiredAt), groupPK, expiredAt, limit, offset)
 }
 
 // ListSubjectGroups mocks base method.
@@ -274,15 +274,15 @@ func (mr *MockGroupServiceMockRecorder) ListSubjectGroups(subjectPK, beforeExpir
 }
 
 // UpdateMembersExpiredAtWithTx mocks base method.
-func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error {
+func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMembersExpiredAtWithTx", tx, parentPK, members)
+	ret := m.ctrl.Call(m, "UpdateMembersExpiredAtWithTx", tx, groupPK, members)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMembersExpiredAtWithTx indicates an expected call of UpdateMembersExpiredAtWithTx.
-func (mr *MockGroupServiceMockRecorder) UpdateMembersExpiredAtWithTx(tx, parentPK, members interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) UpdateMembersExpiredAtWithTx(tx, groupPK, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMembersExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateMembersExpiredAtWithTx), tx, parentPK, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMembersExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateMembersExpiredAtWithTx), tx, groupPK, members)
 }
