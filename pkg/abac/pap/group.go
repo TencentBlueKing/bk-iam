@@ -166,6 +166,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 		groupPK, ok := groupIDToGroupPK[groupID]
 		if !ok {
 			groupIDBelong[groupID] = false
+			continue
 		}
 		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
 	}
