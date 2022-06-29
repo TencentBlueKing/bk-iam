@@ -19,6 +19,12 @@ type Subject struct {
 	Name string `json:"name"`
 }
 
+// SubjectDepartment 用户的部门PK列表
+type SubjectDepartment struct {
+	SubjectPK     int64   `json:"subject_pk"`
+	DepartmentPKs []int64 `json:"department_pks"`
+}
+
 // GroupMember ...
 type GroupMember struct {
 	PK              int64     `json:"pk"`
@@ -35,26 +41,6 @@ type SubjectGroup struct {
 	CreateAt        time.Time `json:"created_at"`
 }
 
-// SubjectDepartment 用户的部门PK列表
-type SubjectDepartment struct {
-	SubjectPK     int64   `json:"subject_pk"`
-	DepartmentPKs []int64 `json:"department_pks"`
-}
-
-// SubjectRelationPKPolicyExpiredAt ...
-type SubjectRelationPKPolicyExpiredAt struct {
-	PK              int64 `json:"pk"`
-	SubjectPK       int64 `json:"subject_pk"`
-	PolicyExpiredAt int64 `json:"policy_expired_at"`
-}
-
-// SubjectRelation ...
-type SubjectRelation struct {
-	SubjectPK       int64 `json:"subject_pk"`
-	GroupPK         int64 `json:"parent_pk"`
-	PolicyExpiredAt int64 `json:"policy_expired_at"`
-}
-
 // ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at
 type ThinSubjectGroup struct {
 	// GroupPK is the subject_pk of group
@@ -66,4 +52,18 @@ type ThinSubjectGroup struct {
 type GroupAuthType struct {
 	GroupPK  int64 `json:"group_pk"`
 	AuthType int64 `json:"auth_type"`
+}
+
+// SubjectRelationForUpdate 用于更新 subject-relation
+type SubjectRelationForUpdate struct {
+	PK              int64 `json:"pk"`
+	SubjectPK       int64 `json:"subject_pk"`
+	PolicyExpiredAt int64 `json:"policy_expired_at"`
+}
+
+// SubjectRelationForCreate 用于创建 subject-relation
+type SubjectRelationForCreate struct {
+	SubjectPK       int64 `json:"subject_pk"`
+	GroupPK         int64 `json:"parent_pk"`
+	PolicyExpiredAt int64 `json:"policy_expired_at"`
 }

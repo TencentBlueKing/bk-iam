@@ -183,7 +183,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.UpdateMembersExpiredAtWithTx(nil, int64(1), []types.SubjectRelationPKPolicyExpiredAt{
+			err := manager.UpdateMembersExpiredAtWithTx(nil, int64(1), []types.SubjectRelationForUpdate{
 				{
 					PK:              1,
 					PolicyExpiredAt: 2,
@@ -219,7 +219,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelation{
+			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelationForCreate{
 				{
 					SubjectPK:       1,
 					GroupPK:         2,

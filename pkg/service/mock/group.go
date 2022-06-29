@@ -5,8 +5,9 @@
 package mock
 
 import (
-	types "iam/pkg/service/types"
 	reflect "reflect"
+
+	types "iam/pkg/service/types"
 
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
@@ -51,7 +52,7 @@ func (mr *MockGroupServiceMockRecorder) AlterGroupAuthType(tx, systemID, groupPK
 }
 
 // BulkCreateGroupMembersWithTx mocks base method.
-func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelation) error {
+func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkCreateGroupMembersWithTx", tx, groupPK, relations)
 	ret0, _ := ret[0].(error)
@@ -274,7 +275,7 @@ func (mr *MockGroupServiceMockRecorder) ListSubjectGroups(subjectPK, beforeExpir
 }
 
 // UpdateMembersExpiredAtWithTx mocks base method.
-func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error {
+func (m *MockGroupService) UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateMembersExpiredAtWithTx", tx, groupPK, members)
 	ret0, _ := ret[0].(error)

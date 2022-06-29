@@ -314,10 +314,10 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 获取实际需要添加的member
-	createMembers := make([]types.SubjectRelation, 0, len(members))
+	createMembers := make([]types.SubjectRelationForCreate, 0, len(members))
 
 	// 需要更新过期时间的member
-	updateMembers := make([]types.SubjectRelationPKPolicyExpiredAt, 0, len(members))
+	updateMembers := make([]types.SubjectRelationForUpdate, 0, len(members))
 
 	// 用于清理缓存
 	subjectPKs := make([]int64, 0, len(members))
@@ -337,7 +337,7 @@ func (c *groupController) alterGroupMembers(
 		if oldMember, ok := memberMap[subjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
 			if m.PolicyExpiredAt > oldMember.PolicyExpiredAt {
-				updateMembers = append(updateMembers, types.SubjectRelationPKPolicyExpiredAt{
+				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
 					PK:              oldMember.PK,
 					SubjectPK:       subjectPK,
 					PolicyExpiredAt: m.PolicyExpiredAt,
@@ -349,7 +349,7 @@ func (c *groupController) alterGroupMembers(
 		}
 
 		if createIfNotExists {
-			createMembers = append(createMembers, types.SubjectRelation{
+			createMembers = append(createMembers, types.SubjectRelationForCreate{
 				SubjectPK:       subjectPK,
 				GroupPK:         groupPK,
 				PolicyExpiredAt: m.PolicyExpiredAt,

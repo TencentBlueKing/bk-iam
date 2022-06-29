@@ -236,7 +236,7 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 		return
 	}
 
-	relations, err := ctl.ListPagingMemberBeforeExpiredAt(
+	members, err := ctl.ListPagingMemberBeforeExpiredAt(
 		body.Type, body.ID, body.BeforeExpiredAt, body.Limit, body.Offset,
 	)
 	if err != nil {
@@ -250,7 +250,7 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", gin.H{
 		"count":   count,
-		"results": relations,
+		"results": members,
 	})
 }
 

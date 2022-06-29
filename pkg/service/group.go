@@ -47,9 +47,9 @@ type GroupService interface {
 	) ([]types.GroupMember, error)
 	ListMember(groupPK int64) ([]types.GroupMember, error)
 
-	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
+	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error
 	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
-	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelation) error
+	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error
 
 	// auth type
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
@@ -86,7 +86,7 @@ func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 	}
 }
 
-func convertRelationToThinSubjectGroup(thinRelation dao.ThinSubjectRelation) types.ThinSubjectGroup {
+func convertThinRelationToThinSubjectGroup(thinRelation dao.ThinSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
 		GroupPK:         thinRelation.GroupPK,
 		PolicyExpiredAt: thinRelation.PolicyExpiredAt,
@@ -109,7 +109,7 @@ func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKs(
 
 	subjectGroups = make([]types.ThinSubjectGroup, 0, len(relations))
 	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertRelationToThinSubjectGroup(r))
+		subjectGroups = append(subjectGroups, convertThinRelationToThinSubjectGroup(r))
 	}
 	return subjectGroups, nil
 }
@@ -229,7 +229,7 @@ func (l *groupService) ListMember(groupPK int64) ([]types.GroupMember, error) {
 func (l *groupService) UpdateMembersExpiredAtWithTx(
 	tx *sqlx.Tx,
 	groupPK int64,
-	members []types.SubjectRelationPKPolicyExpiredAt,
+	members []types.SubjectRelationForUpdate,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateMembersExpiredAtWithTx")
 
@@ -349,7 +349,7 @@ func (l *groupService) BulkDeleteGroupMembers(
 func (l *groupService) BulkCreateGroupMembersWithTx(
 	tx *sqlx.Tx,
 	groupPK int64,
-	relations []types.SubjectRelation,
+	relations []types.SubjectRelationForCreate,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateGroupMembersWithTx")
 	// 组装需要创建的Subject关系
