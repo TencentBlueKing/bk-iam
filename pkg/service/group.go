@@ -15,6 +15,7 @@ package service
 import (
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -169,7 +170,7 @@ func (l *groupService) ListExistEffectSubjectGroupPKs(
 			subjectPKs, parentPKs, now,
 		)
 	}
-	return groupPKs, nil
+	return set.NewInt64SetWithValues(groupPKs).ToSlice(), nil
 }
 
 // from subject_member.go

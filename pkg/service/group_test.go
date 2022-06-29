@@ -353,7 +353,7 @@ var _ = Describe("GroupService", func() {
 
 			groupPKs, err := manager.ListExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []int64{1, 2, 3}, groupPKs)
+			assert.ElementsMatch(GinkgoT(), []int64{1, 2, 3}, groupPKs)
 		})
 	})
 })
