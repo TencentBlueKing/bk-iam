@@ -87,6 +87,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 	groupIDs := strings.Split(query.GroupIDs, ",")
 	if len(groupIDs) > 100 {
 		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
+		return
 	}
 
 	ctl := pap.NewGroupController()
