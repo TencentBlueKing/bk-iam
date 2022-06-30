@@ -91,12 +91,7 @@ func (l *departmentService) BulkCreate(subjectDepartments []types.SubjectDepartm
 
 // BulkDelete ...
 func (l *departmentService) BulkDelete(subjectPKs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkDeleteSubjectDepartments")
-	err := l.manager.BulkDelete(subjectPKs)
-	if err != nil {
-		return errorWrapf(err, "manager.BulkDelete pks=`%+v` fail", subjectPKs)
-	}
-	return err
+	return l.manager.BulkDelete(subjectPKs)
 }
 
 // BulkUpdate ...
@@ -152,21 +147,11 @@ func (l *departmentService) ListPaging(limit, offset int64) ([]types.SubjectDepa
 
 // GetCount ...
 func (l *departmentService) GetCount() (int64, error) {
-	count, err := l.manager.GetCount()
-	if err != nil {
-		return count, errorx.Wrapf(err, DepartmentSVC, "GetCount", "manager.GetCount fail")
-	}
-	return count, err
+	return l.manager.GetCount()
 }
 
 // BulkDeleteBySubjectPKsWithTx ...
 func (l *departmentService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkDeleteBySubjectPKs")
 	// 对于用户，需要删除subject department
-	err := l.manager.BulkDeleteWithTx(tx, pks)
-	if err != nil {
-		return errorWrapf(
-			err, "manager.BulkDeleteWithTx subject_pks=`%+v` fail", pks)
-	}
-	return nil
+	return l.manager.BulkDeleteWithTx(tx, pks)
 }

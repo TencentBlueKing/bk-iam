@@ -81,13 +81,7 @@ func (l *modelChangeEventService) ListByStatus(
 
 // UpdateStatusByPK ...
 func (l *modelChangeEventService) UpdateStatusByPK(pk int64, status string) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "UpdateStatusByPK")
-
-	err = l.manager.UpdateStatusByPK(pk, status)
-	if err != nil {
-		return errorWrapf(err, "UpdateStatusByPK(pk=%d, status=%s) fail", pk, status)
-	}
-	return
+	return l.manager.UpdateStatusByPK(pk, status)
 }
 
 // BulkCreate ...
@@ -128,15 +122,7 @@ func (l *modelChangeEventService) ExistByTypeModel(eventType, status, modelType 
 }
 
 func (l *modelChangeEventService) UpdateStatusByModel(eventType, modelType string, modelPK int64, status string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ModelChangeEventSVC, "UpdateStatusByModel")
-
-	err := l.manager.UpdateStatusByModel(eventType, modelType, modelPK, status)
-	if err != nil {
-		return errorWrapf(err, "UpdateStatusByModel(eventType=%s, modelType=%s, modelPK=%d, status=%s) fail",
-			eventType, modelType, modelPK, status,
-		)
-	}
-	return nil
+	return l.manager.UpdateStatusByModel(eventType, modelType, modelPK, status)
 }
 
 func (l *modelChangeEventService) DeleteByStatus(status string, beforeUpdatedAt, limit int64) error {

@@ -48,27 +48,12 @@ func NewRoleService() RoleService {
 
 // ListSystemIDBySubjectPK ...
 func (l *roleService) ListSystemIDBySubjectPK(pk int64) ([]string, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListSystemIDBySubjectPK")
-
-	systemIDs, err := l.manager.ListSystemIDBySubjectPK(pk)
-	if err != nil {
-		return nil, errorWrapf(err, "manager.ListSystemIDBySubjectPK pk=`%d` fail", pk)
-	}
-
-	return systemIDs, err
+	return l.manager.ListSystemIDBySubjectPK(pk)
 }
 
 // ListSubjectPKByRole ...
 func (l *roleService) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleSVC, "ListSubjectPKByRole")
-	subjectPKs, err := l.manager.ListSubjectPKByRole(roleType, system)
-	if err != nil {
-		err = errorWrapf(
-			err, "manager.ListSubjectPKByRole roleType=`%s`, system=`%s` fail", roleType, system,
-		)
-		return subjectPKs, err
-	}
-	return subjectPKs, err
+	return l.manager.ListSubjectPKByRole(roleType, system)
 }
 
 // BulkAddSubjects ...

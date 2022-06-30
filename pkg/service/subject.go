@@ -70,21 +70,12 @@ func (l *subjectService) Get(pk int64) (subject types.Subject, err error) {
 
 // GetPK ...
 func (l *subjectService) GetPK(_type, id string) (pk int64, err error) {
-	pk, err = l.manager.GetPK(_type, id)
-	if err != nil {
-		return pk, errorx.Wrapf(err, SubjectSVC, "GetPK", "GetPK _type=`%s`, id=`%s` fail", _type, id)
-	}
-	return pk, err
+	return l.manager.GetPK(_type, id)
 }
 
 // GetCount ...
 func (l *subjectService) GetCount(_type string) (int64, error) {
-	cnt, err := l.manager.GetCount(_type)
-	if err != nil {
-		err = errorx.Wrapf(err, SubjectSVC, "GetCount", "manager.GetCount _type=`%s` fail", _type)
-		return 0, err
-	}
-	return cnt, nil
+	return l.manager.GetCount(_type)
 }
 
 func convertToSubjects(daoSubjects []dao.Subject) []types.Subject {
@@ -191,13 +182,7 @@ func (l *subjectService) ListPKsBySubjects(subjects []types.Subject) ([]int64, e
 
 // BulkDeleteByPKsWithTx ...
 func (l *subjectService) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDeleteByPKsWithTx")
-
-	err := l.manager.BulkDeleteByPKsWithTx(tx, pks)
-	if err != nil {
-		return errorWrapf(err, "manager.BulkDeleteByPKsWithTx pks=`%+v` fail", pks)
-	}
-	return err
+	return l.manager.BulkDeleteByPKsWithTx(tx, pks)
 }
 
 // BulkUpdateName ...
