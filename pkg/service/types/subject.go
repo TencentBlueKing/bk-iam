@@ -27,25 +27,25 @@ type SubjectDepartment struct {
 
 // GroupMember ...
 type GroupMember struct {
-	PK              int64     `json:"pk"`
-	SubjectPK       int64     `json:"subject_pk"`
-	PolicyExpiredAt int64     `json:"policy_expired_at"`
-	CreateAt        time.Time `json:"created_at"`
+	PK        int64     `json:"pk"`
+	SubjectPK int64     `json:"subject_pk"`
+	ExpiredAt int64     `json:"expired_at"`
+	CreateAt  time.Time `json:"created_at"`
 }
 
 // SubjectGroup subject关联的组
 type SubjectGroup struct {
-	PK              int64     `json:"pk"`
-	GroupPK         int64     `json:"group_pk"`
-	PolicyExpiredAt int64     `json:"policy_expired_at"`
-	CreateAt        time.Time `json:"created_at"`
+	PK        int64     `json:"pk"`
+	GroupPK   int64     `json:"group_pk"`
+	ExpiredAt int64     `json:"expired_at"`
+	CreateAt  time.Time `json:"created_at"`
 }
 
 // ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at
 type ThinSubjectGroup struct {
 	// GroupPK is the subject_pk of group
-	GroupPK         int64 `json:"group_pk" msgpack:"p"`
-	PolicyExpiredAt int64 `json:"policy_expired_at" msgpack:"pe"`
+	GroupPK   int64 `json:"group_pk" msgpack:"p"`
+	ExpiredAt int64 `json:"expired_at" msgpack:"pe"`
 }
 
 // GroupAuthType 用于鉴权查询
@@ -56,14 +56,14 @@ type GroupAuthType struct {
 
 // SubjectRelationForUpdate 用于更新 subject-relation
 type SubjectRelationForUpdate struct {
-	PK              int64 `json:"pk"`
-	SubjectPK       int64 `json:"subject_pk"`
-	PolicyExpiredAt int64 `json:"policy_expired_at"`
+	PK        int64 `json:"pk"`
+	SubjectPK int64 `json:"subject_pk"`
+	ExpiredAt int64 `json:"expired_at"`
 }
 
 // SubjectRelationForCreate 用于创建 subject-relation
 type SubjectRelationForCreate struct {
-	SubjectPK       int64 `json:"subject_pk"`
-	GroupPK         int64 `json:"group_pk"`
-	PolicyExpiredAt int64 `json:"policy_expired_at"`
+	SubjectPK int64 `json:"subject_pk"`
+	GroupPK   int64 `json:"group_pk"`
+	ExpiredAt int64 `json:"expired_at"`
 }

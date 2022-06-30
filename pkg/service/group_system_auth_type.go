@@ -83,12 +83,12 @@ func (s *groupService) AlterGroupAuthType(
 			nowTS := time.Now().Unix()
 			for _, member := range members {
 				// NOTE: subject system group表中只需要保持未过期的记录
-				if member.PolicyExpiredAt < nowTS {
+				if member.ExpiredAt < nowTS {
 					continue
 				}
 
 				err := s.addOrUpdateSubjectSystemGroup(
-					tx, member.SubjectPK, systemID, groupPK, member.PolicyExpiredAt,
+					tx, member.SubjectPK, systemID, groupPK, member.ExpiredAt,
 				)
 				if err != nil {
 					return false, errorWrapf(

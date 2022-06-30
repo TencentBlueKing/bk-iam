@@ -243,7 +243,7 @@ func (mr *MockSubjectGroupManagerMockRecorder) ListThinRelationAfterExpiredAtByS
 }
 
 // UpdateExpiredAtWithTx mocks base method.
-func (m *MockSubjectGroupManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelationPKPolicyExpiredAt) error {
+func (m *MockSubjectGroupManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelationForUpdateExpiredAt) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateExpiredAtWithTx", tx, relations)
 	ret0, _ := ret[0].(error)

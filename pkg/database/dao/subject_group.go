@@ -29,34 +29,37 @@ type SubjectRelation struct {
 	// NOTE: map parent_pk to GroupPK in dao
 	GroupPK int64 `db:"parent_pk"`
 	// 策略有效期，unix time，单位秒(s)
-	PolicyExpiredAt int64     `db:"policy_expired_at"`
-	CreateAt        time.Time `db:"created_at"`
+	// NOTE: map policy_expired_at to ExpiredAt in dao
+	ExpiredAt int64     `db:"policy_expired_at"`
+	CreateAt  time.Time `db:"created_at"`
 }
 
-// SubjectRelationPKPolicyExpiredAt keep the PrimaryKey and expired_at
-type SubjectRelationPKPolicyExpiredAt struct {
-	PK              int64 `db:"pk"`
-	PolicyExpiredAt int64 `db:"policy_expired_at"`
+// SubjectRelationForUpdateExpiredAt keep the PrimaryKey and expired_at
+type SubjectRelationForUpdateExpiredAt struct {
+	PK int64 `db:"pk"`
+	// NOTE: map policy_expired_at to ExpiredAt in dao
+	ExpiredAt int64 `db:"policy_expired_at"`
 }
 
 // ThinSubjectRelation with the minimum fields of the relationship: subject-group-expired_at
 type ThinSubjectRelation struct {
 	SubjectPK int64 `db:"subject_pk"`
 	// NOTE: map parent_pk to GroupPK in dao
-	GroupPK         int64 `db:"parent_pk"`
-	PolicyExpiredAt int64 `db:"policy_expired_at"`
+	GroupPK int64 `db:"parent_pk"`
+	// NOTE: map policy_expired_at to ExpiredAt in dao
+	ExpiredAt int64 `db:"policy_expired_at"`
 }
 
 // SubjectGroupManager ...
 type SubjectGroupManager interface {
 	ListThinRelationAfterExpiredAtBySubjectPKs(subjectPKs []int64, expiredAt int64) ([]ThinSubjectRelation, error)
-
 	ListRelation(subjectPK int64) ([]SubjectRelation, error)
 	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
+
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
 
-	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
+	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationForUpdateExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
@@ -200,9 +203,10 @@ func (m *subjectGroupManager) BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64
 // UpdateExpiredAtWithTx ...
 func (m *subjectGroupManager) UpdateExpiredAtWithTx(
 	tx *sqlx.Tx,
-	relations []SubjectRelationPKPolicyExpiredAt,
+	relations []SubjectRelationForUpdateExpiredAt,
 ) error {
-	return m.updateExpiredAtWithTx(tx, relations)
+	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
+	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
 // GetMemberCountBeforeExpiredAt ...
@@ -373,12 +377,4 @@ func (m *subjectGroupManager) bulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64
 	// TODO: 可能的全表扫描
 	sql := `DELETE FROM subject_relation WHERE parent_pk in (?)`
 	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
-}
-
-func (m *subjectGroupManager) updateExpiredAtWithTx(
-	tx *sqlx.Tx,
-	relations []SubjectRelationPKPolicyExpiredAt,
-) error {
-	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
-	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }

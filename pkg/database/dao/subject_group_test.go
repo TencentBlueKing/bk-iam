@@ -140,9 +140,9 @@ func Test_subjectRelationManager_UpdateExpiredAtWithTx(t *testing.T) {
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
-		subjects := []SubjectRelationPKPolicyExpiredAt{{
-			PK:              1,
-			PolicyExpiredAt: 2,
+		subjects := []SubjectRelationForUpdateExpiredAt{{
+			PK:        1,
+			ExpiredAt: 2,
 		}}
 
 		tx, err := db.Beginx()
@@ -166,9 +166,9 @@ func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 		mock.ExpectCommit()
 
 		relations := []SubjectRelation{{
-			SubjectPK:       2,
-			GroupPK:         1,
-			PolicyExpiredAt: 3,
+			SubjectPK: 2,
+			GroupPK:   1,
+			ExpiredAt: 3,
 		}}
 
 		tx, err := db.Beginx()

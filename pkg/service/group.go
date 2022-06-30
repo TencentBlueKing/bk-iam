@@ -79,17 +79,17 @@ func NewGroupService() GroupService {
 
 func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 	return types.SubjectGroup{
-		PK:              relation.PK,
-		GroupPK:         relation.GroupPK,
-		PolicyExpiredAt: relation.PolicyExpiredAt,
-		CreateAt:        relation.CreateAt,
+		PK:        relation.PK,
+		GroupPK:   relation.GroupPK,
+		ExpiredAt: relation.ExpiredAt,
+		CreateAt:  relation.CreateAt,
 	}
 }
 
 func convertThinRelationToThinSubjectGroup(thinRelation dao.ThinSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
-		GroupPK:         thinRelation.GroupPK,
-		PolicyExpiredAt: thinRelation.PolicyExpiredAt,
+		GroupPK:   thinRelation.GroupPK,
+		ExpiredAt: thinRelation.ExpiredAt,
 	}
 }
 
@@ -182,10 +182,10 @@ func convertToGroupMembers(daoRelations []dao.SubjectRelation) []types.GroupMemb
 	relations := make([]types.GroupMember, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		relations = append(relations, types.GroupMember{
-			PK:              r.PK,
-			SubjectPK:       r.SubjectPK,
-			PolicyExpiredAt: r.PolicyExpiredAt,
-			CreateAt:        r.CreateAt,
+			PK:        r.PK,
+			SubjectPK: r.SubjectPK,
+			ExpiredAt: r.ExpiredAt,
+			CreateAt:  r.CreateAt,
 		})
 	}
 	return relations
@@ -233,11 +233,11 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateMembersExpiredAtWithTx")
 
-	relations := make([]dao.SubjectRelationPKPolicyExpiredAt, 0, len(members))
+	relations := make([]dao.SubjectRelationForUpdateExpiredAt, 0, len(members))
 	for _, m := range members {
-		relations = append(relations, dao.SubjectRelationPKPolicyExpiredAt{
-			PK:              m.PK,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+		relations = append(relations, dao.SubjectRelationForUpdateExpiredAt{
+			PK:        m.PK,
+			ExpiredAt: m.ExpiredAt,
 		})
 	}
 
@@ -255,7 +255,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 
 	for _, systemID := range systemIDs {
 		for _, m := range members {
-			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, groupPK, m.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, groupPK, m.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
@@ -263,7 +263,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 					systemID,
 					m.SubjectPK,
 					groupPK,
-					m.PolicyExpiredAt,
+					m.ExpiredAt,
 				)
 			}
 		}
@@ -356,9 +356,9 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 	daoRelations := make([]dao.SubjectRelation, 0, len(relations))
 	for _, r := range relations {
 		daoRelations = append(daoRelations, dao.SubjectRelation{
-			SubjectPK:       r.SubjectPK,
-			GroupPK:         r.GroupPK,
-			PolicyExpiredAt: r.PolicyExpiredAt,
+			SubjectPK: r.SubjectPK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
 		})
 	}
 
@@ -375,7 +375,7 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 
 	for _, systemID := range systemIDs {
 		for _, r := range relations {
-			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, groupPK, r.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, groupPK, r.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
@@ -383,7 +383,7 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 					systemID,
 					r.SubjectPK,
 					groupPK,
-					r.PolicyExpiredAt,
+					r.ExpiredAt,
 				)
 			}
 		}

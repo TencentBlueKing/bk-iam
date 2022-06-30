@@ -79,16 +79,16 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().ListMember(int64(1)).Return(
 				[]types.GroupMember{
 					{
-						PK:              1,
-						SubjectPK:       2,
-						PolicyExpiredAt: 2,
+						PK:        1,
+						SubjectPK: 2,
+						ExpiredAt: 2,
 					},
 				}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
 				UpdateMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).
 				Return(
 					errors.New("error"),
@@ -125,16 +125,16 @@ var _ = Describe("GroupController", func() {
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}}).
+				UpdateMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}}).
 				Return(
 					nil,
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().
 				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
-					SubjectPK:       2,
-					GroupPK:         1,
-					PolicyExpiredAt: int64(3),
+					SubjectPK: 2,
+					GroupPK:   1,
+					ExpiredAt: int64(3),
 				}}).
 				Return(
 					errors.New("error"),
@@ -173,7 +173,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).Return(
 				nil,
 			).
@@ -215,7 +215,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, PolicyExpiredAt: 3}},
+					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).
 				Return(
 					nil,
@@ -223,9 +223,9 @@ var _ = Describe("GroupController", func() {
 				AnyTimes()
 			mockGroupService.EXPECT().
 				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
-					SubjectPK:       2,
-					GroupPK:         1,
-					PolicyExpiredAt: int64(3),
+					SubjectPK: 2,
+					GroupPK:   1,
+					ExpiredAt: int64(3),
 				}}).
 				Return(
 					nil,

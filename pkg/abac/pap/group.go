@@ -336,11 +336,11 @@ func (c *groupController) alterGroupMembers(
 		// member已存在则不再添加
 		if oldMember, ok := memberMap[subjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
-			if m.PolicyExpiredAt > oldMember.PolicyExpiredAt {
+			if m.PolicyExpiredAt > oldMember.ExpiredAt {
 				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
-					PK:              oldMember.PK,
-					SubjectPK:       subjectPK,
-					PolicyExpiredAt: m.PolicyExpiredAt,
+					PK:        oldMember.PK,
+					SubjectPK: subjectPK,
+					ExpiredAt: m.PolicyExpiredAt,
 				})
 
 				subjectPKs = append(subjectPKs, subjectPK)
@@ -350,9 +350,9 @@ func (c *groupController) alterGroupMembers(
 
 		if createIfNotExists {
 			createMembers = append(createMembers, types.SubjectRelationForCreate{
-				SubjectPK:       subjectPK,
-				GroupPK:         groupPK,
-				PolicyExpiredAt: m.PolicyExpiredAt,
+				SubjectPK: subjectPK,
+				GroupPK:   groupPK,
+				ExpiredAt: m.PolicyExpiredAt,
 			})
 			typeCount[m.Type]++
 			subjectPKs = append(subjectPKs, subjectPK)
@@ -471,7 +471,7 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 			PK:              m.PK,
 			Type:            subject.Type,
 			ID:              subject.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+			PolicyExpiredAt: m.ExpiredAt,
 			CreateAt:        m.CreateAt,
 		})
 	}
@@ -495,7 +495,7 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 			PK:              m.PK,
 			Type:            subject.Type,
 			ID:              subject.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+			PolicyExpiredAt: m.ExpiredAt,
 			CreateAt:        m.CreateAt,
 		})
 	}

@@ -170,10 +170,10 @@ var _ = Describe("GroupService", func() {
 
 		It("manager.UpdateExpiredAtWithTx fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().UpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelationPKPolicyExpiredAt{
+			mockSubjectService.EXPECT().UpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelationForUpdateExpiredAt{
 				{
-					PK:              1,
-					PolicyExpiredAt: 2,
+					PK:        1,
+					ExpiredAt: 2,
 				},
 			}).Return(
 				errors.New("error"),
@@ -185,8 +185,8 @@ var _ = Describe("GroupService", func() {
 
 			err := manager.UpdateMembersExpiredAtWithTx(nil, int64(1), []types.SubjectRelationForUpdate{
 				{
-					PK:              1,
-					PolicyExpiredAt: 2,
+					PK:        1,
+					ExpiredAt: 2,
 				},
 			})
 			assert.Error(GinkgoT(), err)
@@ -207,9 +207,9 @@ var _ = Describe("GroupService", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.SubjectRelation{
 				{
-					SubjectPK:       1,
-					GroupPK:         2,
-					PolicyExpiredAt: 3,
+					SubjectPK: 1,
+					GroupPK:   2,
+					ExpiredAt: 3,
 				},
 			}).Return(
 				errors.New("error"),
@@ -221,9 +221,9 @@ var _ = Describe("GroupService", func() {
 
 			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelationForCreate{
 				{
-					SubjectPK:       1,
-					GroupPK:         2,
-					PolicyExpiredAt: 3,
+					SubjectPK: 1,
+					GroupPK:   2,
+					ExpiredAt: 3,
 				},
 			})
 			assert.Error(GinkgoT(), err)
@@ -295,8 +295,8 @@ var _ = Describe("GroupService", func() {
 			mockSubjectService.EXPECT().ListThinRelationAfterExpiredAtBySubjectPKs([]int64{1, 2}, gomock.Any()).Return(
 				[]dao.ThinSubjectRelation{
 					{
-						GroupPK:         1,
-						PolicyExpiredAt: 2,
+						GroupPK:   1,
+						ExpiredAt: 2,
 					},
 				}, nil,
 			)
@@ -307,7 +307,7 @@ var _ = Describe("GroupService", func() {
 
 			subjectGroups, err := manager.ListEffectThinSubjectGroupsBySubjectPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 2}}, subjectGroups)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, ExpiredAt: 2}}, subjectGroups)
 		})
 	})
 

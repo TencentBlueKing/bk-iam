@@ -248,7 +248,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 		}
 
 		for _, group := range thinSubjectGroup {
-			if group.PolicyExpiredAt > now {
+			if group.ExpiredAt > now {
 				subjectGroups[subjectPK] = append(subjectGroups[subjectPK], group)
 			}
 		}
@@ -270,8 +270,8 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 
 	for groupPK, expiredAt := range groupExpiredAtMap {
 		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
-			GroupPK:         groupPK,
-			PolicyExpiredAt: expiredAt,
+			GroupPK:   groupPK,
+			ExpiredAt: expiredAt,
 		})
 	}
 
