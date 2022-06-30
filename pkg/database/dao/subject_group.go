@@ -53,8 +53,8 @@ type SubjectGroupManager interface {
 
 	ListRelation(subjectPK int64) ([]SubjectRelation, error)
 	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
-	ListGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
-	ListSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
+	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationPKPolicyExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
@@ -225,8 +225,11 @@ func (m *subjectGroupManager) ListPagingMemberBeforeExpiredAt(
 	return
 }
 
-// ListGroupPKsHasMemberBeforeExpiredAt get the group pks before timestamp(expiredAt)
-func (m *subjectGroupManager) ListGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
+// FilterGroupPKsHasMemberBeforeExpiredAt get the group pks before timestamp(expiredAt)
+func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
+	groupPKs []int64,
+	expiredAt int64,
+) ([]int64, error) {
 	expiredGroupPKs := []int64{}
 	// TODO: DISTINCT 大表很慢
 	query := `SELECT
@@ -241,7 +244,7 @@ func (m *subjectGroupManager) ListGroupPKsHasMemberBeforeExpiredAt(groupPKs []in
 	return expiredGroupPKs, err
 }
 
-func (m *subjectGroupManager) ListSubjectPKsExistGroupPKsAfterExpiredAt(
+func (m *subjectGroupManager) FilterSubjectPKsExistGroupPKsAfterExpiredAt(
 	subjectPKs []int64,
 	groupPKs []int64,
 	expiredAt int64,

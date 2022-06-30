@@ -388,7 +388,7 @@ var _ = Describe("GroupController", func() {
 
 		It("get subject all group pks fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -399,12 +399,12 @@ var _ = Describe("GroupController", func() {
 			_, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
 
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListExistEffectSubjectGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "FilterExistEffectSubjectGroupPKs")
 		})
 
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
 				[]int64{10, 30}, nil,
 			).AnyTimes()
 
@@ -421,7 +421,7 @@ var _ = Describe("GroupController", func() {
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
 				[]int64{10, 30}, nil,
 			).AnyTimes()
 

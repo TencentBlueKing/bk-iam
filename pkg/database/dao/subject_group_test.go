@@ -199,7 +199,11 @@ func Test_subjectRelationManager_ListExistSubjectGroupPKsAfterExpiredAt(t *testi
 		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1), int64(1656491305)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, int64(1656491305))
+		relations, err := manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(
+			[]int64{123},
+			[]int64{1},
+			int64(1656491305),
+		)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)

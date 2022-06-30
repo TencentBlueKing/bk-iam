@@ -311,7 +311,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("ListExistEffectSubjectGroupPKs", func() {
+	Describe("FilterExistEffectSubjectGroupPKs", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -320,10 +320,10 @@ var _ = Describe("GroupService", func() {
 			ctl.Finish()
 		})
 
-		It("manager.ListExistEffectSubjectGroupPKs fail", func() {
+		It("manager.FilterExistEffectSubjectGroupPKs fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				ListSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				FilterSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
 				Return(
 					nil, errors.New("error"),
 				).
@@ -333,15 +333,15 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.ListExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			_, err := manager.FilterExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListSubjectPKsExistGroupPKsAfterExpiredAt")
+			assert.Contains(GinkgoT(), err.Error(), "FilterSubjectPKsExistGroupPKsAfterExpiredAt")
 		})
 
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				ListSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				FilterSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
 				Return(
 					[]int64{1, 2, 3}, nil,
 				).
@@ -351,7 +351,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			groupPKs, err := manager.ListExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			groupPKs, err := manager.FilterExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.ElementsMatch(GinkgoT(), []int64{1, 2, 3}, groupPKs)
 		})

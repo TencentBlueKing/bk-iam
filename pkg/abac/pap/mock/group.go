@@ -79,6 +79,21 @@ func (mr *MockGroupControllerMockRecorder) DeleteGroupMembers(_type, id, members
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroupMembers", reflect.TypeOf((*MockGroupController)(nil).DeleteGroupMembers), _type, id, members)
 }
 
+// FilterGroupsHasMemberBeforeExpiredAt mocks base method.
+func (m *MockGroupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []pap.Subject, expiredAt int64) ([]pap.Subject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterGroupsHasMemberBeforeExpiredAt", subjects, expiredAt)
+	ret0, _ := ret[0].([]pap.Subject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterGroupsHasMemberBeforeExpiredAt indicates an expected call of FilterGroupsHasMemberBeforeExpiredAt.
+func (mr *MockGroupControllerMockRecorder) FilterGroupsHasMemberBeforeExpiredAt(subjects, expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterGroupsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupController)(nil).FilterGroupsHasMemberBeforeExpiredAt), subjects, expiredAt)
+}
+
 // GetMemberCount mocks base method.
 func (m *MockGroupController) GetMemberCount(_type, id string) (int64, error) {
 	m.ctrl.T.Helper()
@@ -107,21 +122,6 @@ func (m *MockGroupController) GetMemberCountBeforeExpiredAt(_type, id string, ex
 func (mr *MockGroupControllerMockRecorder) GetMemberCountBeforeExpiredAt(_type, id, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCountBeforeExpiredAt", reflect.TypeOf((*MockGroupController)(nil).GetMemberCountBeforeExpiredAt), _type, id, expiredAt)
-}
-
-// ListGroupsHasMemberBeforeExpiredAt mocks base method.
-func (m *MockGroupController) ListGroupsHasMemberBeforeExpiredAt(subjects []pap.Subject, expiredAt int64) ([]pap.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGroupsHasMemberBeforeExpiredAt", subjects, expiredAt)
-	ret0, _ := ret[0].([]pap.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListGroupsHasMemberBeforeExpiredAt indicates an expected call of ListGroupsHasMemberBeforeExpiredAt.
-func (mr *MockGroupControllerMockRecorder) ListGroupsHasMemberBeforeExpiredAt(subjects, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupController)(nil).ListGroupsHasMemberBeforeExpiredAt), subjects, expiredAt)
 }
 
 // ListPagingMember mocks base method.

@@ -34,8 +34,8 @@ type GroupService interface {
 
 	// web api
 	ListSubjectGroups(subjectPK, beforeExpiredAt int64) ([]types.SubjectGroup, error)
-	ListGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
-	ListExistEffectSubjectGroupPKs(subjectPKs []int64, groupPKs []int64) ([]int64, error)
+	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	FilterExistEffectSubjectGroupPKs(subjectPKs []int64, groupPKs []int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 
@@ -136,16 +136,16 @@ func (l *groupService) ListSubjectGroups(
 	return subjectGroups, err
 }
 
-// ListGroupPKsHasMemberBeforeExpiredAt filter the exists and not expired subjects
-func (l *groupService) ListGroupPKsHasMemberBeforeExpiredAt(
+// FilterGroupPKsHasMemberBeforeExpiredAt filter the exists and not expired subjects
+func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	groupPKs []int64, expiredAt int64,
 ) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupPKsHasMemberBeforeExpiredAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterGroupPKsHasMemberBeforeExpiredAt")
 
-	existGroupPKs, err := l.manager.ListGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
+	existGroupPKs, err := l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 	if err != nil {
 		return []int64{}, errorWrapf(
-			err, "manager.ListGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
+			err, "manager.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
 			groupPKs, expiredAt,
 		)
 	}
@@ -156,20 +156,20 @@ func (l *groupService) ListGroupPKsHasMemberBeforeExpiredAt(
 	return existGroupPKs, err
 }
 
-func (l *groupService) ListExistEffectSubjectGroupPKs(
+func (l *groupService) FilterExistEffectSubjectGroupPKs(
 	subjectPKs []int64,
 	groupPKs []int64,
 ) (existGroupPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListExistEffectSubjectGroupPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterExistEffectSubjectGroupPKs")
 
 	// 过期时间必须大于当前时间
 	now := time.Now().Unix()
 
-	existGroupPKs, err = l.manager.ListSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs, groupPKs, now)
+	existGroupPKs, err = l.manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs, groupPKs, now)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.ListSubjectPKsExistGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
+			"manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
 			subjectPKs, groupPKs, now,
 		)
 	}

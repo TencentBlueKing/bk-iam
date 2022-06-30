@@ -31,7 +31,7 @@ const GroupCTL = "GroupCTL"
 
 type GroupController interface {
 	ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]SubjectGroup, error)
-	ListGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
 	GetMemberCount(_type, id string) (int64, error)
@@ -59,8 +59,8 @@ func NewGroupController() GroupController {
 	}
 }
 
-func (c *groupController) ListGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListGroupsHasMemberBeforeExpiredAt")
+func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "FilterGroupsHasMemberBeforeExpiredAt")
 
 	svcSubjects := convertToServiceSubjects(subjects)
 	groupPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
@@ -68,10 +68,10 @@ func (c *groupController) ListGroupsHasMemberBeforeExpiredAt(subjects []Subject,
 		return nil, errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	existSubjectPKs, err := c.service.ListGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
+	existSubjectPKs, err := c.service.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
+			err, "service.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
 			groupPKs, expiredAt,
 		)
 	}
@@ -149,11 +149,11 @@ func (c *groupController) CheckSubjectEffectGroups(
 	}
 
 	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
-	effectGroupPKs, err := c.service.ListExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	effectGroupPKs, err := c.service.FilterExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"service.ListExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
+			"service.FilterExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
 			subjectPKs,
 			groupPKs,
 		)
