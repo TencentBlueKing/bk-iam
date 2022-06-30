@@ -188,9 +188,9 @@ func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	return systems, nil
 }
 
-// ListGroupAuthByGroupPKs 查询groups的授权类型
+// ListGroupAuthBySystemGroupPKs 查询groups的授权类型
 func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthByGroupPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthBySystemGroupPKs")
 
 	groupAuthTypes := make([]types.GroupAuthType, 0, len(groupPKs))
 	// 分段查询, 避免SQL参数过多

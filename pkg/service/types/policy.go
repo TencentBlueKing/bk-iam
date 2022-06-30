@@ -20,21 +20,11 @@ type AuthPolicy struct {
 	ExpiredAt    int64 `msgpack:"e2"`
 }
 
-// GetPK return the Primary key of auth policy
-func (a *AuthPolicy) GetPK() int64 {
-	return a.PK
-}
-
 // AuthExpression for auth
 type AuthExpression struct {
 	PK         int64  `msgpack:"p"`
 	Expression string `msgpack:"ea"`
 	Signature  string `msgpack:"s"`
-}
-
-// GetPK return the Primary key of auth expression
-func (a *AuthExpression) GetPK() int64 {
-	return a.PK
 }
 
 // IsEmpty ...

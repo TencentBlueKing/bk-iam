@@ -159,7 +159,7 @@ func (l *departmentService) GetCount() (int64, error) {
 	return count, err
 }
 
-// BulkDeleteBySubjectPKs ...
+// BulkDeleteBySubjectPKsWithTx ...
 func (l *departmentService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(DepartmentSVC, "BulkDeleteBySubjectPKs")
 	// 对于用户，需要删除subject department

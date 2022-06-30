@@ -10,14 +10,15 @@
 
 package service
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
+
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 )
-
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 const (
 	ModelChangeEventSVC = "ModelChangeEventSVC"

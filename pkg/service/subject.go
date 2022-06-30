@@ -33,7 +33,6 @@ type SubjectService interface {
 	GetCount(_type string) (int64, error)
 	ListPaging(_type string, limit, offset int64) ([]types.Subject, error)
 	ListPKsBySubjects(subjects []types.Subject) ([]int64, error)
-	ListByPKs(pks []int64) ([]types.Subject, error)
 	BulkCreate(subjects []types.Subject) error
 	BulkUpdateName(subjects []types.Subject) error
 
@@ -188,18 +187,6 @@ func (l *subjectService) ListPKsBySubjects(subjects []types.Subject) ([]int64, e
 		}
 	}
 	return pks, nil
-}
-
-// ListByPKs ...
-func (l *subjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "ListByPKs")
-
-	daoSubjects, err := l.manager.ListByPKs(pks)
-	if err != nil {
-		return nil, errorWrapf(err, "manager.ListByPKs pks=`%v` fail", pks)
-	}
-	subjects := convertToSubjects(daoSubjects)
-	return subjects, nil
 }
 
 // BulkDeleteByPKsWithTx ...

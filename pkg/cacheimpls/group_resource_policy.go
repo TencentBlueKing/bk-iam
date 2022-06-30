@@ -126,7 +126,7 @@ func getResourceActionAuthorizedGroupPKsFromCache(key cache.Key, actionPK int64)
 	return groupPKs, nil
 }
 
-// DeleteResourceAuthorizedGroupPKs 删除资源授权的group pks缓存
+// DeleteResourceAuthorizedGroupPKsCache 删除资源授权的group pks缓存
 func DeleteResourceAuthorizedGroupPKsCache(
 	systemID string,
 	actionResourceTypePK, resourceTypePK int64,

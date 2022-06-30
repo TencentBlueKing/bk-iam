@@ -902,7 +902,7 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 	return err
 }
 
-// DeleteUnquotedExpressions 删除未被引用的expression
+// DeleteUnreferencedExpressions 删除未被引用的expression
 func (s *policyService) DeleteUnreferencedExpressions() error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
@@ -933,7 +933,7 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 	return nil
 }
 
-// BulkDeleteBySubjectPKs ...
+// BulkDeleteBySubjectPKsWithTx ...
 func (s *policyService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "BulkDeleteBySubjectPKs")
 
