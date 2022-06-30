@@ -27,7 +27,7 @@ func Test_subjectRelationManager_GetCount(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		cnt, err := manager.GetMemberCount(int64(1))
+		cnt, err := manager.GetGroupMemberCount(int64(1))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, cnt, int64(1))
@@ -44,7 +44,7 @@ func Test_subjectRelationManager_List(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), 0, 10).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListPagingMember(int64(1), 0, 10)
+		relations, err := manager.ListPagingGroupMember(int64(1), 0, 10)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -82,7 +82,7 @@ func Test_subjectRelationManager_BulkDeleteByMembersWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectGroupManager{DB: db}
-		cnt, err := manager.BulkDeleteByMembersWithTx(tx, int64(1), []int64{2})
+		cnt, err := manager.BulkDeleteByGroupMembersWithTx(tx, int64(1), []int64{2})
 
 		tx.Commit()
 		assert.NoError(t, err)
@@ -124,7 +124,7 @@ func Test_subjectRelationManager_GetMemberCountBeforeExpiredAt(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		cnt, err := manager.GetMemberCountBeforeExpiredAt(int64(1), int64(10))
+		cnt, err := manager.GetGroupMemberCountBeforeExpiredAt(int64(1), int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, cnt, int64(1))

@@ -47,9 +47,9 @@ func (s *groupService) AlterGroupAuthType(
 		// 用户组auth type变更为none, 则删除用户组成员与系统的关联
 		if count == 1 {
 			// 查询用户组所有的成员并删除subject system group
-			members, err := s.manager.ListMember(groupPK)
+			members, err := s.manager.ListGroupMember(groupPK)
 			if err != nil {
-				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
 			for _, member := range members {
@@ -75,9 +75,9 @@ func (s *groupService) AlterGroupAuthType(
 
 		if created {
 			// 查询用户组所有的成员并添加subject system group
-			members, err := s.manager.ListMember(groupPK)
+			members, err := s.manager.ListGroupMember(groupPK)
 			if err != nil {
-				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
 			nowTS := time.Now().Unix()

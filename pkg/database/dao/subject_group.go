@@ -64,15 +64,15 @@ type SubjectGroupManager interface {
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
 
-	ListMember(groupPK int64) ([]SubjectRelation, error)
-	ListPagingMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
-	ListPagingMemberBeforeExpiredAt(
+	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
+	ListPagingGroupMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingGroupMemberBeforeExpiredAt(
 		groupPK int64, expiredAt int64, limit, offset int64,
 	) (members []SubjectRelation, err error)
-	GetMemberCount(groupPK int64) (int64, error)
-	GetMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
+	GetGroupMemberCount(groupPK int64) (int64, error)
+	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
 
-	BulkDeleteByMembersWithTx(tx *sqlx.Tx, groupPK int64, subjectPKs []int64) (int64, error)
+	BulkDeleteByGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, subjectPKs []int64) (int64, error)
 }
 
 type subjectGroupManager struct {
@@ -131,8 +131,8 @@ func (m *subjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(subject
 	return
 }
 
-// ListPagingMember ...
-func (m *subjectGroupManager) ListPagingMember(groupPK int64, limit, offset int64) (
+// ListPagingGroupMember ...
+func (m *subjectGroupManager) ListPagingGroupMember(groupPK int64, limit, offset int64) (
 	members []SubjectRelation, err error,
 ) {
 	err = m.selectPagingMembers(&members, groupPK, limit, offset)
@@ -142,8 +142,8 @@ func (m *subjectGroupManager) ListPagingMember(groupPK int64, limit, offset int6
 	return
 }
 
-// ListMember ...
-func (m *subjectGroupManager) ListMember(groupPK int64) (members []SubjectRelation, err error) {
+// ListGroupMember ...
+func (m *subjectGroupManager) ListGroupMember(groupPK int64) (members []SubjectRelation, err error) {
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -159,15 +159,15 @@ func (m *subjectGroupManager) ListMember(groupPK int64) (members []SubjectRelati
 	return
 }
 
-// GetMemberCount ...
-func (m *subjectGroupManager) GetMemberCount(groupPK int64) (int64, error) {
+// GetGroupMemberCount ...
+func (m *subjectGroupManager) GetGroupMemberCount(groupPK int64) (int64, error) {
 	var count int64
 	err := m.getMemberCount(&count, groupPK)
 	return count, err
 }
 
-// BulkDeleteByMembersWithTx ...
-func (m *subjectGroupManager) BulkDeleteByMembersWithTx(
+// BulkDeleteByGroupMembersWithTx ...
+func (m *subjectGroupManager) BulkDeleteByGroupMembersWithTx(
 	tx *sqlx.Tx, groupPK int64, subjectPKs []int64,
 ) (int64, error) {
 	if len(subjectPKs) == 0 {
@@ -209,8 +209,8 @@ func (m *subjectGroupManager) UpdateExpiredAtWithTx(
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
-// GetMemberCountBeforeExpiredAt ...
-func (m *subjectGroupManager) GetMemberCountBeforeExpiredAt(
+// GetGroupMemberCountBeforeExpiredAt ...
+func (m *subjectGroupManager) GetGroupMemberCountBeforeExpiredAt(
 	groupPK int64, expiredAt int64,
 ) (int64, error) {
 	var count int64
@@ -218,8 +218,8 @@ func (m *subjectGroupManager) GetMemberCountBeforeExpiredAt(
 	return count, err
 }
 
-// ListPagingMemberBeforeExpiredAt ...
-func (m *subjectGroupManager) ListPagingMemberBeforeExpiredAt(
+// ListPagingGroupMemberBeforeExpiredAt ...
+func (m *subjectGroupManager) ListPagingGroupMemberBeforeExpiredAt(
 	groupPK int64, expiredAt int64, limit, offset int64,
 ) (members []SubjectRelation, err error) {
 	err = m.selectPagingMembersBeforeExpiredAt(&members, groupPK, expiredAt, limit, offset)

@@ -53,9 +53,9 @@ var _ = Describe("GroupController", func() {
 			patches.Reset()
 		})
 
-		It("service.ListMember fail", func() {
+		It("service.ListGroupMember fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+			mockGroupService.EXPECT().ListGroupMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -71,12 +71,12 @@ var _ = Describe("GroupController", func() {
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListMember")
+			assert.Contains(GinkgoT(), err.Error(), "ListGroupMember")
 		})
 
-		It("service.UpdateMembersExpiredAtWithTx fail", func() {
+		It("service.UpdateGroupMembersExpiredAtWithTx fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+			mockGroupService.EXPECT().ListGroupMember(int64(1)).Return(
 				[]types.GroupMember{
 					{
 						PK:        1,
@@ -86,7 +86,7 @@ var _ = Describe("GroupController", func() {
 				}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateMembersExpiredAtWithTx(
+				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
 					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).
@@ -116,16 +116,16 @@ var _ = Describe("GroupController", func() {
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "UpdateMembersExpiredAtWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "UpdateGroupMembersExpiredAtWithTx")
 		})
 
 		It("bulkCreateGroupMembers fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+			mockGroupService.EXPECT().ListGroupMember(int64(1)).Return(
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}}).
+				UpdateGroupMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}}).
 				Return(
 					nil,
 				).
@@ -167,11 +167,11 @@ var _ = Describe("GroupController", func() {
 
 		It("not create ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+			mockGroupService.EXPECT().ListGroupMember(int64(1)).Return(
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateMembersExpiredAtWithTx(
+				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
 					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).Return(
@@ -209,11 +209,11 @@ var _ = Describe("GroupController", func() {
 
 		It("ok", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListMember(int64(1)).Return(
+			mockGroupService.EXPECT().ListGroupMember(int64(1)).Return(
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateMembersExpiredAtWithTx(
+				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
 					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
 				).

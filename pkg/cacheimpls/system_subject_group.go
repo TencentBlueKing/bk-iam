@@ -224,7 +224,7 @@ func BatchDeleteSubjectAuthSystemGroupCache(subjectPKs []int64, groupPK int64) {
 // BatchDeleteGroupMemberSubjectSystemGroupCache 批量删除group的member的 group 缓存
 func BatchDeleteGroupMemberSubjectSystemGroupCache(systemID string, groupPK int64) {
 	svc := service.NewGroupService()
-	members, err := svc.ListMember(groupPK)
+	members, err := svc.ListGroupMember(groupPK)
 	if err != nil {
 		log.WithError(err).Errorf(
 			"BatchDeleteGroupMemberSubjectSystemGroupCache fail systemID=`%s`, groupPK=`%d`", systemID, groupPK,

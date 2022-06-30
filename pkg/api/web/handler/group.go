@@ -35,17 +35,17 @@ func ListGroupMember(c *gin.Context) {
 	subject.Default()
 
 	ctl := pap.NewGroupController()
-	count, err := ctl.GetMemberCount(subject.Type, subject.ID)
+	count, err := ctl.GetGroupMemberCount(subject.Type, subject.ID)
 	if err != nil {
 		err = errorWrapf(err, "type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	relations, err := ctl.ListPagingMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
+	relations, err := ctl.ListPagingGroupMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListPagingMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+			err, "ctl.ListPagingGroupMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
 			subject.Type, subject.ID, subject.Limit, subject.Offset,
 		)
 		util.SystemErrorJSONResponse(c, err)
@@ -226,22 +226,22 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 	body.Default()
 
 	ctl := pap.NewGroupController()
-	count, err := ctl.GetMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
+	count, err := ctl.GetGroupMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.GetMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.GetGroupMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	members, err := ctl.ListPagingMemberBeforeExpiredAt(
+	members, err := ctl.ListPagingGroupMemberBeforeExpiredAt(
 		body.Type, body.ID, body.BeforeExpiredAt, body.Limit, body.Offset,
 	)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListPagingMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.ListPagingGroupMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)

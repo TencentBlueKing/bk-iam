@@ -223,15 +223,15 @@ func updateGroupsString(
 // ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
 func (l *groupService) ListEffectThinSubjectGroups(
 	systemID string,
-	pks []int64,
+	subjectPKs []int64,
 ) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")
 
-	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
+	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(subjectPKs))
 
-	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, pks)
+	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, subjectPKs)
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
+		return subjectGroups, errorWrapf(err, "manager.ListSubjectGroups subjectPKs=`%+v` fail", subjectPKs)
 	}
 
 	// 筛选未过期的用户组

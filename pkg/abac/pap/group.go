@@ -34,10 +34,10 @@ type GroupController interface {
 	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
-	GetMemberCount(_type, id string) (int64, error)
-	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
-	GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
-	ListPagingMemberBeforeExpiredAt(
+	GetGroupMemberCount(_type, id string) (int64, error)
+	ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error)
+	GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
+	ListPagingGroupMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
 	) ([]GroupMember, error)
 
@@ -198,33 +198,33 @@ func (c *groupController) ListSubjectGroups(_type, id string, beforeExpiredAt in
 	return groups, nil
 }
 
-// GetMemberCount ...
-func (c *groupController) GetMemberCount(_type, id string) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetMemberCount")
+// GetGroupMemberCount ...
+func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCount")
 	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	count, err := c.service.GetMemberCount(groupPK)
+	count, err := c.service.GetGroupMemberCount(groupPK)
 	if err != nil {
-		return 0, errorWrapf(err, "service.GetMemberCount groupPK=`%d`", groupPK)
+		return 0, errorWrapf(err, "service.GetGroupMemberCount groupPK=`%d`", groupPK)
 	}
 
 	return count, nil
 }
 
-func (c *groupController) ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMember")
+func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMember")
 	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcMembers, err := c.service.ListPagingMember(groupPK, limit, offset)
+	svcMembers, err := c.service.ListPagingGroupMember(groupPK, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListPagingMember groupPK=`%d`, limit=`%d`, offset=`%d` fail",
+			err, "service.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d` fail",
 			groupPK, limit, offset,
 		)
 	}
@@ -237,18 +237,18 @@ func (c *groupController) ListPagingMember(_type, id string, limit, offset int64
 	return members, nil
 }
 
-// GetMemberCountBeforeExpiredAt ...
-func (c *groupController) GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetMemberCountBeforeExpiredAt")
+// GetGroupMemberCountBeforeExpiredAt ...
+func (c *groupController) GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCountBeforeExpiredAt")
 	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	count, err := c.service.GetMemberCountBeforeExpiredAt(groupPK, expiredAt)
+	count, err := c.service.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
 	if err != nil {
 		return 0, errorWrapf(
-			err, "service.GetMemberCountBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`",
+			err, "service.GetGroupMemberCountBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`",
 			groupPK, expiredAt,
 		)
 	}
@@ -256,21 +256,25 @@ func (c *groupController) GetMemberCountBeforeExpiredAt(_type, id string, expire
 	return count, nil
 }
 
-// ListPagingMemberBeforeExpiredAt ...
-func (c *groupController) ListPagingMemberBeforeExpiredAt(
+// ListPagingGroupMemberBeforeExpiredAt ...
+func (c *groupController) ListPagingGroupMemberBeforeExpiredAt(
 	_type, id string, expiredAt int64, limit, offset int64,
 ) ([]GroupMember, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMemberBeforeExpiredAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMemberBeforeExpiredAt")
 	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcMembers, err := c.service.ListPagingMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset)
+	svcMembers, err := c.service.ListPagingGroupMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListPagingMemberBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
-			groupPK, expiredAt, limit, offset,
+			err,
+			"service.ListPagingGroupMemberBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			groupPK,
+			expiredAt,
+			limit,
+			offset,
 		)
 	}
 
@@ -301,9 +305,9 @@ func (c *groupController) alterGroupMembers(
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	relations, err := c.service.ListMember(groupPK)
+	relations, err := c.service.ListGroupMember(groupPK)
 	if err != nil {
-		err = errorWrapf(err, "service.ListMember type=`%s` id=`%s`", _type, id)
+		err = errorWrapf(err, "service.ListGroupMember type=`%s` id=`%s`", _type, id)
 		return
 	}
 
@@ -369,9 +373,9 @@ func (c *groupController) alterGroupMembers(
 
 	if len(updateMembers) != 0 {
 		// 更新成员过期时间
-		err = c.service.UpdateMembersExpiredAtWithTx(tx, groupPK, updateMembers)
+		err = c.service.UpdateGroupMembersExpiredAtWithTx(tx, groupPK, updateMembers)
 		if err != nil {
-			err = errorWrapf(err, "service.UpdateMembersExpiredAtWithTx members=`%+v`", updateMembers)
+			err = errorWrapf(err, "service.UpdateGroupMembersExpiredAtWithTx members=`%+v`", updateMembers)
 			return
 		}
 	}

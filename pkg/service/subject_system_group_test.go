@@ -371,7 +371,7 @@ var _ = Describe("SubjectService", func() {
 
 			_, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListRelationByPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListSubjectGroups")
 		})
 
 		It("UnmarshalFromString fail", func() {
