@@ -127,9 +127,9 @@ func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
 		papSubjects = append(papSubjects, pap.GroupMember{
-			Type:            m.Type,
-			ID:              m.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+			Type:      m.Type,
+			ID:        m.ID,
+			ExpiredAt: m.PolicyExpiredAt,
 		})
 	}
 
@@ -189,9 +189,9 @@ func BatchAddGroupMembers(c *gin.Context) {
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
 		papSubjects = append(papSubjects, pap.GroupMember{
-			Type:            m.Type,
-			ID:              m.ID,
-			PolicyExpiredAt: body.PolicyExpiredAt,
+			Type:      m.Type,
+			ID:        m.ID,
+			ExpiredAt: body.PolicyExpiredAt,
 		})
 	}
 

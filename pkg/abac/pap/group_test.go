@@ -65,9 +65,9 @@ var _ = Describe("GroupController", func() {
 
 			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
-					Type:            "user",
-					ID:              "2",
-					PolicyExpiredAt: int64(3),
+					Type:      "user",
+					ID:        "2",
+					ExpiredAt: int64(3),
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
@@ -110,9 +110,9 @@ var _ = Describe("GroupController", func() {
 
 			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
-					Type:            "user",
-					ID:              "2",
-					PolicyExpiredAt: int64(3),
+					Type:      "user",
+					ID:        "2",
+					ExpiredAt: int64(3),
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
@@ -156,9 +156,9 @@ var _ = Describe("GroupController", func() {
 
 			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
-					Type:            "user",
-					ID:              "2",
-					PolicyExpiredAt: int64(3),
+					Type:      "user",
+					ID:        "2",
+					ExpiredAt: int64(3),
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
@@ -199,9 +199,9 @@ var _ = Describe("GroupController", func() {
 
 			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
-					Type:            "user",
-					ID:              "2",
-					PolicyExpiredAt: int64(3),
+					Type:      "user",
+					ID:        "2",
+					ExpiredAt: int64(3),
 				},
 			}, false)
 			assert.NoError(GinkgoT(), err)
@@ -252,9 +252,9 @@ var _ = Describe("GroupController", func() {
 
 			typeCount, err := manager.alterGroupMembers("group", "1", []GroupMember{
 				{
-					Type:            "user",
-					ID:              "2",
-					PolicyExpiredAt: int64(3),
+					Type:      "user",
+					ID:        "2",
+					ExpiredAt: int64(3),
 				},
 			}, true)
 			assert.NoError(GinkgoT(), err)

@@ -68,7 +68,7 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 		return nil, errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	existSubjectPKs, err := c.service.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
+	existGroupPKs, err := c.service.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 	if err != nil {
 		return nil, errorWrapf(
 			err, "service.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
@@ -76,8 +76,8 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 		)
 	}
 
-	existSubjects := make([]Subject, 0, len(existSubjectPKs))
-	for _, pk := range existSubjectPKs {
+	existGroups := make([]Subject, 0, len(existGroupPKs))
+	for _, pk := range existGroupPKs {
 		subject, err := cacheimpls.GetSubjectByPK(pk)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -87,14 +87,14 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
 		}
 
-		existSubjects = append(existSubjects, Subject{
+		existGroups = append(existGroups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
 			Name: subject.Name,
 		})
 	}
 
-	return existSubjects, nil
+	return existGroups, nil
 }
 
 func (c *groupController) CheckSubjectEffectGroups(
@@ -340,11 +340,11 @@ func (c *groupController) alterGroupMembers(
 		// member已存在则不再添加
 		if oldMember, ok := memberMap[subjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
-			if m.PolicyExpiredAt > oldMember.ExpiredAt {
+			if m.ExpiredAt > oldMember.ExpiredAt {
 				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
 					PK:        oldMember.PK,
 					SubjectPK: subjectPK,
-					ExpiredAt: m.PolicyExpiredAt,
+					ExpiredAt: m.ExpiredAt,
 				})
 
 				subjectPKs = append(subjectPKs, subjectPK)
@@ -356,7 +356,7 @@ func (c *groupController) alterGroupMembers(
 			createMembers = append(createMembers, types.SubjectRelationForCreate{
 				SubjectPK: subjectPK,
 				GroupPK:   groupPK,
-				ExpiredAt: m.PolicyExpiredAt,
+				ExpiredAt: m.ExpiredAt,
 			})
 			typeCount[m.Type]++
 			subjectPKs = append(subjectPKs, subjectPK)
@@ -472,11 +472,11 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 		}
 
 		groups = append(groups, SubjectGroup{
-			PK:              m.PK,
-			Type:            subject.Type,
-			ID:              subject.ID,
-			PolicyExpiredAt: m.ExpiredAt,
-			CreateAt:        m.CreateAt,
+			PK:        m.PK,
+			Type:      subject.Type,
+			ID:        subject.ID,
+			ExpiredAt: m.ExpiredAt,
+			CreateAt:  m.CreateAt,
 		})
 	}
 
@@ -496,11 +496,11 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 		}
 
 		members = append(members, GroupMember{
-			PK:              m.PK,
-			Type:            subject.Type,
-			ID:              subject.ID,
-			PolicyExpiredAt: m.ExpiredAt,
-			CreateAt:        m.CreateAt,
+			PK:        m.PK,
+			Type:      subject.Type,
+			ID:        subject.ID,
+			ExpiredAt: m.ExpiredAt,
+			CreateAt:  m.CreateAt,
 		})
 	}
 

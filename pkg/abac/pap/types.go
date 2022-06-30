@@ -30,9 +30,9 @@ type GroupMember struct {
 	PK   int64  `json:"pk"`
 	Type string `json:"type"`
 	ID   string `json:"id"`
-	// FIXME: change to ExpiredAt
-	PolicyExpiredAt int64     `json:"policy_expired_at"`
-	CreateAt        time.Time `json:"created_at"`
+	// FIXME: change tag to ExpiredAt, will change the json response body form saas and frontend
+	ExpiredAt int64     `json:"policy_expired_at"`
+	CreateAt  time.Time `json:"created_at"`
 }
 
 // SubjectGroup subject关联的组
@@ -40,7 +40,7 @@ type SubjectGroup struct {
 	PK   int64  `json:"pk"`
 	Type string `json:"type"`
 	ID   string `json:"id"`
-	// FIXME: change to ExpiredAt
-	PolicyExpiredAt int64     `json:"policy_expired_at"`
-	CreateAt        time.Time `json:"created_at"`
+	// FIXME: change tag to ExpiredAt, will change the json response body form saas and frontend
+	ExpiredAt int64     `json:"policy_expired_at"`
+	CreateAt  time.Time `json:"created_at"`
 }
