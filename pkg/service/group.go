@@ -144,20 +144,7 @@ func (l *groupService) ListSubjectGroups(
 func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	groupPKs []int64, expiredAt int64,
 ) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterGroupPKsHasMemberBeforeExpiredAt")
-
-	existGroupPKs, err := l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
-	if err != nil {
-		return []int64{}, errorWrapf(
-			err, "manager.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
-			groupPKs, expiredAt,
-		)
-	}
-	if len(existGroupPKs) == 0 {
-		return []int64{}, nil
-	}
-
-	return existGroupPKs, err
+	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 }
 
 func (l *groupService) FilterExistEffectSubjectGroupPKs(
@@ -197,13 +184,7 @@ func convertToGroupMembers(daoRelations []dao.SubjectRelation) []types.GroupMemb
 
 // GetGroupMemberCount ...
 func (l *groupService) GetGroupMemberCount(groupPK int64) (int64, error) {
-	cnt, err := l.manager.GetGroupMemberCount(groupPK)
-	if err != nil {
-		err = errorx.Wrapf(err, GroupSVC, "GetGroupMemberCount",
-			"manager.GetGroupMemberCount groupPK=`%d` fail", groupPK)
-		return 0, err
-	}
-	return cnt, nil
+	return l.manager.GetGroupMemberCount(groupPK)
 }
 
 // ListPagingGroupMember ...
@@ -397,14 +378,7 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 
 // GetGroupMemberCountBeforeExpiredAt ...
 func (l *groupService) GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error) {
-	cnt, err := l.manager.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
-	if err != nil {
-		err = errorx.Wrapf(err, GroupSVC, "GetGroupMemberCountBeforeExpiredAt",
-			"manager.GetGroupMemberCountBeforeExpiredAt groupPK=`%d`, expiredAt=`%d` fail",
-			groupPK, expiredAt)
-		return 0, err
-	}
-	return cnt, nil
+	return l.manager.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
 }
 
 // ListPagingGroupMemberBeforeExpiredAt ...
