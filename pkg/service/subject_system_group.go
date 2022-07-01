@@ -110,7 +110,7 @@ func (l *groupService) addOrUpdateSubjectSystemGroup(
 	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, true, addOrUpdateFunc)
 		if err == nil {
-			return
+			return nil
 		}
 
 		if errors.Is(err, ErrNeedRetry) {
@@ -151,7 +151,7 @@ func (l *groupService) removeSubjectSystemGroup(
 	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, false, removeFunc)
 		if err == nil {
-			return
+			return nil
 		}
 
 		if errors.Is(err, ErrNeedRetry) {
