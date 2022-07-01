@@ -26,6 +26,10 @@ import (
 const RandExpireSeconds = 60
 
 // GetResourceActionAuthorizedGroupPKs 使用操作与资源信息拿rbac授权的用户组
+// Get Resource Action Authorized Group PKs from redis Hash
+// Key: system_id:action_resource_type_pk:resource_type_pk:resource_id
+// Hash Field: action_pk
+// Hash Value: group_pks []int64
 func GetResourceActionAuthorizedGroupPKs(
 	systemID string,
 	actionPK, actionResourceTypePK, resourceTypePK int64,
