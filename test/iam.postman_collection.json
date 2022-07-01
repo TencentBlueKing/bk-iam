@@ -3441,7 +3441,7 @@
 					"response": []
 				},
 				{
-					"name": "rbac user105 view app iam path 002",
+					"name": "rbac user105 view app iam path project 001",
 					"event": [
 						{
 							"listen": "test",
@@ -3477,7 +3477,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/app,001/app,002/\"]\n        }\n    }]\n}",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/project,002/\"]\n        }\n    }]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -8402,7 +8402,7 @@
 								"exec": [
 									"pm.test(\"list_resource_type\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data.demo.length).to.eql(1);",
+									"    pm.expect(jsonData.data.demo.length).to.eql(2);",
 									"});"
 								],
 								"type": "text/javascript"

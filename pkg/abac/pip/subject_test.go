@@ -67,17 +67,17 @@ var _ = Describe("Subject", func() {
 		})
 
 		It("GetSubjectDepartmentPKs fail", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
-				return nil, errors.New("get GetSubjectDepartmentPKs fail")
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+				return nil, errors.New("get GetLocalSubjectDepartmentPKs fail")
 			})
 
 			_, err := pip.GetSubjectDepartmentPKs(123)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "get GetSubjectDepartmentPKs fail")
+			assert.Contains(GinkgoT(), err.Error(), "get GetLocalSubjectDepartmentPKs fail")
 		})
 
 		It("ok", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
 				return []int64{1, 2, 3}, nil
 			})
 

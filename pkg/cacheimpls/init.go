@@ -36,6 +36,7 @@ var (
 	LocalSystemClientsCache         memory.Cache
 	LocalRemoteResourceListCache    memory.Cache
 	LocalSubjectPKCache             memory.Cache
+	LocalSubjectDepartmentCache     memory.Cache
 	LocalAPIGatewayJWTClientIDCache memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
@@ -118,6 +119,16 @@ func InitCaches(disabled bool) {
 		disabled,
 		retrieveSubjectPKFromRedis,
 		30*time.Minute,
+		nil,
+	)
+
+	// 影响: 每次鉴权
+
+	LocalSubjectDepartmentCache = memory.NewCache(
+		"local_subject_department",
+		disabled,
+		retrieveSubjectDepartmentFromRedis,
+		10*time.Minute,
 		nil,
 	)
 
