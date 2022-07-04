@@ -50,15 +50,6 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 			return false
 		}
 
-		/*
-			兼容用户鉴权传入的 iam path 为以下2中情况, 统一处理成2段式
-			1. 旧的格式 2段式: /resource_type_id,resource_id/
-			2. RBAC的格式, 3段式: /system_id,resource_type_id,resource_id/
-		*/
-		if strings.HasSuffix(c.Key, abacTypes.IamPathSuffix) {
-			aStr = standardizeIamPath(aStr)
-		}
-
 		// 支持表达式中最后一个节点为任意
 		// /biz,1/set,*/ -> /biz,1/set,
 		if strings.HasSuffix(c.Key, abacTypes.IamPathSuffix) && strings.HasSuffix(bStr, ",*/") {
@@ -67,33 +58,6 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 
 		return strings.HasPrefix(aStr, bStr)
 	})
-}
-
-func standardizeIamPath(path string) string {
-	if !strings.HasPrefix(path, "/") {
-		return path
-	}
-
-	strParts := []string{"/"}
-
-	nodes := strings.Split(strings.Trim(path, "/"), "/")
-	for _, node := range nodes {
-		parts := strings.Split(node, ",")
-		switch len(parts) {
-		case 2:
-			strParts = append(strParts, parts[0], ",", parts[1], "/")
-		case 3:
-			strParts = append(strParts, parts[1], ",", parts[2], "/")
-		default:
-			return path
-		}
-	}
-
-	if !strings.HasSuffix(path, "/") && len(strParts) > 1 {
-		strParts = strParts[:len(strParts)-1]
-	}
-
-	return strings.Join(strParts, "")
 }
 
 func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface{}, error) {

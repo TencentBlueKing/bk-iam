@@ -262,6 +262,7 @@ func parseIamPath(
 
 			systemID := parts[0]
 			resourceTypeID := parts[1]
+			resourceID := parts[2]
 
 			resourceTypePK, err := cacheimpls.GetLocalResourceTypePK(systemID, resourceTypeID)
 			if err != nil {
@@ -271,7 +272,7 @@ func parseIamPath(
 			node := types.ResourceNode{
 				System: systemID,
 				Type:   resourceTypeID,
-				ID:     parts[2],
+				ID:     resourceID,
 				TypePK: resourceTypePK,
 			}
 

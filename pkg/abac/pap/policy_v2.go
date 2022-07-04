@@ -376,7 +376,8 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 		detail := (*actionDetailMap)[actionID]
 		// Note: 由于只能关联一个资源类型的操作才可配置RBAC权限，所以这里直接取第一个关联的资源类型
 		// pk := detail.ResourceTypes[0].PK
-		pk, err := cacheimpls.GetLocalResourceTypePK(detail.ResourceTypes[0].System, detail.ResourceTypes[0].ID)
+		resourceType := detail.ResourceTypes[0]
+		pk, err := cacheimpls.GetLocalResourceTypePK(resourceType.System, resourceType.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -396,7 +397,8 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	for _, actionID := range deletedActionIDs {
 		detail := (*actionDetailMap)[actionID]
 		// Note: 由于只能关联一个资源类型的操作才可配置RBAC权限，所以这里直接取第一个关联的资源类型
-		pk, err := cacheimpls.GetLocalResourceTypePK(detail.ResourceTypes[0].System, detail.ResourceTypes[0].ID)
+		resourceType := detail.ResourceTypes[0]
+		pk, err := cacheimpls.GetLocalResourceTypePK(resourceType.System, resourceType.ID)
 		if err != nil {
 			return nil, err
 		}

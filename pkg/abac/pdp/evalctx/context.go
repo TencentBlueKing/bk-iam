@@ -45,6 +45,17 @@ func NewEvalContext(req *request.Request) *EvalContext {
 		// set id into attributes
 		r.Attribute.Set("id", r.ID)
 
+		/*
+			兼容用户鉴权传入的 iam path 为以下2中情况, 统一处理成2段式
+			1. 旧的格式 2段式: /resource_type_id,resource_id/
+			2. RBAC的格式, 3段式: /system_id,resource_type_id,resource_id/
+		*/
+		iamPaths, ok := r.Attribute.Get(types.IamPath)
+		if ok {
+			iamPaths = standardizeIamPaths(iamPaths)
+			r.Attribute.Set(types.IamPath, iamPaths)
+		}
+
 		// bk_job.script => attributes
 		_type := r.System + "." + r.Type
 		objSet.Set(_type, r.Attribute)
@@ -54,6 +65,64 @@ func NewEvalContext(req *request.Request) *EvalContext {
 		Request: req,
 		objSet:  objSet,
 	}
+}
+
+func standardizeIamPaths(iamPaths interface{}) interface{} {
+	paths := make([]string, 0, 2)
+	switch vs := iamPaths.(type) {
+	case []interface{}:
+		for _, v := range vs {
+			if s, ok := v.(string); ok {
+				paths = append(paths, s)
+			} else {
+				return iamPaths
+			}
+		}
+	case string:
+		paths = append(paths, vs)
+	default:
+		return iamPaths
+	}
+
+	standardizedPaths := make([]interface{}, 0, len(paths))
+	for _, path := range paths {
+		if !strings.HasPrefix(path, "/") {
+			standardizedPaths = append(standardizedPaths, path)
+			continue
+		}
+
+		nodes := strings.Split(strings.Trim(path, "/"), "/")
+
+		isValid := true
+		strParts := []string{"/"}
+		for _, node := range nodes {
+			parts := strings.Split(node, ",")
+			if len(parts) != 3 {
+				isValid = false
+				break
+			}
+
+			strParts = append(strParts, parts[1], ",", parts[2], "/")
+		}
+
+		if !isValid {
+			standardizedPaths = append(standardizedPaths, path)
+			continue
+		}
+
+		// NOTE: 如果原始的字符串最后没有/, 则不加/
+		if !strings.HasSuffix(path, "/") && len(strParts) > 1 {
+			strParts = strParts[:len(strParts)-1]
+		}
+
+		standardizedPaths = append(standardizedPaths, strings.Join(strParts, ""))
+	}
+
+	if len(standardizedPaths) == 1 {
+		return standardizedPaths[0]
+	}
+
+	return standardizedPaths
 }
 
 // GetAttr 获取资源的属性值
