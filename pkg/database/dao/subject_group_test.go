@@ -77,7 +77,7 @@ func Test_subjectRelationManager_ListPagingRelation(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10), int64(0)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListPagingRelation(int64(1), 10, 0)
+		relations, err := manager.ListPagingSubjectGroups(int64(1), 10, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
@@ -139,7 +139,7 @@ func Test_subjectRelationManager_ListPagingRelationBeforeExpiredAt(t *testing.T)
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(1000), int64(10), int64(0)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListPagingRelationBeforeExpiredAt(int64(1), int64(1000), 10, 0)
+		relations, err := manager.ListPagingSubjectGroupBeforeExpiredAt(int64(1), int64(1000), 10, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)

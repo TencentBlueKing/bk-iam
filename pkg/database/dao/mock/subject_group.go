@@ -228,9 +228,9 @@ func (mr *MockSubjectGroupManagerMockRecorder) ListPagingGroupMemberBeforeExpire
 }
 
 // ListPagingRelation mocks base method.
-func (m *MockSubjectGroupManager) ListPagingRelation(subjectPK, limit, offset int64) ([]dao.SubjectRelation, error) {
+func (m *MockSubjectGroupManager) ListPagingSubjectGroups(subjectPK, limit, offset int64) ([]dao.SubjectRelation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingRelation", subjectPK, limit, offset)
+	ret := m.ctrl.Call(m, "ListPagingSubjectGroups", subjectPK, limit, offset)
 	ret0, _ := ret[0].([]dao.SubjectRelation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -239,13 +239,13 @@ func (m *MockSubjectGroupManager) ListPagingRelation(subjectPK, limit, offset in
 // ListPagingRelation indicates an expected call of ListPagingRelation.
 func (mr *MockSubjectGroupManagerMockRecorder) ListPagingRelation(subjectPK, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingRelation", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListPagingRelation), subjectPK, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectGroups", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListPagingSubjectGroups), subjectPK, limit, offset)
 }
 
 // ListPagingRelationBeforeExpiredAt mocks base method.
-func (m *MockSubjectGroupManager) ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]dao.SubjectRelation, error) {
+func (m *MockSubjectGroupManager) ListPagingSubjectGroupBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]dao.SubjectRelation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingRelationBeforeExpiredAt", subjectPK, expiredAt, limit, offset)
+	ret := m.ctrl.Call(m, "ListPagingSubjectGroupBeforeExpiredAt", subjectPK, expiredAt, limit, offset)
 	ret0, _ := ret[0].([]dao.SubjectRelation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -254,7 +254,7 @@ func (m *MockSubjectGroupManager) ListPagingRelationBeforeExpiredAt(subjectPK, e
 // ListPagingRelationBeforeExpiredAt indicates an expected call of ListPagingRelationBeforeExpiredAt.
 func (mr *MockSubjectGroupManagerMockRecorder) ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingRelationBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListPagingRelationBeforeExpiredAt), subjectPK, expiredAt, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectGroupBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListPagingSubjectGroupBeforeExpiredAt), subjectPK, expiredAt, limit, offset)
 }
 
 // ListThinRelationAfterExpiredAtBySubjectPKs mocks base method.

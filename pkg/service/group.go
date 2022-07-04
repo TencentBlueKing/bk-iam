@@ -147,15 +147,15 @@ func (l *groupService) ListPagingSubjectGroups(
 
 	var relations []dao.SubjectRelation
 	if beforeExpiredAt == 0 {
-		relations, err = l.manager.ListPagingRelation(subjectPK, limit, offset)
+		relations, err = l.manager.ListPagingSubjectGroups(subjectPK, limit, offset)
 	} else {
-		relations, err = l.manager.ListPagingRelationBeforeExpiredAt(subjectPK, beforeExpiredAt, limit, offset)
+		relations, err = l.manager.ListPagingSubjectGroupBeforeExpiredAt(subjectPK, beforeExpiredAt, limit, offset)
 	}
 
 	if err != nil {
 		return subjectGroups, errorWrapf(
 			err,
-			"manager.ListPagingRelationBeforeExpiredAt subjectPK=`%d`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			"manager.ListPagingSubjectGroupBeforeExpiredAt subjectPK=`%d`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
 			subjectPK,
 			beforeExpiredAt,
 			limit,

@@ -56,8 +56,8 @@ type SubjectGroupManager interface {
 
 	GetSubjectGroupCount(subjectPK int64) (int64, error)
 	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
-	ListPagingRelation(subjectPK, limit, offset int64) ([]SubjectRelation, error)
-	ListPagingRelationBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingSubjectGroups(subjectPK, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingSubjectGroupBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
@@ -101,8 +101,8 @@ func (m *subjectGroupManager) GetSubjectGroupCount(subjectPK int64) (int64, erro
 	return count, err
 }
 
-// ListRelation ...
-func (m *subjectGroupManager) ListPagingRelation(
+// ListPagingSubjectGroups ...
+func (m *subjectGroupManager) ListPagingSubjectGroups(
 	subjectPK, limit, offset int64,
 ) (relations []SubjectRelation, err error) {
 	query := `SELECT
@@ -136,8 +136,8 @@ func (m *subjectGroupManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK int6
 	return count, err
 }
 
-// ListRelationBeforeExpiredAt ...
-func (m *subjectGroupManager) ListPagingRelationBeforeExpiredAt(
+// ListPagingSubjectGroupBeforeExpiredAt ...
+func (m *subjectGroupManager) ListPagingSubjectGroupBeforeExpiredAt(
 	subjectPK, expiredAt, limit, offset int64,
 ) (relations []SubjectRelation, err error) {
 	query := `SELECT
