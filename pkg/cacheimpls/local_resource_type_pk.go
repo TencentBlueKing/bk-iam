@@ -33,12 +33,3 @@ func GetLocalResourceTypePK(systemID, resourceTypeID string) (pk int64, err erro
 	}
 	return
 }
-
-// DeleteLocalResourceTypePK ...
-func DeleteLocalResourceTypePK(systemID, resourceTypeID string) error {
-	key := ResourceTypeCacheKey{
-		SystemID:       systemID,
-		ResourceTypeID: resourceTypeID,
-	}
-	return LocalResourceTypePKCache.Delete(key)
-}
