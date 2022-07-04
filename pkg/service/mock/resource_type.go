@@ -77,6 +77,21 @@ func (mr *MockResourceTypeServiceMockRecorder) Get(system, id interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockResourceTypeService)(nil).Get), system, id)
 }
 
+// GetPK mocks base method.
+func (m *MockResourceTypeService) GetPK(system, name string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPK", system, name)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPK indicates an expected call of GetPK.
+func (mr *MockResourceTypeServiceMockRecorder) GetPK(system, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockResourceTypeService)(nil).GetPK), system, name)
+}
+
 // ListBySystem mocks base method.
 func (m *MockResourceTypeService) ListBySystem(system string) ([]types.ResourceType, error) {
 	m.ctrl.T.Helper()
@@ -90,21 +105,6 @@ func (m *MockResourceTypeService) ListBySystem(system string) ([]types.ResourceT
 func (mr *MockResourceTypeServiceMockRecorder) ListBySystem(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockResourceTypeService)(nil).ListBySystem), system)
-}
-
-// ListThinByIDs mocks base method.
-func (m *MockResourceTypeService) ListThinByIDs(systemID string, resourceTypeIDs []string) ([]types.ThinResourceType, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListThinByIDs", systemID, resourceTypeIDs)
-	ret0, _ := ret[0].([]types.ThinResourceType)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListThinByIDs indicates an expected call of ListThinByIDs.
-func (mr *MockResourceTypeServiceMockRecorder) ListThinByIDs(systemID, resourceTypeIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinByIDs", reflect.TypeOf((*MockResourceTypeService)(nil).ListThinByIDs), systemID, resourceTypeIDs)
 }
 
 // Update mocks base method.

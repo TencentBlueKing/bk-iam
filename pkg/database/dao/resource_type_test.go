@@ -29,21 +29,15 @@ var _ = Describe("", func() {
 		db, mock = database.NewMockSqlxDB()
 		manager = &resourceTypeManager{DB: db}
 	})
-	It("ListByIDs", func() {
-		mockRows := database.NewMockRows(mock, []interface{}{
-			ResourceType{
-				PK:     int64(1),
-				System: "system_id",
-				ID:     "id",
-			},
-		}...)
+	It("GetPK", func() {
+		mockRows := sqlmock.NewRows([]string{"pk"}).
+			AddRow(1)
 		mock.ExpectQuery(
-			"^SELECT pk, system_id, id FROM resource_type WHERE system_id = (.*) AND id IN (.*)$",
+			"^SELECT pk FROM resource_type WHERE system_id = (.*) AND id = (.*)$",
 		).WithArgs("system_id", "id").WillReturnRows(mockRows)
 
-		resourceTypes, err := manager.ListByIDs("system_id", []string{"id"})
+		pk, err := manager.GetPK("system_id", "id")
 		assert.NoError(GinkgoT(), err)
-		assert.Len(GinkgoT(), resourceTypes, 1)
-		assert.Equal(GinkgoT(), int64(1), resourceTypes[0].PK)
+		assert.Equal(GinkgoT(), int64(1), pk)
 	})
 })

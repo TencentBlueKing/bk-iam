@@ -8,36 +8,28 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package pip
+package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
-
-	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
 )
 
-// ActionPIP ...
-const ActionPIP = "ActionPIP"
+func retrieveResourceTypePKFromRedis(key cache.Key) (interface{}, error) {
+	k := key.(ResourceTypeCacheKey)
+	return GetResourceTypePK(k.SystemID, k.ResourceTypeID)
+}
 
-// GetActionDetail ...
-func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.ActionResourceType, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
-
-	detail, err := cacheimpls.GetLocalActionDetail(system, id)
+// GetLocalResourceTypePK ...
+func GetLocalResourceTypePK(systemID, resourceTypeID string) (pk int64, err error) {
+	key := ResourceTypeCacheKey{
+		SystemID:       systemID,
+		ResourceTypeID: resourceTypeID,
+	}
+	pk, err = LocalResourceTypePKCache.GetInt64(key)
 	if err != nil {
-		err = errorWrapf(err,
-			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
-		return
+		err = errorx.Wrapf(err, CacheLayer, "GetLocalResourceTypePK",
+			"LocalResourceTypePKCache.Get systemID=`%s`, resourceTypeID=`%s` fail", systemID, resourceTypeID)
 	}
-
-	// 数据转换
-	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
-	for _, art := range detail.ResourceTypes {
-		arts = append(arts, types.ActionResourceType{
-			System: art.System,
-			Type:   art.ID,
-		})
-	}
-	return detail.PK, detail.AuthType, arts, nil
+	return
 }

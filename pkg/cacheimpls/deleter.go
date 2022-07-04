@@ -53,6 +53,8 @@ type resourceTypeCacheDeleter struct{}
 func (d resourceTypeCacheDeleter) Execute(key cache.Key) (err error) {
 	err = multierr.Combine(
 		ResourceTypeCache.Delete(key),
+		ResourceTypePKCache.Delete(key),
+		LocalResourceTypePKCache.Delete(key),
 	)
 	return
 }

@@ -8,36 +8,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package pip
+package cacheimpls
 
 import (
+	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
+	"iam/pkg/service"
 )
 
-// ActionPIP ...
-const ActionPIP = "ActionPIP"
+func retrieveResourceTypePK(key cache.Key) (pk interface{}, err error) {
+	k := key.(ResourceTypeCacheKey)
 
-// GetActionDetail ...
-func GetActionDetail(system, id string) (pk int64, authType int64, arts []types.ActionResourceType, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionPIP, "GetActionDetail")
+	svc := service.NewResourceTypeService()
+	return svc.GetPK(k.SystemID, k.ResourceTypeID)
+}
 
-	detail, err := cacheimpls.GetLocalActionDetail(system, id)
-	if err != nil {
-		err = errorWrapf(err,
-			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, id)
-		return
+// GetResourceTypePK ...
+func GetResourceTypePK(systemID string, resourceTypeID string) (resourceTypePK int64, err error) {
+	key := ResourceTypeCacheKey{
+		SystemID:       systemID,
+		ResourceTypeID: resourceTypeID,
 	}
 
-	// 数据转换
-	arts = make([]types.ActionResourceType, 0, len(detail.ResourceTypes))
-	for _, art := range detail.ResourceTypes {
-		arts = append(arts, types.ActionResourceType{
-			System: art.System,
-			Type:   art.ID,
-		})
-	}
-	return detail.PK, detail.AuthType, arts, nil
+	err = ResourceTypePKCache.GetInto(key, &resourceTypePK, retrieveResourceTypePK)
+	err = errorx.Wrapf(err, CacheLayer, "GetResourceTypePK",
+		"ResourceTypePKCache.Get key=`%s` fail", key.Key())
+	return
 }
