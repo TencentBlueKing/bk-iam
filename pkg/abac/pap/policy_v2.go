@@ -284,9 +284,15 @@ func (c *policyControllerV2) convertToResourceChangedContent(
 	resourceChangedContents = make([]svctypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
 	for _, rca := range resourceChangedActions {
 		// 根据ActionRelatedResourceTypePK对Action进行分组
-		relatedResourceTypePKToChangedActionMap := c.groupByActionRelatedResourceTypePK(
+		relatedResourceTypePKToChangedActionMap, err := c.groupByActionRelatedResourceTypePK(
 			rca.CreatedActionIDs, rca.DeletedActionIDs, &actionDetailMap,
 		)
+		if err != nil {
+			return nil, errorWrapf(
+				err, "groupByActionRelatedResourceTypePK rca=`%v` fail", rca,
+			)
+		}
+
 		// 组织最终数据
 		resourceTypePK := resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type]
 		for relatedResourceTypePK, ca := range relatedResourceTypePKToChangedActionMap {
@@ -308,31 +314,20 @@ func (c *policyControllerV2) queryResourceTypePK(
 ) (resourceTypePKMap map[string]int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "queryResourceTypePK")
 
-	// 1 按照系统分组出资源类型ID列表，用于后续DB查询
-	systemToResourceTypeIDs := map[string]*set.StringSet{}
-	for _, rca := range *resourceChangedActions {
-		if _, ok := systemToResourceTypeIDs[rca.Resource.System]; !ok {
-			systemToResourceTypeIDs[rca.Resource.System] = set.NewStringSet()
-		}
-		systemToResourceTypeIDs[rca.Resource.System].Add(rca.Resource.Type)
-	}
-
-	// 2 按照上一步分组出的system + resourceTypeIDs 查询对应 resourceTypePK
 	resourceTypePKMap = make(map[string]int64, len(*resourceChangedActions))
-	// Note: systemID 不能改为system，否则会与函数参数system混淆，这里是资源类型的System，而不是策略Action的System
-	for systemID, resourceTypeIDSet := range systemToResourceTypeIDs {
-		rts, err := c.resourceTypeService.ListThinByIDs(systemID, resourceTypeIDSet.ToSlice())
+	for _, rca := range *resourceChangedActions {
+		pk, err := cacheimpls.GetLocalResourceTypePK(rca.Resource.System, rca.Resource.Type)
 		if err != nil {
-			return resourceTypePKMap, errorWrapf(
+			return nil, errorWrapf(
 				err,
-				"resourceTypeService.ListThinByIDs system=`%s`, ids=`%v` fail", systemID, resourceTypeIDSet,
+				"cacheimpls.GetLocalResourceTypePK system=`%s` type=`%s` fail",
+				rca.Resource.System,
+				rca.Resource.Type,
 			)
 		}
-
-		for _, rt := range rts {
-			resourceTypePKMap[rt.System+":"+rt.ID] = rt.PK
-		}
+		resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type] = pk
 	}
+
 	return resourceTypePKMap, nil
 }
 
@@ -371,7 +366,7 @@ type changedAction struct {
 func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	createdActionIDs, deletedActionIDs []string,
 	actionDetailMap *map[string]svctypes.ActionDetail,
-) (relatedResourceTypePKToChangedActionMap map[int64]changedAction) {
+) (relatedResourceTypePKToChangedActionMap map[int64]changedAction, err error) {
 	// 记录每个relatedResourceTypePK对应的changedAction
 	changedActions := make([]changedAction, 0, len(createdActionIDs)+len(deletedActionIDs))
 	// Note: relateResourceTypePKToIndex用于记录其对应ChangedAction在changedActions数组里的位置
@@ -380,7 +375,12 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	for _, actionID := range createdActionIDs {
 		detail := (*actionDetailMap)[actionID]
 		// Note: 由于只能关联一个资源类型的操作才可配置RBAC权限，所以这里直接取第一个关联的资源类型
-		pk := detail.ResourceTypes[0].PK
+		// pk := detail.ResourceTypes[0].PK
+		pk, err := cacheimpls.GetLocalResourceTypePK(detail.ResourceTypes[0].System, detail.ResourceTypes[0].ID)
+		if err != nil {
+			return nil, err
+		}
+
 		if _, ok := relateResourceTypePKToIndex[pk]; !ok {
 			changedActions = append(changedActions, changedAction{
 				CreatedActionPKs: []int64{},
@@ -396,7 +396,11 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	for _, actionID := range deletedActionIDs {
 		detail := (*actionDetailMap)[actionID]
 		// Note: 由于只能关联一个资源类型的操作才可配置RBAC权限，所以这里直接取第一个关联的资源类型
-		pk := detail.ResourceTypes[0].PK
+		pk, err := cacheimpls.GetLocalResourceTypePK(detail.ResourceTypes[0].System, detail.ResourceTypes[0].ID)
+		if err != nil {
+			return nil, err
+		}
+
 		if _, ok := relateResourceTypePKToIndex[pk]; !ok {
 			changedActions = append(changedActions, changedAction{
 				CreatedActionPKs: []int64{},
@@ -414,5 +418,5 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 		relatedResourceTypePKToChangedActionMap[pk] = changedActions[idx]
 	}
 
-	return relatedResourceTypePKToChangedActionMap
+	return relatedResourceTypePKToChangedActionMap, nil
 }

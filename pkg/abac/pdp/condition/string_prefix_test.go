@@ -155,4 +155,46 @@ var _ = Describe("StringPrefix", func() {
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 	})
+
+	Describe("translateIamPath", func() {
+		It("prefix not /", func() {
+			path := standardizeIamPath("p1,p2/")
+			assert.Equal(GinkgoT(), "p1,p2/", path)
+		})
+
+		It("format not valid", func() {
+			path := standardizeIamPath("/p1/p2/")
+			assert.Equal(GinkgoT(), "/p1/p2/", path)
+		})
+
+		It("three parts", func() {
+			path := standardizeIamPath("/p1,p2,p3/p4,p5,p6/")
+			assert.Equal(GinkgoT(), "/p2,p3/p5,p6/", path)
+		})
+
+		It("two parts", func() {
+			path := standardizeIamPath("/p2,p3/p5,p6/")
+			assert.Equal(GinkgoT(), "/p2,p3/p5,p6/", path)
+		})
+
+		It("three parts without suffix", func() {
+			path := standardizeIamPath("/p1,p2,p3/p4,p5,p6")
+			assert.Equal(GinkgoT(), "/p2,p3/p5,p6", path)
+		})
+
+		It("two parts without suffix", func() {
+			path := standardizeIamPath("/p2,p3/p5,p6")
+			assert.Equal(GinkgoT(), "/p2,p3/p5,p6", path)
+		})
+
+		It("empty", func() {
+			path := standardizeIamPath("/")
+			assert.Equal(GinkgoT(), "/", path)
+		})
+
+		It("empty 2", func() {
+			path := standardizeIamPath("/abc")
+			assert.Equal(GinkgoT(), "/abc", path)
+		})
+	})
 })

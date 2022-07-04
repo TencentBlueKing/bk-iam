@@ -20,12 +20,6 @@ type ThinResourceType struct {
 type ThinActionResourceType struct {
 	System string
 	ID     string
-
-	// resource_type pk
-	PK int64
-
-	// 代表所有实例视图涉及到的资源类型
-	ResourceTypeOfInstanceSelections []ThinResourceType
 }
 
 // ActionDetail 用于复合缓存
