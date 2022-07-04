@@ -47,9 +47,9 @@ func (s *groupService) AlterGroupAuthType(
 		// 用户组auth type变更为none, 则删除用户组成员与系统的关联
 		if count == 1 {
 			// 查询用户组所有的成员并删除subject system group
-			members, err := s.manager.ListMember(groupPK)
+			members, err := s.manager.ListGroupMember(groupPK)
 			if err != nil {
-				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
 			for _, member := range members {
@@ -75,20 +75,20 @@ func (s *groupService) AlterGroupAuthType(
 
 		if created {
 			// 查询用户组所有的成员并添加subject system group
-			members, err := s.manager.ListMember(groupPK)
+			members, err := s.manager.ListGroupMember(groupPK)
 			if err != nil {
-				return false, errorWrapf(err, "manager.ListMember groupPK=`%d` fail", groupPK)
+				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
 			nowTS := time.Now().Unix()
 			for _, member := range members {
 				// NOTE: subject system group表中只需要保持未过期的记录
-				if member.PolicyExpiredAt < nowTS {
+				if member.ExpiredAt < nowTS {
 					continue
 				}
 
 				err := s.addOrUpdateSubjectSystemGroup(
-					tx, member.SubjectPK, systemID, groupPK, member.PolicyExpiredAt,
+					tx, member.SubjectPK, systemID, groupPK, member.ExpiredAt,
 				)
 				if err != nil {
 					return false, errorWrapf(
@@ -188,9 +188,9 @@ func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	return systems, nil
 }
 
-// ListGroupAuthByGroupPKs 查询groups的授权类型
+// ListGroupAuthBySystemGroupPKs 查询groups的授权类型
 func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthByGroupPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthBySystemGroupPKs")
 
 	groupAuthTypes := make([]types.GroupAuthType, 0, len(groupPKs))
 	// 分段查询, 避免SQL参数过多

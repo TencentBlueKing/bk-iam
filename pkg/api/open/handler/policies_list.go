@@ -78,8 +78,8 @@ func PolicyList(c *gin.Context) {
 	policyService := service.NewPolicyService()
 	count, err := policyService.GetCountByActionBeforeExpiredAt(actionPK, query.Timestamp)
 	if err != nil {
-		err = fmt.Errorf("getCountByAction actionPK=`%s`, timestamp=`%d` fail. err=%w",
-			actionID, query.Timestamp, err)
+		err = fmt.Errorf("getCountByAction actionID=`%s`, actionPK=`%d`, timestamp=`%d` fail. err=%w",
+			actionID, actionPK, query.Timestamp, err)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
@@ -91,8 +91,14 @@ func PolicyList(c *gin.Context) {
 		policies, err := policyService.ListPagingQueryByActionBeforeExpiredAt(actionPK, query.Timestamp, offset, limit)
 		if err != nil {
 			err = fmt.Errorf(
-				"listPoliciesByAction actionPK=`%s`, timestamp=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
-				actionID, query.Timestamp, offset, limit, err)
+				"listPoliciesByAction actionID=`%s`, actionPK=`%d`, timestamp=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
+				actionID,
+				actionPK,
+				query.Timestamp,
+				offset,
+				limit,
+				err,
+			)
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}

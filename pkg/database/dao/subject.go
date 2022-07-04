@@ -36,11 +36,9 @@ type SubjectManager interface {
 	GetPK(_type, id string) (int64, error)
 	ListByIDs(_type string, ids []string) ([]Subject, error)
 	ListPaging(_type string, limit, offset int64) ([]Subject, error)
-	ListByPKs(pks []int64) ([]Subject, error)
 	GetCount(_type string) (int64, error)
 
 	BulkCreate(subjects []Subject) error
-	// Delete(subject Subject) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
 	BulkUpdate(subjects []Subject) error
 }
@@ -81,18 +79,6 @@ func (m *subjectManager) ListByIDs(_type string, ids []string) (subjects []Subje
 	return
 }
 
-// ListByPKs ...
-func (m *subjectManager) ListByPKs(pks []int64) (subjects []Subject, err error) {
-	if len(pks) == 0 {
-		return
-	}
-	err = m.selectSubjectsByPKs(&subjects, pks)
-	if errors.Is(err, sql.ErrNoRows) {
-		return subjects, nil
-	}
-	return
-}
-
 // ListPaging ...
 func (m *subjectManager) ListPaging(_type string, limit, offset int64) (subjects []Subject, err error) {
 	err = m.selectPagingSubjects(&subjects, _type, limit, offset)
@@ -116,10 +102,6 @@ func (m *subjectManager) BulkCreate(subjects []Subject) error {
 	}
 	return m.bulkInsert(subjects)
 }
-
-// func (m *subjectManager) Delete(subject Subject) error {
-//	return m.delete(subject)
-// }
 
 // BulkDeleteByPKsWithTx ...
 func (m *subjectManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
@@ -169,17 +151,6 @@ func (m *subjectManager) selectSubjectsByIDs(subjects *[]Subject, _type string, 
 		WHERE type=?
 		AND id IN (?)`
 	return database.SqlxSelect(m.DB, subjects, query, _type, ids)
-}
-
-func (m *subjectManager) selectSubjectsByPKs(subjects *[]Subject, pks []int64) error {
-	query := `SELECT
-		pk,
-		type,
-		id,
-		name
-		FROM subject
-		WHERE pk IN (?)`
-	return database.SqlxSelect(m.DB, subjects, query, pks)
 }
 
 func (m *subjectManager) selectPagingSubjects(subjects *[]Subject, _type string, limit, offset int64) error {

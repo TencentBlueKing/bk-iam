@@ -15,7 +15,7 @@ import (
 
 	"iam/pkg/database"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
@@ -63,18 +63,6 @@ func Test_subjectManager_ListPaging(t *testing.T) {
 	})
 }
 
-//func Test_subjectManager_Delete(t *testing.T) {
-//	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-//		mockQuery := `^DELETE FROM subject`
-//		mock.ExpectExec(mockQuery).WithArgs("type", "id").WillReturnResult(sqlmock.NewResult(1, 1))
-//
-//		manager := &subjectManager{DB: db}
-//		err := manager.Delete(Subject{Type: "type", ID: "id", Name: "name"})
-//
-//		assert.NoError(t, err, "query from db fail.")
-//	})
-//}
-
 func Test_subjectManager_BulkCreate(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^INSERT INTO subject`
@@ -84,35 +72,6 @@ func Test_subjectManager_BulkCreate(t *testing.T) {
 		err := manager.BulkCreate([]Subject{{Type: "type", ID: "id", Name: "name"}})
 
 		assert.NoError(t, err, "query from db fail.")
-	})
-}
-
-func Test_subjectManager_ListByPKs(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockData := []interface{}{
-			Subject{
-				PK:   1,
-				Type: "group",
-				ID:   "1",
-				Name: "group1",
-			},
-			Subject{
-				PK:   3,
-				Type: "group",
-				ID:   "3",
-				Name: "group3",
-			},
-		}
-
-		mockQuery := `^SELECT pk, type, id, name FROM subject WHERE pk IN`
-		mockRows := database.NewMockRows(mock, mockData...)
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
-
-		manager := &subjectManager{DB: db}
-		subject, err := manager.ListByPKs([]int64{1, 2})
-
-		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, len(subject), 2)
 	})
 }
 

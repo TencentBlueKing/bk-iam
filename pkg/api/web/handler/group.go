@@ -11,6 +11,8 @@
 package handler
 
 import (
+	"strings"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
@@ -33,17 +35,17 @@ func ListGroupMember(c *gin.Context) {
 	subject.Default()
 
 	ctl := pap.NewGroupController()
-	count, err := ctl.GetMemberCount(subject.Type, subject.ID)
+	count, err := ctl.GetGroupMemberCount(subject.Type, subject.ID)
 	if err != nil {
 		err = errorWrapf(err, "type=`%s`, id=`%s`", subject.Type, subject.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	relations, err := ctl.ListPagingMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
+	relations, err := ctl.ListPagingGroupMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListPagingMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
+			err, "ctl.ListPagingGroupMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",
 			subject.Type, subject.ID, subject.Limit, subject.Offset,
 		)
 		util.SystemErrorJSONResponse(c, err)
@@ -106,6 +108,38 @@ func ListSubjectGroups(c *gin.Context) {
 	})
 }
 
+func CheckSubjectGroupsBelong(c *gin.Context) {
+	var query checkSubjectGroupsBelongSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	// input: subject.type= & subject.id= & group_ids=1,2,3,4
+	// output: 个人组 + 个人-部门-组 列表中, 是否包含了这批 group_ids
+	// 条件: 有效的, 即未过期的
+	groupIDs := strings.Split(query.GroupIDs, ",")
+	if len(groupIDs) > 100 {
+		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
+		return
+	}
+
+	ctl := pap.NewGroupController()
+	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, query.Inherit, groupIDs)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.CheckSubjectEffectGroups type=`%s`, id=`%s` fail",
+			query.Type,
+			query.ID,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", groupIDBelong)
+}
+
 // BatchUpdateGroupMembersExpiredAt subject关系续期
 func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	var body groupMemberExpiredAtSerializer
@@ -124,9 +158,9 @@ func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
 		papSubjects = append(papSubjects, pap.GroupMember{
-			Type:            m.Type,
-			ID:              m.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+			Type:      m.Type,
+			ID:        m.ID,
+			ExpiredAt: m.PolicyExpiredAt,
 		})
 	}
 
@@ -186,9 +220,9 @@ func BatchAddGroupMembers(c *gin.Context) {
 	papSubjects := make([]pap.GroupMember, 0, len(body.Members))
 	for _, m := range body.Members {
 		papSubjects = append(papSubjects, pap.GroupMember{
-			Type:            m.Type,
-			ID:              m.ID,
-			PolicyExpiredAt: body.PolicyExpiredAt,
+			Type:      m.Type,
+			ID:        m.ID,
+			ExpiredAt: body.PolicyExpiredAt,
 		})
 	}
 
@@ -223,22 +257,22 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 	body.Default()
 
 	ctl := pap.NewGroupController()
-	count, err := ctl.GetMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
+	count, err := ctl.GetGroupMemberCountBeforeExpiredAt(body.Type, body.ID, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.GetMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.GetGroupMemberCountBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	relations, err := ctl.ListPagingMemberBeforeExpiredAt(
+	members, err := ctl.ListPagingGroupMemberBeforeExpiredAt(
 		body.Type, body.ID, body.BeforeExpiredAt, body.Limit, body.Offset,
 	)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListPagingMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
+			err, "ctl.ListPagingGroupMemberBeforeExpiredAt type=`%s`, id=`%s`, beforeExpiredAt=`%d`",
 			body.Type, body.ID, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
@@ -247,13 +281,13 @@ func ListGroupMemberBeforeExpiredAt(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", gin.H{
 		"count":   count,
-		"results": relations,
+		"results": members,
 	})
 }
 
-// ListExistSubjectsBeforeExpiredAt 筛选出有成员过期的subjects
-func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "FilterSubjectsBeforeExpiredAt")
+// ListExistGroupsHasMemberBeforeExpiredAt 筛选出有成员过期的用户组
+func ListExistGroupsHasMemberBeforeExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListExistGroupsHasMemberBeforeExpiredAt")
 
 	var body filterSubjectsBeforeExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -269,15 +303,15 @@ func ListExistSubjectsBeforeExpiredAt(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Subjects)
 
 	ctl := pap.NewGroupController()
-	existSubjects, err := ctl.ListExistSubjectsBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
+	existGroups, err := ctl.FilterGroupsHasMemberBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.ListExistSubjectsBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
+			err, "ctl.FilterGroupsHasMemberBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
 			papSubjects, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	util.SuccessJSONResponse(c, "ok", existSubjects)
+	util.SuccessJSONResponse(c, "ok", existGroups)
 }

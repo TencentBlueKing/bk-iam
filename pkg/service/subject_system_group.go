@@ -110,7 +110,7 @@ func (l *groupService) addOrUpdateSubjectSystemGroup(
 	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, true, addOrUpdateFunc)
 		if err == nil {
-			return
+			return nil
 		}
 
 		if errors.Is(err, ErrNeedRetry) {
@@ -151,7 +151,7 @@ func (l *groupService) removeSubjectSystemGroup(
 	for i := 0; i < RetryCount; i++ {
 		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, false, removeFunc)
 		if err == nil {
-			return
+			return nil
 		}
 
 		if errors.Is(err, ErrNeedRetry) {
@@ -160,7 +160,7 @@ func (l *groupService) removeSubjectSystemGroup(
 
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
 			// 数据不存在时记录日志
-			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, parentPK=`%d`",
+			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, groupPK=`%d`",
 				systemID, subjectPK, groupPK)
 			return nil
 		}
@@ -223,15 +223,15 @@ func updateGroupsString(
 // ListEffectThinSubjectGroups 批量获取 subject 有效的 groups(未过期的)
 func (l *groupService) ListEffectThinSubjectGroups(
 	systemID string,
-	pks []int64,
+	subjectPKs []int64,
 ) (subjectGroups map[int64][]types.ThinSubjectGroup, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")
 
-	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(pks))
+	subjectGroups = make(map[int64][]types.ThinSubjectGroup, len(subjectPKs))
 
-	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, pks)
+	relations, err := l.subjectSystemGroupManager.ListSubjectGroups(systemID, subjectPKs)
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "manager.ListRelationByPKs pks=`%+v` fail", pks)
+		return subjectGroups, errorWrapf(err, "manager.ListSubjectGroups subjectPKs=`%+v` fail", subjectPKs)
 	}
 
 	// 筛选未过期的用户组
@@ -248,7 +248,7 @@ func (l *groupService) ListEffectThinSubjectGroups(
 		}
 
 		for _, group := range thinSubjectGroup {
-			if group.PolicyExpiredAt > now {
+			if group.ExpiredAt > now {
 				subjectGroups[subjectPK] = append(subjectGroups[subjectPK], group)
 			}
 		}
@@ -270,8 +270,8 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 
 	for groupPK, expiredAt := range groupExpiredAtMap {
 		thinSubjectGroup = append(thinSubjectGroup, types.ThinSubjectGroup{
-			GroupPK:         groupPK,
-			PolicyExpiredAt: expiredAt,
+			GroupPK:   groupPK,
+			ExpiredAt: expiredAt,
 		})
 	}
 

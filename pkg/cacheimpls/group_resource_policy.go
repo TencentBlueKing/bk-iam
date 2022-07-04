@@ -26,6 +26,10 @@ import (
 const RandExpireSeconds = 60
 
 // GetResourceActionAuthorizedGroupPKs 使用操作与资源信息拿rbac授权的用户组
+// Get Resource Action Authorized Group PKs from redis Hash
+// Key: system_id:action_resource_type_pk:resource_type_pk:resource_id
+// Hash Field: action_pk
+// Hash Value: group_pks []int64
 func GetResourceActionAuthorizedGroupPKs(
 	systemID string,
 	actionPK, actionResourceTypePK, resourceTypePK int64,
@@ -126,7 +130,7 @@ func getResourceActionAuthorizedGroupPKsFromCache(key cache.Key, actionPK int64)
 	return groupPKs, nil
 }
 
-// DeleteResourceAuthorizedGroupPKs 删除资源授权的group pks缓存
+// DeleteResourceAuthorizedGroupPKsCache 删除资源授权的group pks缓存
 func DeleteResourceAuthorizedGroupPKsCache(
 	systemID string,
 	actionResourceTypePK, resourceTypePK int64,

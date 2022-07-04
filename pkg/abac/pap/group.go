@@ -14,7 +14,9 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -30,12 +32,13 @@ const GroupCTL = "GroupCTL"
 type GroupController interface {
 	GetSubjectGroupCountBeforeExpireAt(_type, id string, beforeExpiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
-	ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
-	GetMemberCount(_type, id string) (int64, error)
-	ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error)
-	GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
-	ListPagingMemberBeforeExpiredAt(
+	GetGroupMemberCount(_type, id string) (int64, error)
+	ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error)
+	GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
+	ListPagingGroupMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
 	) ([]GroupMember, error)
 
@@ -81,25 +84,25 @@ func (c *groupController) GetSubjectGroupCountBeforeExpireAt(
 	return count, nil
 }
 
-func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListExistSubjectsBeforeExpiredAt")
+func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "FilterGroupsHasMemberBeforeExpiredAt")
 
 	svcSubjects := convertToServiceSubjects(subjects)
-	subjectPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
+	groupPKs, err := c.subjectService.ListPKsBySubjects(svcSubjects)
 	if err != nil {
 		return nil, errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	existSubjectPKs, err := c.service.ListExistSubjectsBeforeExpiredAt(subjectPKs, expiredAt)
+	existGroupPKs, err := c.service.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListExistSubjectsBeforeExpiredAt subjectPKs=`%+v`, expiredAt=`%d` fail",
-			subjectPKs, expiredAt,
+			err, "service.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
+			groupPKs, expiredAt,
 		)
 	}
 
-	existSubjects := make([]Subject, 0, len(existSubjectPKs))
-	for _, pk := range existSubjectPKs {
+	existGroups := make([]Subject, 0, len(existGroupPKs))
+	for _, pk := range existGroupPKs {
 		subject, err := cacheimpls.GetSubjectByPK(pk)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -109,22 +112,99 @@ func (c *groupController) ListExistSubjectsBeforeExpiredAt(subjects []Subject, e
 			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
 		}
 
-		existSubjects = append(existSubjects, Subject{
+		existGroups = append(existGroups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
 			Name: subject.Name,
 		})
 	}
 
-	return existSubjects, nil
+	return existGroups, nil
 }
 
-// ListSubjectGroups ...
+func (c *groupController) CheckSubjectEffectGroups(
+	_type, id string,
+	inherit bool,
+	groupIDs []string,
+) (map[string]bool, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
+
+	// subject Type+ID to PK
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	subjectPKs := []int64{subjectPK}
+	if inherit && _type == types.UserType {
+		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
+		if err != nil {
+			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
+		}
+
+		subjectPKs = append(subjectPKs, departmentPKs...)
+	}
+
+	groupIDToGroupPK := make(map[string]int64, len(groupIDs))
+	groupPKs := make([]int64, 0, len(groupIDs))
+	for _, groupID := range groupIDs {
+		// if groupID is empty, skip
+		if groupID == "" {
+			continue
+		}
+
+		// get the groupPK via groupID
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
+				continue
+			}
+
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
+				types.GroupType,
+				groupID,
+			)
+		}
+
+		groupPKs = append(groupPKs, groupPK)
+		groupIDToGroupPK[groupID] = groupPK
+	}
+
+	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
+	effectGroupPKs, err := c.service.FilterExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"service.FilterExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
+			subjectPKs,
+			groupPKs,
+		)
+	}
+	existGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
+
+	// the result
+	groupIDBelong := make(map[string]bool, len(groupIDs))
+	for _, groupID := range groupIDs {
+		groupPK, ok := groupIDToGroupPK[groupID]
+		if !ok {
+			groupIDBelong[groupID] = false
+			continue
+		}
+		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
+	}
+
+	return groupIDBelong, nil
+}
+
+// ListPagingSubjectGroups ...
 func (c *groupController) ListPagingSubjectGroups(
 	_type, id string,
 	beforeExpiredAt, limit, offset int64,
 ) ([]SubjectGroup, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListSubjectGroups")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingSubjectGroups")
 	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
@@ -146,34 +226,34 @@ func (c *groupController) ListPagingSubjectGroups(
 	return groups, nil
 }
 
-// GetMemberCount ...
-func (c *groupController) GetMemberCount(_type, id string) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetMemberCount")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+// GetGroupMemberCount ...
+func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCount")
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	count, err := c.service.GetMemberCount(parentPK)
+	count, err := c.service.GetGroupMemberCount(groupPK)
 	if err != nil {
-		return 0, errorWrapf(err, "service.GetMemberCount parentPK=`%s`", parentPK)
+		return 0, errorWrapf(err, "service.GetGroupMemberCount groupPK=`%d`", groupPK)
 	}
 
 	return count, nil
 }
 
-func (c *groupController) ListPagingMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMember")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMember")
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcMembers, err := c.service.ListPagingMember(parentPK, limit, offset)
+	svcMembers, err := c.service.ListPagingGroupMember(groupPK, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListPagingMember parentPK=`%d`, limit=`%d`, offset=`%d` fail",
-			parentPK, limit, offset,
+			err, "service.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d` fail",
+			groupPK, limit, offset,
 		)
 	}
 
@@ -185,40 +265,44 @@ func (c *groupController) ListPagingMember(_type, id string, limit, offset int64
 	return members, nil
 }
 
-// GetMemberCountBeforeExpiredAt ...
-func (c *groupController) GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetMemberCountBeforeExpiredAt")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+// GetGroupMemberCountBeforeExpiredAt ...
+func (c *groupController) GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCountBeforeExpiredAt")
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	count, err := c.service.GetMemberCountBeforeExpiredAt(parentPK, expiredAt)
+	count, err := c.service.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
 	if err != nil {
 		return 0, errorWrapf(
-			err, "service.GetMemberCountBeforeExpiredAt parentPK=`%s`, expiredAt=`%d`",
-			parentPK, expiredAt,
+			err, "service.GetGroupMemberCountBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`",
+			groupPK, expiredAt,
 		)
 	}
 
 	return count, nil
 }
 
-// ListPagingMemberBeforeExpiredAt ...
-func (c *groupController) ListPagingMemberBeforeExpiredAt(
+// ListPagingGroupMemberBeforeExpiredAt ...
+func (c *groupController) ListPagingGroupMemberBeforeExpiredAt(
 	_type, id string, expiredAt int64, limit, offset int64,
 ) ([]GroupMember, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingMemberBeforeExpiredAt")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMemberBeforeExpiredAt")
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcMembers, err := c.service.ListPagingMemberBeforeExpiredAt(parentPK, expiredAt, limit, offset)
+	svcMembers, err := c.service.ListPagingGroupMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListPagingMemberBeforeExpiredAt parentPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
-			parentPK, expiredAt, limit, offset,
+			err,
+			"service.ListPagingGroupMemberBeforeExpiredAt groupPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			groupPK,
+			expiredAt,
+			limit,
+			offset,
 		)
 	}
 
@@ -244,14 +328,14 @@ func (c *groupController) alterGroupMembers(
 	createIfNotExists bool,
 ) (typeCount map[string]int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "alterGroupMembers")
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	relations, err := c.service.ListMember(parentPK)
+	relations, err := c.service.ListGroupMember(groupPK)
 	if err != nil {
-		err = errorWrapf(err, "service.ListMember type=`%s` id=`%s`", _type, id)
+		err = errorWrapf(err, "service.ListGroupMember type=`%s` id=`%s`", _type, id)
 		return
 	}
 
@@ -262,10 +346,10 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 获取实际需要添加的member
-	createMembers := make([]types.SubjectRelation, 0, len(members))
+	createMembers := make([]types.SubjectRelationForCreate, 0, len(members))
 
 	// 需要更新过期时间的member
-	updateMembers := make([]types.SubjectRelationPKPolicyExpiredAt, 0, len(members))
+	updateMembers := make([]types.SubjectRelationForUpdate, 0, len(members))
 
 	// 用于清理缓存
 	subjectPKs := make([]int64, 0, len(members))
@@ -284,11 +368,11 @@ func (c *groupController) alterGroupMembers(
 		// member已存在则不再添加
 		if oldMember, ok := memberMap[subjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
-			if m.PolicyExpiredAt > oldMember.PolicyExpiredAt {
-				updateMembers = append(updateMembers, types.SubjectRelationPKPolicyExpiredAt{
-					PK:              oldMember.PK,
-					SubjectPK:       subjectPK,
-					PolicyExpiredAt: m.PolicyExpiredAt,
+			if m.ExpiredAt > oldMember.ExpiredAt {
+				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
+					PK:        oldMember.PK,
+					SubjectPK: subjectPK,
+					ExpiredAt: m.ExpiredAt,
 				})
 
 				subjectPKs = append(subjectPKs, subjectPK)
@@ -297,10 +381,10 @@ func (c *groupController) alterGroupMembers(
 		}
 
 		if createIfNotExists {
-			createMembers = append(createMembers, types.SubjectRelation{
-				SubjectPK:       subjectPK,
-				ParentPK:        parentPK,
-				PolicyExpiredAt: m.PolicyExpiredAt,
+			createMembers = append(createMembers, types.SubjectRelationForCreate{
+				SubjectPK: subjectPK,
+				GroupPK:   groupPK,
+				ExpiredAt: m.ExpiredAt,
 			})
 			typeCount[m.Type]++
 			subjectPKs = append(subjectPKs, subjectPK)
@@ -317,9 +401,9 @@ func (c *groupController) alterGroupMembers(
 
 	if len(updateMembers) != 0 {
 		// 更新成员过期时间
-		err = c.service.UpdateMembersExpiredAtWithTx(tx, parentPK, updateMembers)
+		err = c.service.UpdateGroupMembersExpiredAtWithTx(tx, groupPK, updateMembers)
 		if err != nil {
-			err = errorWrapf(err, "service.UpdateMembersExpiredAtWithTx members=`%+v`", updateMembers)
+			err = errorWrapf(err, "service.UpdateGroupMembersExpiredAtWithTx members=`%+v`", updateMembers)
 			return
 		}
 	}
@@ -327,7 +411,7 @@ func (c *groupController) alterGroupMembers(
 	// 无成员可添加，直接返回
 	if createIfNotExists && len(createMembers) != 0 {
 		// 添加成员
-		err = c.service.BulkCreateGroupMembersWithTx(tx, parentPK, createMembers)
+		err = c.service.BulkCreateGroupMembersWithTx(tx, groupPK, createMembers)
 		if err != nil {
 			err = errorWrapf(err, "service.BulkCreateGroupMembersWithTx relations=`%+v`", createMembers)
 			return nil, err
@@ -341,10 +425,10 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 清理缓存
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// 清理subject system group 缓存
-	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
+	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
 
 	return typeCount, nil
 }
@@ -377,16 +461,16 @@ func (c *groupController) DeleteGroupMembers(
 		}
 	}
 
-	parentPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	typeCount, err = c.service.BulkDeleteGroupMembers(parentPK, userPKs, departmentPKs)
+	typeCount, err = c.service.BulkDeleteGroupMembers(groupPK, userPKs, departmentPKs)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.BulkDeleteGroupMembers parenPK=`%s`, userPKs=`%+v`, departmentPKs=`%+v` failed",
-			parentPK, userPKs, departmentPKs,
+			err, "service.BulkDeleteGroupMembers groupPK=`%d`, userPKs=`%+v`, departmentPKs=`%+v` failed",
+			groupPK, userPKs, departmentPKs,
 		)
 	}
 
@@ -395,10 +479,10 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
-	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, parentPK)
+	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
 
 	return typeCount, nil
 }
@@ -406,7 +490,7 @@ func (c *groupController) DeleteGroupMembers(
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
 	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
 	for _, m := range svcSubjectGroups {
-		subject, err := cacheimpls.GetSubjectByPK(m.ParentPK)
+		subject, err := cacheimpls.GetSubjectByPK(m.GroupPK)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				continue
@@ -416,11 +500,11 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 		}
 
 		groups = append(groups, SubjectGroup{
-			PK:              m.PK,
-			Type:            subject.Type,
-			ID:              subject.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
-			CreateAt:        m.CreateAt,
+			PK:        m.PK,
+			Type:      subject.Type,
+			ID:        subject.ID,
+			ExpiredAt: m.ExpiredAt,
+			CreateAt:  m.CreateAt,
 		})
 	}
 
@@ -440,11 +524,11 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 		}
 
 		members = append(members, GroupMember{
-			PK:              m.PK,
-			Type:            subject.Type,
-			ID:              subject.ID,
-			PolicyExpiredAt: m.PolicyExpiredAt,
-			CreateAt:        m.CreateAt,
+			PK:        m.PK,
+			Type:      subject.Type,
+			ID:        subject.ID,
+			ExpiredAt: m.ExpiredAt,
+			CreateAt:  m.CreateAt,
 		})
 	}
 

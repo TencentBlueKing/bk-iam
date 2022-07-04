@@ -532,14 +532,7 @@ func (s *policyService) Get(pk int64) (daoPolicy types.QueryPolicy, err error) {
 
 // GetCountByActionBeforeExpiredAt ...
 func (s *policyService) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
-
-	count, err := s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
-	if err != nil {
-		err = errorWrapf(err, "manager.GetCountByAction actionPK=`%d`, expiredAt=`%d`", actionPK, expiredAt)
-		return -1, err
-	}
-	return count, nil
+	return s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 }
 
 // ListPagingQueryByActionBeforeExpiredAt ...
@@ -594,14 +587,7 @@ func convertPoliciesToQueryPolicies(policies []dao.Policy) []types.QueryPolicy {
 
 // HasAnyByActionPK ...
 func (s *policyService) HasAnyByActionPK(actionPK int64) (bool, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "HasAnyByActionPK")
-
-	exist, err := s.manager.HasAnyByActionPK(actionPK)
-	if err != nil {
-		err = errorWrapf(err, "manager.HasAnyByActionPK actionPK=`%d` fail", actionPK)
-		return false, err
-	}
-	return exist, nil
+	return s.manager.HasAnyByActionPK(actionPK)
 }
 
 // generateSignatureExpressionPKMap generate signature expressionPK map if expression does not exist create it
@@ -862,13 +848,7 @@ func (s *policyService) UpdateTemplatePoliciesWithTx(
 
 // DeleteTemplatePolicies delete subject template policies
 func (s *policyService) DeleteTemplatePolicies(subjectPK int64, templateID int64) error {
-	err := s.manager.BulkDeleteBySubjectTemplate(subjectPK, templateID)
-	if err != nil {
-		return errorx.Wrapf(err, PolicySVC, "DeleteTemplatePolicies",
-			"manager.BulkDeleteBySubjectTemplate subjectPK=`%d`, templateID=`%d` fail",
-			subjectPK, templateID)
-	}
-	return nil
+	return s.manager.BulkDeleteBySubjectTemplate(subjectPK, templateID)
 }
 
 // DeleteByActionPK ...
@@ -902,7 +882,7 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 	return err
 }
 
-// DeleteUnquotedExpressions 删除未被引用的expression
+// DeleteUnreferencedExpressions 删除未被引用的expression
 func (s *policyService) DeleteUnreferencedExpressions() error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
@@ -933,7 +913,7 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 	return nil
 }
 
-// BulkDeleteBySubjectPKs ...
+// BulkDeleteBySubjectPKsWithTx ...
 func (s *policyService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "BulkDeleteBySubjectPKs")
 

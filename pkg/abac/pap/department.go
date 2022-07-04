@@ -123,7 +123,7 @@ func (c *departmentController) BulkUpdate(subjectDepartments []SubjectDepartment
 	}
 
 	// delete from cache
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectDepartmentCache(subjectPKs)
 
 	return nil
 }
@@ -150,7 +150,7 @@ func (c *departmentController) BulkDelete(subjectIDs []string) error {
 	}
 
 	// delete from cache
-	cacheimpls.BatchDeleteSubjectCache(subjectPKs)
+	cacheimpls.BatchDeleteSubjectDepartmentCache(subjectPKs)
 
 	return nil
 }
