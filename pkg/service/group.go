@@ -30,26 +30,26 @@ const GroupSVC = "GroupSVC"
 // GroupService ...
 type GroupService interface {
 	// 鉴权
-	ListEffectThinSubjectGroups(systemID string, pks []int64) (map[int64][]types.ThinSubjectGroup, error)
+	ListEffectThinSubjectGroups(systemID string, subjectPKs []int64) (map[int64][]types.ThinSubjectGroup, error)
 
 	// web api
 	ListSubjectGroups(subjectPK, beforeExpiredAt int64) ([]types.SubjectGroup, error)
-	ListExistSubjectsBeforeExpiredAt(parentPKs []int64, expiredAt int64) ([]int64, error)
-	ListExistEffectSubjectGroupPKs(subjectPKs []int64, parentPKs []int64) ([]int64, error)
+	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	FilterExistEffectSubjectGroupPKs(subjectPKs []int64, groupPKs []int64) ([]int64, error)
 
-	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 
-	GetMemberCount(parentPK int64) (int64, error)
-	GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt int64) (int64, error)
-	ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error)
-	ListPagingMemberBeforeExpiredAt(
-		parentPK int64, expiredAt int64, limit, offset int64,
+	GetGroupMemberCount(groupPK int64) (int64, error)
+	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
+	ListPagingGroupMember(groupPK, limit, offset int64) ([]types.GroupMember, error)
+	ListPagingGroupMemberBeforeExpiredAt(
+		groupPK int64, expiredAt int64, limit, offset int64,
 	) ([]types.GroupMember, error)
-	ListMember(parentPK int64) ([]types.GroupMember, error)
+	ListGroupMember(groupPK int64) ([]types.GroupMember, error)
 
-	UpdateMembersExpiredAtWithTx(tx *sqlx.Tx, parentPK int64, members []types.SubjectRelationPKPolicyExpiredAt) error
-	BulkDeleteGroupMembers(parentPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
-	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, parentPK int64, relations []types.SubjectRelation) error
+	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error
+	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
+	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error
 
 	// auth type
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
@@ -57,11 +57,11 @@ type GroupService interface {
 	AlterGroupAuthType(tx *sqlx.Tx, systemID string, groupPK int64, authType int64) (changed bool, err error)
 
 	// open api
-	ListEffectThinSubjectGroupsBySubjectPKs(pks []int64) ([]types.ThinSubjectGroup, error)
+	ListEffectThinSubjectGroupsBySubjectPKs(subjectPKs []int64) ([]types.ThinSubjectGroup, error)
 }
 
 type groupService struct {
-	manager                   dao.SubjectRelationManager
+	manager                   dao.SubjectGroupManager
 	authTypeManger            dao.GroupSystemAuthTypeManager
 	subjectSystemGroupManager dao.SubjectSystemGroupManager
 }
@@ -69,7 +69,7 @@ type groupService struct {
 // NewGroupService GroupService工厂
 func NewGroupService() GroupService {
 	return &groupService{
-		manager:                   dao.NewSubjectRelationManager(),
+		manager:                   dao.NewSubjectGroupManager(),
 		authTypeManger:            dao.NewGroupSystemAuthTypeManager(),
 		subjectSystemGroupManager: dao.NewSubjectSystemGroupManager(),
 	}
@@ -79,34 +79,41 @@ func NewGroupService() GroupService {
 
 func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 	return types.SubjectGroup{
-		PK:              relation.PK,
-		ParentPK:        relation.ParentPK,
-		PolicyExpiredAt: relation.PolicyExpiredAt,
-		CreateAt:        relation.CreateAt,
+		PK:        relation.PK,
+		GroupPK:   relation.GroupPK,
+		ExpiredAt: relation.ExpiredAt,
+		CreateAt:  relation.CreateAt,
 	}
 }
 
-func convertRelationToThinSubjectGroup(effectRelation dao.EffectSubjectRelation) types.ThinSubjectGroup {
+func convertThinRelationToThinSubjectGroup(thinRelation dao.ThinSubjectRelation) types.ThinSubjectGroup {
 	return types.ThinSubjectGroup{
-		GroupPK:         effectRelation.ParentPK,
-		PolicyExpiredAt: effectRelation.PolicyExpiredAt,
+		GroupPK:   thinRelation.GroupPK,
+		ExpiredAt: thinRelation.ExpiredAt,
 	}
 }
 
 // ListEffectThinSubjectGroupsBySubjectPKs 批量获取 subject 有效的 groups(未过期的)
 func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKs(
-	pks []int64,
+	subjectPKs []int64,
 ) (subjectGroups []types.ThinSubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroups")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroupsBySubjectPKs")
 
-	relations, err := l.manager.ListEffectRelationBySubjectPKs(pks)
+	// 过期时间必须大于当前时间
+	now := time.Now().Unix()
+
+	relations, err := l.manager.ListThinRelationAfterExpiredAtBySubjectPKs(subjectPKs, now)
 	if err != nil {
-		return subjectGroups, errorWrapf(err, "manager.ListEffectRelationBySubjectPKs pks=`%+v` fail", pks)
+		return subjectGroups, errorWrapf(
+			err,
+			"manager.ListThinRelationAfterExpiredAtBySubjectPKs subjectPKs=`%+v` fail",
+			subjectPKs,
+		)
 	}
 
 	subjectGroups = make([]types.ThinSubjectGroup, 0, len(relations))
 	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertRelationToThinSubjectGroup(r))
+		subjectGroups = append(subjectGroups, convertThinRelationToThinSubjectGroup(r))
 	}
 	return subjectGroups, nil
 }
@@ -133,44 +140,31 @@ func (l *groupService) ListSubjectGroups(
 	return subjectGroups, err
 }
 
-// ListExistSubjectsBeforeExpiredAt filter the exists and not expired subjects
-func (l *groupService) ListExistSubjectsBeforeExpiredAt(
-	parentPKs []int64, expiredAt int64,
+// FilterGroupPKsHasMemberBeforeExpiredAt filter the exists and not expired subjects
+func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
+	groupPKs []int64, expiredAt int64,
 ) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterSubjectsBeforeExpiredAt")
-
-	existGroupPKs, err := l.manager.ListParentPKsBeforeExpiredAt(parentPKs, expiredAt)
-	if err != nil {
-		return []int64{}, errorWrapf(
-			err, "manager.ListParentPKsBeforeExpiredAt parentPKs=`%+v`, expiredAt=`%d` fail",
-			parentPKs, expiredAt,
-		)
-	}
-	if len(existGroupPKs) == 0 {
-		return []int64{}, nil
-	}
-
-	return existGroupPKs, err
+	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 }
 
-func (l *groupService) ListExistEffectSubjectGroupPKs(
+func (l *groupService) FilterExistEffectSubjectGroupPKs(
 	subjectPKs []int64,
-	parentPKs []int64,
-) (groupPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListExistEffectSubjectGroupPKs")
+	groupPKs []int64,
+) (existGroupPKs []int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterExistEffectSubjectGroupPKs")
 
 	// 过期时间必须大于当前时间
 	now := time.Now().Unix()
 
-	groupPKs, err = l.manager.ListExistSubjectGroupPKsAfterExpiredAt(subjectPKs, parentPKs, now)
+	existGroupPKs, err = l.manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs, groupPKs, now)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.ListExistSubjectGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
-			subjectPKs, parentPKs, now,
+			"manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
+			subjectPKs, groupPKs, now,
 		)
 	}
-	return set.NewInt64SetWithValues(groupPKs).ToSlice(), nil
+	return set.NewInt64SetWithValues(existGroupPKs).ToSlice(), nil
 }
 
 // from subject_member.go
@@ -179,62 +173,56 @@ func convertToGroupMembers(daoRelations []dao.SubjectRelation) []types.GroupMemb
 	relations := make([]types.GroupMember, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		relations = append(relations, types.GroupMember{
-			PK:              r.PK,
-			SubjectPK:       r.SubjectPK,
-			PolicyExpiredAt: r.PolicyExpiredAt,
-			CreateAt:        r.CreateAt,
+			PK:        r.PK,
+			SubjectPK: r.SubjectPK,
+			ExpiredAt: r.ExpiredAt,
+			CreateAt:  r.CreateAt,
 		})
 	}
 	return relations
 }
 
-// GetMemberCount ...
-func (l *groupService) GetMemberCount(parentPK int64) (int64, error) {
-	cnt, err := l.manager.GetMemberCount(parentPK)
-	if err != nil {
-		err = errorx.Wrapf(err, GroupSVC, "GetMemberCount",
-			"manager.GetMemberCount parentPK=`%d` fail", parentPK)
-		return 0, err
-	}
-	return cnt, nil
+// GetGroupMemberCount ...
+func (l *groupService) GetGroupMemberCount(groupPK int64) (int64, error) {
+	return l.manager.GetGroupMemberCount(groupPK)
 }
 
-// ListPagingMember ...
-func (l *groupService) ListPagingMember(parentPK, limit, offset int64) ([]types.GroupMember, error) {
-	daoRelations, err := l.manager.ListPagingMember(parentPK, limit, offset)
+// ListPagingGroupMember ...
+func (l *groupService) ListPagingGroupMember(groupPK, limit, offset int64) ([]types.GroupMember, error) {
+	daoRelations, err := l.manager.ListPagingGroupMember(groupPK, limit, offset)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListPagingMember", "manager.ListPagingMember parentPK=`%d`, limit=`%d`, offset=`%d`",
-			parentPK, limit, offset)
+			"ListPagingGroupMember", "manager.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d`",
+			groupPK, limit, offset)
 	}
 
 	return convertToGroupMembers(daoRelations), nil
 }
 
-// ListMember ...
-func (l *groupService) ListMember(parentPK int64) ([]types.GroupMember, error) {
-	daoRelations, err := l.manager.ListMember(parentPK)
+// ListGroupMember ...
+func (l *groupService) ListGroupMember(groupPK int64) ([]types.GroupMember, error) {
+	daoRelations, err := l.manager.ListGroupMember(groupPK)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListMember", "manager.ListMember parentPK=`%d` fail", parentPK)
+			"ListGroupMember", "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 	}
 
 	return convertToGroupMembers(daoRelations), nil
 }
 
-// UpdateMembersExpiredAtWithTx ...
-func (l *groupService) UpdateMembersExpiredAtWithTx(
+// UpdateGroupMembersExpiredAtWithTx ...
+func (l *groupService) UpdateGroupMembersExpiredAtWithTx(
 	tx *sqlx.Tx,
-	parentPK int64,
-	members []types.SubjectRelationPKPolicyExpiredAt,
+	groupPK int64,
+	members []types.SubjectRelationForUpdate,
 ) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateMembersExpiredAtWithTx")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateGroupMembersExpiredAtWithTx")
 
-	relations := make([]dao.SubjectRelationPKPolicyExpiredAt, 0, len(members))
+	relations := make([]dao.SubjectRelationForUpdateExpiredAt, 0, len(members))
 	for _, m := range members {
-		relations = append(relations, dao.SubjectRelationPKPolicyExpiredAt{
-			PK:              m.PK,
-			PolicyExpiredAt: m.PolicyExpiredAt,
+		relations = append(relations, dao.SubjectRelationForUpdateExpiredAt{
+			PK:        m.PK,
+			ExpiredAt: m.ExpiredAt,
 		})
 	}
 
@@ -245,22 +233,22 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(groupPK)
 	if err != nil {
-		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+		return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", groupPK)
 	}
 
 	for _, systemID := range systemIDs {
 		for _, m := range members {
-			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, parentPK, m.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, groupPK, m.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
-					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, expiredAt=`%d`, fail",
+					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
 					systemID,
 					m.SubjectPK,
-					parentPK,
-					m.PolicyExpiredAt,
+					groupPK,
+					m.ExpiredAt,
 				)
 			}
 		}
@@ -271,7 +259,7 @@ func (l *groupService) UpdateMembersExpiredAtWithTx(
 
 // BulkDeleteGroupMembers ...
 func (l *groupService) BulkDeleteGroupMembers(
-	parentPK int64,
+	groupPK int64,
 	userPKs, departmentPKs []int64,
 ) (map[string]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteGroupMember")
@@ -291,29 +279,29 @@ func (l *groupService) BulkDeleteGroupMembers(
 
 	var count int64
 	if len(userPKs) != 0 {
-		count, err = l.manager.BulkDeleteByMembersWithTx(tx, parentPK, userPKs)
+		count, err = l.manager.BulkDeleteByGroupMembersWithTx(tx, groupPK, userPKs)
 		if err != nil {
 			return nil, errorWrapf(err,
-				"manager.BulkDeleteByMembersWithTx parentPK=`%d`, userPKs=`%+v` fail",
-				parentPK, userPKs)
+				"manager.BulkDeleteByGroupMembersWithTx groupPK=`%d`, userPKs=`%+v` fail",
+				groupPK, userPKs)
 		}
 		typeCount[types.UserType] = count
 	}
 
 	if len(departmentPKs) != 0 {
-		count, err = l.manager.BulkDeleteByMembersWithTx(tx, parentPK, departmentPKs)
+		count, err = l.manager.BulkDeleteByGroupMembersWithTx(tx, groupPK, departmentPKs)
 		if err != nil {
 			return nil, errorWrapf(
-				err, "manager.BulkDeleteByMembersWithTx parentPK=`%d`, departmentPKs=`%+v` fail",
-				parentPK, departmentPKs)
+				err, "manager.BulkDeleteByGroupMembersWithTx groupPK=`%d`, departmentPKs=`%+v` fail",
+				groupPK, departmentPKs)
 		}
 		typeCount[types.DepartmentType] = count
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(groupPK)
 	if err != nil {
-		return nil, errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+		return nil, errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", groupPK)
 	}
 
 	subjectPKs := make([]int64, 0, len(userPKs)+len(departmentPKs))
@@ -322,14 +310,14 @@ func (l *groupService) BulkDeleteGroupMembers(
 
 	for _, systemID := range systemIDs {
 		for _, subjectPK := range subjectPKs {
-			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, parentPK)
+			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, groupPK)
 			if err != nil {
 				return nil, errorWrapf(
 					err,
-					"updateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, fail",
+					"updateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, fail",
 					systemID,
 					subjectPK,
-					parentPK,
+					groupPK,
 				)
 			}
 		}
@@ -345,17 +333,17 @@ func (l *groupService) BulkDeleteGroupMembers(
 // BulkCreateGroupMembersWithTx ...
 func (l *groupService) BulkCreateGroupMembersWithTx(
 	tx *sqlx.Tx,
-	parentPK int64,
-	relations []types.SubjectRelation,
+	groupPK int64,
+	relations []types.SubjectRelationForCreate,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateGroupMembersWithTx")
 	// 组装需要创建的Subject关系
 	daoRelations := make([]dao.SubjectRelation, 0, len(relations))
 	for _, r := range relations {
 		daoRelations = append(daoRelations, dao.SubjectRelation{
-			SubjectPK:       r.SubjectPK,
-			ParentPK:        r.ParentPK,
-			PolicyExpiredAt: r.PolicyExpiredAt,
+			SubjectPK: r.SubjectPK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
 		})
 	}
 
@@ -365,22 +353,22 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 	}
 
 	// 更新subject system group
-	systemIDs, err := l.ListGroupAuthSystemIDs(parentPK)
+	systemIDs, err := l.ListGroupAuthSystemIDs(groupPK)
 	if err != nil {
-		return errorWrapf(err, "listGroupAuthSystem parentPK=`%d` fail", parentPK)
+		return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", groupPK)
 	}
 
 	for _, systemID := range systemIDs {
 		for _, r := range relations {
-			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, parentPK, r.PolicyExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, groupPK, r.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
 					err,
-					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, parentPK=`%d`, expiredAt=`%d`, fail",
+					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
 					systemID,
 					r.SubjectPK,
-					parentPK,
-					r.PolicyExpiredAt,
+					groupPK,
+					r.ExpiredAt,
 				)
 			}
 		}
@@ -388,55 +376,48 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 	return nil
 }
 
-// GetMemberCountBeforeExpiredAt ...
-func (l *groupService) GetMemberCountBeforeExpiredAt(parentPK int64, expiredAt int64) (int64, error) {
-	cnt, err := l.manager.GetMemberCountBeforeExpiredAt(parentPK, expiredAt)
-	if err != nil {
-		err = errorx.Wrapf(err, GroupSVC, "GetMemberCountBeforeExpiredAt",
-			"manager.GetMemberCountBeforeExpiredAt parentPK=`%d`, expiredAt=`%d` fail",
-			parentPK, expiredAt)
-		return 0, err
-	}
-	return cnt, nil
+// GetGroupMemberCountBeforeExpiredAt ...
+func (l *groupService) GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error) {
+	return l.manager.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
 }
 
-// ListPagingMemberBeforeExpiredAt ...
-func (l *groupService) ListPagingMemberBeforeExpiredAt(
-	parentPK int64, expiredAt int64, limit, offset int64,
+// ListPagingGroupMemberBeforeExpiredAt ...
+func (l *groupService) ListPagingGroupMemberBeforeExpiredAt(
+	groupPK int64, expiredAt int64, limit, offset int64,
 ) ([]types.GroupMember, error) {
-	daoRelations, err := l.manager.ListPagingMemberBeforeExpiredAt(
-		parentPK, expiredAt, limit, offset,
+	daoRelations, err := l.manager.ListPagingGroupMemberBeforeExpiredAt(
+		groupPK, expiredAt, limit, offset,
 	)
 	if err != nil {
 		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListPagingMemberBeforeExpiredAt", "parentPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
-			parentPK, expiredAt, limit, offset)
+			"ListPagingGroupMemberBeforeExpiredAt", "groupPK=`%d`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			groupPK, expiredAt, limit, offset)
 	}
 
 	return convertToGroupMembers(daoRelations), nil
 }
 
-// BulkDeleteBySubjectPKs ...
-func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKs")
+// BulkDeleteBySubjectPKsWithTx ...
+func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKsWithTx")
 
 	// 批量用户组删除成员关系 subjectRelation
-	err := l.manager.BulkDeleteByParentPKs(tx, pks)
+	err := l.manager.BulkDeleteByGroupPKs(tx, subjectPKs)
 	if err != nil {
 		return errorWrapf(
-			err, "manager.BulkDeleteByParentPKs parent_pks=`%+v` fail", pks)
+			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", subjectPKs)
 	}
 	// 批量其加入的用户组关系 subjectRelation
-	err = l.manager.BulkDeleteBySubjectPKs(tx, pks)
+	err = l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs)
 	if err != nil {
 		return errorWrapf(
-			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", pks)
+			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", subjectPKs)
 	}
 
 	// 批量删除用户的subject system group
-	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, pks)
+	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, subjectPKs)
 	if err != nil {
-		return errorWrapf(err, "subjectSystemGroupManager.DeleteBySubjectPKsWithTx pks=`%+v` fail", pks)
+		return errorWrapf(err, "subjectSystemGroupManager.DeleteBySubjectPKsWithTx subjectPKs=`%+v` fail", subjectPKs)
 	}
 
 	return nil

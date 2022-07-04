@@ -49,7 +49,7 @@ func (k SystemSubjectPKCacheKey) Key() string {
 	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
 }
 
-// SystemResourceCacheKey
+// SystemResourceCacheKey ...
 type SystemResourceCacheKey struct {
 	SystemID             string
 	ActionResourceTypePK int64

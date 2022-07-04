@@ -63,9 +63,9 @@ func TestBatchAddGroupMembers(t *testing.T) {
 		mockCtl := mock.NewMockGroupController(ctl)
 		mockCtl.EXPECT().CreateOrUpdateGroupMembers("group", "1", []pap.GroupMember{
 			{
-				Type:            "user",
-				ID:              "admin",
-				PolicyExpiredAt: 10,
+				Type:      "user",
+				ID:        "admin",
+				ExpiredAt: 10,
 			},
 		}).Return(nil, errors.New("error")).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {
@@ -92,9 +92,9 @@ func TestBatchAddGroupMembers(t *testing.T) {
 		mockCtl := mock.NewMockGroupController(ctl)
 		mockCtl.EXPECT().CreateOrUpdateGroupMembers("group", "1", []pap.GroupMember{
 			{
-				Type:            "user",
-				ID:              "admin",
-				PolicyExpiredAt: 10,
+				Type:      "user",
+				ID:        "admin",
+				ExpiredAt: 10,
 			},
 		}).Return(map[string]int64{"user": 1, "department": 0}, nil).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {
@@ -247,9 +247,9 @@ func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 		mockCtl := mock.NewMockGroupController(ctl)
 		mockCtl.EXPECT().UpdateGroupMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
-				Type:            "user",
-				ID:              "admin",
-				PolicyExpiredAt: 10,
+				Type:      "user",
+				ID:        "admin",
+				ExpiredAt: 10,
 			},
 		}).Return(errors.New("error")).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {
@@ -276,9 +276,9 @@ func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 		mockCtl := mock.NewMockGroupController(ctl)
 		mockCtl.EXPECT().UpdateGroupMembersExpiredAt("group", "1", []pap.GroupMember{
 			{
-				Type:            "user",
-				ID:              "admin",
-				PolicyExpiredAt: 10,
+				Type:      "user",
+				ID:        "admin",
+				ExpiredAt: 10,
 			},
 		}).Return(nil).AnyTimes()
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {

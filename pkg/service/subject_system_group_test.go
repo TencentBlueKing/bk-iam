@@ -346,7 +346,7 @@ var _ = Describe("SubjectService", func() {
 		It("ok", func() {
 			groups, err := convertSystemSubjectGroupsToThinSubjectGroup(`{"1": 1555555555}`)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, PolicyExpiredAt: 1555555555}}, groups)
+			assert.Equal(GinkgoT(), []types.ThinSubjectGroup{{GroupPK: 1, ExpiredAt: 1555555555}}, groups)
 		})
 	})
 
@@ -371,7 +371,7 @@ var _ = Describe("SubjectService", func() {
 
 			_, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListRelationByPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListSubjectGroups")
 		})
 
 		It("UnmarshalFromString fail", func() {
@@ -403,8 +403,8 @@ var _ = Describe("SubjectService", func() {
 			groups, err := manager.ListEffectThinSubjectGroups("system", []int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), map[int64][]types.ThinSubjectGroup{1: {{
-				GroupPK:         2,
-				PolicyExpiredAt: ts,
+				GroupPK:   2,
+				ExpiredAt: ts,
 			}}}, groups)
 		})
 	})

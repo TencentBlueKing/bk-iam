@@ -368,13 +368,13 @@ var _ = Describe("GroupService", func() {
 			assert.False(GinkgoT(), changed)
 		})
 
-		It("manager.ListMember fail", func() {
+		It("manager.ListGroupMember fail", func() {
 			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
 			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
 				int64(1), nil,
 			).AnyTimes()
-			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
+			mockSubjectRelationManger := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectRelationManger.EXPECT().ListGroupMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -385,7 +385,7 @@ var _ = Describe("GroupService", func() {
 
 			_, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListMember")
+			assert.Contains(GinkgoT(), err.Error(), "ListGroupMember")
 		})
 
 		It("removeSubjectSystemGroup fail", func() {
@@ -393,8 +393,8 @@ var _ = Describe("GroupService", func() {
 			mockGroupSystemAuthTypeManager.EXPECT().DeleteBySystemGroupWithTx(gomock.Any(), "test", int64(1)).Return(
 				int64(1), nil,
 			).AnyTimes()
-			mockSubjectRelationManger := mock.NewMockSubjectRelationManager(ctl)
-			mockSubjectRelationManger.EXPECT().ListMember(int64(1)).Return(
+			mockSubjectRelationManger := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectRelationManger.EXPECT().ListGroupMember(int64(1)).Return(
 				[]dao.SubjectRelation{}, nil,
 			).AnyTimes()
 

@@ -17,13 +17,6 @@ type Subject struct {
 	Attribute *SubjectAttribute
 }
 
-// SubjectGroup 用户-组/部门-组, PK is the group subject pk, PolicyExpiredAt is the expired
-// for abac(prp), only need to know two fields to do query/auth
-type SubjectGroup struct {
-	PK              int64 `json:"pk"`
-	PolicyExpiredAt int64 `json:"policy_expired_at"`
-}
-
 // NewSubject ...
 func NewSubject() Subject {
 	return Subject{
