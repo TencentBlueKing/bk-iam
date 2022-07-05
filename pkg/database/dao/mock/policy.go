@@ -63,20 +63,6 @@ func (mr *MockPolicyManagerMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, subjec
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockPolicyManager)(nil).BulkDeleteBySubjectPKsWithTx), tx, subjectPKs)
 }
 
-// BulkDeleteBySubjectTemplate mocks base method.
-func (m *MockPolicyManager) BulkDeleteBySubjectTemplate(subjectPK, templateID int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteBySubjectTemplate", subjectPK, templateID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteBySubjectTemplate indicates an expected call of BulkDeleteBySubjectTemplate.
-func (mr *MockPolicyManagerMockRecorder) BulkDeleteBySubjectTemplate(subjectPK, templateID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectTemplate", reflect.TypeOf((*MockPolicyManager)(nil).BulkDeleteBySubjectTemplate), subjectPK, templateID)
-}
-
 // BulkDeleteByTemplatePKsWithTx mocks base method.
 func (m *MockPolicyManager) BulkDeleteByTemplatePKsWithTx(tx *sqlx.Tx, subjectPK, templateID int64, pks []int64) (int64, error) {
 	m.ctrl.T.Helper()

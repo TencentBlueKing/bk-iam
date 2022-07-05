@@ -74,8 +74,6 @@ type PolicyService interface {
 
 	DeleteByActionPK(actionPK int64) error
 
-	CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64,
-		actionPKWithResourceTypeSet *set.Int64Set) error
 	CreateAndDeleteTemplatePoliciesWithTx(
 		tx *sqlx.Tx,
 		subjectPK, templateID int64,
@@ -83,14 +81,12 @@ type PolicyService interface {
 		deletePolicyIDs []int64,
 		actionPKWithResourceTypeSet *set.Int64Set,
 	) error
-	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error
 	UpdateTemplatePoliciesWithTx(
 		tx *sqlx.Tx,
 		subjectPK int64,
 		policies []types.Policy,
 		actionPKWithResourceTypeSet *set.Int64Set,
 	) error
-	DeleteTemplatePolicies(subjectPK int64, templateID int64) error
 
 	// for pap
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
@@ -653,36 +649,6 @@ func (s *policyService) generateSignatureExpressionPKMap(
 	return signatureExpressionPKMap, nil
 }
 
-func (s *policyService) CreateAndDeleteTemplatePolicies(
-	subjectPK, templateID int64,
-	createPolicies []types.Policy,
-	deletePolicyIDs []int64,
-	actionPKWithResourceTypeSet *set.Int64Set,
-) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "CreateAndDeleteTemplatePolicies")
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
-	}
-
-	err = s.CreateAndDeleteTemplatePoliciesWithTx(
-		tx, subjectPK, templateID, createPolicies, deletePolicyIDs, actionPKWithResourceTypeSet,
-	)
-	if err != nil {
-		err = errorWrapf(
-			err,
-			"s.CreateAndDeleteTemplatePoliciesWithTx subjectPK=`%d` templateID=`%s` fail", subjectPK, templateID,
-		)
-		return
-	}
-
-	err = tx.Commit()
-	return
-}
-
 // CreateAndDeleteTemplatePoliciesWithTx subject create and delete template policies
 func (s *policyService) CreateAndDeleteTemplatePoliciesWithTx(
 	tx *sqlx.Tx,
@@ -742,32 +708,6 @@ func (s *policyService) CreateAndDeleteTemplatePoliciesWithTx(
 		err = errorWrapf(err, "deleteByPKsWithTx subjectPK=`%d`, pks=`%+v`", subjectPK, deletePolicyIDs)
 		return
 	}
-
-	return err
-}
-
-// UpdateTemplatePolicies subject update template policies
-func (s *policyService) UpdateTemplatePolicies(
-	subjectPK int64,
-	policies []types.Policy,
-	actionPKWithResourceTypeSet *set.Int64Set,
-) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePolicies")
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
-	}
-	err = s.UpdateTemplatePoliciesWithTx(tx, subjectPK, policies, actionPKWithResourceTypeSet)
-	if err != nil {
-		err = errorWrapf(err, "s.UpdateTemplatePoliciesWithTx subjectPK=`%d` fail", subjectPK)
-		return
-	}
-
-	err = tx.Commit()
 
 	return err
 }
@@ -844,11 +784,6 @@ func (s *policyService) UpdateTemplatePoliciesWithTx(
 	}
 
 	return err
-}
-
-// DeleteTemplatePolicies delete subject template policies
-func (s *policyService) DeleteTemplatePolicies(subjectPK int64, templateID int64) error {
-	return s.manager.BulkDeleteBySubjectTemplate(subjectPK, templateID)
 }
 
 // DeleteByActionPK ...

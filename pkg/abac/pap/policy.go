@@ -41,13 +41,6 @@ type PolicyController interface {
 	DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
 	DeleteByActionID(system, actionID string) error
 
-	// template
-
-	CreateAndDeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64,
-		createPolicies []types.Policy, deletePolicyIDs []int64) error
-	UpdateTemplatePolicies(system, subjectType, subjectID string, policies []types.Policy) error
-	DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) error
-
 	// temporary policy
 
 	CreateTemporaryPolicies(

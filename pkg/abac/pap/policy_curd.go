@@ -198,110 +198,6 @@ func (c *policyController) AlterCustomPolicies(
 	return nil
 }
 
-// CreateAndDeleteTemplatePolicies create and delete subject template policies
-func (c *policyController) CreateAndDeleteTemplatePolicies(
-	system, subjectType, subjectID string, templateID int64,
-	createPolicies []types.Policy, deletePolicyIDs []int64,
-) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "CreateAndDeleteTemplatePolicies")
-
-	// 1. 查询subject action 相关的信息
-	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
-		system, subjectType, subjectID)
-	if err != nil {
-		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
-		return
-	}
-
-	// 2. 转换数据
-	cps, err := convertToServicePolicies(subjectPK, createPolicies, actionPKMap)
-	if err != nil {
-		err = errorWrapf(err, "convertServicePolicies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
-			subjectPK, createPolicies, actionPKMap)
-		return
-	}
-
-	// NOTE: delete the policy cache before leave
-	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
-
-	// 3. service执行 create, delete
-	err = c.policyService.CreateAndDeleteTemplatePolicies(
-		subjectPK, templateID, cps, deletePolicyIDs, actionPKWithResourceTypeSet)
-	if err != nil {
-		err = errorWrapf(err, "policyService.CreateAndDeleteTemplatePolicies system=`%s`, subjectPK=`%d` fail",
-			system, subjectPK)
-		return
-	}
-
-	return nil
-}
-
-// UpdateTemplatePolicies update subject template policies
-func (c *policyController) UpdateTemplatePolicies(
-	system, subjectType, subjectID string, policies []types.Policy,
-) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "UpdateTemplatePolicies")
-
-	// 1. 查询subject action 相关的信息
-	subjectPK, actionMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
-		system, subjectType, subjectID)
-	if err != nil {
-		err = errorWrapf(err, "c.querySubjectActionForAlterPolicies system=`%s` fail", system)
-		return
-	}
-
-	// 2. 类型转换
-	ups, err := convertToServicePolicies(subjectPK, policies, actionMap)
-	if err != nil {
-		err = errorWrapf(err, "convertServicePolicies subjectPK=`%d`, policies=`%+v`, actionMap=`%+v` fail",
-			subjectPK, policies, actionMap)
-		return
-	}
-
-	// NOTE: delete the policy cache before leave => 可以查actionPK
-	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
-
-	// 3. service执行 update
-	err = c.policyService.UpdateTemplatePolicies(subjectPK, ups, actionPKWithResourceTypeSet)
-	if err != nil {
-		err = errorWrapf(
-			err,
-			"policyService.UpdateTemplatePolicies system=`%s`, subjectPK=`%d` fail",
-			system,
-			subjectPK,
-		)
-		return
-	}
-
-	return nil
-}
-
-// DeleteTemplatePolicies delete subject template policies
-func (c *policyController) DeleteTemplatePolicies(system, subjectType, subjectID string, templateID int64) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "DeleteTemplatePolicies")
-
-	// 1. 查询 subject subjectPK
-	subjectPK, err := c.subjectService.GetPK(subjectType, subjectID)
-	if err != nil {
-		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
-			subjectType, subjectID)
-		return
-	}
-
-	// NOTE: delete the policy cache before leave
-	defer policy.DeleteSystemSubjectPKsFromCache(system, []int64{subjectPK})
-
-	// 2. service执行 delete
-	err = c.policyService.DeleteTemplatePolicies(subjectPK, templateID)
-	if err != nil {
-		err = errorWrapf(err, "policyService.DeleteTemplatePolicies subjectPK=`%d`, templateID=`%s` fail",
-			subjectPK, templateID)
-		return
-	}
-
-	return nil
-}
-
 // UpdateSubjectPoliciesExpiredAt 更新过期时间
 func (c *policyController) UpdateSubjectPoliciesExpiredAt(
 	subjectType, subjectID string, policies []types.PolicyPKExpiredAt,
@@ -410,6 +306,8 @@ func (c *policyController) DeleteByActionID(system, actionID string) error {
 		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
 		return err
 	}
+
+	// TODO: 删除Resource Group Policy
 
 	return nil
 }
