@@ -31,40 +31,15 @@ var _ = Describe("rbac", func() {
 			actionResourceTypes = []types.ActionResourceType{{
 				System: "test",
 				Type:   "t1",
-				PK:     1,
-				ResourceTypeOfInstanceSelections: []types.ThinResourceType{
-					{
-						System: "cmdb",
-						ID:     "biz",
-						PK:     2,
-					},
-					{
-						System: "test",
-						ID:     "set",
-						PK:     3,
-					},
-					{
-						System: "test",
-						ID:     "module",
-						PK:     4,
-					},
-					{
-						System: "test",
-						ID:     "func",
-						PK:     5,
-					},
-				},
 			}}
 		})
 
 		It("resource type not found error", func() {
 			err := validResourceType([]types.Resource{{
-				System: "test",
-				Type:   "t2",
-				ID:     "id1",
-				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
-				},
+				System:    "test",
+				Type:      "t2",
+				ID:        "id1",
+				Attribute: map[string]interface{}{},
 			}}, actionResourceTypes)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
@@ -72,12 +47,10 @@ var _ = Describe("rbac", func() {
 
 		It("resource type system not match error", func() {
 			err := validResourceType([]types.Resource{{
-				System: "test1",
-				Type:   "t1",
-				ID:     "id1",
-				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
-				},
+				System:    "test1",
+				Type:      "t1",
+				ID:        "id1",
+				Attribute: map[string]interface{}{},
 			}}, actionResourceTypes)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "resource type not match")
@@ -86,34 +59,35 @@ var _ = Describe("rbac", func() {
 
 	Describe("parseResourceNode", func() {
 		var actionResourceType types.ActionResourceType
+		var patches *gomonkey.Patches
 		BeforeEach(func() {
 			actionResourceType = types.ActionResourceType{
 				System: "test",
 				Type:   "t1",
-				PK:     1,
-				ResourceTypeOfInstanceSelections: []types.ThinResourceType{
-					{
-						System: "cmdb",
-						ID:     "biz",
-						PK:     2,
-					},
-					{
-						System: "test",
-						ID:     "set",
-						PK:     3,
-					},
-					{
-						System: "test",
-						ID:     "module",
-						PK:     4,
-					},
-					{
-						System: "test",
-						ID:     "func",
-						PK:     5,
-					},
-				},
 			}
+
+			patches = gomonkey.ApplyFunc(
+				cacheimpls.GetLocalResourceTypePK,
+				func(system string, id string) (int64, error) {
+					switch id {
+					case "t1":
+						return 1, nil
+					case "biz":
+						return 2, nil
+					case "set":
+						return 3, nil
+					case "module":
+						return 4, nil
+					case "func":
+						return 5, nil
+					default:
+						return 0, errors.New("not found")
+					}
+				},
+			)
+		})
+		AfterEach(func() {
+			patches.Reset()
 		})
 
 		It("_bk_iam_path_ array ok", func() {
@@ -123,8 +97,8 @@ var _ = Describe("rbac", func() {
 				ID:     "id1",
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": []interface{}{
-						"/biz,1/set,2/module,3/func,4",
-						"/biz,1/set,2/module,3/func,5",
+						"/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
+						"/cmdb,biz,1/test,set,2/test,module,3/test,func,5",
 					},
 				},
 			}, actionResourceType)
@@ -170,7 +144,7 @@ var _ = Describe("rbac", func() {
 				Type:   "t1",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4",
+					"_bk_iam_path_": "/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
 				},
 			}, actionResourceType)
 			assert.NoError(GinkgoT(), err)
@@ -204,7 +178,7 @@ var _ = Describe("rbac", func() {
 			}, resourceNodes)
 		})
 
-		It("not _bk_iam_path_ ok", func() {
+		It("no _bk_iam_path_ ok", func() {
 			resourceNodes, err := parseResourceNode(types.Resource{
 				System:    "test",
 				Type:      "t1",
@@ -232,7 +206,7 @@ var _ = Describe("rbac", func() {
 				},
 			}, actionResourceType)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "iamPath is not valid")
+			assert.Contains(GinkgoT(), err.Error(), "is not valid")
 		})
 
 		It("empty _bk_iam_path_ ok", func() {
@@ -265,7 +239,7 @@ var _ = Describe("rbac", func() {
 				},
 			}, actionResourceType)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "iamPath is not valid")
+			assert.Contains(GinkgoT(), err.Error(), "is not valid")
 		})
 
 		It("_bk_iam_path_ other error", func() {
@@ -300,11 +274,11 @@ var _ = Describe("rbac", func() {
 				Type:   "t1",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2,3/module,3/func,4/func,5",
+					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
 				},
 			}, actionResourceType)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "iamPath is not valid")
+			assert.Contains(GinkgoT(), err.Error(), "not valid")
 		})
 
 		It("_bk_iam_path_ resource type not found error", func() {
@@ -313,11 +287,11 @@ var _ = Describe("rbac", func() {
 				Type:   "t1",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/setx,2/module,3/func,4/func,5",
+					"_bk_iam_path_": "/cmdb,biz,1/test,setx,2/test,module,3/test,func,4/test,func,5",
 				},
 			}, actionResourceType)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "iamPath resource type not found")
+			assert.Contains(GinkgoT(), err.Error(), "not found")
 		})
 	})
 
@@ -334,29 +308,6 @@ var _ = Describe("rbac", func() {
 			action.FillAttributes(1, 1, []types.ActionResourceType{{
 				System: "test",
 				Type:   "t1",
-				PK:     1,
-				ResourceTypeOfInstanceSelections: []types.ThinResourceType{
-					{
-						System: "cmdb",
-						ID:     "biz",
-						PK:     2,
-					},
-					{
-						System: "test",
-						ID:     "set",
-						PK:     3,
-					},
-					{
-						System: "test",
-						ID:     "module",
-						PK:     4,
-					},
-					{
-						System: "test",
-						ID:     "func",
-						PK:     5,
-					},
-				},
 			}})
 
 			resources = []types.Resource{{
@@ -364,11 +315,31 @@ var _ = Describe("rbac", func() {
 				Type:   "t1",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4",
+					"_bk_iam_path_": "/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
 				},
 			}}
 
 			effectGroupPKs = []int64{1, 2}
+
+			patches = gomonkey.ApplyFunc(
+				cacheimpls.GetLocalResourceTypePK,
+				func(system string, id string) (int64, error) {
+					switch id {
+					case "t1":
+						return 1, nil
+					case "biz":
+						return 2, nil
+					case "set":
+						return 3, nil
+					case "module":
+						return 4, nil
+					case "func":
+						return 5, nil
+					default:
+						return 0, errors.New("not found")
+					}
+				},
+			)
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -390,14 +361,14 @@ var _ = Describe("rbac", func() {
 				Type:   "t1",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4",
+					"_bk_iam_path_": "/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
 				},
 			}, {
 				System: "test",
 				Type:   "t2",
 				ID:     "id1",
 				Attribute: map[string]interface{}{
-					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4",
+					"_bk_iam_path_": "/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
 				},
 			}}
 			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
@@ -410,11 +381,9 @@ var _ = Describe("rbac", func() {
 			action.FillAttributes(1, 1, []types.ActionResourceType{{
 				System: "test",
 				Type:   "t1",
-				PK:     1,
 			}, {
 				System: "test",
 				Type:   "t2",
-				PK:     1,
 			}})
 			_, err := rbacEval("test", action, resources, effectGroupPKs, false, nil)
 			assert.Error(GinkgoT(), err)

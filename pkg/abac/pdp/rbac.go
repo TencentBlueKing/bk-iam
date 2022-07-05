@@ -84,7 +84,21 @@ func rbacEval(
 		return
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
-	actionResourceTypePK := actionResourceTypes[0].PK
+
+	debug.AddStep(entry, "Get Action Resource Type PK")
+	actionResourceTypePK, err := cacheimpls.GetLocalResourceTypePK(
+		actionResourceTypes[0].System,
+		actionResourceTypes[0].Type,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"cacheimpls.GetLocalResourceTypePK fail, actionResourceType=`%+v`",
+			actionResourceTypes[0],
+		)
+		return
+	}
+	debug.WithValue(entry, "actionResourceTypePK", actionResourceTypePK)
 
 	// 4. 遍历查询资源实例节点授权的groupPKs
 	debug.AddStep(entry, "Get Resource ActionAuthorized Group PKs")
@@ -189,11 +203,16 @@ func parseResourceNode(
 		}
 	}
 
+	resourceTypePK, err := cacheimpls.GetLocalResourceTypePK(resource.System, resource.Type)
+	if err != nil {
+		return nil, err
+	}
+
 	node := types.ResourceNode{
 		System: resource.System,
 		Type:   resource.Type,
 		ID:     resource.ID,
-		TypePK: actionResourceType.PK,
+		TypePK: resourceTypePK,
 	}
 
 	uniqueID := node.UniqueID()
@@ -209,12 +228,6 @@ func parseIamPath(
 	iamPaths interface{},
 	actionResourceType types.ActionResourceType,
 ) ([]types.ResourceNode, error) {
-	// 生成resource type id -> system/pk 映射
-	resourceTypeMap := make(map[string]types.ThinResourceType, 4)
-	for _, rt := range actionResourceType.ResourceTypeOfInstanceSelections {
-		resourceTypeMap[rt.ID] = rt
-	}
-
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	paths := make([]string, 0, 2)
 	switch vs := iamPaths.(type) {
@@ -240,21 +253,27 @@ func parseIamPath(
 		nodes := strings.Split(strings.Trim(path, "/"), "/")
 		for _, node := range nodes {
 			parts := strings.Split(node, ",")
-			if len(parts) != 2 {
-				return nil, errors.New("iamPath is not valid")
+			if len(parts) != 3 {
+				return nil, fmt.Errorf(
+					"iamPath=`%s` is not valid, example: `/system_id,resource_type_id,resource_id/`",
+					path,
+				)
 			}
 
-			resourceTypeID := parts[0]
-			rt, ok := resourceTypeMap[resourceTypeID]
-			if !ok {
-				return nil, fmt.Errorf("iamPath resource type not found, resourceTypeID=%s", resourceTypeID)
+			systemID := parts[0]
+			resourceTypeID := parts[1]
+			resourceID := parts[2]
+
+			resourceTypePK, err := cacheimpls.GetLocalResourceTypePK(systemID, resourceTypeID)
+			if err != nil {
+				return nil, err
 			}
 
 			node := types.ResourceNode{
-				System: rt.System,
+				System: systemID,
 				Type:   resourceTypeID,
-				ID:     parts[1],
-				TypePK: rt.PK,
+				ID:     resourceID,
+				TypePK: resourceTypePK,
 			}
 
 			resourceNodes = append(resourceNodes, node)

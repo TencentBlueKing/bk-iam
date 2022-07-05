@@ -43,6 +43,7 @@ var (
 	LocalGroupSystemAuthTypeCache   *gocache.Cache
 	LocalActionDetailCache          memory.Cache
 	LocalSubjectBlackListCache      memory.Cache
+	LocalResourceTypePKCache        memory.Cache
 
 	RemoteResourceCache     *redis.Cache
 	ResourceTypeCache       *redis.Cache
@@ -51,10 +52,11 @@ var (
 	SubjectSystemGroupCache *redis.Cache
 	SubjectAllGroupPKsCache *redis.Cache
 
-	SystemCache       *redis.Cache
-	ActionPKCache     *redis.Cache
-	ActionDetailCache *redis.Cache
-	ActionListCache   *redis.Cache
+	SystemCache         *redis.Cache
+	ActionPKCache       *redis.Cache
+	ActionDetailCache   *redis.Cache
+	ActionListCache     *redis.Cache
+	ResourceTypePKCache *redis.Cache
 
 	PolicyCache              *redis.Cache
 	GroupResourcePolicyCache *redis.Cache
@@ -198,6 +200,16 @@ func InitCaches(disabled bool) {
 		newRandomDuration(10),
 	)
 
+	// 影响: 每次鉴权
+
+	LocalResourceTypePKCache = memory.NewCache(
+		"local_resource_type_pk",
+		disabled,
+		retrieveResourceTypePKFromRedis,
+		30*time.Minute,
+		nil,
+	)
+
 	//  ==========================
 
 	// NOTE: short key in 3 chars, make the redis key short enough, for better performance
@@ -261,6 +273,11 @@ func InitCaches(disabled bool) {
 
 	ActionListCache = redis.NewCache(
 		"all_act:2",
+		30*time.Minute,
+	)
+
+	ResourceTypePKCache = redis.NewCache(
+		"res_typ_pk",
 		30*time.Minute,
 	)
 

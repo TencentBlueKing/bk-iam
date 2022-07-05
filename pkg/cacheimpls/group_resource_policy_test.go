@@ -37,10 +37,7 @@ func Test_batchSetActionGroupPKs(t *testing.T) {
 		ResourceTypePK:       int64(2),
 		ResourceID:           "resource_test",
 	}
-	err := batchSetActionGroupPKs(key, map[int64][]int64{
-		1: {1, 2, 3},
-		2: {4, 5, 6},
-	})
+	err := setActionGroupPKs(key, 1, []int64{1, 2, 3})
 	assert.NoError(t, err)
 
 	hashKeyField := redis.HashKeyField{
@@ -54,17 +51,6 @@ func Test_batchSetActionGroupPKs(t *testing.T) {
 	err = GroupResourcePolicyCache.Unmarshal(conv.StringToBytes(value), &groupPKs)
 	assert.NoError(t, err)
 	assert.Equal(t, []int64{1, 2, 3}, groupPKs)
-
-	hashKeyField = redis.HashKeyField{
-		Key:   key.Key(),
-		Field: strconv.FormatInt(2, 10),
-	}
-	value, err = GroupResourcePolicyCache.HGet(hashKeyField)
-	assert.NoError(t, err)
-
-	err = GroupResourcePolicyCache.Unmarshal(conv.StringToBytes(value), &groupPKs)
-	assert.NoError(t, err)
-	assert.Equal(t, []int64{4, 5, 6}, groupPKs)
 }
 
 func Test_getResourceActionAuthorizedGroupPKsFromCache(t *testing.T) {
@@ -79,19 +65,12 @@ func Test_getResourceActionAuthorizedGroupPKsFromCache(t *testing.T) {
 		ResourceTypePK:       int64(2),
 		ResourceID:           "resource_test",
 	}
-	err := batchSetActionGroupPKs(key, map[int64][]int64{
-		1: {1, 2, 3},
-		2: {4, 5, 6},
-	})
+	err := setActionGroupPKs(key, 1, []int64{1, 2, 3})
 	assert.NoError(t, err)
 
 	groupPKs, err := getResourceActionAuthorizedGroupPKsFromCache(key, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, []int64{1, 2, 3}, groupPKs)
-
-	groupPKs, err = getResourceActionAuthorizedGroupPKsFromCache(key, 2)
-	assert.NoError(t, err)
-	assert.Equal(t, []int64{4, 5, 6}, groupPKs)
 
 	_, err = getResourceActionAuthorizedGroupPKsFromCache(key, 3)
 	assert.Error(t, err)
@@ -139,15 +118,12 @@ func TestGetResourceActionAuthorizedGroupPKs(t *testing.T) {
 		ResourceID:           "resource_test",
 	}
 
-	err := batchSetActionGroupPKs(key, map[int64][]int64{
-		1: {1, 2, 3},
-		2: {4, 5, 6},
-	})
+	err := setActionGroupPKs(key, 2, []int64{1, 2, 3})
 	assert.NoError(t, err)
 
 	groupPKs, err := GetResourceActionAuthorizedGroupPKs("test", int64(2), int64(1), int64(2), "resource_test")
 	assert.NoError(t, err)
-	assert.Equal(t, []int64{4, 5, 6}, groupPKs)
+	assert.Equal(t, []int64{1, 2, 3}, groupPKs)
 }
 
 func TestGetResourceActionAuthorizedGroupPKs_retrieve(t *testing.T) {
@@ -159,7 +135,7 @@ func TestGetResourceActionAuthorizedGroupPKs_retrieve(t *testing.T) {
 		map[int64][]int64{
 			1: {1, 2, 3},
 			2: {4, 5, 6},
-		}, nil).Times(1)
+		}, nil).Times(2)
 
 	patches := gomonkey.ApplyFunc(service.NewGroupResourcePolicyService,
 		func() service.GroupResourcePolicyService {

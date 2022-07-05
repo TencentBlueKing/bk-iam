@@ -227,9 +227,9 @@ var _ = Describe("Context", func() {
 
 			assert.True(GinkgoT(), c.HasResource("iam._bk_iam_env_"))
 
-			tzA, err := c.GetAttr("iam._bk_iam_env_.tz")
+			tzA, _ := c.GetAttr("iam._bk_iam_env_.tz")
 			assert.Equal(GinkgoT(), "Asia/Shanghai", tzA)
-			hmsA, err := c.GetAttr("iam._bk_iam_env_.hms")
+			hmsA, _ := c.GetAttr("iam._bk_iam_env_.hms")
 			assert.Equal(GinkgoT(), hms, hmsA)
 		})
 
@@ -337,6 +337,53 @@ var _ = Describe("Context", func() {
 				tz := "Wrong"
 				_, err := genTimeEnvs(tz, time.Now())
 				assert.Error(GinkgoT(), err)
+			})
+		})
+
+		Describe("standardizeIamPaths", func() {
+			It("not string", func() {
+				iamPaths := standardizeIamPaths(123)
+				assert.Equal(GinkgoT(), iamPaths, interface{}(123))
+			})
+
+			It("not array string", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"test", 123})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"test", 123})
+			})
+
+			It("string1", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"test"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"test"})
+			})
+
+			It("string2", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test"})
+			})
+
+			It("string3", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test1,test2/"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test1,test2/"})
+			})
+
+			It("string4", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test1,test2,test3/"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test2,test3/"})
+			})
+
+			It("string5", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test1,test2,test3/"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test2,test3/"})
+			})
+
+			It("string6", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test1,test2,test3/test4,test5"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test1,test2,test3/test4,test5"})
+			})
+
+			It("string7", func() {
+				iamPaths := standardizeIamPaths([]interface{}{"/test1,test2,test3/test4,test5,test6/"})
+				assert.Equal(GinkgoT(), iamPaths, []interface{}{"/test2,test3/test5,test6/"})
 			})
 		})
 	})

@@ -3477,7 +3477,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/project,002/\"]\n        }\n    }]\n}",
+							"raw": "{\n    \"system\": \"demo\",\n    \"subject\": {\n        \"type\": \"user\",\n        \"id\": \"user105\"\n    },\n    \"action\": {\n        \"id\": \"view_app\"\n    },\n    \"resources\": [{\n        \"system\": \"demo\",\n        \"type\": \"app\",\n        \"id\": \"003\",\n        \"attribute\": {\n            \"_bk_iam_path_\": [\"/demo,project,002/\"]\n        }\n    }]\n}",
 							"options": {
 								"raw": {
 									"language": "json"

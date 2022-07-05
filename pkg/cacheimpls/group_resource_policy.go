@@ -62,12 +62,8 @@ func retrieveResourceActionAuthorizedGroupPKs(key SystemResourceCacheKey, action
 		return nil, err
 	}
 
-	// 填充缓存空值
-	if _, ok := actionGroupPKs[actionPK]; !ok {
-		actionGroupPKs[actionPK] = []int64{}
-	}
-
-	err = batchSetActionGroupPKs(key, actionGroupPKs)
+	groupPKs := actionGroupPKs[actionPK]
+	err = setActionGroupPKs(key, actionPK, groupPKs)
 	if err != nil {
 		return nil, err
 	}
@@ -75,26 +71,17 @@ func retrieveResourceActionAuthorizedGroupPKs(key SystemResourceCacheKey, action
 	return actionGroupPKs[actionPK], nil
 }
 
-// batchSetActionGroupPKs 批量设置action group pks缓存
-func batchSetActionGroupPKs(key cache.Key, actionGroupPKs map[int64][]int64) error {
-	hashes := make([]redis.Hash, 0, len(actionGroupPKs))
-	for aPK, groupPKs := range actionGroupPKs {
-		field := strconv.FormatInt(aPK, 10)
-		_bytes, err := GroupResourcePolicyCache.Marshal(groupPKs)
-		if err != nil {
-			return err
-		}
-
-		hashes = append(hashes, redis.Hash{
-			HashKeyField: redis.HashKeyField{
-				Key:   key.Key(),
-				Field: field,
-			},
-			Value: conv.BytesToString(_bytes),
-		})
+func setActionGroupPKs(key cache.Key, actionPK int64, groupPKs []int64) error {
+	hashKeyField := redis.HashKeyField{
+		Key:   key.Key(),
+		Field: strconv.FormatInt(actionPK, 10),
+	}
+	_bytes, err := GroupResourcePolicyCache.Marshal(groupPKs)
+	if err != nil {
+		return err
 	}
 
-	err := GroupResourcePolicyCache.BatchHSetWithTx(hashes)
+	err = GroupResourcePolicyCache.HSet(hashKeyField, conv.BytesToString(_bytes))
 	if err != nil {
 		return err
 	}
