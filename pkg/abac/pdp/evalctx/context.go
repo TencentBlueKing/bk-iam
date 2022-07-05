@@ -94,32 +94,36 @@ func standardizeIamPaths(iamPaths interface{}) interface{} {
 		nodes := strings.Split(strings.Trim(path, "/"), "/")
 
 		isValid := true
-		strParts := []string{"/"}
+		var sb strings.Builder
+		sb.WriteString("/")
 		for _, node := range nodes {
 			parts := strings.Split(node, ",")
+			// 只要有一个节点不满足3段式格式, 则不做裁剪
 			if len(parts) != 3 {
 				isValid = false
 				break
 			}
 
-			strParts = append(strParts, parts[1], ",", parts[2], "/")
+			// 从3段式格式裁剪为2段式
+			sb.WriteString(parts[1])
+			sb.WriteString(",")
+			sb.WriteString(parts[2])
+			sb.WriteString("/")
 		}
 
+		// 不满足需要裁剪条件的路径, 不做处理, 保持为原始的格式
 		if !isValid {
 			standardizedPaths = append(standardizedPaths, path)
 			continue
 		}
 
+		s := sb.String()
 		// NOTE: 如果原始的字符串最后没有/, 则不加/
-		if !strings.HasSuffix(path, "/") && len(strParts) > 1 {
-			strParts = strParts[:len(strParts)-1]
+		if !strings.HasSuffix(path, "/") && len(s) > 1 {
+			s = s[:len(s)-1]
 		}
 
-		standardizedPaths = append(standardizedPaths, strings.Join(strParts, ""))
-	}
-
-	if len(standardizedPaths) == 1 {
-		return standardizedPaths[0]
+		standardizedPaths = append(standardizedPaths, s)
 	}
 
 	return standardizedPaths
