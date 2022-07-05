@@ -75,17 +75,6 @@ func Register(r *gin.RouterGroup) {
 		r.DELETE("/temporary-policies/before_expired_at", handler.DeleteTemporaryBeforeExpiredAt)
 	}
 
-	// 权限模板相关
-	pt := r.Group("/perm-templates")
-	{
-		// 模板授权
-		pt.POST("/policies", handler.CreateAndDeleteTemplatePolicies)
-		// 模板授权更新
-		pt.PUT("/policies", handler.UpdateTemplatePolicies)
-		// 删除模板授权
-		pt.DELETE("/policies", handler.DeleteSubjectTemplatePolicies)
-	}
-
 	// subject
 	{
 		// 查询subject列表

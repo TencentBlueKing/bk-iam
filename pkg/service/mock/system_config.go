@@ -89,20 +89,6 @@ func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateResourceCreatorActi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateResourceCreatorActions", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateResourceCreatorActions), system, resourceCreatorAction)
 }
 
-// Exists mocks base method.
-func (m *MockSystemConfigService) Exists(system, key string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exists", system, key)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Exists indicates an expected call of Exists.
-func (mr *MockSystemConfigServiceMockRecorder) Exists(system, key interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockSystemConfigService)(nil).Exists), system, key)
-}
-
 // GetActionGroups mocks base method.
 func (m *MockSystemConfigService) GetActionGroups(system string) ([]interface{}, error) {
 	m.ctrl.T.Helper()

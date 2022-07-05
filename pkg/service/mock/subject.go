@@ -122,21 +122,6 @@ func (mr *MockSubjectServiceMockRecorder) GetPK(_type, id interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockSubjectService)(nil).GetPK), _type, id)
 }
 
-// ListByPKs mocks base method.
-func (m *MockSubjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]types.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs.
-func (mr *MockSubjectServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectService)(nil).ListByPKs), pks)
-}
-
 // ListPKsBySubjects mocks base method.
 func (m *MockSubjectService) ListPKsBySubjects(subjects []types.Subject) ([]int64, error) {
 	m.ctrl.T.Helper()
