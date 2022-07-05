@@ -31,7 +31,7 @@ func GetSubjectPK(_type, id string) (int64, error) {
 	return pk, err
 }
 
-// GetSubjectDetail ...
+// GetSubjectDepartmentPKs ...
 func GetSubjectDepartmentPKs(pk int64) (departments []int64, err error) {
 	departments, err = cacheimpls.GetLocalSubjectDepartmentPKs(pk)
 	if err != nil {

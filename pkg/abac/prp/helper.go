@@ -58,7 +58,7 @@ func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) 
 		return nil, err
 	}
 	for _, sg := range subjectGroups {
-		if sg.PolicyExpiredAt > now {
+		if sg.ExpiredAt > now {
 			groupPKSet.Add(sg.GroupPK)
 		}
 	}

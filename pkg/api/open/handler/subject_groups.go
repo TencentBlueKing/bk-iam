@@ -96,7 +96,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 	groupPKs := set.NewFixedLengthInt64Set(len(groups))
 	for _, group := range groups {
 		// 仅仅在有效期内才需要
-		if group.PolicyExpiredAt > nowUnix {
+		if group.ExpiredAt > nowUnix {
 			groupPKs.Add(group.GroupPK)
 		}
 	}
@@ -118,7 +118,7 @@ func handleSubjectGroups(c *gin.Context, subjectType, subjectID string, inherit 
 
 			for _, group := range groups {
 				// 仅仅在有效期内才需要
-				if group.PolicyExpiredAt > nowUnix {
+				if group.ExpiredAt > nowUnix {
 					groupPKs.Add(group.GroupPK)
 				}
 			}

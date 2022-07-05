@@ -41,7 +41,7 @@ type temporaryPolicyService struct {
 	manager dao.TemporaryPolicyManager
 }
 
-// NewPolicyService ...
+// NewTemporaryPolicyService ...
 func NewTemporaryPolicyService() TemporaryPolicyService {
 	return &temporaryPolicyService{
 		manager: dao.NewTemporaryPolicyManager(),
@@ -130,14 +130,8 @@ func (s *temporaryPolicyService) Create(
 
 // DeleteByPKs ...
 func (s *temporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteByPKs")
-
 	_, err := s.manager.BulkDeleteByPKs(subjectPK, pks)
-	if err != nil {
-		return errorWrapf(err, "manager.BulkDeleteByPKs subjectPK=`%d`, pks=`%+v`",
-			subjectPK, pks)
-	}
-	return nil
+	return err
 }
 
 // DeleteBeforeExpireAt ...

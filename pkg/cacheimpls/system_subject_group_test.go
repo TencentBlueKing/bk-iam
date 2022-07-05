@@ -32,8 +32,8 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
-				GroupPK:         2,
-				PolicyExpiredAt: 2,
+				GroupPK:   2,
+				ExpiredAt: 2,
 			},
 		},
 	}, []int64{1, 2, 3})
@@ -46,8 +46,8 @@ func Test_setMissingSystemSubjectGroup(t *testing.T) {
 
 	assert.Equal(t, []types.ThinSubjectGroup{
 		{
-			GroupPK:         2,
-			PolicyExpiredAt: 2,
+			GroupPK:   2,
+			ExpiredAt: 2,
 		},
 	}, sg)
 
@@ -67,8 +67,8 @@ func Test_batchDeleteSubjectSystemGroupCache(t *testing.T) {
 	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
-				GroupPK:         2,
-				PolicyExpiredAt: 2,
+				GroupPK:   2,
+				ExpiredAt: 2,
 			},
 		},
 	}, []int64{1, 2, 3})
@@ -93,8 +93,8 @@ func Test_batchGetSystemSubjectGroups(t *testing.T) {
 	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
-				GroupPK:         2,
-				PolicyExpiredAt: 2,
+				GroupPK:   2,
+				ExpiredAt: 2,
 			},
 		},
 	}, []int64{1, 2, 3})
@@ -102,8 +102,8 @@ func Test_batchGetSystemSubjectGroups(t *testing.T) {
 	subjectGroups, notExistCachePKs, err := batchGetSystemSubjectGroups("test", []int64{1, 2, 4})
 	assert.NoError(t, err)
 	assert.Equal(t, []types.ThinSubjectGroup{{
-		GroupPK:         2,
-		PolicyExpiredAt: 2,
+		GroupPK:   2,
+		ExpiredAt: 2,
 	}}, subjectGroups)
 	assert.Equal(t, []int64{4}, notExistCachePKs)
 }
@@ -116,8 +116,8 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 	setMissingSystemSubjectGroup("test", map[int64][]types.ThinSubjectGroup{
 		1: {
 			{
-				GroupPK:         2,
-				PolicyExpiredAt: 2,
+				GroupPK:   2,
+				ExpiredAt: 2,
 			},
 		},
 	}, []int64{1, 2, 3})
@@ -128,8 +128,8 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 	mockService := mock.NewMockGroupService(ctl)
 	mockService.EXPECT().ListEffectThinSubjectGroups("test", []int64{4}).Return(
 		map[int64][]types.ThinSubjectGroup{4: {{
-			GroupPK:         5,
-			PolicyExpiredAt: 5,
+			GroupPK:   5,
+			ExpiredAt: 5,
 		}}}, nil).AnyTimes()
 
 	patches := gomonkey.ApplyFunc(service.NewGroupService,
@@ -141,10 +141,10 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 	subjectGroups, err := ListSystemSubjectEffectGroups("test", []int64{1, 2, 4})
 	assert.NoError(t, err)
 	assert.Equal(t, []types.ThinSubjectGroup{{
-		GroupPK:         2,
-		PolicyExpiredAt: 2,
+		GroupPK:   2,
+		ExpiredAt: 2,
 	}, {
-		GroupPK:         5,
-		PolicyExpiredAt: 5,
+		GroupPK:   5,
+		ExpiredAt: 5,
 	}}, subjectGroups)
 }

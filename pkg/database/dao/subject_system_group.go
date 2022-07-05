@@ -36,7 +36,7 @@ type SubjectGroups struct {
 	Groups    string `db:"groups"`
 }
 
-// SubjectSystemGroup ...
+// SubjectSystemGroupManager ...
 type SubjectSystemGroupManager interface {
 	ListSubjectGroups(systemID string, subjectPKs []int64) ([]SubjectGroups, error)
 
@@ -50,7 +50,7 @@ type subjectSystemGroupManager struct {
 	DB *sqlx.DB
 }
 
-// NewSubjectSystemGroup New NewSubjectSystemGroup
+// NewSubjectSystemGroupManager New NewSubjectSystemGroup
 func NewSubjectSystemGroupManager() SubjectSystemGroupManager {
 	return &subjectSystemGroupManager{
 		DB: database.GetDefaultDBClient().DB,
@@ -77,17 +77,17 @@ func (m *subjectSystemGroupManager) GetBySystemSubject(systemID string, subjectP
 	return subjectSystemGroup, err
 }
 
-// Create ...
+// CreateWithTx ...
 func (m *subjectSystemGroupManager) CreateWithTx(tx *sqlx.Tx, subjectSystemGroup SubjectSystemGroup) error {
 	return m.insertWithTx(tx, &subjectSystemGroup)
 }
 
-// Update ...
+// UpdateWithTx ...
 func (m *subjectSystemGroupManager) UpdateWithTx(tx *sqlx.Tx, subjectSystemGroup SubjectSystemGroup) (int64, error) {
 	return m.updateWithTx(tx, &subjectSystemGroup)
 }
 
-// DeleteBySystemSubject ...
+// DeleteBySubjectPKsWithTx ...
 func (m *subjectSystemGroupManager) DeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	return m.deleteBySubjectPKsWithTx(tx, subjectPKs)
 }
