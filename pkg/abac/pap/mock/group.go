@@ -109,21 +109,6 @@ func (mr *MockGroupControllerMockRecorder) GetGroupMemberCount(_type, id interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberCount", reflect.TypeOf((*MockGroupController)(nil).GetGroupMemberCount), _type, id)
 }
 
-// GetSubjectGroupCountBeforeExpireAt mocks base method.
-func (m *MockGroupController) GetSubjectGroupCountBeforeExpireAt(_type, id string, beforeExpiredAt int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSubjectGroupCountBeforeExpireAt", _type, id, beforeExpiredAt)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSubjectGroupCountBeforeExpireAt indicates an expected call of GetSubjectGroupCountBeforeExpireAt.
-func (mr *MockGroupControllerMockRecorder) GetSubjectGroupCountBeforeExpireAt(_type, id, beforeExpiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectGroupCountBeforeExpireAt", reflect.TypeOf((*MockGroupController)(nil).GetSubjectGroupCountBeforeExpireAt), _type, id, beforeExpiredAt)
-}
-
 // GetGroupMemberCountBeforeExpiredAt mocks base method.
 func (m *MockGroupController) GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -137,6 +122,21 @@ func (m *MockGroupController) GetGroupMemberCountBeforeExpiredAt(_type, id strin
 func (mr *MockGroupControllerMockRecorder) GetGroupMemberCountBeforeExpiredAt(_type, id, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberCountBeforeExpiredAt", reflect.TypeOf((*MockGroupController)(nil).GetGroupMemberCountBeforeExpiredAt), _type, id, expiredAt)
+}
+
+// GetSubjectGroupCountBeforeExpiredAt mocks base method.
+func (m *MockGroupController) GetSubjectGroupCountBeforeExpiredAt(_type, id string, beforeExpiredAt int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubjectGroupCountBeforeExpiredAt", _type, id, beforeExpiredAt)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubjectGroupCountBeforeExpiredAt indicates an expected call of GetSubjectGroupCountBeforeExpiredAt.
+func (mr *MockGroupControllerMockRecorder) GetSubjectGroupCountBeforeExpiredAt(_type, id, beforeExpiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectGroupCountBeforeExpiredAt", reflect.TypeOf((*MockGroupController)(nil).GetSubjectGroupCountBeforeExpiredAt), _type, id, beforeExpiredAt)
 }
 
 // ListPagingGroupMember mocks base method.

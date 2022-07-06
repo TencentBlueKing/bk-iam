@@ -378,9 +378,9 @@ func (c *policyController) DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteTemporaryBeforeExpiredAt`")
 
 	// NOTE: 这里删除一定要是已过期的策略, 不用清除缓存
-	err := c.temporaryPolicyService.DeleteBeforeExpireAt(expiredAt)
+	err := c.temporaryPolicyService.DeleteBeforeExpiredAt(expiredAt)
 	if err != nil {
-		err = errorWrapf(err, "temporaryPolicyService.DeleteBeforeExpireAt expiredAt=`%d`` fail",
+		err = errorWrapf(err, "temporaryPolicyService.DeleteBeforeExpiredAt expiredAt=`%d`` fail",
 			expiredAt)
 		return err
 	}

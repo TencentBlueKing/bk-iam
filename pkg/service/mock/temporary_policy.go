@@ -49,18 +49,18 @@ func (mr *MockTemporaryPolicyServiceMockRecorder) Create(policies interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTemporaryPolicyService)(nil).Create), policies)
 }
 
-// DeleteBeforeExpireAt mocks base method.
-func (m *MockTemporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
+// DeleteBeforeExpiredAt mocks base method.
+func (m *MockTemporaryPolicyService) DeleteBeforeExpiredAt(expiredAt int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteBeforeExpireAt", expiredAt)
+	ret := m.ctrl.Call(m, "DeleteBeforeExpiredAt", expiredAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteBeforeExpireAt indicates an expected call of DeleteBeforeExpireAt.
-func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteBeforeExpireAt(expiredAt interface{}) *gomock.Call {
+// DeleteBeforeExpiredAt indicates an expected call of DeleteBeforeExpiredAt.
+func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteBeforeExpiredAt(expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBeforeExpireAt", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteBeforeExpireAt), expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBeforeExpiredAt", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteBeforeExpiredAt), expiredAt)
 }
 
 // DeleteByPKs mocks base method.
