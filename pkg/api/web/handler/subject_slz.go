@@ -62,6 +62,7 @@ type listSubjectGroupSerializer struct {
 	Type            string `form:"type" binding:"required,oneof=user department"`
 	ID              string `form:"id" binding:"required"`
 	BeforeExpiredAt int64  `form:"before_expired_at" binding:"omitempty,min=0"`
+	pageSerializer
 }
 
 type memberSerializer struct {

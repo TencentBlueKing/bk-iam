@@ -53,8 +53,11 @@ type ThinSubjectRelation struct {
 // SubjectGroupManager ...
 type SubjectGroupManager interface {
 	ListThinRelationAfterExpiredAtBySubjectPKs(subjectPKs []int64, expiredAt int64) ([]ThinSubjectRelation, error)
-	ListRelation(subjectPK int64) ([]SubjectRelation, error)
-	ListRelationBeforeExpiredAt(subjectPK int64, expiredAt int64) ([]SubjectRelation, error)
+
+	GetSubjectGroupCount(subjectPK int64) (int64, error)
+	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
+	ListPagingSubjectGroups(subjectPK, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingSubjectGroupBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
@@ -86,9 +89,33 @@ func NewSubjectGroupManager() SubjectGroupManager {
 	}
 }
 
-// ListRelation ...
-func (m *subjectGroupManager) ListRelation(subjectPK int64) (relations []SubjectRelation, err error) {
-	err = m.selectRelation(&relations, subjectPK)
+// GetSubjectGroupCount ...
+func (m *subjectGroupManager) GetSubjectGroupCount(subjectPK int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_relation
+		 WHERE subject_pk = ?`
+
+	err := database.SqlxGet(m.DB, &count, query, subjectPK)
+	return count, err
+}
+
+// ListPagingSubjectGroups ...
+func (m *subjectGroupManager) ListPagingSubjectGroups(
+	subjectPK, limit, offset int64,
+) (relations []SubjectRelation, err error) {
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 ORDER BY pk DESC
+		 LIMIT ? OFFSET ?`
+	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -96,11 +123,35 @@ func (m *subjectGroupManager) ListRelation(subjectPK int64) (relations []Subject
 	return
 }
 
-// ListRelationBeforeExpiredAt ...
-func (m *subjectGroupManager) ListRelationBeforeExpiredAt(
-	subjectPK int64, expiredAt int64,
+// GetSubjectGroupCountBeforeExpiredAt ...
+func (m *subjectGroupManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 AND policy_expired_at < ?`
+	err := database.SqlxGet(m.DB, &count, query, subjectPK, expiredAt)
+
+	return count, err
+}
+
+// ListPagingSubjectGroupBeforeExpiredAt ...
+func (m *subjectGroupManager) ListPagingSubjectGroupBeforeExpiredAt(
+	subjectPK, expiredAt, limit, offset int64,
 ) (relations []SubjectRelation, err error) {
-	err = m.selectRelationBeforeExpiredAt(&relations, subjectPK, expiredAt)
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 AND policy_expired_at < ?
+		 ORDER BY policy_expired_at DESC, pk DESC
+		 LIMIT ? OFFSET ?`
+	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, expiredAt, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
 		return relations, nil
@@ -268,34 +319,6 @@ func (m *subjectGroupManager) FilterSubjectPKsExistGroupPKsAfterExpiredAt(
 	}
 
 	return groupPKs, err
-}
-
-func (m *subjectGroupManager) selectRelation(relations *[]SubjectRelation, subjectPK int64) error {
-	query := `SELECT
-		 pk,
-		 subject_pk,
-		 parent_pk,
-		 policy_expired_at,
-		 created_at
-		 FROM subject_relation
-		 WHERE subject_pk = ?`
-	return database.SqlxSelect(m.DB, relations, query, subjectPK)
-}
-
-func (m *subjectGroupManager) selectRelationBeforeExpiredAt(
-	relations *[]SubjectRelation, subjectPK int64, expiredAt int64,
-) error {
-	query := `SELECT
-		 pk,
-		 subject_pk,
-		 parent_pk,
-		 policy_expired_at,
-		 created_at
-		 FROM subject_relation
-		 WHERE subject_pk = ?
-		 AND policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC`
-	return database.SqlxSelect(m.DB, relations, query, subjectPK, expiredAt)
 }
 
 func (m *subjectGroupManager) selectPagingMembers(

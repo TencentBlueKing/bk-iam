@@ -60,21 +60,52 @@ func ListGroupMember(c *gin.Context) {
 
 // ListSubjectGroups 获取subject关联的用户组
 func ListSubjectGroups(c *gin.Context) {
-	var subject listSubjectGroupSerializer
-	if err := c.ShouldBindQuery(&subject); err != nil {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSubjectGroups")
+
+	var query listSubjectGroupSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
 
+	query.Default()
+
 	ctl := pap.NewGroupController()
-	groups, err := ctl.ListSubjectGroups(subject.Type, subject.ID, subject.BeforeExpiredAt)
+
+	count, err := ctl.GetSubjectGroupCountBeforeExpireAt(query.Type, query.ID, query.BeforeExpiredAt)
 	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.ListSubjectGroups", "type=`%s`, id=`%s`", subject.Type, subject.ID)
+		err = errorWrapf(err, "type=`%s`, id=`%s`", query.Type, query.ID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	util.SuccessJSONResponse(c, "ok", groups)
+	groups, err := ctl.ListPagingSubjectGroups(
+		query.Type,
+		query.ID,
+		query.BeforeExpiredAt,
+		query.Limit,
+		query.Offset,
+	)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListPagingSubjectGroups",
+			"type=`%s`, id=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			query.Type,
+			query.ID,
+			query.BeforeExpiredAt,
+			query.Limit,
+			query.Offset,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{
+		"count":   count,
+		"results": groups,
+	})
 }
 
 func CheckSubjectGroupsBelong(c *gin.Context) {
