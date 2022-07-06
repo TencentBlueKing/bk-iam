@@ -149,7 +149,7 @@ func (m *subjectGroupManager) ListPagingSubjectGroupBeforeExpiredAt(
 		 FROM subject_relation
 		 WHERE subject_pk = ?
 		 AND policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC
+		 ORDER BY policy_expired_at DESC, pk DESC
 		 LIMIT ? OFFSET ?`
 	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, expiredAt, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的

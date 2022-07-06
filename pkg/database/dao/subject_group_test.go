@@ -129,7 +129,7 @@ func Test_subjectRelationManager_ListPagingRelationBeforeExpiredAt(t *testing.T)
 		 FROM subject_relation
 		 WHERE subject_pk = (.*)
 		 AND policy_expired_at < (.*)
-		 ORDER BY policy_expired_at DESC
+		 ORDER BY policy_expired_at DESC, pk DESC
 		 LIMIT (.*) OFFSET (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{
