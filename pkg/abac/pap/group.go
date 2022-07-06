@@ -504,7 +504,7 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 			Type:      subject.Type,
 			ID:        subject.ID,
 			ExpiredAt: m.ExpiredAt,
-			CreateAt:  m.CreateAt,
+			CreatedAt: m.CreatedAt,
 		})
 	}
 
@@ -528,7 +528,7 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 			Type:      subject.Type,
 			ID:        subject.ID,
 			ExpiredAt: m.ExpiredAt,
-			CreateAt:  m.CreateAt,
+			CreatedAt: m.CreatedAt,
 		})
 	}
 
