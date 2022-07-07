@@ -59,7 +59,6 @@ type PolicyService interface {
 	ListThinBySubjectActionTemplate(subjectPK int64, actionPKs []int64, templateID int64) ([]types.ThinPolicy, error)
 	ListThinBySubjectTemplateBeforeExpiredAt(subjectPK int64, templateID, expiredAt int64) ([]types.ThinPolicy, error)
 
-	UpdateExpiredAt(policies []types.QueryPolicy) error
 	AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 		actionPKWithResourceTypeSet *set.Int64Set) (map[int64][]int64, error)
 	AlterCustomPoliciesWithTx(
@@ -459,52 +458,6 @@ func (s *policyService) DeleteByPKs(subjectPK int64, pks []int64) error {
 		return errorWrapf(err, "tx.Commit fail")
 	}
 	return err
-}
-
-// UpdateExpiredAt ...
-func (s *policyService) UpdateExpiredAt(queryPolicies []types.QueryPolicy) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "RenewExpiredAtByPKs")
-
-	pks := make([]int64, 0, len(queryPolicies))
-	pkExpiredAt := make(map[int64]int64, len(queryPolicies))
-	for _, p := range queryPolicies {
-		pks = append(pks, p.PK)
-		pkExpiredAt[p.PK] = p.ExpiredAt
-	}
-
-	policies, err := s.manager.ListByPKs(pks)
-	if err != nil {
-		return errorWrapf(err, "ListByPKs pks=`%+v`", pks)
-	}
-
-	updatePolicies := make([]dao.Policy, 0, len(policies))
-
-	for _, p := range policies {
-		if p.ExpiredAt < pkExpiredAt[p.PK] {
-			p.ExpiredAt = pkExpiredAt[p.PK]
-			updatePolicies = append(updatePolicies, p)
-		}
-	}
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return err
-	}
-
-	err = s.manager.BulkUpdateExpiredAtWithTx(tx, updatePolicies)
-	if err != nil {
-		return errorWrapf(err, "UpdateExpiredAt policies=`%+v`", updatePolicies)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errorWrapf(err, "tx.Commit fail")
-	}
-	return nil
 }
 
 // Get ...

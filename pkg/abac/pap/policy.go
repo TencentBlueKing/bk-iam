@@ -36,7 +36,6 @@ type PolicyController interface {
 	AlterCustomPolicies(
 		system, subjectType, subjectID string,
 		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error
-	UpdateSubjectPoliciesExpiredAt(subjectType, subjectID string, policies []types.PolicyPKExpiredAt) error
 
 	DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
 	DeleteByActionID(system, actionID string) error

@@ -249,52 +249,6 @@ func ListPolicy(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", policies)
 }
 
-// UpdatePoliciesExpiredAt godoc
-// @Summary Renew policies/权限续期
-// @Description renew policies
-// @ID api-web-renew-policies
-// @Tags web
-// @Accept json
-// @Produce json
-// @Param body body policiesUpdateExpiredAtSerializer true "renew policies"
-// @Success 200 {object} util.Response
-// @Header 200 {string} X-Request-Id "the request id"
-// @Security AppCode
-// @Security AppSecret
-// @Router /api/v1/web/policies/expired_at [put]
-func UpdatePoliciesExpiredAt(c *gin.Context) {
-	var body policiesUpdateExpiredAtSerializer
-	if err := c.ShouldBindJSON(&body); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
-	if ok, message := body.validate(); !ok {
-		util.BadRequestErrorJSONResponse(c, message)
-		return
-	}
-
-	pkExpiredAts := make([]types.PolicyPKExpiredAt, 0, len(body.Policies))
-	for _, p := range body.Policies {
-		pkExpiredAts = append(pkExpiredAts, types.PolicyPKExpiredAt{
-			PK:        p.ID,
-			ExpiredAt: p.ExpiredAt,
-		})
-	}
-
-	ctl := pap.NewPolicyController()
-	err := ctl.UpdateSubjectPoliciesExpiredAt(
-		body.SubjectType, body.SubjectID, pkExpiredAts)
-	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "UpdateSubjectPoliciesExpiredAt",
-			"subjectType=`%s`, subjectID=`%s`, ids=`%+v`",
-			body.SubjectType, body.SubjectID, pkExpiredAts)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{})
-}
-
 // DeleteActionPolicies will delete all policies by action_id
 func DeleteActionPolicies(c *gin.Context) {
 	systemID := c.Param("system_id")

@@ -286,20 +286,6 @@ func (mr *MockPolicyServiceMockRecorder) ListThinBySubjectTemplateBeforeExpiredA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinBySubjectTemplateBeforeExpiredAt", reflect.TypeOf((*MockPolicyService)(nil).ListThinBySubjectTemplateBeforeExpiredAt), subjectPK, templateID, expiredAt)
 }
 
-// UpdateExpiredAt mocks base method.
-func (m *MockPolicyService) UpdateExpiredAt(policies []types.QueryPolicy) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExpiredAt", policies)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateExpiredAt indicates an expected call of UpdateExpiredAt.
-func (mr *MockPolicyServiceMockRecorder) UpdateExpiredAt(policies interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpiredAt", reflect.TypeOf((*MockPolicyService)(nil).UpdateExpiredAt), policies)
-}
-
 // UpdateTemplatePoliciesWithTx mocks base method.
 func (m *MockPolicyService) UpdateTemplatePoliciesWithTx(tx *sqlx.Tx, subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error {
 	m.ctrl.T.Helper()
