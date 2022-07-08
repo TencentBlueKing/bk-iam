@@ -62,8 +62,6 @@ func Register(r *gin.RouterGroup) {
 	{
 		// 查询过期的 policy 列表
 		r.GET("/policies", handler.ListPolicy)
-		// 更新策略过期时间
-		r.PUT("/policies/expired_at", handler.UpdatePoliciesExpiredAt)
 		// 删除
 		r.DELETE("/policies", handler.BatchDeletePolicies)
 	}

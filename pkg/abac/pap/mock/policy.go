@@ -163,17 +163,3 @@ func (mr *MockPolicyControllerMockRecorder) ListSaaSBySubjectTemplateBeforeExpir
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSaaSBySubjectTemplateBeforeExpiredAt", reflect.TypeOf((*MockPolicyController)(nil).ListSaaSBySubjectTemplateBeforeExpiredAt), subjectType, subjectID, templateID, expiredAt)
 }
-
-// UpdateSubjectPoliciesExpiredAt mocks base method.
-func (m *MockPolicyController) UpdateSubjectPoliciesExpiredAt(subjectType, subjectID string, policies []types.PolicyPKExpiredAt) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSubjectPoliciesExpiredAt", subjectType, subjectID, policies)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateSubjectPoliciesExpiredAt indicates an expected call of UpdateSubjectPoliciesExpiredAt.
-func (mr *MockPolicyControllerMockRecorder) UpdateSubjectPoliciesExpiredAt(subjectType, subjectID, policies interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectPoliciesExpiredAt", reflect.TypeOf((*MockPolicyController)(nil).UpdateSubjectPoliciesExpiredAt), subjectType, subjectID, policies)
-}
