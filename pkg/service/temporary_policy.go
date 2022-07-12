@@ -34,7 +34,7 @@ type TemporaryPolicyService interface {
 	// for saas
 	Create(policies []types.TemporaryPolicy) (pks []int64, err error)
 	DeleteByPKs(subjectPK int64, pks []int64) error
-	DeleteBeforeExpireAt(expiredAt int64) error
+	DeleteBeforeExpiredAt(expiredAt int64) error
 }
 
 type temporaryPolicyService struct {
@@ -134,9 +134,9 @@ func (s *temporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error
 	return err
 }
 
-// DeleteBeforeExpireAt ...
-func (s *temporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteBeforeExpireAt")
+// DeleteBeforeExpiredAt ...
+func (s *temporaryPolicyService) DeleteBeforeExpiredAt(expiredAt int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(TemporaryPolicySVC, "DeleteBeforeExpiredAt")
 	tx, err := database.GenerateDefaultDBTx()
 	if err != nil {
 		return errorWrapf(err, "define tx fail")

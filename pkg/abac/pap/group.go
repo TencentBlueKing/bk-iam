@@ -30,7 +30,7 @@ import (
 const GroupCTL = "GroupCTL"
 
 type GroupController interface {
-	GetSubjectGroupCountBeforeExpireAt(_type, id string, beforeExpiredAt int64) (int64, error)
+	GetSubjectGroupCountBeforeExpiredAt(_type, id string, beforeExpiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
 	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
@@ -60,12 +60,12 @@ func NewGroupController() GroupController {
 	}
 }
 
-// GetSubjectGroupCountBeforeExpireAt ...
-func (c *groupController) GetSubjectGroupCountBeforeExpireAt(
+// GetSubjectGroupCountBeforeExpiredAt ...
+func (c *groupController) GetSubjectGroupCountBeforeExpiredAt(
 	_type, id string,
 	expiredAt int64,
 ) (count int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectGroupCountBeforeExpireAt")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectGroupCountBeforeExpiredAt")
 	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
 	if err != nil {
 		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
@@ -504,7 +504,7 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 			Type:      subject.Type,
 			ID:        subject.ID,
 			ExpiredAt: m.ExpiredAt,
-			CreateAt:  m.CreateAt,
+			CreatedAt: m.CreatedAt,
 		})
 	}
 
@@ -528,7 +528,7 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 			Type:      subject.Type,
 			ID:        subject.ID,
 			ExpiredAt: m.ExpiredAt,
-			CreateAt:  m.CreateAt,
+			CreatedAt: m.CreatedAt,
 		})
 	}
 

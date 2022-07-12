@@ -578,9 +578,9 @@ var _ = Describe("PolicyCurd", func() {
 			}
 		})
 
-		It("temporaryPolicyService.DeleteBeforeExpireAt fail", func() {
+		It("temporaryPolicyService.DeleteBeforeExpiredAt fail", func() {
 			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(ctl)
-			mockTemporaryPolicyService.EXPECT().DeleteBeforeExpireAt(
+			mockTemporaryPolicyService.EXPECT().DeleteBeforeExpiredAt(
 				int64(1),
 			).Return(
 				errors.New("delete fail"),
@@ -592,12 +592,12 @@ var _ = Describe("PolicyCurd", func() {
 
 			err := policyCtl.DeleteTemporaryBeforeExpiredAt(int64(1))
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "temporaryPolicyService.DeleteBeforeExpireAt")
+			assert.Contains(GinkgoT(), err.Error(), "temporaryPolicyService.DeleteBeforeExpiredAt")
 		})
 
 		It("success", func() {
 			mockTemporaryPolicyService := mock.NewMockTemporaryPolicyService(ctl)
-			mockTemporaryPolicyService.EXPECT().DeleteBeforeExpireAt(
+			mockTemporaryPolicyService.EXPECT().DeleteBeforeExpiredAt(
 				int64(1),
 			).Return(
 				nil,

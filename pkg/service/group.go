@@ -83,7 +83,7 @@ func convertToSubjectGroup(relation dao.SubjectRelation) types.SubjectGroup {
 		PK:        relation.PK,
 		GroupPK:   relation.GroupPK,
 		ExpiredAt: relation.ExpiredAt,
-		CreateAt:  relation.CreateAt,
+		CreatedAt: relation.CreatedAt,
 	}
 }
 
@@ -206,7 +206,7 @@ func convertToGroupMembers(daoRelations []dao.SubjectRelation) []types.GroupMemb
 			PK:        r.PK,
 			SubjectPK: r.SubjectPK,
 			ExpiredAt: r.ExpiredAt,
-			CreateAt:  r.CreateAt,
+			CreatedAt: r.CreatedAt,
 		})
 	}
 	return relations

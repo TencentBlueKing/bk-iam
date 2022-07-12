@@ -235,7 +235,7 @@ var _ = Describe("TemporaryPolicyService", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 	})
-	Describe("DeleteBeforeExpireAt", func() {
+	Describe("DeleteBeforeExpiredAt", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -263,7 +263,7 @@ var _ = Describe("TemporaryPolicyService", func() {
 			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
 			defer patches.Reset()
 
-			err := manager.DeleteBeforeExpireAt(int64(1))
+			err := manager.DeleteBeforeExpiredAt(int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fail")
 		})
@@ -287,7 +287,7 @@ var _ = Describe("TemporaryPolicyService", func() {
 			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
 			defer patches.Reset()
 
-			err := manager.DeleteBeforeExpireAt(int64(1))
+			err := manager.DeleteBeforeExpiredAt(int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
 	})

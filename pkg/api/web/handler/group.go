@@ -72,7 +72,7 @@ func ListSubjectGroups(c *gin.Context) {
 
 	ctl := pap.NewGroupController()
 
-	count, err := ctl.GetSubjectGroupCountBeforeExpireAt(query.Type, query.ID, query.BeforeExpiredAt)
+	count, err := ctl.GetSubjectGroupCountBeforeExpiredAt(query.Type, query.ID, query.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(err, "type=`%s`, id=`%s`", query.Type, query.ID)
 		util.SystemErrorJSONResponse(c, err)

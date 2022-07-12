@@ -31,7 +31,7 @@ type SubjectRelation struct {
 	// 策略有效期，unix time，单位秒(s)
 	// NOTE: map policy_expired_at to ExpiredAt in dao
 	ExpiredAt int64     `db:"policy_expired_at"`
-	CreateAt  time.Time `db:"created_at"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 // SubjectRelationForUpdateExpiredAt keep the PrimaryKey and expired_at
