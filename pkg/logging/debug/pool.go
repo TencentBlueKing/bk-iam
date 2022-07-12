@@ -56,6 +56,7 @@ func (p *entryPool) Put(e *Entry) {
 	e.Steps = []Step{}
 	e.SubDebugs = []*Entry{}
 	e.Evals = map[int64]string{}
+	e.Error = ""
 
 	p.pool.Put(e)
 }
