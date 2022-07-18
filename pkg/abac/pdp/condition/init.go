@@ -35,6 +35,10 @@ type keyMatchFunc func(key string) bool
 var conditionFactories map[string]conditionFunc
 
 func init() {
+	// NOTE: before you add new condition, please read these docs first:
+	//       1. https://github.com/TencentBlueKing/bk-iam-saas/issues/1293
+	//       2. https://bk.tencent.com/docs/document/6.0/160/8466
+
 	conditionFactories = map[string]conditionFunc{
 		operator.AND:            newAndCondition,
 		operator.OR:             newOrCondition,
