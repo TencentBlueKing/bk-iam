@@ -36,17 +36,18 @@ var conditionFactories map[string]conditionFunc
 
 func init() {
 	conditionFactories = map[string]conditionFunc{
-		operator.AND:           newAndCondition,
-		operator.OR:            newOrCondition,
-		operator.ANY:           newAnyCondition,
-		operator.StringEquals:  newStringEqualsCondition,
-		operator.StringPrefix:  newStringPrefixCondition,
-		operator.Bool:          newBoolCondition,
-		operator.NumericEquals: newNumericEqualsCondition,
-		operator.NumericGt:     newNumericGreaterThanCondition,
-		operator.NumericGte:    newNumericGreaterThanEqualsCondition,
-		operator.NumericLt:     newNumericLessThanCondition,
-		operator.NumericLte:    newNumericLessThanEqualsCondition,
+		operator.AND:            newAndCondition,
+		operator.OR:             newOrCondition,
+		operator.ANY:            newAnyCondition,
+		operator.StringEquals:   newStringEqualsCondition,
+		operator.StringPrefix:   newStringPrefixCondition,
+		operator.StringContains: newStringContainsCondition,
+		operator.Bool:           newBoolCondition,
+		operator.NumericEquals:  newNumericEqualsCondition,
+		operator.NumericGt:      newNumericGreaterThanCondition,
+		operator.NumericGte:     newNumericGreaterThanEqualsCondition,
+		operator.NumericLt:      newNumericLessThanCondition,
+		operator.NumericLte:     newNumericLessThanEqualsCondition,
 	}
 }
 
