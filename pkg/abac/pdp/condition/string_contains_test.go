@@ -21,7 +21,7 @@ var _ = Describe("StringContains", func() {
 		c = &StringContainsCondition{
 			baseCondition{
 				Key:   "ok",
-				Value: []interface{}{"/biz,1/", "/biz,2/", "hello"},
+				Value: []interface{}{"hello", "world"},
 			},
 		}
 	})
@@ -38,12 +38,12 @@ var _ = Describe("StringContains", func() {
 
 	Context("Eval", func() {
 		It("true", func() {
-			assert.True(GinkgoT(), c.Eval(strCtx("/biz,1/set,2/")))
-			assert.True(GinkgoT(), c.Eval(strCtx("/biz,2/set,3/")))
-
 			assert.True(GinkgoT(), c.Eval(strCtx("hello")))
-			assert.True(GinkgoT(), c.Eval(strCtx("helloworld")))
-			assert.True(GinkgoT(), c.Eval(strCtx("testhello")))
+			assert.True(GinkgoT(), c.Eval(strCtx("world")))
+			assert.True(GinkgoT(), c.Eval(strCtx("hellothere")))
+			assert.True(GinkgoT(), c.Eval(strCtx("hereworld")))
+			assert.True(GinkgoT(), c.Eval(strCtx("hereworldtest")))
+			assert.True(GinkgoT(), c.Eval(strCtx("hi, hello, hey")))
 		})
 
 		It("false", func() {
@@ -52,10 +52,10 @@ var _ = Describe("StringContains", func() {
 		})
 
 		It("attr list", func() {
-			assert.True(GinkgoT(), c.Eval(listCtx{"/biz,1/set,2/", "d"}))
-			assert.True(GinkgoT(), c.Eval(listCtx{"d", "/biz,2/set,2/"}))
+			assert.True(GinkgoT(), c.Eval(listCtx{"helloworld", "d"}))
+			assert.True(GinkgoT(), c.Eval(listCtx{"d", "helloworld"}))
+			assert.True(GinkgoT(), c.Eval(listCtx{"hello", "world"}))
 			assert.True(GinkgoT(), c.Eval(listCtx{"hello"}))
-			assert.True(GinkgoT(), c.Eval(listCtx{"world", "hello"}))
 
 			assert.False(GinkgoT(), c.Eval(listCtx{"e", "f"}))
 		})
@@ -71,7 +71,7 @@ var _ = Describe("StringContains", func() {
 					Value: []interface{}{1},
 				},
 			}
-			assert.False(GinkgoT(), c.Eval(strCtx("/biz,1/set,2/")))
+			assert.False(GinkgoT(), c.Eval(strCtx("foobar")))
 		})
 	})
 
@@ -88,37 +88,57 @@ var _ = Describe("StringContains", func() {
 			expected := map[string]interface{}{
 				"op":    "string_contains",
 				"field": "key",
-				"value": "/biz,1/set,1/",
+				"value": "hello",
 			}
-			c, err := newStringContainsCondition("key", []interface{}{"/biz,1/set,1/"})
+			c, err := newStringContainsCondition("key", []interface{}{"hello"})
 			assert.NoError(GinkgoT(), err)
 			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 
-		It("ok, multiple or", func() {
+		It("ok, multiple, withSystem=True", func() {
 			expected := map[string]interface{}{
-				"op":    "string_contains",
-				"field": "bk_cmdb.host.path",
-				"value": []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"},
+				"op": "OR",
+				"content": []map[string]interface{}{
+					{
+						"op":    "string_contains",
+						"field": "bk_cmdb.host.path",
+						"value": "hello",
+					},
+					{
+						"op":    "string_contains",
+						"field": "bk_cmdb.host.path",
+						"value": "world",
+					},
+				},
 			}
 
-			c, err := newStringContainsCondition("bk_cmdb.host.path", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			c, err := newStringContainsCondition("bk_cmdb.host.path", []interface{}{"hello", "world"})
 			assert.NoError(GinkgoT(), err)
 			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 
-		It("ok, multiple or, withSystem=False", func() {
+		It("ok, multiple, withSystem=False", func() {
 			expected := map[string]interface{}{
-				"op":    "string_contains",
-				"field": "host.path",
-				"value": []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"},
+				"op": "OR",
+				"content": []map[string]interface{}{
+					{
+						"op":    "string_contains",
+						"field": "host.path",
+						"value": "hello",
+					},
+					{
+						"op":    "string_contains",
+						"field": "host.path",
+						"value": "world",
+					},
+				},
 			}
 
-			c, err := newStringContainsCondition("bk_cmdb.host.path", []interface{}{"/biz,1/set,1/", "/biz,2/set,2/"})
+			c, err := newStringContainsCondition("bk_cmdb.host.path", []interface{}{"hello", "world"})
 			assert.NoError(GinkgoT(), err)
 			ec, err := c.Translate(false)
 			assert.NoError(GinkgoT(), err)

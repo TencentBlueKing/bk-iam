@@ -59,20 +59,28 @@ func (c *StringContainsCondition) Translate(withSystem bool) (map[string]interfa
 		key = removeSystemFromKey(key)
 	}
 
-	exprCell := map[string]interface{}{
-		"field": key,
+	// NOTE: starts_with/ends_with/not_starts_with/not_ends_with/contains/not_contains should be
+	// 1. single value like: a starts_with x
+	// 2. multiple value like: a starts_with x OR a starts_with y
+	// NEVER BE `a starts_with [x, y]`
+	content := make([]map[string]interface{}, 0, len(c.Value))
+	for _, v := range c.Value {
+		content = append(content, map[string]interface{}{
+			"op":    "string_contains",
+			"field": key,
+			"value": v,
+		})
 	}
 
-	switch len(c.Value) {
+	switch len(content) {
 	case 0:
 		return nil, errMustNotEmpty
 	case 1:
-		exprCell["op"] = "string_contains"
-		exprCell["value"] = c.Value[0]
-		return exprCell, nil
+		return content[0], nil
 	default:
-		exprCell["op"] = "string_contains"
-		exprCell["value"] = c.Value
-		return exprCell, nil
+		return map[string]interface{}{
+			"op":      "OR",
+			"content": content,
+		}, nil
 	}
 }
