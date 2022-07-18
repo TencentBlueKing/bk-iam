@@ -85,7 +85,7 @@ func (m *groupResourcePolicyManager) ListBySignatures(signatures []string) (poli
 		action_related_resource_type_pk,
 		resource_type_pk,
 		resource_id
-		FROM group_resource_policy
+		FROM rbac_group_resource_policy
 		WHERE signature IN (?)`
 	err = database.SqlxSelect(m.DB, &policies, query, signatures)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -100,7 +100,7 @@ func (m *groupResourcePolicyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []Gr
 		return nil
 	}
 
-	sql := `INSERT INTO group_resource_policy (
+	sql := `INSERT INTO rbac_group_resource_policy (
 		signature,
 		group_pk,
 		template_id,
@@ -129,7 +129,7 @@ func (m *groupResourcePolicyManager) BulkUpdateActionPKsWithTx(tx *sqlx.Tx, poli
 		return nil
 	}
 
-	sql := `UPDATE group_resource_policy SET action_pks = :action_pks WHERE pk = :pk`
+	sql := `UPDATE rbac_group_resource_policy SET action_pks = :action_pks WHERE pk = :pk`
 	return database.SqlxBulkUpdateWithTx(tx, sql, policies)
 }
 
@@ -138,7 +138,7 @@ func (m *groupResourcePolicyManager) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []in
 		return nil
 	}
 
-	sql := `DELETE FROM group_resource_policy WHERE pk IN (?)`
+	sql := `DELETE FROM rbac_group_resource_policy WHERE pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, pks)
 }
 
@@ -150,7 +150,7 @@ func (m *groupResourcePolicyManager) ListThinByResource(
 	query := `SELECT 
 		group_pk,
 		action_pks
-		FROM group_resource_policy
+		FROM rbac_group_resource_policy
 		WHERE system_id = ?
 		AND action_related_resource_type_pk = ?
 		AND resource_type_pk = ?
