@@ -35,7 +35,7 @@ func InitRmqQueue(debugMode bool) {
 		}
 	}
 
-	queue, err = connection.OpenQueue("group_subject_action")
+	queue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
 	if err != nil {
 		log.WithError(err).Error("new rmq queue fail")
 		if !debugMode {
