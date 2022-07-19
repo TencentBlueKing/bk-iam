@@ -227,14 +227,23 @@ var _ = Describe("NumericCompare", func() {
 			expected := map[string]interface{}{
 				"op":    "gte",
 				"field": "bk_cmdb.host.id",
-				"value": []interface{}{1, 2},
+				"value": 1,
 			}
-			c, err := newNumericGreaterThanEqualsCondition("bk_cmdb.host.id", []interface{}{1, 2})
+			c, err := newNumericGreaterThanEqualsCondition("bk_cmdb.host.id", []interface{}{1})
 			assert.NoError(GinkgoT(), err)
 
 			c1, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, c1)
+		})
+
+		It("ok, gte", func() {
+			c, err := newNumericGreaterThanEqualsCondition("bk_cmdb.host.id", []interface{}{1, 2})
+			assert.NoError(GinkgoT(), err)
+
+			_, err = c.Translate(true)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "not support multi value ")
 		})
 
 		It("ok, in, withSystem=False", func() {
