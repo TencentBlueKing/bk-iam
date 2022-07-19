@@ -144,4 +144,16 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		assert.Equal(GinkgoT(), int64(1), policies[0].GroupPK)
 		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
 	})
+
+	It("ListActionPKsByGroup", func() {
+		mockRows := sqlmock.NewRows([]string{"action_pks"}).AddRow("[1,2,3]").AddRow("[4,5,6]")
+		mock.ExpectQuery(
+			"^SELECT action_pks FROM rbac_group_resource_policy WHERE group_pk = (.*)$",
+		).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		actionPKs, err := manager.ListActionPKsByGroup(1)
+
+		assert.NoError(GinkgoT(), err)
+		assert.Equal(GinkgoT(), []string{"[1,2,3]", "[4,5,6]"}, actionPKs)
+	})
 })

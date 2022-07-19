@@ -67,3 +67,9 @@ type SubjectRelationForCreate struct {
 	GroupPK   int64 `json:"group_pk"`
 	ExpiredAt int64 `json:"expired_at"`
 }
+
+type GroupAlterEvent struct {
+	GroupPK    int64   `json:"group_pk"`
+	ActionPKs  []int64 `json:"action_pks"`
+	SubjectPKs []int64 `json:"subject_pks"`
+}

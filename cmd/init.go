@@ -25,6 +25,7 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
+	"iam/pkg/task"
 	"iam/pkg/util"
 )
 
@@ -119,6 +120,10 @@ func initRedis() {
 		log.Info("init Redis mode=`standalone`")
 		redis.InitRedisClient(globalConfig.Debug, &standaloneConfig)
 	}
+
+	log.Info("init RMQ queue")
+	// NOTE: 必须在redis初始化后才能初始化rmq
+	task.InitRmqQueue(globalConfig.Debug)
 
 	log.Info("init Redis success")
 }

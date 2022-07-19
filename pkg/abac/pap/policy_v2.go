@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
@@ -25,6 +26,7 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
+	"iam/pkg/task"
 )
 
 const PolicyCTLV2 = "PolicyCTLV2"
@@ -44,8 +46,12 @@ type policyControllerV2 struct {
 	// RBAC
 	groupResourcePolicyService service.GroupResourcePolicyService
 	groupService               service.GroupService
+	groupAlterEventService     service.GroupAlterEventService
 
 	resourceTypeService service.ResourceTypeService
+
+	// task producer
+	producer task.Producer
 }
 
 func NewPolicyControllerV2() PolicyControllerV2 {
@@ -59,7 +65,10 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 
 		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 		groupService:               service.NewGroupService(),
+		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
+
+		producer: task.NewProducer(),
 	}
 }
 
@@ -119,8 +128,11 @@ func (c *policyControllerV2) Alter(
 		return
 	}
 
-	// 4. 清理缓存
-	// 4.1 ABAC相关缓存
+	// 4. 创建RBAC变更消息
+	c.createRBACGroupAlterEvent(subjectPK, resourceChangedContents)
+
+	// 5. 清理缓存
+	// 5.1 ABAC相关缓存
 	if len(createPolicies) > 0 || len(updatePolicies) > 0 || len(deletePolicyIDs) > 0 {
 		policy.DeleteSystemSubjectPKsFromCache(systemID, []int64{subjectPK})
 		// 只有自定义权限才需要清理Expression，模板权限不需要清理Expression，因为模板的Expression是复用的，有定时任务自动清理
@@ -129,14 +141,14 @@ func (c *policyControllerV2) Alter(
 		}
 	}
 
-	// 4.2 RBAC相关缓存
+	// 5.2 RBAC相关缓存
 	for _, rcc := range resourceChangedContents {
 		cacheimpls.DeleteResourceAuthorizedGroupPKsCache(
 			systemID, rcc.ActionRelatedResourceTypePK, rcc.ResourceTypePK, rcc.ResourceID,
 		)
 	}
 
-	// 4.3 GroupAuthType相关缓存
+	// 5.3 GroupAuthType相关缓存
 	// 只有AuthType被改变了才会进行缓存的清理
 	if changed {
 		group.DeleteGroupAuthTypeCache(systemID, subjectPK)
@@ -257,6 +269,35 @@ func (c *policyControllerV2) alterRBACPolicies(
 	}
 
 	return resourceChangedContents, nil
+}
+
+// createRBACGroupAlterEvent 创建用户组变更事件
+func (c *policyControllerV2) createRBACGroupAlterEvent(
+	groupPK int64,
+	resourceChangedContents []svctypes.ResourceChangedContent,
+) {
+	actionPKSet := set.NewInt64Set()
+	for _, rcc := range resourceChangedContents {
+		for _, pk := range rcc.CreatedActionPKs {
+			actionPKSet.Add(pk)
+		}
+
+		for _, pk := range rcc.DeletedActionPKs {
+			actionPKSet.Add(pk)
+		}
+	}
+
+	// 创建 group_alter_event
+	actionPKs := actionPKSet.ToSlice()
+	event, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
+	if err != nil {
+		log.WithError(err).
+			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
+		return
+	}
+
+	// 发送event 消息
+	go c.producer.Publish(event)
 }
 
 func (c *policyControllerV2) convertToResourceChangedContent(

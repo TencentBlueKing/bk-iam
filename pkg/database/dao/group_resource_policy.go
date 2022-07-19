@@ -48,6 +48,7 @@ type ThinGroupResourcePolicy struct {
 
 type GroupResourcePolicyManager interface {
 	ListBySignatures(signatures []string) (policies []GroupResourcePolicy, err error)
+	ListActionPKsByGroup(groupPK int64) ([]string, error)
 	BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
@@ -161,4 +162,17 @@ func (m *groupResourcePolicyManager) ListThinByResource(
 	}
 
 	return policies, err
+}
+
+func (m *groupResourcePolicyManager) ListActionPKsByGroup(groupPK int64) (actionPKsList []string, err error) {
+	query := `SELECT 
+		action_pks
+		FROM rbac_group_resource_policy
+		WHERE group_pk = ?`
+	err = database.SqlxSelect(m.DB, &actionPKsList, query, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		return actionPKsList, nil
+	}
+
+	return actionPKsList, err
 }

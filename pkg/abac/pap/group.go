@@ -22,6 +22,7 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	"iam/pkg/task"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -50,13 +51,18 @@ type GroupController interface {
 type groupController struct {
 	service service.GroupService
 
-	subjectService service.SubjectService
+	subjectService         service.SubjectService
+	groupAlterEventService service.GroupAlterEventService
+
+	producer task.Producer
 }
 
 func NewGroupController() GroupController {
 	return &groupController{
-		service:        service.NewGroupService(),
-		subjectService: service.NewSubjectService(),
+		service:                service.NewGroupService(),
+		subjectService:         service.NewSubjectService(),
+		groupAlterEventService: service.NewGroupAlterEventService(),
+		producer:               task.NewProducer(),
 	}
 }
 
@@ -424,6 +430,9 @@ func (c *groupController) alterGroupMembers(
 		return nil, errorWrapf(err, "tx commit error")
 	}
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
@@ -479,12 +488,27 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
 
 	return typeCount, nil
+}
+
+func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
+	event, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
+	if err != nil {
+		log.WithError(err).
+			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
+		return
+	}
+
+	// 发送消息
+	go c.producer.Publish(event)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

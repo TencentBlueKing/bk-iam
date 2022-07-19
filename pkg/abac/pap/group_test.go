@@ -179,6 +179,10 @@ var _ = Describe("GroupController", func() {
 			).
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
+			mockGroupAlterEventService.EXPECT().
+				CreateByGroupSubject(gomock.Any(), gomock.Any()).
+				Return(types.GroupAlterEvent{}, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -194,7 +198,8 @@ var _ = Describe("GroupController", func() {
 			})
 
 			manager := &groupController{
-				service: mockGroupService,
+				service:                mockGroupService,
+				groupAlterEventService: mockGroupAlterEventService,
 			}
 
 			_, err := manager.alterGroupMembers("group", "1", []GroupMember{
@@ -232,6 +237,10 @@ var _ = Describe("GroupController", func() {
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
+			mockGroupAlterEventService.EXPECT().
+				CreateByGroupSubject(gomock.Any(), gomock.Any()).
+				Return(types.GroupAlterEvent{}, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -247,7 +256,8 @@ var _ = Describe("GroupController", func() {
 			})
 
 			manager := &groupController{
-				service: mockGroupService,
+				service:                mockGroupService,
+				groupAlterEventService: mockGroupAlterEventService,
 			}
 
 			typeCount, err := manager.alterGroupMembers("group", "1", []GroupMember{
@@ -319,13 +329,18 @@ var _ = Describe("GroupController", func() {
 				map[string]int64{"user": 1, "department": 0}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
+			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
+			mockGroupAlterEventService.EXPECT().
+				CreateByGroupSubject(gomock.Any(), gomock.Any()).
+				Return(types.GroupAlterEvent{}, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
 			})
 
 			manager := &groupController{
-				service: mockGroupService,
+				service:                mockGroupService,
+				groupAlterEventService: mockGroupAlterEventService,
 			}
 
 			typeCount, err := manager.DeleteGroupMembers("group", "1", []Subject{
