@@ -64,6 +64,17 @@ type authResponse struct {
 	Allowed bool `json:"allowed" example:"false"`
 }
 
+// ====== auth v2
+type authV2Request struct {
+	Subject   subject    `json:"subject" binding:"required"`
+	Resources []resource `json:"resources" binding:"required"`
+	Action    action     `json:"action" binding:"required"`
+}
+
+type authV2Response struct {
+	Allowed bool `json:"allowed" example:"false"`
+}
+
 // ======= auth by actions
 
 type authByActionsRequest struct {

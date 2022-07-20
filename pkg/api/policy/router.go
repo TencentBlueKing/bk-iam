@@ -13,6 +13,7 @@ package policy
 import (
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/api/common"
 	"iam/pkg/api/policy/handler"
 )
 
@@ -33,4 +34,21 @@ func Register(r *gin.RouterGroup) {
 	r.POST("/query_by_actions", handler.BatchQueryByActions)
 	// 批量第三方依赖策略查询
 	r.POST("/query_by_ext_resources", handler.QueryByExtResources)
+}
+
+// RegisterV2 will register the urls: /api/v2/policy/systems/:system_id/[auth|query|...]/  (has suffix slash!)
+func RegisterV2(r *gin.RouterGroup) {
+	// all resource in system
+	s := r.Group("/systems/:system_id")
+	// validate: 1) system exists 2) client_id is valid, in system.clients
+	s.Use(common.SystemExistsAndClientValid())
+	{
+		// in auth_v2.go
+		// 鉴权
+		s.POST("/auth/", handler.AuthV2)
+
+		// in query_v2.go
+		// 查询
+		s.POST("/query/", handler.Query)
+	}
 }

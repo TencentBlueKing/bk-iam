@@ -50,6 +50,24 @@ func copyRequestFromAuthBody(req *request.Request, body *authRequest) {
 	}
 }
 
+func copyRequestFromAuthV2Body(req *request.Request, systemID string, body *authV2Request) {
+	req.System = systemID
+
+	req.Action.ID = body.Action.ID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
 func copyRequestFromQueryBody(req *request.Request, body *queryRequest) {
 	req.System = body.System
 
