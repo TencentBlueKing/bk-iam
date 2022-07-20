@@ -24,12 +24,14 @@ import (
 
 var _ = Describe("task", func() {
 	Describe("Producer", func() {
-		connection, _ = rmq.OpenConnectionWithTestRedisClient("test", nil)
+		testConn := rmq.NewTestConnection()
+		connection = testConn
 		queue, _ = connection.OpenQueue("test")
 
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
+			testConn.Reset()
 		})
 
 		AfterEach(func() {
@@ -53,6 +55,7 @@ var _ = Describe("task", func() {
 			})
 
 			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), testConn.GetDeliveries("test"), 7)
 		})
 
 		It("ListByGroup fail", func() {
