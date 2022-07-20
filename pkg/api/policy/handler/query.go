@@ -20,6 +20,7 @@ import (
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -80,14 +81,9 @@ func Query(c *gin.Context) {
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body)
 
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
+	// debug
+	entry, _, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	// 如果传的筛选的资源实例为空, 则不判断外部依赖资源是否满足
 	willCheckRemoteResource := true
@@ -169,14 +165,8 @@ func BatchQueryByActions(c *gin.Context) {
 	}
 
 	// enable debug
-	var entry *debug.Entry
-	_, isDebug := c.GetQuery("debug")
-	if isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
+	entry, isDebug, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	// TODO: 这里, subject/resource都是一致的, 只是action是多个, 所以其中pdp.Query会存在重复查询/重复计算?
 	for _, action := range body.Actions {
@@ -287,13 +277,9 @@ func QueryByExtResources(c *gin.Context) {
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body.queryRequest)
 
-	var entry *debug.Entry
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
+	// Debug
+	entry, _, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	// 结构体隔离转换
 	extResources := make([]types.ExtResource, 0, len(body.ExtResources))

@@ -23,6 +23,7 @@ import (
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -85,13 +86,8 @@ func Auth(c *gin.Context) {
 	copyRequestFromAuthBody(req, &body)
 
 	// 鉴权
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-	_, isForce := c.GetQuery("force")
+	entry, _, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
@@ -169,14 +165,8 @@ func BatchAuthByActions(c *gin.Context) {
 	}
 
 	// enable debug
-	var entry *debug.Entry
-	_, isDebug := c.GetQuery("debug")
-	if isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
+	entry, isDebug, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	// 查询  subject-system-action的policies, 然后执行鉴权!
 	for _, action := range body.Actions {
@@ -272,13 +262,8 @@ func BatchAuthByResources(c *gin.Context) {
 	copyRequestFromAuthByResourcesBody(req, &body)
 
 	// 鉴权
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-	_, isForce := c.GetQuery("force")
+	entry, _, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	/*
 		TODO 2种变更方式

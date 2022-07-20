@@ -19,6 +19,7 @@ import (
 
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types/request"
+	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -76,13 +77,8 @@ func AuthV2(c *gin.Context) {
 	copyRequestFromAuthV2Body(req, systemID, &body)
 
 	// 鉴权
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-	_, isForce := c.GetQuery("force")
+	entry, _, isForce := common.GetDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
