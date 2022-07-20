@@ -25,9 +25,11 @@ var (
 )
 
 func InitRmqQueue(debugMode bool) {
-	var err error
+	errChan := make(chan error, 10)
+	go logRmqErrors(errChan)
 
-	connection, err = rmq.OpenConnectionWithRedisClient("bkiam", redis.GetDefaultRedisClient(), nil)
+	var err error
+	connection, err = rmq.OpenConnectionWithRedisClient("bkiam", redis.GetDefaultRedisClient(), errChan)
 	if err != nil {
 		log.WithError(err).Error("new rmq connection fail")
 		if !debugMode {
@@ -41,5 +43,11 @@ func InitRmqQueue(debugMode bool) {
 		if !debugMode {
 			panic(err)
 		}
+	}
+}
+
+func logRmqErrors(errChan <-chan error) {
+	for err := range errChan {
+		log.WithError(err).Error("rmq error")
 	}
 }
