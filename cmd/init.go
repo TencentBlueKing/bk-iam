@@ -127,9 +127,7 @@ func initRedis() {
 // NOTE: 必须在Redis init 后才能初始化 rmq
 func initRmqQueue() {
 	log.Info("init RMQ queue")
-	// NOTE: 必须在redis初始化后才能初始化rmq
 	task.InitRmqQueue(globalConfig.Debug)
-
 	log.Info("init RMQ queue success")
 }
 
