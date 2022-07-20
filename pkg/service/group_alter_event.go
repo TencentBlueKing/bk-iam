@@ -26,9 +26,12 @@ import (
 // GroupAlterEventSVC ...
 const GroupAlterEventSVC = "GroupAlterEventSVC"
 
+// ErrEmptyGroupAlterEvent ...
+var ErrEmptyGroupAlterEvent = errors.New("empty group alter event")
+
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
-	ListByGroup(groupPK int64) ([]types.GroupAlterEvent, error)
+	ListUncheckedByGroup(groupPK int64) ([]types.GroupAlterEvent, error)
 
 	CreateByGroupAction(groupPK int64, actionPKs []int64) (types.GroupAlterEvent, error)
 	CreateByGroupSubject(groupPK int64, subjectPKs []int64) (types.GroupAlterEvent, error)
@@ -57,7 +60,7 @@ func (s *groupAlterEventService) CreateByGroupAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupAction")
 
 	if len(actionPKs) == 0 {
-		return event, errorWrapf(errors.New("actionPKs is empty"), "")
+		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
 	}
 
 	subjectRelations, err := s.subjectGroupManager.ListGroupMember(groupPK)
@@ -67,7 +70,7 @@ func (s *groupAlterEventService) CreateByGroupAction(
 	}
 
 	if len(subjectRelations) == 0 {
-		return event, errorWrapf(errors.New("subjectPKs is empty"), "")
+		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
 	}
 
 	subjectPKs := make([]int64, 0, len(subjectRelations))
@@ -98,7 +101,7 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupSubject")
 
 	if len(subjectPKs) == 0 {
-		return event, errorWrapf(errors.New("subjectPKs is empty"), "")
+		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
 	}
 
 	actionPKsList, err := s.groupResourcePolicyManager.ListActionPKsByGroup(groupPK)
@@ -121,7 +124,7 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	}
 
 	if actionPKSet.Size() == 0 {
-		return event, errorWrapf(errors.New("actionPKs is empty"), "")
+		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
 	}
 
 	event = types.GroupAlterEvent{
@@ -159,10 +162,11 @@ func (s *groupAlterEventService) createEvent(event types.GroupAlterEvent) (err e
 	return s.manager.Create(daoEvent)
 }
 
-func (s *groupAlterEventService) ListByGroup(groupPK int64) (events []types.GroupAlterEvent, err error) {
+// ListUncheckedByGroup 查询未处理的事件
+func (s *groupAlterEventService) ListUncheckedByGroup(groupPK int64) (events []types.GroupAlterEvent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListByGroupStatus")
 
-	daoEvents, err := s.manager.ListByGroupStatus(groupPK, 0)
+	daoEvents, err := s.manager.ListByGroupStatus(groupPK, 0) // status:0 未处理
 	if err != nil {
 		err = errorWrapf(err, "manager.ListByGroupStatus groupPK=`%d` status=`%d` fail", groupPK, 0)
 		return nil, err

@@ -68,7 +68,7 @@ var _ = Describe("GroupAlterEventService", func() {
 			svc = &groupAlterEventService{}
 			_, err := svc.CreateByGroupAction(1, []int64{})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "actionPKs is empty")
+			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
 		})
 
 		It("empty subject pks", func() {
@@ -80,7 +80,7 @@ var _ = Describe("GroupAlterEventService", func() {
 			}
 			_, err := svc.CreateByGroupAction(1, []int64{1, 2})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "subjectPKs is empty")
+			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
 		})
 
 		It("ListGroupMember fail", func() {
@@ -160,7 +160,7 @@ var _ = Describe("GroupAlterEventService", func() {
 			svc = &groupAlterEventService{}
 			_, err := svc.CreateByGroupSubject(1, []int64{})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "subjectPKs is empty")
+			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
 		})
 
 		It("empty action pks", func() {
@@ -172,7 +172,7 @@ var _ = Describe("GroupAlterEventService", func() {
 			}
 			_, err := svc.CreateByGroupSubject(1, []int64{11, 12})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "actionPKs is empty")
+			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
 		})
 
 		It("ListActionPKsByGroup fail", func() {
@@ -231,7 +231,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				manager: mockManager,
 			}
 
-			events, err := svc.ListByGroup(1)
+			events, err := svc.ListUncheckedByGroup(1)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.GroupAlterEvent{
 				{GroupPK: 1, ActionPKs: []int64{1, 2}, SubjectPKs: []int64{11, 12}},
@@ -248,7 +248,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.ListByGroup(1)
+			_, err := svc.ListUncheckedByGroup(1)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListByGroupStatus")
 		})

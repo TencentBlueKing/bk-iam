@@ -23,6 +23,7 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/task"
+	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -54,7 +55,7 @@ type groupController struct {
 	subjectService         service.SubjectService
 	groupAlterEventService service.GroupAlterEventService
 
-	producer task.Producer
+	taskProducer task.Producer
 }
 
 func NewGroupController() GroupController {
@@ -62,7 +63,7 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		producer:               task.NewProducer(),
+		taskProducer:           task.NewProducer(),
 	}
 }
 
@@ -502,13 +503,28 @@ func (c *groupController) DeleteGroupMembers(
 func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
 	event, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
 	if err != nil {
+		// 空事件不需要处理
+		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
+			return
+		}
+
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
+
+		// report to sentry
+		util.ReportToSentry("createGroupAlterEvent groupAlterEventService.CreateByGroupSubject fail",
+			map[string]interface{}{
+				"layer":      GroupCTL,
+				"groupPK":    groupPK,
+				"subjectPKs": subjectPKs,
+				"error":      err.Error(),
+			},
+		)
 		return
 	}
 
 	// 发送消息
-	go c.producer.Publish(event)
+	go c.taskProducer.Publish(event)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

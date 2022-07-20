@@ -121,11 +121,16 @@ func initRedis() {
 		redis.InitRedisClient(globalConfig.Debug, &standaloneConfig)
 	}
 
+	log.Info("init Redis success")
+}
+
+// NOTE: 必须在Redis init 后才能初始化 rmq
+func initRmqQueue() {
 	log.Info("init RMQ queue")
 	// NOTE: 必须在redis初始化后才能初始化rmq
 	task.InitRmqQueue(globalConfig.Debug)
 
-	log.Info("init Redis success")
+	log.Info("init RMQ queue success")
 }
 
 func initLogger() {

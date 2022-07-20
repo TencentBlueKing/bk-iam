@@ -64,17 +64,17 @@ func (mr *MockGroupAlterEventServiceMockRecorder) CreateByGroupSubject(groupPK, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateByGroupSubject", reflect.TypeOf((*MockGroupAlterEventService)(nil).CreateByGroupSubject), groupPK, subjectPKs)
 }
 
-// ListByGroup mocks base method.
-func (m *MockGroupAlterEventService) ListByGroup(groupPK int64) ([]types.GroupAlterEvent, error) {
+// ListUncheckedByGroup mocks base method.
+func (m *MockGroupAlterEventService) ListUncheckedByGroup(groupPK int64) ([]types.GroupAlterEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByGroup", groupPK)
+	ret := m.ctrl.Call(m, "ListUncheckedByGroup", groupPK)
 	ret0, _ := ret[0].([]types.GroupAlterEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListByGroup indicates an expected call of ListByGroup.
-func (mr *MockGroupAlterEventServiceMockRecorder) ListByGroup(groupPK interface{}) *gomock.Call {
+// ListUncheckedByGroup indicates an expected call of ListUncheckedByGroup.
+func (mr *MockGroupAlterEventServiceMockRecorder) ListUncheckedByGroup(groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroup", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListByGroup), groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUncheckedByGroup", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListUncheckedByGroup), groupPK)
 }

@@ -19,6 +19,7 @@ import (
 
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 // Producer ...
@@ -41,7 +42,7 @@ func NewProducer() Producer {
 func (p *producer) Publish(event types.GroupAlterEvent) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(task, "Publish")
 
-	oldEvents, err := p.groupAlterEventService.ListByGroup(event.GroupPK)
+	oldEvents, err := p.groupAlterEventService.ListUncheckedByGroup(event.GroupPK)
 	if err != nil {
 		err = errorWrapf(err, "groupAlterEventService.ListByGroup groupPK=`%d` fail", event.GroupPK)
 		return err
@@ -86,6 +87,19 @@ func (p *producer) Publish(event types.GroupAlterEvent) error {
 	err = sendMessages(messages)
 	if err != nil {
 		err = errorWrapf(err, "sendMessages messages=`%+v` fail", messages)
+
+		log.WithError(err).
+			Errorf("task producer sendMessages messages=%v fail", messages)
+
+		// report to sentry
+		util.ReportToSentry("task producer sendMessages fail",
+			map[string]interface{}{
+				"layer":    task,
+				"messages": messages,
+				"error":    err.Error(),
+			},
+		)
+
 		return err
 	}
 
@@ -105,8 +119,5 @@ func sendMessages(messages []Message) (err error) {
 	}
 
 	err = queue.Publish(ms...)
-	if err != nil {
-		log.WithError(err).Warnf("queue.Publish ms=%+v fail", ms)
-	}
 	return err
 }

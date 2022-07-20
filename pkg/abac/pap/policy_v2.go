@@ -13,6 +13,8 @@ package pap
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
@@ -27,6 +29,7 @@ import (
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/task"
+	"iam/pkg/util"
 )
 
 const PolicyCTLV2 = "PolicyCTLV2"
@@ -50,8 +53,8 @@ type policyControllerV2 struct {
 
 	resourceTypeService service.ResourceTypeService
 
-	// task producer
-	producer task.Producer
+	// task taskProducer
+	taskProducer task.Producer
 }
 
 func NewPolicyControllerV2() PolicyControllerV2 {
@@ -68,7 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
-		producer: task.NewProducer(),
+		taskProducer: task.NewProducer(),
 	}
 }
 
@@ -291,13 +294,28 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 	actionPKs := actionPKSet.ToSlice()
 	event, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
 	if err != nil {
+		// 空事件, 不需要处理
+		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
+			return
+		}
+
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
+
+		// report to sentry
+		util.ReportToSentry("createRBACGroupAlterEvent groupAlterEventService.CreateByGroupAction fail",
+			map[string]interface{}{
+				"layer":     PolicyCTLV2,
+				"groupPK":   groupPK,
+				"actionPKs": actionPKs,
+				"error":     err.Error(),
+			},
+		)
 		return
 	}
 
 	// 发送event 消息
-	go c.producer.Publish(event)
+	go c.taskProducer.Publish(event)
 }
 
 func (c *policyControllerV2) convertToResourceChangedContent(

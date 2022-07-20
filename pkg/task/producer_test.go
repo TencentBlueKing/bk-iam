@@ -38,7 +38,7 @@ var _ = Describe("task", func() {
 
 		It("ok", func() {
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
-			mockGroupAlterEventService.EXPECT().ListByGroup(int64(1)).Return([]types.GroupAlterEvent{
+			mockGroupAlterEventService.EXPECT().ListUncheckedByGroup(int64(1)).Return([]types.GroupAlterEvent{
 				{GroupPK: 1, SubjectPKs: []int64{11}, ActionPKs: []int64{1, 2}},
 			}, nil)
 
@@ -58,7 +58,7 @@ var _ = Describe("task", func() {
 		It("ListByGroup fail", func() {
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
 			mockGroupAlterEventService.EXPECT().
-				ListByGroup(int64(1)).
+				ListUncheckedByGroup(int64(1)).
 				Return([]types.GroupAlterEvent{}, errors.New("test"))
 
 			producer := &producer{

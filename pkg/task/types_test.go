@@ -11,43 +11,36 @@
 package task
 
 import (
-	"strconv"
-
-	jsoniter "github.com/json-iterator/go"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 )
 
-// Message ...
-type Message struct {
-	GroupPK   int64 `json:"group_pk"`
-	ActionPK  int64 `json:"action_pk"`
-	SubjectPK int64 `json:"subject_pk"`
+var _ = Describe("task", func() {
+	Describe("Message", func() {
+		var m Message
+		BeforeEach(func() {
+			m = Message{
+				GroupPK:   1,
+				ActionPK:  2,
+				SubjectPK: 3,
+			}
+		})
 
-	// TODO 增加 op/ts 字段
-}
+		It("UniqueID", func() {
+			assert.Equal(GinkgoT(), "1:2:3", m.UniqueID())
+		})
 
-// UniqueID ...
-func (m *Message) UniqueID() string {
-	return strconv.FormatInt(
-		m.GroupPK,
-		10,
-	) + ":" + strconv.FormatInt(
-		m.ActionPK,
-		10,
-	) + ":" + strconv.FormatInt(
-		m.SubjectPK,
-		10,
-	)
-}
+		It("String", func() {
+			s, err := m.String()
+			assert.Nil(GinkgoT(), err)
+			assert.Len(GinkgoT(), s, 43)
+		})
 
-// String ...
-func (m *Message) String() (string, error) {
-	return jsoniter.MarshalToString(m)
-}
-
-// NewMessageFromString ...
-func NewMessageFromString(s string) (m Message, err error) {
-	if err := jsoniter.UnmarshalFromString(s, &m); err != nil {
-		return m, err
-	}
-	return m, nil
-}
+		It("NewMessageFromString", func() {
+			s := `{"group_pk":1,"action_pk":2,"subject_pk":3}`
+			m2, err := NewMessageFromString(s)
+			assert.Nil(GinkgoT(), err)
+			assert.Equal(GinkgoT(), m, m2)
+		})
+	})
+})
