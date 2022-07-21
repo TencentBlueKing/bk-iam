@@ -104,6 +104,15 @@ type queryRequest struct {
 	Action    action     `json:"action" binding:"required"`
 }
 
+// ====== query v2
+
+type queryV2Request struct {
+	Subject subject `json:"subject" binding:"required"`
+	// can be empty
+	Resources []resource `json:"resources" binding:"omitempty"`
+	Action    action     `json:"action" binding:"required"`
+}
+
 // ======= query by actions
 
 type queryByActionsRequest struct {

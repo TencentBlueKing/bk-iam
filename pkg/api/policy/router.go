@@ -49,6 +49,6 @@ func RegisterV2(r *gin.RouterGroup) {
 
 		// in query_v2.go
 		// 查询
-		s.POST("/query/", handler.Query)
+		s.POST("/query/", handler.QueryV2)
 	}
 }

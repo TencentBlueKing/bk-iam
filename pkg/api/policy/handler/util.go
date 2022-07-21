@@ -89,6 +89,24 @@ func copyRequestFromQueryBody(req *request.Request, body *queryRequest) {
 	}
 }
 
+func copyRequestFromQueryV2Body(req *request.Request, systemID string, body *queryV2Request) {
+	req.System = systemID
+
+	req.Action.ID = body.Action.ID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
 func copyRequestFromQueryByActionsBody(req *request.Request, body *queryByActionsRequest) {
 	req.System = body.System
 
