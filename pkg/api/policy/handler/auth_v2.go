@@ -18,7 +18,6 @@ import (
 
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/api/common"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -39,6 +38,8 @@ import (
 // @Router /api/v2/policy/systems/{system_id}/auth [post]
 func AuthV2(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "AuthV2")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	systemID := c.Param("system_id")
 
@@ -49,20 +50,16 @@ func AuthV2(c *gin.Context) {
 	}
 
 	// check blacklist
-	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", authResponse{
+	// check super permission
+	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
+		return authV2Response{
 			Allowed: true,
-		})
+		}
+	}) {
 		return
 	}
 
@@ -71,9 +68,6 @@ func AuthV2(c *gin.Context) {
 	copyRequestFromAuthV2Body(req, systemID, &body)
 
 	// 鉴权
-	entry, _, isForce := common.GetDebugData(c)
-	defer debug.EntryPool.Put(entry)
-
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
 	if err != nil {

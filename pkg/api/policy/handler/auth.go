@@ -22,7 +22,6 @@ import (
 	"iam/pkg/abac/pdp/evaluation"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/api/common"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
@@ -43,6 +42,8 @@ import (
 // @Router /api/v1/policy/auth [post]
 func Auth(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Auth")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -59,20 +60,16 @@ func Auth(c *gin.Context) {
 	}
 
 	// check blacklist
-	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", authResponse{
+	// check super permission
+	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
+		return authResponse{
 			Allowed: true,
-		})
+		}
+	}) {
 		return
 	}
 
@@ -81,9 +78,6 @@ func Auth(c *gin.Context) {
 	copyRequestFromAuthBody(req, &body)
 
 	// 鉴权
-	entry, _, isForce := common.GetDebugData(c)
-	defer debug.EntryPool.Put(entry)
-
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
 	if err != nil {
@@ -118,6 +112,8 @@ func Auth(c *gin.Context) {
 // @Router /api/v1/policy/auth_by_actions [post]
 func BatchAuthByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByActions")
+	entry, isDebug, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authByActionsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -133,33 +129,23 @@ func BatchAuthByActions(c *gin.Context) {
 		return
 	}
 
-	result := make(authByActionsResponse, len(body.Actions))
-
 	// check blacklist
-	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
-
-	// super admin and system admin
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
+	// check super permission
+	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
+		data := make(authByActionsResponse, len(body.Actions))
 		for _, action := range body.Actions {
-			result[action.ID] = true
+			data[action.ID] = true
 		}
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", result)
+		return data
+	}) {
 		return
 	}
-
-	// enable debug
-	entry, isDebug, isForce := common.GetDebugData(c)
-	defer debug.EntryPool.Put(entry)
 
 	// 查询  subject-system-action的policies, 然后执行鉴权!
+	result := make(authByActionsResponse, len(body.Actions))
 	for _, action := range body.Actions {
 		req := request.NewRequest()
 		copyRequestFromAuthByActionsBody(req, &body)
@@ -207,6 +193,8 @@ func BatchAuthByActions(c *gin.Context) {
 // @Router /api/v1/policy/auth_by_resources [post]
 func BatchAuthByResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByResources")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authByResourcesRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -222,36 +210,24 @@ func BatchAuthByResources(c *gin.Context) {
 		return
 	}
 
-	data := make(authByResourcesResponse, len(body.ResourcesList))
-
 	// check blacklist
-	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
-
-	// super admin and system admin
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
+	// check super permission
+	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
+		data := make(authByResourcesResponse, len(body.ResourcesList))
 		for _, r := range body.ResourcesList {
 			data[buildResourceID(r)] = true
 		}
-
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", data)
+		return data
+	}) {
 		return
 	}
 
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromAuthByResourcesBody(req, &body)
-
-	// 鉴权
-	entry, _, isForce := common.GetDebugData(c)
-	defer debug.EntryPool.Put(entry)
 
 	/*
 		TODO 2种变更方式
@@ -262,6 +238,7 @@ func BatchAuthByResources(c *gin.Context) {
 
 	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies
+	data := make(authByResourcesResponse, len(body.ResourcesList))
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
 	if err != nil {
 		debug.WithError(entry, err)

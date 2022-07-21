@@ -138,3 +138,5 @@ func (q *queryByExtResourcesRequest) Validate() (bool, string) {
 	}
 	return true, ""
 }
+
+type GenSuperPermissionResponseData func() interface{}
