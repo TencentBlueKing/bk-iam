@@ -12,7 +12,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -60,11 +59,7 @@ func Auth(c *gin.Context) {
 	}
 
 	// check blacklist
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
@@ -141,11 +136,7 @@ func BatchAuthByActions(c *gin.Context) {
 	result := make(authByActionsResponse, len(body.Actions))
 
 	// check blacklist
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
@@ -233,11 +224,8 @@ func BatchAuthByResources(c *gin.Context) {
 
 	data := make(authByResourcesResponse, len(body.ResourcesList))
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 

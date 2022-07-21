@@ -12,7 +12,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
@@ -21,7 +20,6 @@ import (
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/api/common"
-	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -58,11 +56,8 @@ func Query(c *gin.Context) {
 		return
 	}
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
@@ -139,11 +134,8 @@ func BatchQueryByActions(c *gin.Context) {
 
 	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
@@ -234,11 +226,8 @@ func QueryByExtResources(c *gin.Context) {
 		return
 	}
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 

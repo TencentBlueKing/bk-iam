@@ -12,7 +12,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
@@ -20,7 +19,6 @@ import (
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/api/common"
-	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -51,11 +49,7 @@ func AuthV2(c *gin.Context) {
 	}
 
 	// check blacklist
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	if common.CheckIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
