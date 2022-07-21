@@ -63,7 +63,7 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		taskProducer:           task.NewProducer(),
+		taskProducer:           task.NewRedisProducer(),
 	}
 }
 
@@ -503,7 +503,7 @@ func (c *groupController) DeleteGroupMembers(
 func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
 	event, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
 	if err != nil {
-		// 空事件不需要处理
+		// NOTE: 查询group授权的rbac action列表可能为空, 不需要创建事件
 		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
 			return
 		}

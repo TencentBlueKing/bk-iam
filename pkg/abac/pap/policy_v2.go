@@ -71,7 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
-		taskProducer: task.NewProducer(),
+		taskProducer: task.NewRedisProducer(),
 	}
 }
 
@@ -294,7 +294,7 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 	actionPKs := actionPKSet.ToSlice()
 	event, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
 	if err != nil {
-		// 空事件, 不需要处理
+		// NOTE: 查询group的成员可能为空, 不需要创建事件
 		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
 			return
 		}

@@ -22,24 +22,19 @@ import (
 	"iam/pkg/util"
 )
 
-// Producer ...
-type Producer interface {
-	Publish(types.GroupAlterEvent) error
-}
-
-type producer struct {
+type redisProducer struct {
 	groupAlterEventService service.GroupAlterEventService
 }
 
-// NewProducer ...
-func NewProducer() Producer {
-	return &producer{
+// NewRedisProducer ...
+func NewRedisProducer() Producer {
+	return &redisProducer{
 		groupAlterEventService: service.NewGroupAlterEventService(),
 	}
 }
 
 // Publish ...
-func (p *producer) Publish(event types.GroupAlterEvent) error {
+func (p *redisProducer) Publish(event types.GroupAlterEvent) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(task, "Publish")
 
 	oldEvents, err := p.groupAlterEventService.ListUncheckedByGroup(event.GroupPK)
@@ -51,32 +46,24 @@ func (p *producer) Publish(event types.GroupAlterEvent) error {
 	// 去重
 	uniqueIDSet := set.NewStringSet()
 	for _, oldEvent := range oldEvents {
-		for _, subjectPK := range oldEvent.SubjectPKs {
-			for _, actionPK := range oldEvent.ActionPKs {
-				message := Message{
-					GroupPK:   oldEvent.GroupPK,
-					ActionPK:  actionPK,
-					SubjectPK: subjectPK,
-				}
-
-				uniqueIDSet.Add(message.UniqueID())
-			}
+		for _, m := range eventToMessages(oldEvent) {
+			uniqueIDSet.Add(m.UniqueID())
 		}
 	}
 
-	messages := make([]Message, 0, 5)
-	for _, subjectPK := range event.SubjectPKs {
-		for _, actionPK := range event.ActionPKs {
-			message := Message{
-				GroupPK:   event.GroupPK,
-				ActionPK:  actionPK,
-				SubjectPK: subjectPK,
-			}
-
-			if !uniqueIDSet.Has(message.UniqueID()) {
-				messages = append(messages, message)
-			}
+	messages := make([]string, 0, len(event.ActionPKs)*len(event.SubjectPKs))
+	for _, m := range eventToMessages(event) {
+		if uniqueIDSet.Has(m.UniqueID()) {
+			continue
 		}
+
+		s, err := m.String()
+		if err != nil {
+			log.WithError(err).Debugf("message Marshal fail, message=%+v", m)
+			continue
+		}
+
+		messages = append(messages, s)
 	}
 
 	if len(messages) == 0 {
@@ -84,10 +71,8 @@ func (p *producer) Publish(event types.GroupAlterEvent) error {
 	}
 
 	// 批量发消息到mq
-	err = sendMessages(messages)
+	err = queue.Publish(messages...)
 	if err != nil {
-		err = errorWrapf(err, "sendMessages messages=`%+v` fail", messages)
-
 		log.WithError(err).
 			Errorf("task producer sendMessages messages=%v fail", messages)
 
@@ -100,24 +85,26 @@ func (p *producer) Publish(event types.GroupAlterEvent) error {
 			},
 		)
 
-		return err
+		return errorWrapf(err, "sendMessages messages=`%+v` fail", messages)
 	}
 
 	return nil
 }
 
-func sendMessages(messages []Message) (err error) {
-	ms := make([]string, 0, len(messages))
-	for _, message := range messages {
-		str, err := message.String()
-		if err != nil {
-			log.WithError(err).Debugf("message Marshal fail, message=%+v", message)
-			continue
-		}
+func eventToMessages(event types.GroupAlterEvent) []Message {
+	messages := make([]Message, 0, len(event.ActionPKs)*len(event.SubjectPKs))
 
-		ms = append(ms, str)
+	for _, subjectPK := range event.SubjectPKs {
+		for _, actionPK := range event.ActionPKs {
+			message := Message{
+				GroupPK:   event.GroupPK,
+				ActionPK:  actionPK,
+				SubjectPK: subjectPK,
+			}
+
+			messages = append(messages, message)
+		}
 	}
 
-	err = queue.Publish(ms...)
-	return err
+	return messages
 }

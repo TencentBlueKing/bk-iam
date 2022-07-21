@@ -14,7 +14,14 @@ import (
 	"strconv"
 
 	jsoniter "github.com/json-iterator/go"
+
+	"iam/pkg/service/types"
 )
+
+// Producer ...
+type Producer interface {
+	Publish(types.GroupAlterEvent) error
+}
 
 // Message ...
 type Message struct {

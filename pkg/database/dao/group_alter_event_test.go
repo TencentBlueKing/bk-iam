@@ -99,7 +99,7 @@ func Test_groupAlterEventManagerManager_UpdateStatus(t *testing.T) {
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		count, err := manager.UpdateStatus(1, 1, 0)
+		count, err := manager.UpdateStatus(1, 0, 1)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, int64(1), count)

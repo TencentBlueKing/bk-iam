@@ -108,16 +108,16 @@ func (mr *MockGroupAlterEventManagerMockRecorder) ListByGroupStatus(groupPK, sta
 }
 
 // UpdateStatus mocks base method.
-func (m *MockGroupAlterEventManager) UpdateStatus(pk, toStatus, fromStatus int64) (int64, error) {
+func (m *MockGroupAlterEventManager) UpdateStatus(pk, fromStatus, toStatus int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus", pk, toStatus, fromStatus)
+	ret := m.ctrl.Call(m, "UpdateStatus", pk, fromStatus, toStatus)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockGroupAlterEventManagerMockRecorder) UpdateStatus(pk, toStatus, fromStatus interface{}) *gomock.Call {
+func (mr *MockGroupAlterEventManagerMockRecorder) UpdateStatus(pk, fromStatus, toStatus interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockGroupAlterEventManager)(nil).UpdateStatus), pk, toStatus, fromStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockGroupAlterEventManager)(nil).UpdateStatus), pk, fromStatus, toStatus)
 }

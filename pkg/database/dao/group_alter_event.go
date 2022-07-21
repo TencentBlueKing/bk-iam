@@ -37,7 +37,7 @@ type GroupAlterEventManager interface {
 	ListByGroupStatus(groupPK int64, status int64) ([]GroupAlterEvent, error)
 	Create(groupAlterEvent GroupAlterEvent) error
 	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) error
-	UpdateStatus(pk int64, toStatus int64, fromStatus int64) (int64, error)
+	UpdateStatus(pk, fromStatus, toStatus int64) (int64, error)
 	DeleteWithTx(tx *sqlx.Tx, pk int64) error
 }
 
@@ -109,7 +109,7 @@ func (m *groupAlterEventManagerManager) Create(groupAlterEvent GroupAlterEvent) 
 	return err
 }
 
-func (m *groupAlterEventManagerManager) UpdateStatus(pk int64, toStatus int64, fromStatus int64) (int64, error) {
+func (m *groupAlterEventManagerManager) UpdateStatus(pk, fromStatus, toStatus int64) (int64, error) {
 	sql := `UPDATE rbac_group_alter_event SET status=:to_status WHERE pk=:pk AND status=:from_status`
 	return database.SqlxUpdate(m.DB, sql, map[string]interface{}{
 		"pk":          pk,
