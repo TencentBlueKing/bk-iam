@@ -60,16 +60,22 @@ func Auth(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		return authResponse{
-			Allowed: true,
-		}
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return authResponse{
+				Allowed: true,
+			}
+		},
+	) {
 		return
 	}
 
@@ -130,17 +136,23 @@ func BatchAuthByActions(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		data := make(authByActionsResponse, len(body.Actions))
-		for _, action := range body.Actions {
-			data[action.ID] = true
-		}
-		return data
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			data := make(authByActionsResponse, len(body.Actions))
+			for _, action := range body.Actions {
+				data[action.ID] = true
+			}
+			return data
+		},
+	) {
 		return
 	}
 
@@ -211,17 +223,23 @@ func BatchAuthByResources(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		data := make(authByResourcesResponse, len(body.ResourcesList))
-		for _, r := range body.ResourcesList {
-			data[buildResourceID(r)] = true
-		}
-		return data
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			data := make(authByResourcesResponse, len(body.ResourcesList))
+			for _, r := range body.ResourcesList {
+				data[buildResourceID(r)] = true
+			}
+			return data
+		},
+	) {
 		return
 	}
 

@@ -11,21 +11,27 @@
 package handler
 
 import (
+	"bytes"
 	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
-
-	"github.com/TencentBlueKing/gopkg/cache"
-	"github.com/TencentBlueKing/gopkg/cache/memory"
-	"github.com/TencentBlueKing/gopkg/collection/set"
-	"github.com/agiledragon/gomonkey/v2"
-	. "github.com/onsi/ginkgo/v2"
-	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
+	"iam/pkg/util"
+
+	"github.com/TencentBlueKing/gopkg/cache"
+	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/gin-gonic/gin"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 var baseReq = baseRequest{
@@ -382,3 +388,211 @@ func Test_validateSystemMatchClient(t *testing.T) {
 		})
 	}
 }
+
+var _ = Describe("util", func() {
+	Describe("test copy funcs", func() {
+		var req *request.Request
+		var systemID string
+		var subj subject
+		var resources []resource
+		var act action
+		BeforeEach(func() {
+			req = request.NewRequest()
+			systemID = "test"
+			subj = subject{
+				Type: "user",
+				ID:   "admin",
+			}
+			resources = []resource{{
+				System: "iam",
+				Type:   "host",
+				ID:     "1",
+				Attribute: map[string]interface{}{
+					"key": "value",
+				},
+			}}
+			act = action{
+				ID: "test",
+			}
+		})
+
+		It("copyRequestFromAuthV2Body", func() {
+			ar := &authV2Request{
+				Subject:   subj,
+				Action:    act,
+				Resources: resources,
+			}
+			copyRequestFromAuthV2Body(req, systemID, ar)
+
+			assert.Equal(GinkgoT(), req.System, systemID)
+			assert.Equal(GinkgoT(), req.Subject.Type, subj.Type)
+			assert.Equal(GinkgoT(), req.Subject.ID, subj.ID)
+			assert.Equal(GinkgoT(), req.Action.ID, act.ID)
+			assert.Equal(GinkgoT(), req.Resources[0].System, resources[0].System)
+			assert.Equal(GinkgoT(), req.Resources[0].Type, resources[0].Type)
+			assert.Equal(GinkgoT(), req.Resources[0].ID, resources[0].ID)
+			assert.Equal(GinkgoT(), req.Resources[0].Attribute["key"], resources[0].Attribute["key"])
+		})
+
+		It("copyRequestFromQueryV2Body", func() {
+			ar := &queryV2Request{
+				Subject:   subj,
+				Action:    act,
+				Resources: resources,
+			}
+			copyRequestFromQueryV2Body(req, systemID, ar)
+
+			assert.Equal(GinkgoT(), req.System, systemID)
+			assert.Equal(GinkgoT(), req.Subject.Type, subj.Type)
+			assert.Equal(GinkgoT(), req.Subject.ID, subj.ID)
+			assert.Equal(GinkgoT(), req.Action.ID, act.ID)
+			assert.Equal(GinkgoT(), req.Resources[0].System, resources[0].System)
+			assert.Equal(GinkgoT(), req.Resources[0].Type, resources[0].Type)
+			assert.Equal(GinkgoT(), req.Resources[0].ID, resources[0].ID)
+			assert.Equal(GinkgoT(), req.Resources[0].Attribute["key"], resources[0].Attribute["key"])
+		})
+	})
+
+	Describe("getDebugData", func() {
+		var ctx *gin.Context
+		var buf io.Reader
+		BeforeEach(func() {
+			ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+			buf = new(bytes.Buffer)
+		})
+
+		It("no isDebug", func() {
+			entry, isDebug, isForce := getDebugData(ctx)
+			assert.Nil(GinkgoT(), entry)
+			assert.False(GinkgoT(), isDebug)
+			assert.False(GinkgoT(), isForce)
+		})
+
+		It("isDebug show", func() {
+			ctx.Request, _ = http.NewRequest("POST", "/?debug", buf)
+
+			entry, isDebug, isForce := getDebugData(ctx)
+			assert.NotNil(GinkgoT(), entry)
+			assert.True(GinkgoT(), isDebug)
+			assert.False(GinkgoT(), isForce)
+		})
+
+		It("isForce show", func() {
+			ctx.Request, _ = http.NewRequest("POST", "/?force", buf)
+			entry, isDebug, isForce := getDebugData(ctx)
+			assert.Nil(GinkgoT(), entry)
+			assert.False(GinkgoT(), isDebug)
+			assert.True(GinkgoT(), isForce)
+		})
+
+		It("isDebug and isForce", func() {
+			ctx.Request, _ = http.NewRequest("POST", "/?force=1&debug=1", buf)
+			entry, isDebug, isForce := getDebugData(ctx)
+			assert.NotNil(GinkgoT(), entry)
+			assert.True(GinkgoT(), isDebug)
+			assert.True(GinkgoT(), isForce)
+		})
+	})
+
+	Describe("checkIfSubjectInBlackList", func() {
+		var ctx *gin.Context
+		var patches *gomonkey.Patches
+		var w *httptest.ResponseRecorder
+		BeforeEach(func() {
+			w = httptest.NewRecorder()
+			ctx, _ = gin.CreateTestContext(w)
+		})
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("hit", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.IsSubjectInBlackList, func(_type, id string) bool {
+				return true
+			})
+
+			shouldReturn := shouldReturnIfSubjectInBlackList(ctx, "user", "admin")
+
+			got := util.ReadResponse(w)
+			assert.Equal(GinkgoT(), util.ForbiddenError, got.Code)
+			assert.True(GinkgoT(), shouldReturn)
+		})
+
+		It("miss", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.IsSubjectInBlackList, func(_type, id string) bool {
+				return false
+			})
+
+			assert.False(GinkgoT(), shouldReturnIfSubjectInBlackList(ctx, "user", "admin"))
+		})
+	})
+
+	Describe("checkSystemSuperPermission", func() {
+		var ctx *gin.Context
+		var patches *gomonkey.Patches
+		var w *httptest.ResponseRecorder
+		BeforeEach(func() {
+			w = httptest.NewRecorder()
+			ctx, _ = gin.CreateTestContext(w)
+		})
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("err", func() {
+			patches = gomonkey.ApplyFunc(hasSystemSuperPermission, func(systemID, _type, id string) (bool, error) {
+				return false, errors.New("err")
+			})
+
+			shouldReturn := shouldReturnIfSubjectHasSystemSuperPermission(
+				ctx,
+				"test",
+				"user",
+				"admin",
+				func() interface{} {
+					return nil
+				},
+			)
+
+			got := util.ReadResponse(w)
+			assert.Equal(GinkgoT(), util.SystemError, got.Code)
+
+			assert.True(GinkgoT(), shouldReturn)
+		})
+		It("hit", func() {
+			patches = gomonkey.ApplyFunc(hasSystemSuperPermission, func(systemID, _type, id string) (bool, error) {
+				return true, nil
+			})
+
+			shouldReturn := shouldReturnIfSubjectHasSystemSuperPermission(
+				ctx,
+				"test",
+				"user",
+				"admin",
+				func() interface{} {
+					return nil
+				},
+			)
+
+			got := util.ReadResponse(w)
+			assert.Equal(GinkgoT(), util.NoError, got.Code)
+			assert.True(GinkgoT(), shouldReturn)
+		})
+		It("miss", func() {
+			patches = gomonkey.ApplyFunc(hasSystemSuperPermission, func(systemID, _type, id string) (bool, error) {
+				return false, nil
+			})
+
+			shouldReturn := shouldReturnIfSubjectHasSystemSuperPermission(
+				ctx,
+				"test",
+				"user",
+				"admin",
+				func() interface{} {
+					return nil
+				},
+			)
+			assert.False(GinkgoT(), shouldReturn)
+		})
+	})
+})

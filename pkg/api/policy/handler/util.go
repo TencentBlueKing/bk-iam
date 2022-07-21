@@ -228,8 +228,8 @@ func getDebugData(c *gin.Context) (entry *debug.Entry, isDebug bool, isForce boo
 	return debug.EntryPool.Get(), isDebug, isForce
 }
 
-// CheckIfSubjectInBlackList check if subject is in blacklist, if true, will return
-func checkIfSubjectInBlackList(c *gin.Context, subjectType string, subjectID string) (shouldReturn bool) {
+// shouldReturnIfSubjectInBlackList check if subject is in blacklist, if true, will return
+func shouldReturnIfSubjectInBlackList(c *gin.Context, subjectType string, subjectID string) (shouldReturn bool) {
 	if cacheimpls.IsSubjectInBlackList(subjectType, subjectID) {
 		util.ForbiddenJSONResponse(
 			c,
@@ -241,7 +241,7 @@ func checkIfSubjectInBlackList(c *gin.Context, subjectType string, subjectID str
 	return false
 }
 
-func checkSystemSuperPermission(
+func shouldReturnIfSubjectHasSystemSuperPermission(
 	c *gin.Context,
 	systemID, subjectType, subjectID string,
 	genResponseData GenSuperPermissionResponseData,

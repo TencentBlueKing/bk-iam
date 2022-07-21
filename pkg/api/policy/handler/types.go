@@ -67,8 +67,8 @@ type authResponse struct {
 // ====== auth v2
 type authV2Request struct {
 	Subject   subject    `json:"subject" binding:"required"`
-	Resources []resource `json:"resources" binding:"required"`
 	Action    action     `json:"action" binding:"required"`
+	Resources []resource `json:"resources" binding:"required"`
 }
 
 type authV2Response struct {
@@ -108,9 +108,9 @@ type queryRequest struct {
 
 type queryV2Request struct {
 	Subject subject `json:"subject" binding:"required"`
+	Action  action  `json:"action" binding:"required"`
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
-	Action    action     `json:"action" binding:"required"`
 }
 
 // ======= query by actions

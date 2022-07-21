@@ -297,3 +297,9 @@ func (g *GinAPIRequest) OK() {
 		Status(http.StatusOK).
 		End()
 }
+
+func ReadResponse(w *httptest.ResponseRecorder) Response {
+	var got Response
+	_ = json.Unmarshal(w.Body.Bytes(), &got)
+	return got
+}

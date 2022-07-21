@@ -58,14 +58,20 @@ func Query(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		return AnyExpression
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return AnyExpression
+		},
+	) {
 		return
 	}
 
@@ -128,21 +134,27 @@ func BatchQueryByActions(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		policies := make([]actionPoliciesResponse, 0, len(body.Actions))
-		for _, action := range body.Actions {
-			policies = append(policies, actionPoliciesResponse{
-				Action:    actionInResponse(action),
-				Condition: AnyExpression,
-			})
-		}
-		return policies
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+			for _, action := range body.Actions {
+				policies = append(policies, actionPoliciesResponse{
+					Action:    actionInResponse(action),
+					Condition: AnyExpression,
+				})
+			}
+			return policies
+		},
+	) {
 		return
 	}
 
@@ -215,7 +227,7 @@ func QueryByExtResources(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
@@ -242,7 +254,13 @@ func QueryByExtResources(c *gin.Context) {
 		}
 	}
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, genSuperPermissionResponseData) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		genSuperPermissionResponseData,
+	) {
 		return
 	}
 

@@ -50,16 +50,22 @@ func AuthV2(c *gin.Context) {
 	}
 
 	// check blacklist
-	if checkIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
 	// check super permission
-	if checkSystemSuperPermission(c, systemID, body.Subject.Type, body.Subject.ID, func() interface{} {
-		return authV2Response{
-			Allowed: true,
-		}
-	}) {
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return authV2Response{
+				Allowed: true,
+			}
+		},
+	) {
 		return
 	}
 
