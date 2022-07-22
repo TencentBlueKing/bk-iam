@@ -500,7 +500,7 @@ var _ = Describe("util", func() {
 		var w *httptest.ResponseRecorder
 		BeforeEach(func() {
 			w = httptest.NewRecorder()
-			ctx, _ = gin.CreateTestContext(w)
+			ctx = util.CreateTestContextWithDefaultRequest(w)
 		})
 		AfterEach(func() {
 			patches.Reset()
@@ -533,7 +533,7 @@ var _ = Describe("util", func() {
 		var w *httptest.ResponseRecorder
 		BeforeEach(func() {
 			w = httptest.NewRecorder()
-			ctx, _ = gin.CreateTestContext(w)
+			ctx = util.CreateTestContextWithDefaultRequest(w)
 		})
 		AfterEach(func() {
 			patches.Reset()

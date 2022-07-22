@@ -303,3 +303,9 @@ func ReadResponse(w *httptest.ResponseRecorder) Response {
 	_ = json.Unmarshal(w.Body.Bytes(), &got)
 	return got
 }
+
+func CreateTestContextWithDefaultRequest(w *httptest.ResponseRecorder) *gin.Context {
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request, _ = http.NewRequest("POST", "/", new(bytes.Buffer))
+	return ctx
+}
