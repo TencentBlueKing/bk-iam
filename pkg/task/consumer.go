@@ -33,18 +33,18 @@ TODO
 2. 消息消费限流
 */
 
-type Consumer struct {
+type groupAlterMessageConsumer struct {
 	GroupAlterMessageHandler
 }
 
-func NewRedisConsumer() GroupAlterEventConsumer {
-	return &Consumer{
+func NewRedisGroupAlterMessageConsumer() GroupAlterEventConsumer {
+	return &groupAlterMessageConsumer{
 		GroupAlterMessageHandler: NewGroupAlterMessageHandler(),
 	}
 }
 
 // Run ...
-func (c *Consumer) Run(ctx context.Context) {
+func (c *groupAlterMessageConsumer) Run(ctx context.Context) {
 	// start consuming
 	if err := queue.StartConsuming(prefetchLimit, pollDuration); err != nil {
 		log.WithError(err).Error("rmq queue start consuming fail")
@@ -62,7 +62,7 @@ func (c *Consumer) Run(ctx context.Context) {
 }
 
 // Consume ...
-func (c *Consumer) Consume(delivery rmq.Delivery) {
+func (c *groupAlterMessageConsumer) Consume(delivery rmq.Delivery) {
 	// parse message
 	payload := delivery.Payload()
 	message, err := NewGroupAlterMessageFromString(payload)

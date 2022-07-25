@@ -31,7 +31,7 @@ var _ = Describe("Consumer", func() {
 
 		It("Consume", func() {
 			delivery := rmq.NewTestDeliveryString(`{"subject_pk":1,"group_pk":2,"action_pk":3}`)
-			consumer := &Consumer{GroupAlterMessageHandler: mockHandler}
+			consumer := &groupAlterMessageConsumer{GroupAlterMessageHandler: mockHandler}
 			consumer.Consume(delivery)
 			assert.Equal(GinkgoT(), rmq.Acked, delivery.State)
 		})

@@ -71,7 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
-		groupAlterEventProducer: task.NewRedisProducer(),
+		groupAlterEventProducer: task.NewRedisGroupAlterEventProducer(),
 	}
 }
 

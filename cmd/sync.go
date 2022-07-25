@@ -70,7 +70,7 @@ func StartConsumer() {
 	}()
 
 	// 3. start sync consumer
-	consumer := task.NewRedisConsumer()
+	consumer := task.NewRedisGroupAlterMessageConsumer()
 	consumer.Run(ctx)
 }
 

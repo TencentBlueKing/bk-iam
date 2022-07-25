@@ -44,7 +44,7 @@ var _ = Describe("Producer", func() {
 				{GroupPK: 1, SubjectPKs: []int64{11}, ActionPKs: []int64{1, 2}},
 			}, nil)
 
-			producer := &redisProducer{
+			producer := &redisGroupAlterEventProducer{
 				groupAlterEventService: mockGroupAlterEventService,
 			}
 
@@ -64,7 +64,7 @@ var _ = Describe("Producer", func() {
 				ListUncheckedByGroup(int64(1)).
 				Return([]types.GroupAlterEvent{}, errors.New("test"))
 
-			producer := &redisProducer{
+			producer := &redisGroupAlterEventProducer{
 				groupAlterEventService: mockGroupAlterEventService,
 			}
 

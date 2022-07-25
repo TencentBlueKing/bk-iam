@@ -22,19 +22,19 @@ import (
 	"iam/pkg/util"
 )
 
-type redisProducer struct {
+type redisGroupAlterEventProducer struct {
 	groupAlterEventService service.GroupAlterEventService
 }
 
-// NewRedisProducer ...
-func NewRedisProducer() GroupAlterEventProducer {
-	return &redisProducer{
+// NewRedisGroupAlterEventProducer ...
+func NewRedisGroupAlterEventProducer() GroupAlterEventProducer {
+	return &redisGroupAlterEventProducer{
 		groupAlterEventService: service.NewGroupAlterEventService(),
 	}
 }
 
 // Publish ...
-func (p *redisProducer) Publish(event types.GroupAlterEvent) error {
+func (p *redisGroupAlterEventProducer) Publish(event types.GroupAlterEvent) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ConnTypeProducer, "Publish")
 
 	oldEvents, err := p.groupAlterEventService.ListUncheckedByGroup(event.GroupPK)

@@ -63,7 +63,7 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		alterEventProducer:     task.NewRedisProducer(),
+		alterEventProducer:     task.NewRedisGroupAlterEventProducer(),
 	}
 }
 
