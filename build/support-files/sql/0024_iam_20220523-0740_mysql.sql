@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `bkiam`.`group_resource_policy` (
+CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_group_resource_policy` (
    `pk` int(10) unsigned NOT NULL AUTO_INCREMENT,
    `signature` CHAR(32) NOT NULL,
    `group_pk` int(10) unsigned NOT NULL,
