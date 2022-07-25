@@ -73,6 +73,7 @@ type Database struct {
 // Redis ...
 type Redis struct {
 	ID           string
+	Type         string
 	Addr         string
 	Password     string
 	DB           int

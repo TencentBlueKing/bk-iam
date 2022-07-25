@@ -30,7 +30,7 @@ var syncCmd = &cobra.Command{
 	Long: `BlueKing Identity and Access Management (BK-IAM)
 		   sync command is used to sync RBAC policy to ABAC expression`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Start()
+		StartConsumer()
 	},
 }
 

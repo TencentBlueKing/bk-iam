@@ -34,7 +34,7 @@ func InitRmqQueue(debugMode bool, _type string) {
 	go logRmqErrors(errChan)
 
 	var err error
-	connection, err = rmq.OpenConnectionWithRedisClient(_type, redis.GetDefaultRedisClient(), errChan)
+	connection, err = rmq.OpenConnectionWithRedisClient(_type, redis.GetDefaultMQRedisClient(), errChan)
 	if err != nil {
 		log.WithError(err).Error("new rmq connection fail")
 		if !debugMode {

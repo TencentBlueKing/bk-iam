@@ -25,11 +25,17 @@ import (
 
 // ModeStandalone ...
 const (
+	NameCache = "cache"
+	NameMQ    = "mq"
+
 	ModeStandalone = "standalone"
 	ModeSentinel   = "sentinel"
 )
 
-var rds *redis.Client
+var (
+	rds *redis.Client
+	mq  *redis.Client
+)
 
 var redisClientInitOnce sync.Once
 
@@ -128,7 +134,7 @@ func newSentinelClient(redisConfig *config.Redis) *redis.Client {
 func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 	if rds == nil {
 		redisClientInitOnce.Do(func() {
-			switch redisConfig.ID {
+			switch redisConfig.Type {
 			case ModeStandalone:
 				rds = newStandaloneClient(redisConfig)
 			case ModeSentinel:
@@ -149,7 +155,37 @@ func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 	}
 }
 
+// InitMQRedisClient ...
+func InitMQRedisClient(debugMode bool, redisConfig *config.Redis) {
+	if mq == nil {
+		redisClientInitOnce.Do(func() {
+			switch redisConfig.Type {
+			case ModeStandalone:
+				mq = newStandaloneClient(redisConfig)
+			case ModeSentinel:
+				mq = newSentinelClient(redisConfig)
+			default:
+				panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
+			}
+
+			_, err := mq.Ping(context.TODO()).Result()
+			if err != nil {
+				log.WithError(err).Error("connect to redis fail")
+				// redis is important
+				if !debugMode {
+					panic(err)
+				}
+			}
+		})
+	}
+}
+
 // GetDefaultRedisClient 获取默认的Redis实例
 func GetDefaultRedisClient() *redis.Client {
 	return rds
+}
+
+// GetDefaultMQRedisClient 获取默认的MQ Redis实例
+func GetDefaultMQRedisClient() *redis.Client {
+	return mq
 }

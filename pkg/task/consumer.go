@@ -27,10 +27,7 @@ const (
 )
 
 /*
-TODO
-
-1. 独立redis配置
-2. 消息消费限流
+TODO 消息消费限流
 */
 
 type groupAlterMessageConsumer struct {

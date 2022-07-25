@@ -94,33 +94,36 @@ func initDatabase() {
 }
 
 func initRedis() {
-	standaloneConfig, isStandalone := globalConfig.RedisMap[redis.ModeStandalone]
-	sentinelConfig, isSentinel := globalConfig.RedisMap[redis.ModeSentinel]
-
-	if !(isStandalone || isSentinel) {
-		panic("redis id=standalone or id=sentinel should be configured")
+	_, ok := globalConfig.RedisMap[redis.NameCache]
+	if !ok {
+		panic("redis id=cache should be configured")
 	}
 
-	if isSentinel && isStandalone {
-		log.Info("redis both id=standalone and id=sentinel configured, will use sentinel")
-
-		delete(globalConfig.RedisMap, redis.ModeStandalone)
-		isStandalone = false
+	_, ok = globalConfig.RedisMap[redis.NameMQ]
+	if !ok {
+		panic("redis id=mq should be configured")
 	}
 
-	if isSentinel {
-		if sentinelConfig.MasterName == "" {
-			panic("redis id=sentinel, the `masterName` required")
+	for name, config := range globalConfig.RedisMap {
+		if config.Type != redis.ModeStandalone && config.Type != redis.ModeSentinel {
+			panic(fmt.Sprintf("redis id=%s type=standalone or type=sentinel should be configured", name))
 		}
-		log.Info("init Redis mode=`sentinel`")
-		redis.InitRedisClient(globalConfig.Debug, &sentinelConfig)
-	}
 
-	if isStandalone {
-		log.Info("init Redis mode=`standalone`")
-		redis.InitRedisClient(globalConfig.Debug, &standaloneConfig)
-	}
+		if config.Type == redis.ModeSentinel {
+			if config.MasterName == "" {
+				panic(fmt.Sprintf("redis id=%s, the `masterName` required", name))
+			}
+		}
 
+		switch name {
+		case redis.NameCache:
+			log.Infof("init %s Redis mode=`%s`", name, config.Type)
+			redis.InitRedisClient(globalConfig.Debug, &config)
+		case redis.NameMQ:
+			log.Infof("init %s Redis mode=`%s`", name, config.Type)
+			redis.InitMQRedisClient(globalConfig.Debug, &config)
+		}
+	}
 	log.Info("init Redis success")
 }
 
