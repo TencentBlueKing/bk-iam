@@ -51,13 +51,11 @@ func retrieveGroupActionAuthorizedResource(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
-	resourceTypes := actionDetail.ResourceTypes
-	// NOTE: RBAC 操作只能关联1个资源类型
-	if len(resourceTypes) != 1 {
+	if len(actionDetail.ResourceTypes) != 1 {
 		err = errorWrapf(
 			fmt.Errorf(
 				"rbac action must related one resource type, but got %d, actionPK=`%d`",
-				len(resourceTypes),
+				len(actionDetail.ResourceTypes),
 				k.ActionPK,
 			),
 			"",
@@ -65,14 +63,16 @@ func retrieveGroupActionAuthorizedResource(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
+	resourceType := actionDetail.ResourceTypes[0]
+	// NOTE: RBAC 操作只能关联1个资源类型
 	// 获取资源类型的PK
-	resourceTypePK, err := GetLocalResourceTypePK(resourceTypes[0].System, resourceTypes[0].ID)
+	resourceTypePK, err := GetLocalResourceTypePK(resourceType.System, resourceType.ID)
 	if err != nil {
 		err = errorWrapf(
 			err,
 			"GetLocalResourceTypePK fail system=`%s`, resourceTypeID=`%s`",
-			resourceTypes[0].System,
-			resourceTypes[0].ID,
+			resourceType.System,
+			resourceType.ID,
 		)
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func retrieveGroupActionAuthorizedResource(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
-	authorizedResources := make(map[int64][]string)
+	authorizedResources := make(map[int64][]string, 2)
 	for _, resource := range resources {
 		authorizedResources[resource.ResourceTypePK] = append(
 			authorizedResources[resource.ResourceTypePK],

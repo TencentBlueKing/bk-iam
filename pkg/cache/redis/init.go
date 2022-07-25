@@ -37,7 +37,10 @@ var (
 	mq  *redis.Client
 )
 
-var redisClientInitOnce sync.Once
+var (
+	redisClientInitOnce   sync.Once
+	mqRedisClientInitOnce sync.Once
+)
 
 func newStandaloneClient(redisConfig *config.Redis) *redis.Client {
 	opt := &redis.Options{
@@ -130,27 +133,32 @@ func newSentinelClient(redisConfig *config.Redis) *redis.Client {
 	return redis.NewFailoverClient(opt)
 }
 
+func initRedisClient(debugMode bool, redisConfig *config.Redis) (cli *redis.Client) {
+	switch redisConfig.Type {
+	case ModeStandalone:
+		cli = newStandaloneClient(redisConfig)
+	case ModeSentinel:
+		cli = newSentinelClient(redisConfig)
+	default:
+		panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
+	}
+
+	_, err := cli.Ping(context.TODO()).Result()
+	if err != nil {
+		log.WithError(err).Error("connect to redis fail")
+		// redis is important
+		if !debugMode {
+			panic(err)
+		}
+	}
+	return cli
+}
+
 // InitRedisClient ...
 func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 	if rds == nil {
 		redisClientInitOnce.Do(func() {
-			switch redisConfig.Type {
-			case ModeStandalone:
-				rds = newStandaloneClient(redisConfig)
-			case ModeSentinel:
-				rds = newSentinelClient(redisConfig)
-			default:
-				panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
-			}
-
-			_, err := rds.Ping(context.TODO()).Result()
-			if err != nil {
-				log.WithError(err).Error("connect to redis fail")
-				// redis is important
-				if !debugMode {
-					panic(err)
-				}
-			}
+			rds = initRedisClient(debugMode, redisConfig)
 		})
 	}
 }
@@ -158,24 +166,8 @@ func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 // InitMQRedisClient ...
 func InitMQRedisClient(debugMode bool, redisConfig *config.Redis) {
 	if mq == nil {
-		redisClientInitOnce.Do(func() {
-			switch redisConfig.Type {
-			case ModeStandalone:
-				mq = newStandaloneClient(redisConfig)
-			case ModeSentinel:
-				mq = newSentinelClient(redisConfig)
-			default:
-				panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
-			}
-
-			_, err := mq.Ping(context.TODO()).Result()
-			if err != nil {
-				log.WithError(err).Error("connect to redis fail")
-				// redis is important
-				if !debugMode {
-					panic(err)
-				}
-			}
+		mqRedisClientInitOnce.Do(func() {
+			mq = initRedisClient(debugMode, redisConfig)
 		})
 	}
 }
