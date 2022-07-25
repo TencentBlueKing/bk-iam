@@ -19,6 +19,7 @@ import (
 
 // RegisterLegacySystemAPIs the urls: /api/v1/systems
 // NOTE: should not add more apis here, move to /api/v1/open/systems/{system_id}/
+// Deprecated: will removed later
 func RegisterLegacySystemAPIs(r *gin.RouterGroup) {
 	policies := r.Group("/:system_id/policies")
 	policies.Use(common.SystemExistsAndClientValid())
@@ -58,12 +59,15 @@ func Register(r *gin.RouterGroup) {
 	users := r.Group("/users")
 	{
 		// GET /user/123/groups?inherit=true
+		// Deprecated:
 		users.GET("/:user_id/groups", handler.UserGroups)
 	}
 
+	// NOTE: @Deprecated
 	departments := r.Group("/departments")
 	{
 		// GET /department/456/groups
+		// Deprecated:
 		departments.GET("/:department_id/groups", handler.DepartmentGroups)
 	}
 

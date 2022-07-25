@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("Init", func() {
-
 	Describe("quotas", func() {
 		It("all default", func() {
 			InitQuota(config.Quota{}, map[string]config.Quota{})
@@ -84,5 +83,4 @@ var _ = Describe("Init", func() {
 			assert.True(GinkgoT(), GetSwitchDisableCreateSystemClientValidation())
 		})
 	})
-
 })

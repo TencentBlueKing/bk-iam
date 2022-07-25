@@ -56,6 +56,5 @@ var _ = Describe("BaseLogicalCondition", func() {
 			})
 			assert.False(GinkgoT(), ok)
 		})
-
 	})
 })

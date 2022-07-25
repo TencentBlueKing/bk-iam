@@ -27,7 +27,8 @@ func NewAndCondition(content []Condition) Condition {
 	return &AndCondition{
 		baseLogicalCondition{
 			content: content,
-		}}
+		},
+	}
 }
 
 func newAndCondition(field string, values []interface{}) (Condition, error) {

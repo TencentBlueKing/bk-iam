@@ -22,9 +22,7 @@ import (
 )
 
 var _ = Describe("Validation", func() {
-
 	Describe("validateDeleteViaID", func() {
-
 		var c *gin.Context
 		BeforeEach(func() {
 			c, _ = gin.CreateTestContext(httptest.NewRecorder())
@@ -62,7 +60,5 @@ var _ = Describe("Validation", func() {
 			_, err := validateDeleteViaID(c)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-
 })

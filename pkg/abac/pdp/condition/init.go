@@ -35,18 +35,23 @@ type keyMatchFunc func(key string) bool
 var conditionFactories map[string]conditionFunc
 
 func init() {
+	// NOTE: before you add new condition, please read these docs first:
+	//       1. https://github.com/TencentBlueKing/bk-iam-saas/issues/1293
+	//       2. https://bk.tencent.com/docs/document/6.0/160/8466
+
 	conditionFactories = map[string]conditionFunc{
-		operator.AND:           newAndCondition,
-		operator.OR:            newOrCondition,
-		operator.ANY:           newAnyCondition,
-		operator.StringEquals:  newStringEqualsCondition,
-		operator.StringPrefix:  newStringPrefixCondition,
-		operator.Bool:          newBoolCondition,
-		operator.NumericEquals: newNumericEqualsCondition,
-		operator.NumericGt:     newNumericGreaterThanCondition,
-		operator.NumericGte:    newNumericGreaterThanEqualsCondition,
-		operator.NumericLt:     newNumericLessThanCondition,
-		operator.NumericLte:    newNumericLessThanEqualsCondition,
+		operator.AND:            newAndCondition,
+		operator.OR:             newOrCondition,
+		operator.ANY:            newAnyCondition,
+		operator.StringEquals:   newStringEqualsCondition,
+		operator.StringPrefix:   newStringPrefixCondition,
+		operator.StringContains: newStringContainsCondition,
+		operator.Bool:           newBoolCondition,
+		operator.NumericEquals:  newNumericEqualsCondition,
+		operator.NumericGt:      newNumericGreaterThanCondition,
+		operator.NumericGte:     newNumericGreaterThanEqualsCondition,
+		operator.NumericLt:      newNumericLessThanCondition,
+		operator.NumericLte:     newNumericLessThanEqualsCondition,
 	}
 }
 

@@ -22,9 +22,8 @@ import (
 )
 
 var _ = Describe("String", func() {
-
 	Describe("TruncateBytes", func() {
-		var s = []byte("helloworld")
+		s := []byte("helloworld")
 
 		DescribeTable("TruncateBytes cases", func(expected []byte, truncatedSize int) {
 			assert.Equal(GinkgoT(), expected, util.TruncateBytes(s, truncatedSize))
@@ -36,8 +35,8 @@ var _ = Describe("String", func() {
 	})
 
 	Describe("TruncateBytesToString", func() {
-		var s = []byte("helloworld")
-		var sStr = string(s)
+		s := []byte("helloworld")
+		sStr := string(s)
 
 		DescribeTable("TruncateBytesToString cases", func(expected string, truncatedSize int) {
 			assert.Equal(GinkgoT(), expected, util.TruncateBytesToString(s, truncatedSize))
@@ -47,7 +46,6 @@ var _ = Describe("String", func() {
 			Entry("truncated size greater than real size", sStr, 20),
 		)
 	})
-
 })
 
 func BenchmarkStringSprintf(b *testing.B) {

@@ -13,6 +13,7 @@ package dao
 import (
 	"database/sql"
 	"errors"
+
 	"iam/pkg/database"
 
 	"github.com/jmoiron/sqlx"
@@ -50,14 +51,14 @@ func NewSubjectRoleManager() SubjectRoleManager {
 
 // ListSubjectPKByRole ...
 func (m *subjectRoleManager) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
-	var subjectPKs = []int64{}
+	subjectPKs := []int64{}
 	err := m.selectSubjectPKByRole(&subjectPKs, roleType, system)
 	return subjectPKs, err
 }
 
 // ListSystemIDBySubjectPK ...
 func (m *subjectRoleManager) ListSystemIDBySubjectPK(pk int64) ([]string, error) {
-	var systemIDs = []string{}
+	systemIDs := []string{}
 	err := m.selectSubjectSystem(&systemIDs, pk)
 	if errors.Is(err, sql.ErrNoRows) {
 		return systemIDs, nil

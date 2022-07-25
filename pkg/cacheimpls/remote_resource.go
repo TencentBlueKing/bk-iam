@@ -43,8 +43,14 @@ func retrieveRemoteResource(k cache.Key) (interface{}, error) {
 
 	resources, err := listRemoteResources(k1.System, k1.Type, []string{k1.ID}, fields)
 	if err != nil {
-		err = errorWrapf(err, "listRemoteResources systemID=`%s`, resourceTypeID=`%s`, resourceID=`%s`, fields=`%s` fail",
-			k1.System, k1.Type, k1.ID, fields)
+		err = errorWrapf(
+			err,
+			"listRemoteResources systemID=`%s`, resourceTypeID=`%s`, resourceID=`%s`, fields=`%s` fail",
+			k1.System,
+			k1.Type,
+			k1.ID,
+			fields,
+		)
 		return nil, err
 	}
 	return resources[0], nil

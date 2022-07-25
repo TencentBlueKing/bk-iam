@@ -90,9 +90,14 @@ func queryExtResourceAttrs(
 	// 6. PIP查询依赖resource相关keys的属性
 	resources, err = pip.BatchQueryRemoteResourcesAttribute(resource.System, resource.Type, resource.IDs, keys)
 	if err != nil {
-		err = errorWrapf(err,
+		err = errorWrapf(
+			err,
 			"pip.BatchQueryRemoteResourcesAttribute system=`%s`, resourceType=`%s`, resourceIDs length=`%d`, keys=`%+v` fail",
-			resource.System, resource.Type, len(resource.IDs), keys)
+			resource.System,
+			resource.Type,
+			len(resource.IDs),
+			keys,
+		)
 		return
 	}
 	return

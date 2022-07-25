@@ -27,9 +27,7 @@ func TestGetActionPK(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	mockService := mock.NewMockActionService(ctl)
 	mockService.EXPECT().GetActionPK("test", "create").Return(int64(64), nil).AnyTimes()

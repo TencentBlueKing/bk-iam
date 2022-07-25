@@ -16,9 +16,7 @@ const (
 	defaultRateLimitPerSecondPerClient = 2000
 )
 
-var (
-	rateLimiters = sync.Map{}
-)
+var rateLimiters = sync.Map{}
 
 // NOTE: this middleware used for api rate limit of calling directly
 //       all api will be maintained by APIGateway

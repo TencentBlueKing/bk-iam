@@ -56,7 +56,8 @@ func NewSaaSActionResourceTypeManager() SaaSActionResourceTypeManager {
 
 // ListByActionSystem ...
 func (m *saasActionResourceTypeManager) ListByActionSystem(actionSystem string) (
-	saaSActionResourceTypes []SaaSActionResourceType, err error) {
+	saaSActionResourceTypes []SaaSActionResourceType, err error,
+) {
 	err = m.selectByActionSystem(&saaSActionResourceTypes, actionSystem)
 	if errors.Is(err, sql.ErrNoRows) {
 		return saaSActionResourceTypes, nil
@@ -66,7 +67,8 @@ func (m *saasActionResourceTypeManager) ListByActionSystem(actionSystem string) 
 
 // ListByActionID ...
 func (m *saasActionResourceTypeManager) ListByActionID(system, actionID string) (
-	saaSActionResourceTypes []SaaSActionResourceType, err error) {
+	saaSActionResourceTypes []SaaSActionResourceType, err error,
+) {
 	err = m.selectByActionID(&saaSActionResourceTypes, system, actionID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return saaSActionResourceTypes, nil
@@ -76,7 +78,8 @@ func (m *saasActionResourceTypeManager) ListByActionID(system, actionID string) 
 
 // BulkCreateWithTx ...
 func (m *saasActionResourceTypeManager) BulkCreateWithTx(
-	tx *sqlx.Tx, saasActionResourceTypes []SaaSActionResourceType) error {
+	tx *sqlx.Tx, saasActionResourceTypes []SaaSActionResourceType,
+) error {
 	if len(saasActionResourceTypes) == 0 {
 		return nil
 	}
@@ -92,7 +95,8 @@ func (m *saasActionResourceTypeManager) BulkDeleteWithTx(tx *sqlx.Tx, actionSyst
 }
 
 func (m *saasActionResourceTypeManager) bulkInsertWithTx(
-	tx *sqlx.Tx, saasActionResourceTypes []SaaSActionResourceType) error {
+	tx *sqlx.Tx, saasActionResourceTypes []SaaSActionResourceType,
+) error {
 	query := `INSERT INTO saas_action_resource_type (
 		action_system_id,
 		action_id,
@@ -120,7 +124,8 @@ func (m *saasActionResourceTypeManager) bulkDeleteWithTx(tx *sqlx.Tx, actionSyst
 }
 
 func (m *saasActionResourceTypeManager) selectByActionSystem(
-	saaSActionResourceTypes *[]SaaSActionResourceType, actionSystem string) error {
+	saaSActionResourceTypes *[]SaaSActionResourceType, actionSystem string,
+) error {
 	query := `SELECT
 		pk,
 		action_system_id,
@@ -137,7 +142,8 @@ func (m *saasActionResourceTypeManager) selectByActionSystem(
 }
 
 func (m *saasActionResourceTypeManager) selectByActionID(
-	saaSActionResourceTypes *[]SaaSActionResourceType, system, actionID string) error {
+	saaSActionResourceTypes *[]SaaSActionResourceType, system, actionID string,
+) error {
 	query := `SELECT
 		pk,
 		action_system_id,

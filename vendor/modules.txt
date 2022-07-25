@@ -16,14 +16,10 @@ github.com/TencentBlueKing/gopkg/stringx
 # github.com/TencentBlueKing/iam-go-sdk v0.0.8
 ## explicit; go 1.16
 github.com/TencentBlueKing/iam-go-sdk/expression/eval
-# github.com/agiledragon/gomonkey/v2 v2.3.1
+# github.com/agiledragon/gomonkey/v2 v2.8.0
 ## explicit; go 1.14
 github.com/agiledragon/gomonkey/v2
 github.com/agiledragon/gomonkey/v2/creflect
-# github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-## explicit
-github.com/alecthomas/template
-github.com/alecthomas/template/parse
 # github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a
 ## explicit
 github.com/alicebob/gopher-json
@@ -315,7 +311,7 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/wklken/go-cache v2.2.0+incompatible
+# github.com/wklken/go-cache v2.2.1+incompatible
 ## explicit
 github.com/wklken/go-cache
 # github.com/yuin/gopher-lua v0.0.0-20220413183635-c841877397d8

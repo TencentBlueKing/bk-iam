@@ -13,13 +13,14 @@ package dao
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"iam/pkg/database"
-
 	"github.com/jmoiron/sqlx"
+
+	"iam/pkg/database"
 )
 
 // ResourceTypeManager ...
 type ResourceTypeManager interface {
+	GetPK(system string, id string) (pk int64, err error)
 	BulkCreateWithTx(tx *sqlx.Tx, resourceTypes []ResourceType) error
 	BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error
 }
@@ -40,6 +41,12 @@ func NewResourceTypeManager() ResourceTypeManager {
 	return &resourceTypeManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
+}
+
+func (m *resourceTypeManager) GetPK(system string, id string) (pk int64, err error) {
+	query := "SELECT pk FROM resource_type WHERE system_id = ? AND id = ?"
+	err = database.SqlxGet(m.DB, &pk, query, system, id)
+	return
 }
 
 // BulkCreateWithTx ...

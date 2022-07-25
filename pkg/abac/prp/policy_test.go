@@ -14,9 +14,13 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 )
 
-var _ = Describe("Policy", func() {
-	// It("NewPolicyManager", func() {
-	//	p := prp.NewPolicyManager()
-	//	assert.NotNil(GinkgoT(), p)
-	// })
+var _ = Describe("PolicyList", func() {
+	Describe("convertToAuthPolicy", func() {
+	})
+	Describe("ListBySubjectAction", func() {
+	})
+	Describe("getPoliciesFromCache", func() {
+	})
+	Describe("GetExpressionsFromCache", func() {
+	})
 })

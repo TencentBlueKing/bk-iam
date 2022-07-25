@@ -25,7 +25,6 @@ var _ = Describe("ModelEventService", func() {
 		svc = &modelChangeEventService{
 			manager: mockManager,
 		}
-
 	})
 	AfterEach(func() {
 		ctl.Finish()
@@ -47,17 +46,20 @@ var _ = Describe("ModelEventService", func() {
 			patches.Reset()
 		})
 		It("ok", func() {
-			mockManager.EXPECT().DeleteByStatusWithTx(gomock.Any(), ModelChangeEventStatusFinished, now, int64(10)).Return(int64(10), nil)
+			mockManager.EXPECT().
+				DeleteByStatusWithTx(gomock.Any(), ModelChangeEventStatusFinished, now, int64(10)).
+				Return(int64(10), nil)
 
 			err := svc.DeleteByStatus(ModelChangeEventStatusFinished, now, int64(10))
 			assert.NoError(GinkgoT(), err)
 		})
 		It("error", func() {
-			mockManager.EXPECT().DeleteByStatusWithTx(gomock.Any(), ModelChangeEventStatusFinished, now, int64(10)).Return(int64(10), errors.New("error"))
+			mockManager.EXPECT().
+				DeleteByStatusWithTx(gomock.Any(), ModelChangeEventStatusFinished, now, int64(10)).
+				Return(int64(10), errors.New("error"))
 
 			err := svc.DeleteByStatus(ModelChangeEventStatusFinished, now, int64(10))
 			assert.Regexp(GinkgoT(), "manager.DeleteByStatusWithTx (.*) fail", err.Error())
 		})
 	})
-
 })

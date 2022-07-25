@@ -13,25 +13,11 @@ package pip
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
-	svctypes "iam/pkg/service/types"
 )
 
 // SubjectPIP ...
 const SubjectPIP = "SubjectPIP"
-
-func convertSubjectGroups(subjectGroups []svctypes.ThinSubjectGroup) []types.SubjectGroup {
-	sgs := make([]types.SubjectGroup, 0, len(subjectGroups))
-	for _, i := range subjectGroups {
-		sgs = append(sgs, types.SubjectGroup{
-			// PK is the subject_pk of group
-			PK:              i.PK,
-			PolicyExpiredAt: i.PolicyExpiredAt,
-		})
-	}
-	return sgs
-}
 
 // GetSubjectPK 获取subject的PK, note this will cache in local for 1 minutes
 func GetSubjectPK(_type, id string) (int64, error) {
@@ -45,16 +31,14 @@ func GetSubjectPK(_type, id string) (int64, error) {
 	return pk, err
 }
 
-// GetSubjectDetail ...
-func GetSubjectDetail(pk int64) (departments []int64, groups []types.SubjectGroup, err error) {
-	detail, err := cacheimpls.GetSubjectDetail(pk)
+// GetSubjectDepartmentPKs ...
+func GetSubjectDepartmentPKs(pk int64) (departments []int64, err error) {
+	departments, err = cacheimpls.GetLocalSubjectDepartmentPKs(pk)
 	if err != nil {
-		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDetail",
-			"cacheimpls.GetSubjectDetail pk=`%d` fail", pk)
+		err = errorx.Wrapf(err, SubjectPIP, "GetSubjectDepartmentPKs",
+			"cacheimpls.GetLocalSubjectDepartmentPKs pk=`%d` fail", pk)
 		return
 	}
 
-	departments = detail.DepartmentPKs
-	groups = convertSubjectGroups(detail.SubjectGroups)
-	return departments, groups, nil
+	return departments, err
 }

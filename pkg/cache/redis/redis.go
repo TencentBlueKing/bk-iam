@@ -267,6 +267,10 @@ func (c *Cache) BatchGet(keys []gopkgcache.Key) (map[gopkgcache.Key]string, erro
 
 // BatchSetWithTx execute `set` with tx pipeline
 func (c *Cache) BatchSetWithTx(kvs []KV, expiration time.Duration) error {
+	if expiration == time.Duration(0) {
+		expiration = c.defaultExpiration
+	}
+
 	// tx, all success or all fail
 	pipe := c.cli.TxPipeline()
 

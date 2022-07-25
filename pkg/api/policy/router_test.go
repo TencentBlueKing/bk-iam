@@ -23,5 +23,8 @@ func TestRegister(t *testing.T) {
 	g := r.Group("/test")
 	Register(g)
 
+	g2 := r.Group("/test2")
+	RegisterV2(g2)
+
 	assert.NotNil(t, g)
 }

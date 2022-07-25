@@ -15,5 +15,4 @@ import (
 )
 
 var _ = Describe("ResourceTypeSlz", func() {
-
 })

@@ -188,8 +188,10 @@ func convertEngineQueryPoliciesToEnginePolicies(
 	for _, p := range policies {
 		expr, ok := pkExpressionStrMap[p.ExpressionPK]
 		if !ok {
-			log.Errorf("policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
-				p.ExpressionPK)
+			log.Errorf(
+				"policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
+				p.ExpressionPK,
+			)
 
 			continue
 		}

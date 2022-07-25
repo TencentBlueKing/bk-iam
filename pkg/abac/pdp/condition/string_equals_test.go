@@ -16,7 +16,6 @@ import (
 )
 
 var _ = Describe("StringEquals", func() {
-
 	var c *StringEqualsCondition
 	BeforeEach(func() {
 		c = &StringEqualsCondition{
@@ -55,7 +54,6 @@ var _ = Describe("StringEquals", func() {
 			assert.True(GinkgoT(), c.Eval(listCtx{"a", "d"}))
 			assert.False(GinkgoT(), c.Eval(listCtx{"e", "f"}))
 		})
-
 	})
 
 	Describe("Translate", func() {
@@ -79,7 +77,6 @@ var _ = Describe("StringEquals", func() {
 			ec, err := c.Translate(true)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expected, ec)
-
 		})
 
 		It("ok, multiple in", func() {
@@ -108,5 +105,4 @@ var _ = Describe("StringEquals", func() {
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 	})
-
 })

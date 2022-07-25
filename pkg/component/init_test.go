@@ -21,7 +21,6 @@ import (
 )
 
 var _ = Describe("Init", func() {
-
 	var start time.Time
 	var result RemoteResourceResponse
 	var url string
@@ -45,5 +44,4 @@ var _ = Describe("Init", func() {
 
 		logHTTPRequest(start, request, resp, respBody, errs, &result)
 	})
-
 })

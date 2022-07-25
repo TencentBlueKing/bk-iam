@@ -70,8 +70,9 @@ func QueryActions(c *gin.Context) {
 }
 
 type querySubjectsSerializer struct {
-	Type string `form:"type" binding:"required"`
-	ID   string `form:"id" binding:"required"`
+	Type   string `form:"type" binding:"required"`
+	ID     string `form:"id" binding:"required"`
+	System string `form:"system" binding:"required"`
 }
 
 // QuerySubjects ...
@@ -96,13 +97,21 @@ func QuerySubjects(c *gin.Context) {
 	}
 	subject["pk"] = pk
 
-	// 2. 查subject所属的部门
+	// 2. 查询subject的groups
+	groups, err := cacheimpls.ListSystemSubjectEffectGroups(body.System, []int64{pk})
+	if err != nil {
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
 	// 3. 查subject所属的组
 	depts := []gin.H{}
 
-	detail, err := cacheimpls.GetSubjectDetail(pk)
-	departments := detail.DepartmentPKs
-	groups := detail.SubjectGroups
+	departments, err := cacheimpls.GetSubjectDepartmentPKs(pk)
+	if err != nil {
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
 
 	if err != nil {
 		errs["GetSubjectDepartment"] = err
@@ -124,7 +133,7 @@ func QuerySubjects(c *gin.Context) {
 				}
 
 				// 查询部门所属的组
-				gs, err2 := cacheimpls.GetSubjectGroups(deptPK)
+				gs, err2 := cacheimpls.ListSystemSubjectEffectGroups(body.System, []int64{deptPK})
 				if err2 != nil {
 					d["groups"] = err2.Error()
 				} else {

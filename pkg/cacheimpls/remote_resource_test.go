@@ -40,9 +40,7 @@ func TestGetCMDBResource(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	system := types.System{
 		ID:            "",

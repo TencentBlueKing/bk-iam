@@ -37,7 +37,7 @@ func TestSqlxSelect(t *testing.T) {
 		mockRows := NewMockRows(mock, mockSnippets...)
 		mock.ExpectQuery(mockQuery).WillReturnRows(mockRows)
 
-		var snippets = []Snippet{}
+		snippets := []Snippet{}
 		err := SqlxSelect(db, &snippets, "select name from snippet")
 
 		assert.NoError(t, err)
@@ -52,7 +52,7 @@ func TestSqlxSelect(t *testing.T) {
 		mockRows := NewMockRowsWithoutData(mock, &Snippet{})
 		mock.ExpectQuery(mockQuery).WillReturnRows(mockRows)
 
-		var snippets = []Snippet{}
+		snippets := []Snippet{}
 		err := SqlxSelect(db, &snippets, "select name from snippet")
 
 		assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestSqlxSelect(t *testing.T) {
 		mockQuery := "^select name from snippet$"
 		mock.ExpectQuery(mockQuery).WillReturnError(fmt.Errorf("some error"))
 
-		var snippets = []Snippet{}
+		snippets := []Snippet{}
 		err := SqlxSelect(db, &snippets, "select name from snippet")
 
 		assert.Error(t, err)
@@ -85,7 +85,7 @@ func TestSqlxGet(t *testing.T) {
 		mockRows := NewMockRows(mock, mockSnippets...)
 		mock.ExpectQuery(mockQuery).WithArgs("test").WillReturnRows(mockRows)
 
-		var snippet = Snippet{}
+		snippet := Snippet{}
 		err := SqlxGet(db, &snippet, "select name from snippet where name=?", "test")
 
 		assert.NoError(t, err)
@@ -98,7 +98,7 @@ func TestSqlxGet(t *testing.T) {
 		mockRows := NewMockRowsWithoutData(mock, &Snippet{})
 		mock.ExpectQuery(mockQuery).WithArgs("test").WillReturnRows(mockRows)
 
-		var snippets = Snippet{}
+		snippets := Snippet{}
 		err := SqlxGet(db, &snippets, "select name from snippet where name=?", "test")
 
 		assert.Error(t, err)
@@ -109,7 +109,7 @@ func TestSqlxGet(t *testing.T) {
 		mockQuery := "^select name from snippet where name=(.*)$"
 		mock.ExpectQuery(mockQuery).WithArgs("test").WillReturnError(fmt.Errorf("some error"))
 
-		var snippets = Snippet{}
+		snippets := Snippet{}
 		err := SqlxGet(db, &snippets, "select name from snippet where name=?", "test")
 
 		assert.Error(t, err)

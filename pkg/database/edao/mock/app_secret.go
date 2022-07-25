@@ -5,34 +5,35 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockAppSecretManager is a mock of AppSecretManager interface
+// MockAppSecretManager is a mock of AppSecretManager interface.
 type MockAppSecretManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockAppSecretManagerMockRecorder
 }
 
-// MockAppSecretManagerMockRecorder is the mock recorder for MockAppSecretManager
+// MockAppSecretManagerMockRecorder is the mock recorder for MockAppSecretManager.
 type MockAppSecretManagerMockRecorder struct {
 	mock *MockAppSecretManager
 }
 
-// NewMockAppSecretManager creates a new mock instance
+// NewMockAppSecretManager creates a new mock instance.
 func NewMockAppSecretManager(ctrl *gomock.Controller) *MockAppSecretManager {
 	mock := &MockAppSecretManager{ctrl: ctrl}
 	mock.recorder = &MockAppSecretManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAppSecretManager) EXPECT() *MockAppSecretManagerMockRecorder {
 	return m.recorder
 }
 
-// Exists mocks base method
+// Exists mocks base method.
 func (m *MockAppSecretManager) Exists(appCode, appSecret string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exists", appCode, appSecret)
@@ -41,7 +42,7 @@ func (m *MockAppSecretManager) Exists(appCode, appSecret string) (bool, error) {
 	return ret0, ret1
 }
 
-// Exists indicates an expected call of Exists
+// Exists indicates an expected call of Exists.
 func (mr *MockAppSecretManagerMockRecorder) Exists(appCode, appSecret interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockAppSecretManager)(nil).Exists), appCode, appSecret)

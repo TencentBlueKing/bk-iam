@@ -118,7 +118,6 @@ func sqlxDeleteFunc(db *sqlx.DB, query string, args ...interface{}) (int64, erro
 	}
 
 	rowsAffected, err := result.RowsAffected()
-
 	if err != nil {
 		return 0, err
 	}
@@ -138,7 +137,6 @@ func sqlxDeleteWithCtxFunc(ctx context.Context, db *sqlx.DB, query string, args 
 	}
 
 	rowsAffected, err := result.RowsAffected()
-
 	if err != nil {
 		return 0, err
 	}

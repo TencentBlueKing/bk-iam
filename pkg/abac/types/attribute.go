@@ -113,9 +113,19 @@ func (a *ActionAttribute) GetPK() (int64, error) {
 	return a.GetInt64(PKAttrName)
 }
 
+// GetAuthType 获取authType
+func (a *ActionAttribute) GetAuthType() (int64, error) {
+	return a.GetInt64(AuthTypeAttrName)
+}
+
 // SetPK 设置pk
 func (a *ActionAttribute) SetPK(pk int64) {
 	a.Set(PKAttrName, pk)
+}
+
+// SetPK 设置pk
+func (a *ActionAttribute) SetAuthType(authType int64) {
+	a.Set(AuthTypeAttrName, authType)
 }
 
 // GetResourceTypes 获取资源类型
@@ -159,25 +169,6 @@ func (a *SubjectAttribute) GetPK() (int64, error) {
 // SetPK 设置pk
 func (a *SubjectAttribute) SetPK(pk int64) {
 	a.Set(PKAttrName, pk)
-}
-
-// GetGroups 获取subject属于的组
-func (a *SubjectAttribute) GetGroups() ([]SubjectGroup, error) {
-	groups, ok := a.Get(GroupAttrName)
-	if !ok {
-		return nil, fmt.Errorf("key %s not exists", GroupAttrName)
-	}
-
-	subjectGroups, ok := groups.([]SubjectGroup)
-	if !ok {
-		return nil, fmt.Errorf("value %+v of key %s can not convert to []SubjectGroup", groups, GroupAttrName)
-	}
-	return subjectGroups, nil
-}
-
-// SetGroups 设置用户组
-func (a *SubjectAttribute) SetGroups(groups []SubjectGroup) {
-	a.Set(GroupAttrName, groups)
 }
 
 // GetDepartments 获取subject属于的部门

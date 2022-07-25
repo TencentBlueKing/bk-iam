@@ -37,3 +37,15 @@ type ExtResourceWithAttribute struct {
 	Type      string     `json:"type"`
 	Instances []Instance `json:"instances"`
 }
+
+// ResourceNode 用于RBAC鉴权
+type ResourceNode struct {
+	System string
+	Type   string
+	ID     string
+	TypePK int64
+}
+
+func (r *ResourceNode) UniqueID() string {
+	return r.System + ":" + r.Type + ":" + r.ID
+}

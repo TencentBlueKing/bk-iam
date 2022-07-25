@@ -17,10 +17,10 @@ import (
 	"iam/pkg/database/dao"
 )
 
-// SubjectSVC ...
+// SubjectBlackListSVC ...
 const SubjectBlackListSVC = "SubjectBlackListSVC"
 
-// SubjectService subject加载器
+// SubjectBlackListService subject加载器
 type SubjectBlackListService interface {
 	ListSubjectPK() ([]int64, error)
 
@@ -39,11 +39,7 @@ func NewSubjectBlackListService() SubjectBlackListService {
 }
 
 func (l *subjectBlackListService) ListSubjectPK() ([]int64, error) {
-	subjectPKs, err := l.manager.ListSubjectPK()
-	if err != nil {
-		return nil, err
-	}
-	return subjectPKs, nil
+	return l.manager.ListSubjectPK()
 }
 
 // BulkCreate ...
@@ -73,10 +69,5 @@ func (l *subjectBlackListService) BulkCreate(subjectPKs []int64) error {
 
 // BulkDelete ...
 func (l *subjectBlackListService) BulkDelete(subjectPKs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "BulkDelete")
-	err := l.manager.BulkDelete(subjectPKs)
-	if err != nil {
-		return errorWrapf(err, "manager.BulkDelete subjectPKs=`%+v` fail", subjectPKs)
-	}
-	return nil
+	return l.manager.BulkDelete(subjectPKs)
 }

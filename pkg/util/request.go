@@ -21,10 +21,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	// ErrNilRequestBody ...
-	ErrNilRequestBody = errors.New("request Body is nil")
-)
+// ErrNilRequestBody ...
+var ErrNilRequestBody = errors.New("request Body is nil")
 
 // ReadRequestBody will return the body in []byte, without change the origin body
 func ReadRequestBody(r *http.Request) ([]byte, error) {

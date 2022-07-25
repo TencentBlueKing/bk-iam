@@ -19,13 +19,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/abac/pip"
-	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
-	svctypes "iam/pkg/service/types"
 )
 
 var _ = Describe("Subject", func() {
-
 	Describe("GetSubjectPK", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -56,10 +53,9 @@ var _ = Describe("Subject", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(123), pk)
 		})
-
 	})
 
-	Describe("GetSubjectDetail", func() {
+	Describe("GetSubjectDepartmentPKs", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -70,44 +66,24 @@ var _ = Describe("Subject", func() {
 			patches.Reset()
 		})
 
-		It("GetSubjectDetail fail", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-				return svctypes.SubjectDetail{}, errors.New("get GetSubjectDetail fail")
+		It("GetSubjectDepartmentPKs fail", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+				return nil, errors.New("get GetLocalSubjectDepartmentPKs fail")
 			})
 
-			_, _, err := pip.GetSubjectDetail(123)
+			_, err := pip.GetSubjectDepartmentPKs(123)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "get GetSubjectDetail fail")
+			assert.Contains(GinkgoT(), err.Error(), "get GetLocalSubjectDepartmentPKs fail")
 		})
 
 		It("ok", func() {
-			returned := []svctypes.ThinSubjectGroup{
-				{
-					PK:              1,
-					PolicyExpiredAt: 123,
-				},
-			}
-
-			want := []types.SubjectGroup{
-				{
-					PK:              1,
-					PolicyExpiredAt: 123,
-				},
-			}
-
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectDetail, func(pk int64) (svctypes.SubjectDetail, error) {
-				return svctypes.SubjectDetail{
-					DepartmentPKs: []int64{1, 2, 3},
-					SubjectGroups: returned,
-				}, nil
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectDepartmentPKs, func(pk int64) ([]int64, error) {
+				return []int64{1, 2, 3}, nil
 			})
 
-			depts, groups, err := pip.GetSubjectDetail(123)
+			depts, err := pip.GetSubjectDepartmentPKs(123)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, depts)
-			assert.Equal(GinkgoT(), want, groups)
 		})
-
 	})
-
 })

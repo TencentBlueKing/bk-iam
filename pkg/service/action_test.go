@@ -93,4 +93,89 @@ var _ = Describe("ActionService", func() {
 			assert.Equal(GinkgoT(), []types.ActionBaseInfo{}, actions)
 		})
 	})
+
+	Describe("GetAuthType", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("saasManager.GetAuthType fail", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().GetAuthType("test", "action").Return(
+				"", errors.New("GetAuthType"),
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			_, err := manager.GetAuthType("test", "action")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "GetAuthType")
+		})
+
+		It("empty ok", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().GetAuthType("test", "action").Return(
+				"", nil,
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			authType, err := manager.GetAuthType("test", "action")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), authType)
+		})
+
+		It("abac ok", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().GetAuthType("test", "action").Return(
+				"abac", nil,
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			authType, err := manager.GetAuthType("test", "action")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), authType)
+		})
+
+		It("rbac ok", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().GetAuthType("test", "action").Return(
+				"rbac", nil,
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			authType, err := manager.GetAuthType("test", "action")
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(2), authType)
+		})
+
+		It("unknown fail", func() {
+			mockActionService := smock.NewMockSaaSActionManager(ctl)
+			mockActionService.EXPECT().GetAuthType("test", "action").Return(
+				"test", nil,
+			).AnyTimes()
+
+			manager := &actionService{
+				saasManager: mockActionService,
+			}
+
+			_, err := manager.GetAuthType("test", "action")
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "unknown")
+		})
+	})
 })

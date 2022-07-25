@@ -1,3 +1,7 @@
+# 1.12.0
+
+- add: rbac action support
+
 # 1.11.7
 
 - add api for subject freeze/unfreeze

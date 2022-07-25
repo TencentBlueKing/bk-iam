@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,8 +44,8 @@ func BaseJSONResponse(c *gin.Context, status int, code int, message string, data
 }
 
 // BaseErrorJSONResponse ...
-func BaseErrorJSONResponse(c *gin.Context, code int, message string) {
-	BaseJSONResponse(c, http.StatusOK, code, message, gin.H{})
+func BaseErrorJSONResponse(c *gin.Context, code int, message string, statusCode int) {
+	BaseJSONResponse(c, statusCode, code, message, gin.H{})
 }
 
 // SuccessJSONResponse ...
@@ -73,32 +74,42 @@ func SuccessJSONResponseWithDebug(c *gin.Context, message string, data interface
 // =============== impls of some common error response ===============
 
 // NewErrorJSONResponse ...
-func NewErrorJSONResponse(errorCode int, defaultMessage string) func(c *gin.Context, message string) {
+func NewErrorJSONResponse(errorCode int, defaultMessage string, statusCode int) func(c *gin.Context, message string) {
 	return func(c *gin.Context, message string) {
 		msg := defaultMessage
 		if message != "" {
 			msg = fmt.Sprintf("%s:%s", msg, message)
 		}
-		BaseErrorJSONResponse(c, errorCode, msg)
+
+		if strings.HasPrefix(c.Request.URL.Path, "/api/v2/") {
+			BaseErrorJSONResponse(c, errorCode, msg, statusCode)
+		} else {
+			BaseErrorJSONResponse(c, errorCode, msg, http.StatusOK)
+		}
 	}
 }
 
 // BadRequestErrorJSONResponse ...
 var (
-	BadRequestErrorJSONResponse = NewErrorJSONResponse(BadRequestError, "bad request")
-	ParamErrorJSONResponse      = NewErrorJSONResponse(ParamError, "param error")
-	ForbiddenJSONResponse       = NewErrorJSONResponse(ForbiddenError, "no permission")
-	UnauthorizedJSONResponse    = NewErrorJSONResponse(UnauthorizedError, "unauthorized")
-	NotFoundJSONResponse        = NewErrorJSONResponse(NotFoundError, "not found")
-	ConflictJSONResponse        = NewErrorJSONResponse(ConflictError, "conflict")
-	TooManyRequestsJSONResponse = NewErrorJSONResponse(TooManyRequests, "too many requests")
+	BadRequestErrorJSONResponse = NewErrorJSONResponse(BadRequestError, "bad request", http.StatusBadRequest)
+	// ParamErrorJSONResponse      = NewErrorJSONResponse(ParamError, "param error", http.StatusBadRequest)
+	ForbiddenJSONResponse       = NewErrorJSONResponse(ForbiddenError, "no permission", http.StatusForbidden)
+	UnauthorizedJSONResponse    = NewErrorJSONResponse(UnauthorizedError, "unauthorized", http.StatusUnauthorized)
+	NotFoundJSONResponse        = NewErrorJSONResponse(NotFoundError, "not found", http.StatusNotFound)
+	ConflictJSONResponse        = NewErrorJSONResponse(ConflictError, "conflict", http.StatusConflict)
+	TooManyRequestsJSONResponse = NewErrorJSONResponse(TooManyRequests, "too many requests", http.StatusTooManyRequests)
 )
 
 // SystemErrorJSONResponse ...
 func SystemErrorJSONResponse(c *gin.Context, err error) {
 	message := fmt.Sprintf("system error[request_id=%s]: %s", GetRequestID(c), err.Error())
 	SetError(c, err)
-	BaseErrorJSONResponse(c, SystemError, message)
+
+	if strings.HasPrefix(c.Request.URL.Path, "/api/v2/") {
+		BaseErrorJSONResponse(c, SystemError, message, http.StatusInternalServerError)
+	} else {
+		BaseErrorJSONResponse(c, SystemError, message, http.StatusOK)
+	}
 }
 
 // SystemErrorJSONResponseWithDebug ...

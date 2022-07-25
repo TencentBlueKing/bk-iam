@@ -72,8 +72,13 @@ func checkAllInstanceSelectionsQuotaAndUnique(
 
 	// quota
 	if len(existingInstanceSelections)+len(instanceSelections) > common.GetMaxInstanceSelectionsLimit(systemID) {
-		return fmt.Errorf("quota error: system %s can only have %d instance selections. [current %d, want to create %d]",
-			systemID, common.GetMaxInstanceSelectionsLimit(systemID), len(existingInstanceSelections), len(instanceSelections))
+		return fmt.Errorf(
+			"quota error: system %s can only have %d instance selections. [current %d, want to create %d]",
+			systemID,
+			common.GetMaxInstanceSelectionsLimit(systemID),
+			len(existingInstanceSelections),
+			len(instanceSelections),
+		)
 	}
 
 	return nil

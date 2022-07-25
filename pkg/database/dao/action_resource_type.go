@@ -54,7 +54,8 @@ func NewActionResourceTypeManager() ActionResourceTypeManager {
 
 // ListByActionSystem ...
 func (m *actionResourceTypeManager) ListByActionSystem(actionSystem string) (
-	actionResourceTypes []ActionResourceType, err error) {
+	actionResourceTypes []ActionResourceType, err error,
+) {
 	err = m.selectByActionSystem(&actionResourceTypes, actionSystem)
 	// 吞掉记录不存在的错误, action本身是可以不关联任何resource type
 	if errors.Is(err, sql.ErrNoRows) {
@@ -65,7 +66,8 @@ func (m *actionResourceTypeManager) ListByActionSystem(actionSystem string) (
 
 // ListResourceTypeByAction ...
 func (m *actionResourceTypeManager) ListResourceTypeByAction(
-	actionSystem, actionID string) (actionResourceTypes []ActionResourceType, err error) {
+	actionSystem, actionID string,
+) (actionResourceTypes []ActionResourceType, err error) {
 	err = m.selectResourceTypeByAction(&actionResourceTypes, actionSystem, actionID)
 	// 吞掉记录不存在的错误, action本身是可以不关联任何resource type
 	if errors.Is(err, sql.ErrNoRows) {
@@ -76,7 +78,8 @@ func (m *actionResourceTypeManager) ListResourceTypeByAction(
 
 // ListByResourceTypeSystem ...
 func (m *actionResourceTypeManager) ListByResourceTypeSystem(resourceTypeSystem string) (
-	actionResourceTypes []ActionResourceType, err error) {
+	actionResourceTypes []ActionResourceType, err error,
+) {
 	err = m.selectByResourceTypeSystem(&actionResourceTypes, resourceTypeSystem)
 	// 吞掉记录不存在的错误, action本身是可以不关联任何resource type
 	if errors.Is(err, sql.ErrNoRows) {
@@ -102,7 +105,8 @@ func (m *actionResourceTypeManager) BulkDeleteWithTx(tx *sqlx.Tx, actionSystem s
 }
 
 func (m *actionResourceTypeManager) selectResourceTypeByAction(
-	actionResourceTypes *[]ActionResourceType, actionSystem, actionID string) error {
+	actionResourceTypes *[]ActionResourceType, actionSystem, actionID string,
+) error {
 	query := `SELECT
 		resource_type_system_id,
 		resource_type_id
@@ -128,7 +132,8 @@ func (m *actionResourceTypeManager) bulkDeleteWithTx(tx *sqlx.Tx, actionSystem s
 }
 
 func (m *actionResourceTypeManager) selectByActionSystem(
-	actionResourceTypes *[]ActionResourceType, actionSystem string) error {
+	actionResourceTypes *[]ActionResourceType, actionSystem string,
+) error {
 	query := `SELECT
 		pk,
 		action_system_id,
@@ -142,7 +147,8 @@ func (m *actionResourceTypeManager) selectByActionSystem(
 }
 
 func (m *actionResourceTypeManager) selectByResourceTypeSystem(
-	actionResourceTypes *[]ActionResourceType, resourceTypeSystem string) error {
+	actionResourceTypes *[]ActionResourceType, resourceTypeSystem string,
+) error {
 	query := `SELECT
 		pk,
 		action_system_id,

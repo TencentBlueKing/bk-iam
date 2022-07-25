@@ -45,6 +45,10 @@ func (p *entryPool) Get() *Entry {
 
 // Put ...
 func (p *entryPool) Put(e *Entry) {
+	if e == nil {
+		return
+	}
+
 	if len(e.SubDebugs) > 0 {
 		for _, se := range e.SubDebugs {
 			p.Put(se)
@@ -56,6 +60,7 @@ func (p *entryPool) Put(e *Entry) {
 	e.Steps = []Step{}
 	e.SubDebugs = []*Entry{}
 	e.Evals = map[int64]string{}
+	e.Error = ""
 
 	p.pool.Put(e)
 }

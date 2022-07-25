@@ -30,8 +30,10 @@ var (
 	BKPaaSDBClient *DBClient
 )
 
-var defaultDBClientOnce sync.Once
-var bkPaaSDBClientOnce sync.Once
+var (
+	defaultDBClientOnce sync.Once
+	bkPaaSDBClientOnce  sync.Once
+)
 
 // InitDBClients ...
 func InitDBClients(defaultDBConfig, bkPaaSDBConfig *config.Database) {

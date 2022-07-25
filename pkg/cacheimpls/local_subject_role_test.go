@@ -29,9 +29,7 @@ func TestSubjectRoleCacheKey_Key(t *testing.T) {
 }
 
 func TestSubjectListSubjectRoleSystemID(t *testing.T) {
-	var (
-		expiration = 5 * time.Minute
-	)
+	expiration := 5 * time.Minute
 
 	// valid
 	retrieveFunc := func(key cache.Key) (interface{}, error) {

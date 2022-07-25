@@ -18,11 +18,8 @@ import (
 )
 
 var _ = Describe("policy", func() {
-
 	Describe("AuthExpression cases", func() {
-
 		Describe("IsEmpty", func() {
-
 			It("true", func() {
 				ae := types.AuthExpression{}
 				assert.True(GinkgoT(), ae.IsEmpty())
@@ -37,7 +34,5 @@ var _ = Describe("policy", func() {
 				assert.False(GinkgoT(), ae.IsEmpty())
 			})
 		})
-
 	})
-
 })

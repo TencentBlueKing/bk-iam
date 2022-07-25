@@ -43,27 +43,12 @@ func NewEnginePolicyService() EnginePolicyService {
 
 // GetMaxPKBeforeUpdatedAt ...
 func (s *enginePolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "GetMaxPKBeforeUpdatedAt")
-
-	pk, err := s.manager.GetMaxPKBeforeUpdatedAt(updatedAt)
-	if err != nil {
-		err = errorWrapf(err, "manager.GetMaxPKBeforeUpdatedAt updatedAtTime=`%d`", updatedAt)
-		return 0, err
-	}
-	return pk, nil
+	return s.manager.GetMaxPKBeforeUpdatedAt(updatedAt)
 }
 
 // ListPKBetweenUpdatedAt ...
 func (s *enginePolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListPKBetweenUpdatedAt")
-
-	pks, err := s.manager.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
-	if err != nil {
-		err = errorWrapf(err, "manager.ListPKBetweenUpdatedAt beginUpdatedAtTime=`%d`, endUpdatedAtTime=`%d` fail",
-			beginUpdatedAt, endUpdatedAt)
-		return nil, err
-	}
-	return pks, nil
+	return s.manager.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
 }
 
 // ListBetweenPK ...

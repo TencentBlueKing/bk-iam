@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("Types", func() {
-
 	Describe("AllBaseInfo", func() {
 		var a handler.AllBaseInfo
 		BeforeEach(func() {
@@ -57,7 +56,6 @@ var _ = Describe("Types", func() {
 			assert.False(GinkgoT(), a.ContainsNameExcludeSelf("hello", "cmdb"))
 			assert.False(GinkgoT(), a.ContainsNameExcludeSelf("cmdb_n", "cmdb"))
 			assert.True(GinkgoT(), a.ContainsNameExcludeSelf("job_n", "cmdb"))
-
 		})
 
 		It("ContainsNameEnExcludeSelf", func() {
@@ -65,7 +63,5 @@ var _ = Describe("Types", func() {
 			assert.False(GinkgoT(), a.ContainsNameEnExcludeSelf("cmdb_en", "cmdb"))
 			assert.True(GinkgoT(), a.ContainsNameEnExcludeSelf("job_en", "cmdb"))
 		})
-
 	})
-
 })

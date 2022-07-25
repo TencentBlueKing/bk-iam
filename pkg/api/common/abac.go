@@ -18,7 +18,7 @@ import (
 
 // GetActionResourceTypeSet get resource type set for translate expression
 func GetActionResourceTypeSet(systemID string, actionID string) (resourceTypeSet *set.StringSet, err error) {
-	_, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
+	_, _, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
 
 	resourceTypeSet = set.NewFixedLengthStringSet(len(actionResourceTypes))
 	for _, rt := range actionResourceTypes {

@@ -8,9 +8,7 @@ import (
 )
 
 var _ = Describe("PolicyCondition", func() {
-
 	Describe("PolicyCondition.ToNewPolicyCondition", func() {
-
 		It("single, not any", func() {
 			pc := types.PolicyCondition{
 				"StringEquals": {
@@ -36,13 +34,12 @@ var _ = Describe("PolicyCondition", func() {
 			npc, err := pc.ToNewPolicyCondition("bk_cmdb", "host")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), pc, npc)
-
 		})
 
 		It("AND", func() {
 			pc := types.PolicyCondition{
 				"AND": map[string][]interface{}{
-					"content": []interface{}{
+					"content": {
 						map[string]interface{}{
 							"StringEquals": map[string]interface{}{
 								"system": []interface{}{"linux"},
@@ -59,15 +56,15 @@ var _ = Describe("PolicyCondition", func() {
 
 			want := types.PolicyCondition{
 				"AND": map[string][]interface{}{
-					"content": []interface{}{
+					"content": {
 						types.PolicyCondition{
 							"StringEquals": map[string][]interface{}{
-								"bk_cmdb.host.system": []interface{}{"linux"},
+								"bk_cmdb.host.system": {"linux"},
 							},
 						},
 						types.PolicyCondition{
 							"StringPrefix": map[string][]interface{}{
-								"bk_cmdb.host.path": []interface{}{"/biz,1/"},
+								"bk_cmdb.host.path": {"/biz,1/"},
 							},
 						},
 					},
@@ -76,21 +73,20 @@ var _ = Describe("PolicyCondition", func() {
 			npc, err := pc.ToNewPolicyCondition("bk_cmdb", "host")
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, npc)
-
 		})
 
 		It("AND, fail1", func() {
 			pc := types.PolicyCondition{
 				"AND": map[string][]interface{}{
-					"content": []interface{}{
+					"content": {
 						// here, will assert fail
 						map[string]map[string]interface{}{
-							"StringEquals": map[string]interface{}{
+							"StringEquals": {
 								"system": []interface{}{"linux"},
 							},
 						},
 						map[string]map[string]interface{}{
-							"StringPrefix": map[string]interface{}{
+							"StringPrefix": {
 								"path": []interface{}{"/biz,1/"},
 							},
 						},
@@ -101,13 +97,10 @@ var _ = Describe("PolicyCondition", func() {
 			npc, err := pc.ToNewPolicyCondition("bk_cmdb", "host")
 			assert.Error(GinkgoT(), err)
 			assert.Nil(GinkgoT(), npc)
-
 		})
-
 	})
 
 	Describe("ResourceExpression.ToNewPolicyCondition", func() {
-
 		It("single, not any", func() {
 			pc := types.PolicyCondition{
 				"StringEquals": {
@@ -129,5 +122,4 @@ var _ = Describe("PolicyCondition", func() {
 			assert.Equal(GinkgoT(), want, npc)
 		})
 	})
-
 })

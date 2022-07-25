@@ -80,9 +80,7 @@ var _ = Describe("Resource", func() {
 				"bk_test", "app", "demo123", []string{"id", "name"})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, r)
-
 		})
-
 	})
 
 	Describe("BatchQueryRemoteResourcesAttribute", func() {
@@ -152,9 +150,6 @@ var _ = Describe("Resource", func() {
 				"bk_test", "app", []string{"demo123", "demo456"}, []string{"id", "name"})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, r)
-
 		})
-
 	})
-
 })

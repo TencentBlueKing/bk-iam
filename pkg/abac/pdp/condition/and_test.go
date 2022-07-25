@@ -33,7 +33,8 @@ var _ = Describe("And", func() {
 						Value: []interface{}{"/biz,1/"},
 					},
 				},
-			}},
+			},
+		},
 	}
 
 	var c *AndCondition
@@ -62,7 +63,6 @@ var _ = Describe("And", func() {
 		It("wrong key", func() {
 			_, err := newAndCondition("wrong", []interface{}{"abc"})
 			assert.Error(GinkgoT(), err)
-
 		})
 
 		It("ok", func() {
@@ -161,7 +161,6 @@ var _ = Describe("And", func() {
 
 	Describe("PartialEval", func() {
 		Describe("no nested AND/OR", func() {
-
 			// It("no content", func() {
 			//
 			// })
@@ -295,7 +294,6 @@ var _ = Describe("And", func() {
 						"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"},
 					}
 					assert.Equal(GinkgoT(), got, ct)
-
 				})
 				It("one false, one remain", func() {
 					allowed, nc := c.(LogicalCondition).PartialEval(MapCtx{
@@ -314,7 +312,8 @@ var _ = Describe("And", func() {
 						"op": "AND",
 						"content": []map[string]interface{}{
 							{"field": "host.system", "op": "eq", "value": "linux"},
-							{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}}},
+							{"field": "subject.type", "op": "in", "value": []interface{}{"mysql", "linux"}},
+						},
 					}
 					assert.Equal(GinkgoT(), got, ct)
 				})
@@ -402,5 +401,4 @@ var _ = Describe("And", func() {
 			})
 		})
 	})
-
 })

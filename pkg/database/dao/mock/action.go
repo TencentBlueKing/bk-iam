@@ -5,51 +5,65 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	sqlx "github.com/jmoiron/sqlx"
 	dao "iam/pkg/database/dao"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
-// MockActionManager is a mock of ActionManager interface
+// MockActionManager is a mock of ActionManager interface.
 type MockActionManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockActionManagerMockRecorder
 }
 
-// MockActionManagerMockRecorder is the mock recorder for MockActionManager
+// MockActionManagerMockRecorder is the mock recorder for MockActionManager.
 type MockActionManagerMockRecorder struct {
 	mock *MockActionManager
 }
 
-// NewMockActionManager creates a new mock instance
+// NewMockActionManager creates a new mock instance.
 func NewMockActionManager(ctrl *gomock.Controller) *MockActionManager {
 	mock := &MockActionManager{ctrl: ctrl}
 	mock.recorder = &MockActionManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockActionManager) EXPECT() *MockActionManagerMockRecorder {
 	return m.recorder
 }
 
-// GetPK mocks base method
-func (m *MockActionManager) GetPK(system, id string) (int64, error) {
+// BulkCreateWithTx mocks base method.
+func (m *MockActionManager) BulkCreateWithTx(tx *sqlx.Tx, actions []dao.Action) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPK", system, id)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, actions)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetPK indicates an expected call of GetPK
-func (mr *MockActionManagerMockRecorder) GetPK(system, id interface{}) *gomock.Call {
+// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
+func (mr *MockActionManagerMockRecorder) BulkCreateWithTx(tx, actions interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockActionManager)(nil).GetPK), system, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockActionManager)(nil).BulkCreateWithTx), tx, actions)
 }
 
-// Get mocks base method
+// BulkDeleteWithTx mocks base method.
+func (m *MockActionManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, system, ids)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx.
+func (mr *MockActionManagerMockRecorder) BulkDeleteWithTx(tx, system, ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockActionManager)(nil).BulkDeleteWithTx), tx, system, ids)
+}
+
+// Get mocks base method.
 func (m *MockActionManager) Get(pk int64) (dao.Action, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", pk)
@@ -58,13 +72,28 @@ func (m *MockActionManager) Get(pk int64) (dao.Action, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockActionManagerMockRecorder) Get(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockActionManager)(nil).Get), pk)
 }
 
-// ListByPKs mocks base method
+// GetPK mocks base method.
+func (m *MockActionManager) GetPK(system, id string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPK", system, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPK indicates an expected call of GetPK.
+func (mr *MockActionManagerMockRecorder) GetPK(system, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockActionManager)(nil).GetPK), system, id)
+}
+
+// ListByPKs mocks base method.
 func (m *MockActionManager) ListByPKs(pks []int64) ([]dao.Action, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByPKs", pks)
@@ -73,13 +102,13 @@ func (m *MockActionManager) ListByPKs(pks []int64) ([]dao.Action, error) {
 	return ret0, ret1
 }
 
-// ListByPKs indicates an expected call of ListByPKs
+// ListByPKs indicates an expected call of ListByPKs.
 func (mr *MockActionManagerMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockActionManager)(nil).ListByPKs), pks)
 }
 
-// ListBySystem mocks base method
+// ListBySystem mocks base method.
 func (m *MockActionManager) ListBySystem(system string) ([]dao.Action, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBySystem", system)
@@ -88,36 +117,8 @@ func (m *MockActionManager) ListBySystem(system string) ([]dao.Action, error) {
 	return ret0, ret1
 }
 
-// ListBySystem indicates an expected call of ListBySystem
+// ListBySystem indicates an expected call of ListBySystem.
 func (mr *MockActionManagerMockRecorder) ListBySystem(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockActionManager)(nil).ListBySystem), system)
-}
-
-// BulkCreateWithTx mocks base method
-func (m *MockActionManager) BulkCreateWithTx(tx *sqlx.Tx, actions []dao.Action) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, actions)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreateWithTx indicates an expected call of BulkCreateWithTx
-func (mr *MockActionManagerMockRecorder) BulkCreateWithTx(tx, actions interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockActionManager)(nil).BulkCreateWithTx), tx, actions)
-}
-
-// BulkDeleteWithTx mocks base method
-func (m *MockActionManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, system, ids)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx
-func (mr *MockActionManagerMockRecorder) BulkDeleteWithTx(tx, system, ids interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockActionManager)(nil).BulkDeleteWithTx), tx, system, ids)
 }

@@ -36,6 +36,7 @@ type ResourceTypeService interface {
 	BulkDelete(system string, resourceTypeIDs []string) error
 
 	Get(system string, id string) (types.ResourceType, error)
+	GetPK(system string, name string) (int64, error)
 }
 
 type resourceTypeService struct {
@@ -121,6 +122,11 @@ func (l *resourceTypeService) Get(system string, resourceTypeID string) (rt type
 		return
 	}
 	return resourceType, nil
+}
+
+// GetPK ...
+func (l *resourceTypeService) GetPK(system string, resourceTypeID string) (int64, error) {
+	return l.manager.GetPK(system, resourceTypeID)
 }
 
 // BulkCreate ...

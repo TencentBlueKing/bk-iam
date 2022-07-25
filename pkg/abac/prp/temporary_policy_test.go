@@ -12,11 +12,12 @@ package prp
 
 import (
 	"errors"
+	"time"
+
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
-	"time"
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/golang/mock/gomock"
@@ -117,7 +118,7 @@ var _ = Describe("Redis", func() {
 			c = &temporaryPolicyLocalCache{
 				temporaryPolicyService: nil,
 			}
-			cacheimpls.LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
+			cacheimpls.LocalTemporaryPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 		})
 		AfterEach(func() {
 			ctl.Finish()

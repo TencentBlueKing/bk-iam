@@ -48,21 +48,20 @@ var _ = Describe("Redis", func() {
 			cacheimpls.ExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 			r = &redisRetriever{}
 
-			retrievedExpressions =
-				[]types.AuthExpression{
-					{
-						PK:         123,
-						Expression: "",
-					},
-					{
-						PK:         456,
-						Expression: "",
-					},
-					{
-						PK:         789,
-						Expression: "",
-					},
-				}
+			retrievedExpressions = []types.AuthExpression{
+				{
+					PK:         123,
+					Expression: "",
+				},
+				{
+					PK:         456,
+					Expression: "",
+				},
+				{
+					PK:         789,
+					Expression: "",
+				},
+			}
 
 			r.missingRetrieveFunc = func(pks []int64) (expressions []types.AuthExpression, missingPKs []int64, err error) {
 				return retrievedExpressions, []int64{}, nil
@@ -89,7 +88,6 @@ var _ = Describe("Redis", func() {
 				456: string(exprStr2),
 				789: string(exprStr3),
 			}
-
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -154,7 +152,6 @@ var _ = Describe("Redis", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), expressions, 3)
 			assert.Len(GinkgoT(), missingPKs, 0)
-
 		})
 
 		It("some hit, some missing", func() {
@@ -179,7 +176,6 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
-
 		})
 
 		It("some hit, some missing, retrieve has missing key", func() {
@@ -223,7 +219,6 @@ var _ = Describe("Redis", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Nil(GinkgoT(), expressions)
 			assert.Nil(GinkgoT(), missingPKs)
-
 		})
 
 		It("one expression is empty", func() {
@@ -249,7 +244,6 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
-
 		})
 
 		It("retrieve fail", func() {
@@ -263,7 +257,6 @@ var _ = Describe("Redis", func() {
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "retrieve fail", err.Error())
 		})
-
 	})
 
 	Describe("setMissing", func() {
@@ -284,7 +277,6 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(789)))
 		})
-
 	})
 
 	// helper functions
@@ -304,7 +296,6 @@ var _ = Describe("Redis", func() {
 
 			_, _, err := r.batchGet([]int64{123})
 			assert.Error(GinkgoT(), err)
-
 		})
 
 		It("ok", func() {
@@ -319,7 +310,6 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
-
 	})
 
 	Describe("batchSet", func() {
@@ -367,11 +357,9 @@ var _ = Describe("Redis", func() {
 			err := r.batchSet(noCacheExpressions)
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "batchSetWithTx fail", err.Error())
-
 		})
 
 		It("ok", func() {
-
 			err := r.batchSet(noCacheExpressions)
 			assert.NoError(GinkgoT(), err)
 
@@ -379,7 +367,6 @@ var _ = Describe("Redis", func() {
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
-
 	})
 
 	Describe("batchDelete", func() {
@@ -415,7 +402,6 @@ var _ = Describe("Redis", func() {
 			err := r.batchDelete([]int64{123})
 			assert.Error(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "batchDelete fail", err.Error())
-
 		})
 
 		It("ok", func() {
@@ -428,7 +414,6 @@ var _ = Describe("Redis", func() {
 
 			assert.False(GinkgoT(), cacheimpls.ExpressionCache.Exists(key))
 		})
-
 	})
 
 	Describe("batchDeleteExpressionsFromRedis", func() {
@@ -470,7 +455,5 @@ var _ = Describe("Redis", func() {
 			assert.False(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(123)))
 			assert.True(GinkgoT(), cacheimpls.ExpressionCache.Exists(cache.NewInt64Key(456)))
 		})
-
 	})
-
 })

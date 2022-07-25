@@ -135,11 +135,11 @@ func (c *cache) Get(k string) (interface{}, bool) {
 	return item.Object, true
 }
 
-// GetAfterExpirationAnchor will do cache get by key and expiration anchor(a unix nano seconds, int64).
+// GetItemAfterExpirationAnchor will do cache get by key and expiration anchor(a unix nano seconds, int64).
 // if cache.Get in a loop with the same nano, the raw Get will call time.Now().UnixNano() each time,
 // it will take a loop of cpu time!
 // so, we add one more function to pass the UnixNano seconds as parameter.
-func (c *cache) GetAfterExpirationAnchor(k string, timestampNano int64) (interface{}, bool) {
+func (c *cache) GetItemAfterExpirationAnchor(k string, timestampNano int64) (*Item, bool) {
 	c.mu.RLock()
 	// "Inlining" of get and Expired
 	item, found := c.items[k]
@@ -154,6 +154,19 @@ func (c *cache) GetAfterExpirationAnchor(k string, timestampNano int64) (interfa
 		}
 	}
 	c.mu.RUnlock()
+	return &item, true
+}
+
+// GetAfterExpirationAnchor will do cache get by key and expiration anchor(a unix nano seconds, int64).
+// if cache.Get in a loop with the same nano, the raw Get will call time.Now().UnixNano() each time,
+// it will take a loop of cpu time!
+// so, we add one more function to pass the UnixNano seconds as parameter.
+func (c *cache) GetAfterExpirationAnchor(k string, timestampNano int64) (interface{}, bool) {
+	item, found := c.GetItemAfterExpirationAnchor(k, timestampNano)
+	if !found {
+		return nil, false
+	}
+
 	return item.Object, true
 }
 

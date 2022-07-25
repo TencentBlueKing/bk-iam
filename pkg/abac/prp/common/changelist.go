@@ -65,8 +65,15 @@ func (r *ChangeList) FetchList(key string) (data map[string]int64, err error) {
 
 	// just log
 	if int64(len(zs)) == r.MaxCount {
-		log.Errorf("[%s:%s] zrange by scores list almost full changeListKey=`%s`, min=`%d`, max=`%d`, offset=`0`, count=`%d`",
-			changeListLayer, r.Type, changeListKey, min, max, r.MaxCount)
+		log.Errorf(
+			"[%s:%s] zrange by scores list almost full changeListKey=`%s`, min=`%d`, max=`%d`, offset=`0`, count=`%d`",
+			changeListLayer,
+			r.Type,
+			changeListKey,
+			min,
+			max,
+			r.MaxCount,
+		)
 	}
 
 	data = make(map[string]int64, len(zs))

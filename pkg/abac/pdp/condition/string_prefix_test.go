@@ -155,5 +155,4 @@ var _ = Describe("StringPrefix", func() {
 			assert.Equal(GinkgoT(), expected, ec)
 		})
 	})
-
 })

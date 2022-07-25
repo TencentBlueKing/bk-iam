@@ -52,9 +52,7 @@ import (
 	"github.com/jmoiron/sqlx/reflectx"
 )
 
-var (
-	EndBracketsReg = regexp.MustCompile(`\([^()]*\)\s*$`)
-)
+var EndBracketsReg = regexp.MustCompile(`\([^()]*\)\s*$`)
 
 var allowedBindRunes = []*unicode.RangeTable{unicode.Letter, unicode.Digit}
 

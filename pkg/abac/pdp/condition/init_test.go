@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("Condition", func() {
-
 	wantAndCondition := &AndCondition{
 		baseLogicalCondition{
 			content: []Condition{
@@ -62,12 +61,15 @@ var _ = Describe("Condition", func() {
 		})
 
 		It("ok, a policyCondition", func() {
-
 			data := types.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}},
+						},
 					},
 				},
 			}
@@ -75,7 +77,6 @@ var _ = Describe("Condition", func() {
 			c, err := newConditionFromInterface(data)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), wantAndCondition, c)
-
 		})
 	})
 
@@ -88,15 +89,18 @@ var _ = Describe("Condition", func() {
 		It("error operator", func() {
 			_, err := NewConditionFromPolicyCondition(types.PolicyCondition{"notExists": map[string][]interface{}{}})
 			assert.Error(GinkgoT(), err)
-
 		})
 
 		It("ok", func() {
 			data := types.PolicyCondition{
 				"AND": map[string][]interface{}{
 					"content": {
-						map[string]interface{}{"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}}},
-						map[string]interface{}{"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}}},
+						map[string]interface{}{
+							"StringEquals": map[string]interface{}{"system": []interface{}{"linux"}},
+						},
+						map[string]interface{}{
+							"StringPrefix": map[string]interface{}{"path": []interface{}{"/biz,1/"}},
+						},
 					},
 				},
 			}
@@ -104,7 +108,6 @@ var _ = Describe("Condition", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), wantAndCondition, c)
 		})
-
 	})
 
 	Describe("removeSystemFromKey", func() {
@@ -127,7 +130,5 @@ var _ = Describe("Condition", func() {
 			a := removeSystemFromKey("host.id")
 			assert.Equal(GinkgoT(), "host.id", a)
 		})
-
 	})
-
 })

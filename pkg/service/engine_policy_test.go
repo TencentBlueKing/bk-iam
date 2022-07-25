@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("PolicyEngine", func() {
-
 	Describe("ListBetweenPK cases", func() {
 		var ctl *gomock.Controller
 

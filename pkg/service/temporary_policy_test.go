@@ -25,7 +25,6 @@ import (
 )
 
 var _ = Describe("TemporaryPolicyService", func() {
-
 	Describe("ListThinBySubjectAction", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
@@ -118,7 +117,6 @@ var _ = Describe("TemporaryPolicyService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.TemporaryPolicy{{PK: 1}}, ps)
 		})
-
 	})
 
 	Describe("Create", func() {
@@ -179,7 +177,6 @@ var _ = Describe("TemporaryPolicyService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1}, pks)
 		})
-
 	})
 
 	Describe("DeleteByPKs", func() {
@@ -237,9 +234,8 @@ var _ = Describe("TemporaryPolicyService", func() {
 			err := manager.DeleteByPKs(int64(1), []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-	Describe("DeleteBeforeExpireAt", func() {
+	Describe("DeleteBeforeExpiredAt", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -267,7 +263,7 @@ var _ = Describe("TemporaryPolicyService", func() {
 			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
 			defer patches.Reset()
 
-			err := manager.DeleteBeforeExpireAt(int64(1))
+			err := manager.DeleteBeforeExpiredAt(int64(1))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fail")
 		})
@@ -291,9 +287,8 @@ var _ = Describe("TemporaryPolicyService", func() {
 			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
 			defer patches.Reset()
 
-			err := manager.DeleteBeforeExpireAt(int64(1))
+			err := manager.DeleteBeforeExpiredAt(int64(1))
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 })

@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("Database", func() {
-
 	It("newDatabaseRetriever", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -153,7 +152,6 @@ var _ = Describe("Database", func() {
 
 			assert.Empty(GinkgoT(), missingSubjectPKs)
 		})
-
 	})
 
 	Describe("setMissing", func() {

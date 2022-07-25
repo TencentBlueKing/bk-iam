@@ -16,7 +16,6 @@ import (
 )
 
 var _ = Describe("ActionSlz", func() {
-
 	Describe("ActionUpdateSerializer Validate", func() {
 		var slz actionUpdateSerializer
 		var rrt []relatedResourceType
@@ -81,7 +80,6 @@ var _ = Describe("ActionSlz", func() {
 			valid, _ := slz2.validate(e)
 			assert.True(GinkgoT(), valid)
 		})
-
 	})
 
 	Describe("ValidateRelatedInstanceSelections", func() {
@@ -92,7 +90,6 @@ var _ = Describe("ActionSlz", func() {
 			valid, message := validateRelatedInstanceSelections(a, "", "")
 			assert.False(GinkgoT(), valid)
 			assert.Contains(GinkgoT(), message, "data of action_id")
-
 		})
 		It("valid", func() {
 			d := []referenceInstanceSelection{
@@ -115,7 +112,6 @@ var _ = Describe("ActionSlz", func() {
 			valid, message := validateRelatedResourceTypes(a, "")
 			assert.False(GinkgoT(), valid)
 			assert.Contains(GinkgoT(), message, "data of action_id")
-
 		})
 		It("empty instanceSelections", func() {
 			b := []relatedResourceType{
@@ -128,7 +124,6 @@ var _ = Describe("ActionSlz", func() {
 			valid, message := validateRelatedResourceTypes(b, "")
 			assert.False(GinkgoT(), valid)
 			assert.Contains(GinkgoT(), message, "should contain at least 1 item")
-
 		})
 		It("invalid instanceSelections", func() {
 			c := []relatedResourceType{
@@ -144,7 +139,6 @@ var _ = Describe("ActionSlz", func() {
 			}
 			valid, _ := validateRelatedResourceTypes(c, "")
 			assert.False(GinkgoT(), valid)
-
 		})
 		It("all valid", func() {
 			e := []relatedResourceType{
@@ -186,7 +180,6 @@ var _ = Describe("ActionSlz", func() {
 			valid, message := validateAction(b)
 			assert.True(GinkgoT(), valid)
 			assert.Equal(GinkgoT(), "valid", message)
-
 		})
 		It("with invalid relatedResourceTypes", func() {
 			c := []actionSerializer{
@@ -201,7 +194,6 @@ var _ = Describe("ActionSlz", func() {
 			}
 			valid, _ := validateAction(c)
 			assert.False(GinkgoT(), valid)
-
 		})
 		It("all valid", func() {
 			d := []actionSerializer{
@@ -225,9 +217,6 @@ var _ = Describe("ActionSlz", func() {
 			}
 			valid, _ := validateAction(d)
 			assert.True(GinkgoT(), valid)
-
 		})
-
 	})
-
 })

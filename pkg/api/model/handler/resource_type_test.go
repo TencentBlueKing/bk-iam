@@ -16,7 +16,6 @@ import (
 )
 
 var _ = Describe("ResourceType", func() {
-
 	Describe("ResourceTypeUpdateSerializer Validate", func() {
 		var slz resourceTypeUpdateSerializer
 		BeforeEach(func() {
@@ -48,6 +47,5 @@ var _ = Describe("ResourceType", func() {
 		// It("", func() {})
 		// 5. TODO: validate provider_config
 		// It("", func() {})
-
 	})
 })

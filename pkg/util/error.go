@@ -18,8 +18,8 @@ import (
 
 // Error Codes
 const (
-	NoError           = 0
-	ParamError        = 1901002
+	NoError = 0
+	// ParamError        = 1901002
 	BadRequestError   = 1901400
 	UnauthorizedError = 1901401
 	ForbiddenError    = 1901403

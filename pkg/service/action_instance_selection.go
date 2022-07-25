@@ -18,7 +18,8 @@ import (
 
 // ListActionInstanceSelectionIDBySystem ...
 func (l *actionService) ListActionInstanceSelectionIDBySystem(system string) (
-	instanceSelections []types.ActionInstanceSelectionID, err error) {
+	instanceSelections []types.ActionInstanceSelectionID, err error,
+) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListActionInstanceSelectionIDBySystem")
 
 	allActions, err := l.ListBySystem(system)

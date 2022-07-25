@@ -59,7 +59,6 @@ type PolicyManager interface {
 	BulkDeleteByTemplatePKsWithTx(tx *sqlx.Tx, subjectPK, templateID int64, pks []int64) (int64, error)
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkUpdateExpressionPKWithTx(tx *sqlx.Tx, policies []Policy) error
-	BulkDeleteBySubjectTemplate(subjectPK int64, templateID int64) error
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy) error
 	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error)
 	// for model update
@@ -99,7 +98,8 @@ func (m *policyManager) ListBySubjectPKAndPKs(subjectPK int64, pks []int64) (pol
 
 // ListAuthBySubjectAction ...
 func (m *policyManager) ListAuthBySubjectAction(
-	subjectPKs []int64, actionPK int64, expiredAt int64) (policies []AuthPolicy, err error) {
+	subjectPKs []int64, actionPK int64, expiredAt int64,
+) (policies []AuthPolicy, err error) {
 	if len(subjectPKs) == 0 {
 		return
 	}
@@ -112,7 +112,8 @@ func (m *policyManager) ListAuthBySubjectAction(
 
 // ListExpressionBySubjectsTemplate ...
 func (m *policyManager) ListExpressionBySubjectsTemplate(subjectPKs []int64, templateID int64) (
-	expressionPKs []int64, err error) {
+	expressionPKs []int64, err error,
+) {
 	if len(subjectPKs) == 0 {
 		return
 	}
@@ -240,18 +241,14 @@ func (m *policyManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy
 	return m.updateExpiredAtWithTx(tx, policies)
 }
 
-// BulkDeleteBySubjectTemplate delete policies by subjectPK and templateID
-func (m *policyManager) BulkDeleteBySubjectTemplate(subjectPK int64, templateID int64) error {
-	return m.bulkDeleteBySubjectPKTemplateID(subjectPK, templateID)
-}
-
 // DeleteByActionPKWithTx ...
 func (m *policyManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
 	return m.deleteByActionPKWithTx(tx, actionPK, limit)
 }
 
 func (m *policyManager) getByActionTemplate(
-	policy *Policy, subjectPK, actionPK, templateID int64) error {
+	policy *Policy, subjectPK, actionPK, templateID int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -268,7 +265,8 @@ func (m *policyManager) getByActionTemplate(
 }
 
 func (m *policyManager) selectByPK(
-	policy *Policy, pk int64) error {
+	policy *Policy, pk int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -283,7 +281,8 @@ func (m *policyManager) selectByPK(
 }
 
 func (m *policyManager) selectByPKs(
-	policy *[]Policy, pks []int64) error {
+	policy *[]Policy, pks []int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -350,7 +349,8 @@ func (m *policyManager) selectByActionPKOrderByPKAsc(
 }
 
 func (m *policyManager) selectBySubjectPKAndPKs(
-	policies *[]Policy, subjectPK int64, pks []int64) error {
+	policies *[]Policy, subjectPK int64, pks []int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -365,7 +365,8 @@ func (m *policyManager) selectBySubjectPKAndPKs(
 }
 
 func (m *policyManager) selectAuthBySubjectAction(
-	policies *[]AuthPolicy, subjectPKs []int64, actionPK int64, expiredAt int64) error {
+	policies *[]AuthPolicy, subjectPKs []int64, actionPK int64, expiredAt int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -379,7 +380,8 @@ func (m *policyManager) selectAuthBySubjectAction(
 }
 
 func (m *policyManager) selectExpressionPKBySubjectPKsTemplate(expressionPKs *[]int64,
-	subjectPKs []int64, templateID int64) error {
+	subjectPKs []int64, templateID int64,
+) error {
 	query := `SELECT
 		expression_pk
 		FROM policy
@@ -389,7 +391,8 @@ func (m *policyManager) selectExpressionPKBySubjectPKsTemplate(expressionPKs *[]
 }
 
 func (m *policyManager) selectBySubjectActionTemplate(
-	policies *[]Policy, subjectPK int64, actionPKs []int64, templateID int64) error {
+	policies *[]Policy, subjectPK int64, actionPKs []int64, templateID int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -405,7 +408,8 @@ func (m *policyManager) selectBySubjectActionTemplate(
 }
 
 func (m *policyManager) selectBySubjectTemplateBeforeExpiredAt(
-	policies *[]Policy, subjectPK int64, templateID int64, expiredAt int64) error {
+	policies *[]Policy, subjectPK int64, templateID int64, expiredAt int64,
+) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -467,12 +471,6 @@ func (m *policyManager) updateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy) er
 	sql := `UPDATE policy SET expired_at = :expired_at WHERE pk = :pk`
 
 	return database.SqlxBulkUpdateWithTx(tx, sql, policies)
-}
-
-func (m *policyManager) bulkDeleteBySubjectPKTemplateID(subjectPK int64, templateID int64) error {
-	sql := `DELETE FROM policy WHERE subject_pk = ? AND template_id = ?`
-	_, err := database.SqlxDelete(m.DB, sql, subjectPK, templateID)
-	return err
 }
 
 func (m *policyManager) deleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {

@@ -73,7 +73,10 @@ func makeGetModelLimitFunc(key string, defaultLimit int) func(string) int {
 var (
 	GetMaxActionsLimit            = makeGetModelLimitFunc(maxActionsLimitKey, DefaultMaxActionsLimit)
 	GetMaxResourceTypesLimit      = makeGetModelLimitFunc(maxResourceTypesLimitKey, DefaultMaxResourceTypesLimit)
-	GetMaxInstanceSelectionsLimit = makeGetModelLimitFunc(maxInstanceSelectionsLimitKey, DefaultMaxInstanceSelectionsLimit)
+	GetMaxInstanceSelectionsLimit = makeGetModelLimitFunc(
+		maxInstanceSelectionsLimitKey,
+		DefaultMaxInstanceSelectionsLimit,
+	)
 )
 
 func makeGetSwitchFunc(key string, defaultValue bool) func() bool {
@@ -85,9 +88,7 @@ func makeGetSwitchFunc(key string, defaultValue bool) func() bool {
 	}
 }
 
-var (
-	GetSwitchDisableCreateSystemClientValidation = makeGetSwitchFunc(
-		triggerDisableCreateSystemClientValidationKey,
-		DisableCreateSystemClientValidation,
-	)
+var GetSwitchDisableCreateSystemClientValidation = makeGetSwitchFunc(
+	triggerDisableCreateSystemClientValidationKey,
+	DisableCreateSystemClientValidation,
 )

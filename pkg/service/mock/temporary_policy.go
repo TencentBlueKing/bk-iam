@@ -5,65 +5,36 @@
 package mock
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	types "iam/pkg/service/types"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockTemporaryPolicyService is a mock of TemporaryPolicyService interface
+// MockTemporaryPolicyService is a mock of TemporaryPolicyService interface.
 type MockTemporaryPolicyService struct {
 	ctrl     *gomock.Controller
 	recorder *MockTemporaryPolicyServiceMockRecorder
 }
 
-// MockTemporaryPolicyServiceMockRecorder is the mock recorder for MockTemporaryPolicyService
+// MockTemporaryPolicyServiceMockRecorder is the mock recorder for MockTemporaryPolicyService.
 type MockTemporaryPolicyServiceMockRecorder struct {
 	mock *MockTemporaryPolicyService
 }
 
-// NewMockTemporaryPolicyService creates a new mock instance
+// NewMockTemporaryPolicyService creates a new mock instance.
 func NewMockTemporaryPolicyService(ctrl *gomock.Controller) *MockTemporaryPolicyService {
 	mock := &MockTemporaryPolicyService{ctrl: ctrl}
 	mock.recorder = &MockTemporaryPolicyServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTemporaryPolicyService) EXPECT() *MockTemporaryPolicyServiceMockRecorder {
 	return m.recorder
 }
 
-// ListThinBySubjectAction mocks base method
-func (m *MockTemporaryPolicyService) ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListThinBySubjectAction", subjectPK, actionPK)
-	ret0, _ := ret[0].([]types.ThinTemporaryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListThinBySubjectAction indicates an expected call of ListThinBySubjectAction
-func (mr *MockTemporaryPolicyServiceMockRecorder) ListThinBySubjectAction(subjectPK, actionPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinBySubjectAction", reflect.TypeOf((*MockTemporaryPolicyService)(nil).ListThinBySubjectAction), subjectPK, actionPK)
-}
-
-// ListByPKs mocks base method
-func (m *MockTemporaryPolicyService) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]types.TemporaryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs
-func (mr *MockTemporaryPolicyServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockTemporaryPolicyService)(nil).ListByPKs), pks)
-}
-
-// Create mocks base method
+// Create mocks base method.
 func (m *MockTemporaryPolicyService) Create(policies []types.TemporaryPolicy) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", policies)
@@ -72,13 +43,27 @@ func (m *MockTemporaryPolicyService) Create(policies []types.TemporaryPolicy) ([
 	return ret0, ret1
 }
 
-// Create indicates an expected call of Create
+// Create indicates an expected call of Create.
 func (mr *MockTemporaryPolicyServiceMockRecorder) Create(policies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTemporaryPolicyService)(nil).Create), policies)
 }
 
-// DeleteByPKs mocks base method
+// DeleteBeforeExpiredAt mocks base method.
+func (m *MockTemporaryPolicyService) DeleteBeforeExpiredAt(expiredAt int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBeforeExpiredAt", expiredAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBeforeExpiredAt indicates an expected call of DeleteBeforeExpiredAt.
+func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteBeforeExpiredAt(expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBeforeExpiredAt", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteBeforeExpiredAt), expiredAt)
+}
+
+// DeleteByPKs mocks base method.
 func (m *MockTemporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByPKs", subjectPK, pks)
@@ -86,22 +71,38 @@ func (m *MockTemporaryPolicyService) DeleteByPKs(subjectPK int64, pks []int64) e
 	return ret0
 }
 
-// DeleteByPKs indicates an expected call of DeleteByPKs
+// DeleteByPKs indicates an expected call of DeleteByPKs.
 func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteByPKs(subjectPK, pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByPKs", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteByPKs), subjectPK, pks)
 }
 
-// DeleteBeforeExpireAt mocks base method
-func (m *MockTemporaryPolicyService) DeleteBeforeExpireAt(expiredAt int64) error {
+// ListByPKs mocks base method.
+func (m *MockTemporaryPolicyService) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteBeforeExpireAt", expiredAt)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ListByPKs", pks)
+	ret0, _ := ret[0].([]types.TemporaryPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// DeleteBeforeExpireAt indicates an expected call of DeleteBeforeExpireAt
-func (mr *MockTemporaryPolicyServiceMockRecorder) DeleteBeforeExpireAt(expiredAt interface{}) *gomock.Call {
+// ListByPKs indicates an expected call of ListByPKs.
+func (mr *MockTemporaryPolicyServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBeforeExpireAt", reflect.TypeOf((*MockTemporaryPolicyService)(nil).DeleteBeforeExpireAt), expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockTemporaryPolicyService)(nil).ListByPKs), pks)
+}
+
+// ListThinBySubjectAction mocks base method.
+func (m *MockTemporaryPolicyService) ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListThinBySubjectAction", subjectPK, actionPK)
+	ret0, _ := ret[0].([]types.ThinTemporaryPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListThinBySubjectAction indicates an expected call of ListThinBySubjectAction.
+func (mr *MockTemporaryPolicyServiceMockRecorder) ListThinBySubjectAction(subjectPK, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinBySubjectAction", reflect.TypeOf((*MockTemporaryPolicyService)(nil).ListThinBySubjectAction), subjectPK, actionPK)
 }

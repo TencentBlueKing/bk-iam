@@ -53,6 +53,8 @@ type resourceTypeCacheDeleter struct{}
 func (d resourceTypeCacheDeleter) Execute(key cache.Key) (err error) {
 	err = multierr.Combine(
 		ResourceTypeCache.Delete(key),
+		ResourceTypePKCache.Delete(key),
+		LocalResourceTypePKCache.Delete(key),
 	)
 	return
 }
@@ -61,21 +63,24 @@ func (d resourceTypeCacheDeleter) Execute(key cache.Key) (err error) {
 // handler/subject.go => BatchDeleteSubjects  =>      for DeleteSubjectPK(s.Type, s.ID)
 //                                           |=>          BatchDeleteSubjectGroups(pks)
 //                                           |=>          BatchDeleteSubjectDepartments(pks)
-//                    => DeleteSubjectMembers =>      for DeleteSubjectGroup(pk)
-//                    => BatchAddSubjectMembers =>    for DeleteSubjectGroup(pk)
+//                    => DeleteGroupMembers =>      for DeleteSubjectGroup(pk)
+//                    => BatchAddGroupMembers =>    for DeleteSubjectGroup(pk)
 //                    => BatchDeleteSubjectDepartments => BatchDeleteSubjectDepartments(pks)
 //                    => BatchUpdateSubjectDepartments => BatchDeleteSubjectDepartments(pks)
 // subject => 一个subject更新, 批量刷掉其所有缓存, 不考虑范围?  Delete SubjectPK/SubjectGroups/SubjectDepartments, batch support
 
-type subjectCacheDeleter struct{}
+type subjectDepartmentCacheDeleter struct{}
 
 // Execute ...
-func (d subjectCacheDeleter) Execute(key cache.Key) (err error) {
-	err = multierr.Combine(
-		SubjectGroupCache.Delete(key),
-		SubjectDetailCache.Delete(key),
-	)
-	return
+func (d subjectDepartmentCacheDeleter) Execute(key cache.Key) (err error) {
+	return SubjectDepartmentCache.Delete(key)
+}
+
+type subjectGroupCacheDeleter struct{}
+
+// Execute ...
+func (d subjectGroupCacheDeleter) Execute(key cache.Key) (err error) {
+	return SubjectAllGroupPKsCache.Delete(key)
 }
 
 type systemCacheDeleter struct{}
@@ -129,8 +134,8 @@ func BatchDeleteResourceTypeCache(systemID string, resourceTypeIDs []string) err
 	return nil
 }
 
-// BatchDeleteSubjectCache ...
-func BatchDeleteSubjectCache(pks []int64) error {
+// BatchDeleteSubjectDepartmentCache ...
+func BatchDeleteSubjectDepartmentCache(pks []int64) error {
 	keys := make([]cache.Key, 0, len(pks))
 	for _, pk := range pks {
 		key := SubjectPKCacheKey{
@@ -139,7 +144,20 @@ func BatchDeleteSubjectCache(pks []int64) error {
 		keys = append(keys, key)
 	}
 
-	SubjectCacheCleaner.BatchDelete(keys)
+	SubjectDepartmentCacheCleaner.BatchDelete(keys)
+	return nil
+}
+
+func BatchDeleteSubjectGroupCache(pks []int64) error {
+	keys := make([]cache.Key, 0, len(pks))
+	for _, pk := range pks {
+		key := SubjectPKCacheKey{
+			PK: pk,
+		}
+		keys = append(keys, key)
+	}
+
+	SubjectGroupCacheCleaner.BatchDelete(keys)
 	return nil
 }
 
