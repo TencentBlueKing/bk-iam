@@ -77,6 +77,21 @@ func (mr *MockResourceTypeServiceMockRecorder) Get(system, id interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockResourceTypeService)(nil).Get), system, id)
 }
 
+// GetByPK mocks base method.
+func (m *MockResourceTypeService) GetByPK(pk int64) (types.ThinResourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByPK", pk)
+	ret0, _ := ret[0].(types.ThinResourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByPK indicates an expected call of GetByPK.
+func (mr *MockResourceTypeServiceMockRecorder) GetByPK(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPK", reflect.TypeOf((*MockResourceTypeService)(nil).GetByPK), pk)
+}
+
 // GetPK mocks base method.
 func (m *MockResourceTypeService) GetPK(system, name string) (int64, error) {
 	m.ctrl.T.Helper()

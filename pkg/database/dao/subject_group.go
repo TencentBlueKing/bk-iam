@@ -74,6 +74,7 @@ type SubjectGroupManager interface {
 	) (members []SubjectRelation, err error)
 	GetGroupMemberCount(groupPK int64) (int64, error)
 	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
+	GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error)
 
 	BulkDeleteByGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, subjectPKs []int64) (int64, error)
 }
@@ -208,6 +209,19 @@ func (m *subjectGroupManager) ListGroupMember(groupPK int64) (members []SubjectR
 		return members, nil
 	}
 	return
+}
+
+// GetExpiredAtBySubjectGroup ...
+func (m *subjectGroupManager) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+	var expiredAt int64
+	query := `SELECT
+		 policy_expired_at
+		 FROM subject_relation
+		 WHERE subject_pk = ?
+		 AND parent_pk = ?`
+	err := database.SqlxGet(m.DB, &expiredAt, query, subjectPK, groupPK)
+
+	return expiredAt, err
 }
 
 // GetGroupMemberCount ...

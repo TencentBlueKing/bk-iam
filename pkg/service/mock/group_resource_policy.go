@@ -63,3 +63,18 @@ func (mr *MockGroupResourcePolicyServiceMockRecorder) GetAuthorizedActionGroupMa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedActionGroupMap", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).GetAuthorizedActionGroupMap), systemID, actionResourceTypePK, resourceTypePK, resourceTypeID)
 }
+
+// ListResourceByGroupAction mocks base method.
+func (m *MockGroupResourcePolicyService) ListResourceByGroupAction(groupPK int64, systemID string, actionPK, actionResourceTypePK int64) ([]types.Resource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListResourceByGroupAction", groupPK, systemID, actionPK, actionResourceTypePK)
+	ret0, _ := ret[0].([]types.Resource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListResourceByGroupAction indicates an expected call of ListResourceByGroupAction.
+func (mr *MockGroupResourcePolicyServiceMockRecorder) ListResourceByGroupAction(groupPK, systemID, actionPK, actionResourceTypePK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResourceByGroupAction", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).ListResourceByGroupAction), groupPK, systemID, actionPK, actionResourceTypePK)
+}

@@ -22,6 +22,8 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	"iam/pkg/task"
+	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -50,13 +52,18 @@ type GroupController interface {
 type groupController struct {
 	service service.GroupService
 
-	subjectService service.SubjectService
+	subjectService         service.SubjectService
+	groupAlterEventService service.GroupAlterEventService
+
+	alterEventProducer task.GroupAlterEventProducer
 }
 
 func NewGroupController() GroupController {
 	return &groupController{
-		service:        service.NewGroupService(),
-		subjectService: service.NewSubjectService(),
+		service:                service.NewGroupService(),
+		subjectService:         service.NewSubjectService(),
+		groupAlterEventService: service.NewGroupAlterEventService(),
+		alterEventProducer:     task.NewRedisGroupAlterEventProducer(),
 	}
 }
 
@@ -424,6 +431,9 @@ func (c *groupController) alterGroupMembers(
 		return nil, errorWrapf(err, "tx commit error")
 	}
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
@@ -479,12 +489,42 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
 
 	return typeCount, nil
+}
+
+func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
+	event, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
+	if err != nil {
+		// NOTE: 查询group授权的rbac action列表可能为空, 不需要创建事件
+		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
+			return
+		}
+
+		log.WithError(err).
+			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
+
+		// report to sentry
+		util.ReportToSentry("createGroupAlterEvent groupAlterEventService.CreateByGroupSubject fail",
+			map[string]interface{}{
+				"layer":      GroupCTL,
+				"groupPK":    groupPK,
+				"subjectPKs": subjectPKs,
+				"error":      err.Error(),
+			},
+		)
+		return
+	}
+
+	// 发送消息
+	go c.alterEventProducer.Publish(event)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

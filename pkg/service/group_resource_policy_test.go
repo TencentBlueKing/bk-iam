@@ -310,4 +310,83 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			}
 		})
 	})
+
+	Context("ListResourceByGroupAction", func() {
+		var (
+			ctl         *gomock.Controller
+			mockManager *mock.MockGroupResourcePolicyManager
+			svc         GroupResourcePolicyService
+		)
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+			mockManager = mock.NewMockGroupResourcePolicyManager(ctl)
+			svc = &groupResourcePolicyService{
+				manager: mockManager,
+			}
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.ListByGroupSystemActionRelatedResourceType error", func() {
+			mockManager.EXPECT().
+				ListByGroupSystemActionRelatedResourceType(int64(1), "test", int64(1)).
+				Return(nil, errors.New("error"))
+
+			_, err := svc.ListResourceByGroupAction(int64(1), "test", int64(1), int64(1))
+			assert.Error(GinkgoT(), err)
+			assert.Regexp(GinkgoT(), "manager.ListByGroupSystemActionRelatedResourceType fail", err.Error())
+		})
+
+		It("jsoniter.UnmarshalFromString error", func() {
+			mockManager.EXPECT().
+				ListByGroupSystemActionRelatedResourceType(int64(1), "test", int64(1)).
+				Return([]dao.GroupResourcePolicy{{
+					GroupPK:   int64(1),
+					ActionPKs: "xxx",
+				}}, nil)
+
+			_, err := svc.ListResourceByGroupAction(int64(1), "test", int64(1), int64(1))
+			assert.Error(GinkgoT(), err)
+			assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString fail", err.Error())
+		})
+
+		It("ok", func() {
+			mockManager.EXPECT().
+				ListByGroupSystemActionRelatedResourceType(int64(1), "test", int64(1)).
+				Return([]dao.GroupResourcePolicy{{
+					GroupPK:                     int64(1),
+					ActionPKs:                   "[1,2]",
+					ActionRelatedResourceTypePK: int64(1),
+					ResourceTypePK:              int64(1),
+					ResourceID:                  "test1",
+				}, {
+					GroupPK:                     int64(1),
+					ActionPKs:                   "[1,2]",
+					ActionRelatedResourceTypePK: int64(1),
+					ResourceTypePK:              int64(1),
+					ResourceID:                  "test2",
+				}, {
+					GroupPK:                     int64(1),
+					ActionPKs:                   "[1,2]",
+					ActionRelatedResourceTypePK: int64(1),
+					ResourceTypePK:              int64(2),
+					ResourceID:                  "test3",
+				}, {
+					GroupPK:                     int64(1),
+					ActionPKs:                   "[2]",
+					ActionRelatedResourceTypePK: int64(1),
+					ResourceTypePK:              int64(2),
+					ResourceID:                  "test4",
+				}}, nil)
+
+			resources, err := svc.ListResourceByGroupAction(int64(1), "test", int64(1), int64(1))
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.Resource{
+				{ResourceTypePK: int64(1), ResourceID: "test1"},
+				{ResourceTypePK: int64(1), ResourceID: "test2"},
+				{ResourceTypePK: int64(2), ResourceID: "test3"},
+			}, resources)
+		})
+	})
 })

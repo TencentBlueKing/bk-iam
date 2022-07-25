@@ -44,6 +44,7 @@ var (
 	LocalActionDetailCache          memory.Cache
 	LocalSubjectBlackListCache      memory.Cache
 	LocalResourceTypePKCache        memory.Cache
+	LocalThinResourceTypeCache      memory.Cache
 
 	RemoteResourceCache     *redis.Cache
 	ResourceTypeCache       *redis.Cache
@@ -63,6 +64,7 @@ var (
 	ExpressionCache          *redis.Cache
 	TemporaryPolicyCache     *redis.Cache
 	GroupSystemAuthTypeCache *redis.Cache
+	GroupActionResourceCache *redis.Cache
 
 	LocalPolicyCache          *gocache.Cache
 	LocalExpressionCache      *gocache.Cache
@@ -210,6 +212,14 @@ func InitCaches(disabled bool) {
 		nil,
 	)
 
+	LocalThinResourceTypeCache = memory.NewCache(
+		"local_resource_type",
+		disabled,
+		retrieveThinResourceType,
+		30*time.Minute,
+		newRandomDuration(30),
+	)
+
 	//  ==========================
 
 	// NOTE: short key in 3 chars, make the redis key short enough, for better performance
@@ -308,6 +318,11 @@ func InitCaches(disabled bool) {
 
 	GroupSystemAuthTypeCache = redis.NewCache(
 		"gat",
+		30*time.Minute,
+	)
+
+	GroupActionResourceCache = redis.NewCache(
+		"gar",
 		30*time.Minute,
 	)
 

@@ -25,13 +25,22 @@ import (
 
 // ModeStandalone ...
 const (
+	NameCache = "cache"
+	NameMQ    = "mq"
+
 	ModeStandalone = "standalone"
 	ModeSentinel   = "sentinel"
 )
 
-var rds *redis.Client
+var (
+	rds *redis.Client
+	mq  *redis.Client
+)
 
-var redisClientInitOnce sync.Once
+var (
+	redisClientInitOnce   sync.Once
+	mqRedisClientInitOnce sync.Once
+)
 
 func newStandaloneClient(redisConfig *config.Redis) *redis.Client {
 	opt := &redis.Options{
@@ -124,27 +133,41 @@ func newSentinelClient(redisConfig *config.Redis) *redis.Client {
 	return redis.NewFailoverClient(opt)
 }
 
+func initRedisClient(debugMode bool, redisConfig *config.Redis) (cli *redis.Client) {
+	switch redisConfig.Type {
+	case ModeStandalone:
+		cli = newStandaloneClient(redisConfig)
+	case ModeSentinel:
+		cli = newSentinelClient(redisConfig)
+	default:
+		panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
+	}
+
+	_, err := cli.Ping(context.TODO()).Result()
+	if err != nil {
+		log.WithError(err).Error("connect to redis fail")
+		// redis is important
+		if !debugMode {
+			panic(err)
+		}
+	}
+	return cli
+}
+
 // InitRedisClient ...
 func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 	if rds == nil {
 		redisClientInitOnce.Do(func() {
-			switch redisConfig.ID {
-			case ModeStandalone:
-				rds = newStandaloneClient(redisConfig)
-			case ModeSentinel:
-				rds = newSentinelClient(redisConfig)
-			default:
-				panic("init redis client fail, invalid redis.id, should be `standalone` or `sentinel`")
-			}
+			rds = initRedisClient(debugMode, redisConfig)
+		})
+	}
+}
 
-			_, err := rds.Ping(context.TODO()).Result()
-			if err != nil {
-				log.WithError(err).Error("connect to redis fail")
-				// redis is important
-				if !debugMode {
-					panic(err)
-				}
-			}
+// InitMQRedisClient ...
+func InitMQRedisClient(debugMode bool, redisConfig *config.Redis) {
+	if mq == nil {
+		mqRedisClientInitOnce.Do(func() {
+			mq = initRedisClient(debugMode, redisConfig)
 		})
 	}
 }
@@ -152,4 +175,9 @@ func InitRedisClient(debugMode bool, redisConfig *config.Redis) {
 // GetDefaultRedisClient 获取默认的Redis实例
 func GetDefaultRedisClient() *redis.Client {
 	return rds
+}
+
+// GetDefaultMQRedisClient 获取默认的MQ Redis实例
+func GetDefaultMQRedisClient() *redis.Client {
+	return mq
 }

@@ -56,7 +56,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock.ExpectQuery(
 			"^SELECT pk, signature, group_pk, template_id, system_id," +
 				" action_pks, action_related_resource_type_pk, resource_type_pk, resource_id" +
-				" FROM group_resource_policy WHERE signature IN (.*)$",
+				" FROM rbac_group_resource_policy WHERE signature IN (.*)$",
 		).WithArgs(policy.Signature).WillReturnRows(mockRows)
 
 		policies, err := manager.ListBySignatures([]string{policy.Signature})
@@ -67,10 +67,28 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
 	})
 
+	It("ListByGroupSystemActionRelatedResourceType", func() {
+		policy.PK = int64(1)
+		mockRows := database.NewMockRows(mock, []interface{}{policy}...)
+		mock.ExpectQuery(
+			"^SELECT pk, signature, group_pk, template_id, system_id,"+
+				" action_pks, action_related_resource_type_pk, resource_type_pk, resource_id"+
+				" FROM rbac_group_resource_policy WHERE "+
+				"group_pk = (.*) AND action_related_resource_type_pk = (.*) AND system_id = (.*)$",
+		).WithArgs(int64(1), int64(3), "test").WillReturnRows(mockRows)
+
+		policies, err := manager.ListByGroupSystemActionRelatedResourceType(int64(1), "test", int64(3))
+
+		assert.NoError(GinkgoT(), err)
+		assert.Len(GinkgoT(), policies, 1)
+		assert.Equal(GinkgoT(), int64(1), policies[0].PK)
+		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
+	})
+
 	It("BulkCreateWithTx", func() {
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			`INSERT INTO group_resource_policy`,
+			`INSERT INTO rbac_group_resource_policy`,
 		).WithArgs(
 			policy.Signature, policy.GroupPK, policy.TemplateID, policy.SystemID,
 			policy.ActionPKs, policy.ActionRelatedResourceTypePK, policy.ResourceTypePK, policy.ResourceID,
@@ -90,8 +108,8 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		policy.PK = int64(1)
 
 		mock.ExpectBegin()
-		mock.ExpectPrepare(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`)
-		mock.ExpectExec(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`).
+		mock.ExpectPrepare(`UPDATE rbac_group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`)
+		mock.ExpectExec(`UPDATE rbac_group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`).
 			WithArgs(policy.ActionPKs, policy.PK).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
@@ -107,7 +125,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 
 	It("BulkDeleteByPKsWithTx", func() {
 		mock.ExpectBegin()
-		mock.ExpectExec(`DELETE FROM group_resource_policy WHERE pk IN (.*)`).
+		mock.ExpectExec(`DELETE FROM rbac_group_resource_policy WHERE pk IN (.*)`).
 			WithArgs(int64(1), int64(2)).
 			WillReturnResult(sqlmock.NewResult(0, 2))
 		mock.ExpectCommit()
@@ -130,7 +148,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock.ExpectQuery(
 			`^SELECT 
 			group_pk, action_pks
-			FROM group_resource_policy
+			FROM rbac_group_resource_policy
 			WHERE system_id = (.*)
 			AND action_related_resource_type_pk = (.*)
 			AND resource_type_pk = (.*)
@@ -143,5 +161,17 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		assert.Len(GinkgoT(), policies, 1)
 		assert.Equal(GinkgoT(), int64(1), policies[0].GroupPK)
 		assert.Equal(GinkgoT(), "[1,2,3]", policies[0].ActionPKs)
+	})
+
+	It("ListActionPKsByGroup", func() {
+		mockRows := sqlmock.NewRows([]string{"action_pks"}).AddRow("[1,2,3]").AddRow("[4,5,6]")
+		mock.ExpectQuery(
+			"^SELECT action_pks FROM rbac_group_resource_policy WHERE group_pk = (.*)$",
+		).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		actionPKs, err := manager.ListActionPKsByGroup(1)
+
+		assert.NoError(GinkgoT(), err)
+		assert.Equal(GinkgoT(), []string{"[1,2,3]", "[4,5,6]"}, actionPKs)
 	})
 })

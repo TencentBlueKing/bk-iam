@@ -63,6 +63,21 @@ func (mr *MockResourceTypeManagerMockRecorder) BulkDeleteWithTx(tx, system, ids 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockResourceTypeManager)(nil).BulkDeleteWithTx), tx, system, ids)
 }
 
+// GetByPK mocks base method.
+func (m *MockResourceTypeManager) GetByPK(pk int64) (dao.ResourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByPK", pk)
+	ret0, _ := ret[0].(dao.ResourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByPK indicates an expected call of GetByPK.
+func (mr *MockResourceTypeManagerMockRecorder) GetByPK(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPK", reflect.TypeOf((*MockResourceTypeManager)(nil).GetByPK), pk)
+}
+
 // GetPK mocks base method.
 func (m *MockResourceTypeManager) GetPK(system, id string) (int64, error) {
 	m.ctrl.T.Helper()
