@@ -11,8 +11,10 @@
 package util_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -42,8 +44,7 @@ var _ = Describe("Response", func() {
 		gin.SetMode(gin.ReleaseMode)
 		// gin.DefaultWriter = ioutil.Discard
 		c, _ = gin.CreateTestContext(w)
-		// c, r = gin.CreateTestContext(w)
-		// r.Use(gin.Recovery())
+		c.Request, _ = http.NewRequest("POST", "/api/v1/?force=1&debug=1", new(bytes.Buffer))
 	})
 
 	It("BaseJSONResponse", func() {
@@ -57,8 +58,8 @@ var _ = Describe("Response", func() {
 	})
 
 	It("BaseErrorJSONResponse", func() {
-		util.BaseErrorJSONResponse(c, 1901000, "error")
-		assert.Equal(GinkgoT(), 200, c.Writer.Status())
+		util.BaseErrorJSONResponse(c, 1901000, "error", http.StatusBadRequest)
+		assert.Equal(GinkgoT(), http.StatusBadRequest, c.Writer.Status())
 
 		got := readResponse(w)
 		assert.Equal(GinkgoT(), 1901000, got.Code)
@@ -126,6 +127,28 @@ var _ = Describe("Response", func() {
 			got := readResponse(w)
 			assert.Equal(GinkgoT(), util.SystemError, got.Code)
 		})
+	})
+
+	It("BadRequestErrorJSONResponse /api/v2", func() {
+		c.Request, _ = http.NewRequest("POST", "/api/v2/?force=1&debug=1", new(bytes.Buffer))
+
+		util.BadRequestErrorJSONResponse(c, "error")
+		assert.Equal(GinkgoT(), http.StatusBadRequest, c.Writer.Status())
+
+		got := readResponse(w)
+		assert.Equal(GinkgoT(), util.BadRequestError, got.Code)
+		assert.Equal(GinkgoT(), "bad request:error", got.Message)
+	})
+
+	It("SystemErrorJSONResponse /api/v2", func() {
+		c.Request, _ = http.NewRequest("POST", "/api/v2/?force=1&debug=1", new(bytes.Buffer))
+
+		util.SystemErrorJSONResponse(c, errors.New("anError"))
+		assert.Equal(GinkgoT(), http.StatusInternalServerError, c.Writer.Status())
+
+		got := readResponse(w)
+		assert.Equal(GinkgoT(), util.SystemError, got.Code)
+		assert.Contains(GinkgoT(), got.Message, "system error")
 	})
 })
 

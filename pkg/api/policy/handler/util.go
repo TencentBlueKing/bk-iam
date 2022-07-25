@@ -15,12 +15,15 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/gin-gonic/gin"
 
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
+	"iam/pkg/logging/debug"
 	svctypes "iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 const superSystemID = "SUPER"
@@ -50,8 +53,44 @@ func copyRequestFromAuthBody(req *request.Request, body *authRequest) {
 	}
 }
 
+func copyRequestFromAuthV2Body(req *request.Request, systemID string, body *authV2Request) {
+	req.System = systemID
+
+	req.Action.ID = body.Action.ID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
 func copyRequestFromQueryBody(req *request.Request, body *queryRequest) {
 	req.System = body.System
+
+	req.Action.ID = body.Action.ID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
+func copyRequestFromQueryV2Body(req *request.Request, systemID string, body *queryV2Request) {
+	req.System = systemID
 
 	req.Action.ID = body.Action.ID
 
@@ -178,4 +217,44 @@ func ValidateSystemMatchClient(systemID, clientID string) error {
 	}
 
 	return fmt.Errorf("client(%s) can not request system(%s)", clientID, systemID)
+}
+
+func getDebugData(c *gin.Context) (entry *debug.Entry, isDebug bool, isForce bool) {
+	_, isDebug = c.GetQuery("debug")
+	_, isForce = c.GetQuery("force")
+	if !isDebug {
+		return nil, isDebug, isForce
+	}
+	return debug.EntryPool.Get(), isDebug, isForce
+}
+
+// shouldReturnIfSubjectInBlackList check if subject is in blacklist, if true, will return
+func shouldReturnIfSubjectInBlackList(c *gin.Context, subjectType string, subjectID string) (shouldReturn bool) {
+	if cacheimpls.IsSubjectInBlackList(subjectType, subjectID) {
+		util.ForbiddenJSONResponse(
+			c,
+			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", subjectType, subjectID),
+		)
+		return true
+	}
+
+	return false
+}
+
+func shouldReturnIfSubjectHasSystemSuperPermission(
+	c *gin.Context,
+	systemID, subjectType, subjectID string,
+	genResponseData GenSuperPermissionResponseData,
+) (shouldReturn bool) {
+	hasSuperPerm, err := hasSystemSuperPermission(systemID, subjectType, subjectID)
+	if err != nil {
+		util.SystemErrorJSONResponse(c, err)
+		return true
+	}
+
+	if hasSuperPerm {
+		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", genResponseData())
+		return true
+	}
+	return false
 }

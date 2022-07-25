@@ -59,7 +59,8 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	// 1. right
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
+	c := util.CreateTestContextWithDefaultRequest(w)
+
 	util.SetClientID(c, "bk_iam_app")
 	config.InitSuperAppCode("bk_iam_app,bk_iam")
 
@@ -73,7 +74,8 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	// 2. wrong
 	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
+	c = util.CreateTestContextWithDefaultRequest(w)
+
 	util.SetClientID(c, "abc")
 	config.InitSuperAppCode("bk_iam_app,bk_iam")
 
