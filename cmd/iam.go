@@ -91,6 +91,7 @@ func Start() {
 	initDatabase()
 	initRedis()
 	// NOTE: should be after initRedis
+	initRmqQueue()
 	initCaches()
 	initPolicyCacheSettings()
 	initVerifyAppCodeAppSecret()

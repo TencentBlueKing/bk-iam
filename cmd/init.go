@@ -25,6 +25,7 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/logging"
 	"iam/pkg/metric"
+	"iam/pkg/task"
 	"iam/pkg/util"
 )
 
@@ -121,6 +122,13 @@ func initRedis() {
 	}
 
 	log.Info("init Redis success")
+}
+
+// NOTE: 必须在Redis init 后才能初始化 rmq
+func initRmqQueue() {
+	log.Info("init RMQ queue")
+	task.InitRmqQueue(globalConfig.Debug)
+	log.Info("init RMQ queue success")
 }
 
 func initLogger() {

@@ -30,5 +30,5 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_group_alter_event` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk`),
-  KEY `idx_group` (`group_pk`)
+  INDEX `idx_group` (`group_pk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
