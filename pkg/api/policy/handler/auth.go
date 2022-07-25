@@ -12,7 +12,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -43,6 +42,8 @@ import (
 // @Router /api/v1/policy/auth [post]
 func Auth(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Auth")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -59,24 +60,22 @@ func Auth(c *gin.Context) {
 	}
 
 	// check blacklist
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", authResponse{
-			Allowed: true,
-		})
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return authResponse{
+				Allowed: true,
+			}
+		},
+	) {
 		return
 	}
 
@@ -85,14 +84,6 @@ func Auth(c *gin.Context) {
 	copyRequestFromAuthBody(req, &body)
 
 	// 鉴权
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-	_, isForce := c.GetQuery("force")
-
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
 	if err != nil {
@@ -127,6 +118,8 @@ func Auth(c *gin.Context) {
 // @Router /api/v1/policy/auth_by_actions [post]
 func BatchAuthByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByActions")
+	entry, isDebug, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authByActionsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -142,43 +135,29 @@ func BatchAuthByActions(c *gin.Context) {
 		return
 	}
 
-	result := make(authByActionsResponse, len(body.Actions))
-
 	// check blacklist
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
-
-	// super admin and system admin
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			data := make(authByActionsResponse, len(body.Actions))
+			for _, action := range body.Actions {
+				data[action.ID] = true
+			}
+			return data
+		},
+	) {
 		return
 	}
-
-	if hasSuperPerm {
-		for _, action := range body.Actions {
-			result[action.ID] = true
-		}
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", result)
-		return
-	}
-
-	// enable debug
-	var entry *debug.Entry
-	_, isDebug := c.GetQuery("debug")
-	if isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
 
 	// 查询  subject-system-action的policies, 然后执行鉴权!
+	result := make(authByActionsResponse, len(body.Actions))
 	for _, action := range body.Actions {
 		req := request.NewRequest()
 		copyRequestFromAuthByActionsBody(req, &body)
@@ -226,6 +205,8 @@ func BatchAuthByActions(c *gin.Context) {
 // @Router /api/v1/policy/auth_by_resources [post]
 func BatchAuthByResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAuthByResources")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body authByResourcesRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -241,44 +222,30 @@ func BatchAuthByResources(c *gin.Context) {
 		return
 	}
 
-	data := make(authByResourcesResponse, len(body.ResourcesList))
-
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
-
-	// super admin and system admin
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
-		for _, r := range body.ResourcesList {
-			data[buildResourceID(r)] = true
-		}
-
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", data)
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			data := make(authByResourcesResponse, len(body.ResourcesList))
+			for _, r := range body.ResourcesList {
+				data[buildResourceID(r)] = true
+			}
+			return data
+		},
+	) {
 		return
 	}
 
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromAuthByResourcesBody(req, &body)
-
-	// 鉴权
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-	_, isForce := c.GetQuery("force")
 
 	/*
 		TODO 2种变更方式
@@ -289,6 +256,7 @@ func BatchAuthByResources(c *gin.Context) {
 
 	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
 	// query policies
+	data := make(authByResourcesResponse, len(body.ResourcesList))
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
 	if err != nil {
 		debug.WithError(entry, err)

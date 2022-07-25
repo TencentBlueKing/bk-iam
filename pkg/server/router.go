@@ -67,6 +67,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	policy.Register(policyRouter)
 
+	policyRouterV2 := router.Group("/api/v2/policy")
+	policyRouterV2.Use(middleware.Metrics())
+	policyRouterV2.Use(middleware.APILogger())
+	policyRouterV2.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouterV2.Use(middleware.NewRateLimitMiddleware(cfg))
+	policy.RegisterV2(policyRouterV2)
+
 	// restful apis for open api
 	// 1. legacy apis, will be removed in the future
 	openLegacyAPIRouter := router.Group("/api/v1/systems")

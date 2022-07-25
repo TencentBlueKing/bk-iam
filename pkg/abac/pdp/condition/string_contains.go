@@ -15,16 +15,15 @@ import (
 
 	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/types"
-	abacTypes "iam/pkg/abac/types"
 )
 
-// StringPrefixCondition 字符串前缀匹配
-type StringPrefixCondition struct {
+// StringContainsCondition 字符串包含
+type StringContainsCondition struct {
 	baseCondition
 }
 
-func newStringPrefixCondition(key string, values []interface{}) (Condition, error) {
-	return &StringPrefixCondition{
+func newStringContainsCondition(key string, values []interface{}) (Condition, error) {
+	return &StringContainsCondition{
 		baseCondition: baseCondition{
 			Key:   key,
 			Value: values,
@@ -33,12 +32,12 @@ func newStringPrefixCondition(key string, values []interface{}) (Condition, erro
 }
 
 // GetName 名称
-func (c *StringPrefixCondition) GetName() string {
-	return operator.StringPrefix
+func (c *StringContainsCondition) GetName() string {
+	return operator.StringContains
 }
 
 // Eval 求值
-func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
+func (c *StringContainsCondition) Eval(ctx types.EvalContextor) bool {
 	return c.forOr(ctx, func(a, b interface{}) bool {
 		aStr, ok := a.(string)
 		if !ok {
@@ -50,17 +49,11 @@ func (c *StringPrefixCondition) Eval(ctx types.EvalContextor) bool {
 			return false
 		}
 
-		// 支持表达式中最后一个节点为任意
-		// /biz,1/set,*/ -> /biz,1/set,
-		if strings.HasSuffix(c.Key, abacTypes.IamPathSuffix) && strings.HasSuffix(bStr, ",*/") {
-			bStr = bStr[0 : len(bStr)-2]
-		}
-
-		return strings.HasPrefix(aStr, bStr)
+		return strings.Contains(aStr, bStr)
 	})
 }
 
-func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface{}, error) {
+func (c *StringContainsCondition) Translate(withSystem bool) (map[string]interface{}, error) {
 	key := c.Key
 	if !withSystem {
 		key = removeSystemFromKey(key)
@@ -74,7 +67,7 @@ func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface
 	content := make([]map[string]interface{}, 0, len(c.Value))
 	for _, v := range c.Value {
 		content = append(content, map[string]interface{}{
-			"op":    "starts_with",
+			"op":    "string_contains",
 			"field": key,
 			"value": v,
 		})

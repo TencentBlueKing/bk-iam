@@ -11,6 +11,8 @@
 package condition
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/iam-go-sdk/expression/eval"
 
 	"iam/pkg/abac/pdp/condition/operator"
@@ -134,6 +136,11 @@ func (c *NumericCompareCondition) Translate(withSystem bool) (map[string]interfa
 		exprCell["value"] = c.Value[0]
 		return exprCell, nil
 	default:
+		// NOTE: >/>=/</<=的表达式value只允许配置一个, 只有eq可能有多个
+		if c.translateOperator != "eq" {
+			return nil, fmt.Errorf("%s not support multi value %+v", c.translateOperator, c.Value)
+		}
+
 		exprCell["op"] = c.translateBulkOperator
 		exprCell["value"] = c.Value
 		return exprCell, nil
