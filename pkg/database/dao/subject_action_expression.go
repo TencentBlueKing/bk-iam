@@ -35,7 +35,7 @@ type SubjectActionExpression struct {
 
 // SubjectActionExpression ...
 type SubjectActionExpressionManager interface {
-	ListBySubjectAction(subjectPKs []int64, actionPK int64, expiredAt int64) ([]SubjectActionExpression, error)
+	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]SubjectActionExpression, error)
 
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
@@ -57,7 +57,6 @@ func NewSubjectActionExpressionManager() SubjectActionExpressionManager {
 func (m *subjectActionExpressionManager) ListBySubjectAction(
 	subjectPKs []int64,
 	actionPK int64,
-	expiredAt int64,
 ) (subjectActionExpressions []SubjectActionExpression, err error) {
 	if len(subjectPKs) == 0 {
 		return
@@ -71,9 +70,8 @@ func (m *subjectActionExpressionManager) ListBySubjectAction(
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk IN (?)
-		AND action_pk = ?
-		AND expired_at >= ?`
-	err = database.SqlxSelect(m.DB, &subjectActionExpressions, query, subjectPKs, actionPK, expiredAt)
+		AND action_pk = ?`
+	err = database.SqlxSelect(m.DB, &subjectActionExpressions, query, subjectPKs, actionPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return subjectActionExpressions, nil
 	}

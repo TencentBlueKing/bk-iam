@@ -11,36 +11,29 @@
 package task
 
 import (
+	"github.com/adjust/rmq/v4"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-var _ = Describe("task", func() {
-	Describe("Message", func() {
-		var m GroupAlterMessage
+type h struct{}
+
+func (h *h) Handle(msg GroupAlterMessage) error {
+	return nil
+}
+
+var _ = Describe("Consumer", func() {
+	Describe("Consume", func() {
+		var mockHandler GroupAlterMessageHandler
 		BeforeEach(func() {
-			m = GroupAlterMessage{
-				GroupPK:   1,
-				ActionPK:  2,
-				SubjectPK: 3,
-			}
+			mockHandler = &h{}
 		})
 
-		It("UniqueID", func() {
-			assert.Equal(GinkgoT(), "1:2:3", m.UniqueID())
-		})
-
-		It("String", func() {
-			s, err := m.String()
-			assert.Nil(GinkgoT(), err)
-			assert.Len(GinkgoT(), s, 43)
-		})
-
-		It("NewMessageFromString", func() {
-			s := `{"group_pk":1,"action_pk":2,"subject_pk":3}`
-			m2, err := NewGroupAlterMessageFromString(s)
-			assert.Nil(GinkgoT(), err)
-			assert.Equal(GinkgoT(), m, m2)
+		It("Consume", func() {
+			delivery := rmq.NewTestDeliveryString(`{"subject_pk":1,"group_pk":2,"action_pk":3}`)
+			consumer := &Consumer{GroupAlterMessageHandler: mockHandler}
+			consumer.Consume(delivery)
+			assert.Equal(GinkgoT(), rmq.Acked, delivery.State)
 		})
 	})
 })

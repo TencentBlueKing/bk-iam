@@ -30,15 +30,14 @@ func Test_subjectActionExpressionManager_ListBySubjectAction(t *testing.T) {
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk IN (.*)
-		AND action_pk = (.*)
-		AND expired_at >= (.*)`
+		AND action_pk = (.*)`
 		mockRows := sqlmock.NewRows([]string{"pk", "subject_pk", "action_pk", "expression", "expired_at"}).AddRow(
 			int64(1), int64(1), int64(3), "{}", int64(10)).AddRow(
 			int64(2), int64(2), int64(3), "{}", int64(10))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), int64(3), int64(0)).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), int64(3)).WillReturnRows(mockRows)
 
 		manager := &subjectActionExpressionManager{DB: db}
-		subjectActionExpressions, err := manager.ListBySubjectAction([]int64{1, 2}, int64(3), int64(0))
+		subjectActionExpressions, err := manager.ListBySubjectAction([]int64{1, 2}, int64(3))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, []SubjectActionExpression{

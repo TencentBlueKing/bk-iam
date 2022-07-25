@@ -11,6 +11,7 @@
 package task
 
 import (
+	"context"
 	"strconv"
 
 	jsoniter "github.com/json-iterator/go"
@@ -18,13 +19,19 @@ import (
 	"iam/pkg/service/types"
 )
 
-// Producer ...
-type Producer interface {
+// GroupAlterEventProducer ...
+type GroupAlterEventProducer interface {
 	Publish(types.GroupAlterEvent) error
 }
 
-// Message ...
-type Message struct {
+// GroupAlterEventConsumer
+type GroupAlterEventConsumer interface {
+	Run(ctx context.Context)
+	Handle(GroupAlterMessage) error
+}
+
+// GroupAlterMessage ...
+type GroupAlterMessage struct {
 	GroupPK   int64 `json:"group_pk"`
 	ActionPK  int64 `json:"action_pk"`
 	SubjectPK int64 `json:"subject_pk"`
@@ -33,7 +40,7 @@ type Message struct {
 }
 
 // UniqueID ...
-func (m *Message) UniqueID() string {
+func (m *GroupAlterMessage) UniqueID() string {
 	return strconv.FormatInt(
 		m.GroupPK,
 		10,
@@ -47,12 +54,12 @@ func (m *Message) UniqueID() string {
 }
 
 // String ...
-func (m *Message) String() (string, error) {
+func (m *GroupAlterMessage) String() (string, error) {
 	return jsoniter.MarshalToString(m)
 }
 
-// NewMessageFromString ...
-func NewMessageFromString(s string) (m Message, err error) {
+// NewGroupAlterMessageFromString ...
+func NewGroupAlterMessageFromString(s string) (m GroupAlterMessage, err error) {
 	if err := jsoniter.UnmarshalFromString(s, &m); err != nil {
 		return m, err
 	}

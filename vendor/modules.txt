@@ -36,6 +36,9 @@ github.com/alicebob/miniredis/v2/server
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
+# github.com/bsm/redislock v0.7.2
+## explicit; go 1.13
+github.com/bsm/redislock
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2

@@ -17,24 +17,34 @@ import (
 	"iam/pkg/cache/redis"
 )
 
-const task = "task"
+const (
+	ConnTypeProducer = "producer"
+	ConnTypeConsumer = "consumer"
+	ConnTypeCleaner  = "cleaner"
+)
 
 var (
 	connection rmq.Connection
 	queue      rmq.Queue
 )
 
-func InitRmqQueue(debugMode bool) {
+// InitRmqQueue 初始化rmq队列
+func InitRmqQueue(debugMode bool, _type string) {
 	errChan := make(chan error, 10)
 	go logRmqErrors(errChan)
 
 	var err error
-	connection, err = rmq.OpenConnectionWithRedisClient("bkiam", redis.GetDefaultRedisClient(), errChan)
+	connection, err = rmq.OpenConnectionWithRedisClient(_type, redis.GetDefaultRedisClient(), errChan)
 	if err != nil {
 		log.WithError(err).Error("new rmq connection fail")
 		if !debugMode {
 			panic(err)
 		}
+	}
+
+	// cleaner 不需要初始化queue
+	if _type == ConnTypeCleaner {
+		return
 	}
 
 	queue, err = connection.OpenQueue("grp_sub_act") // group_subject_action

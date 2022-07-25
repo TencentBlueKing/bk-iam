@@ -11,6 +11,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -354,6 +355,71 @@ var _ = Describe("GroupService", func() {
 			groupPKs, err := manager.FilterExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.ElementsMatch(GinkgoT(), []int64{1, 2, 3}, groupPKs)
+		})
+	})
+
+	Describe("GetExpiredAtBySubjectGroup", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("manager.GetExpiredAtBySubjectGroup fail", func() {
+			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(0), errors.New("error"),
+				)
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
+			assert.False(GinkgoT(), found)
+			assert.Equal(GinkgoT(), int64(0), expiredAt)
+		})
+
+		It("not found", func() {
+			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(0), sql.ErrNoRows,
+				)
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			assert.NoError(GinkgoT(), err)
+			assert.False(GinkgoT(), found)
+			assert.Equal(GinkgoT(), int64(0), expiredAt)
+		})
+
+		It("ok", func() {
+			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(10), nil,
+				)
+
+			manager := &groupService{
+				manager: mockSubjectService,
+			}
+
+			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			assert.NoError(GinkgoT(), err)
+			assert.True(GinkgoT(), found)
+			assert.Equal(GinkgoT(), int64(10), expiredAt)
 		})
 	})
 })

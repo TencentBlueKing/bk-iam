@@ -22,8 +22,8 @@ import (
 	"iam/pkg/service/types"
 )
 
-var _ = Describe("task", func() {
-	Describe("Producer", func() {
+var _ = Describe("Producer", func() {
+	Describe("Publish", func() {
 		testConn := rmq.NewTestConnection()
 		connection = testConn
 		queue, _ = connection.OpenQueue("test")

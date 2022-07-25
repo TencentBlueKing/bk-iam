@@ -238,3 +238,17 @@ func Test_subjectRelationManager_ListExistSubjectGroupPKsAfterExpiredAt(t *testi
 		assert.Len(t, relations, 1)
 	})
 }
+
+func Test_subjectRelationManager_GetExpiredAtBySubjectGroup(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT policy_expired_at FROM subject_relation WHERE subject_pk = (.*) AND parent_pk = (.*)`
+		mockRows := sqlmock.NewRows([]string{"policy_expired_at"}).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(10))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, expiredAt, int64(1))
+	})
+}

@@ -125,10 +125,16 @@ func initRedis() {
 }
 
 // NOTE: 必须在Redis init 后才能初始化 rmq
-func initRmqQueue() {
-	log.Info("init RMQ queue")
-	task.InitRmqQueue(globalConfig.Debug)
-	log.Info("init RMQ queue success")
+func initRmqProducer() {
+	log.Info("init RMQ producer")
+	task.InitRmqQueue(globalConfig.Debug, task.ConnTypeProducer)
+	log.Info("init RMQ producer success")
+}
+
+func initRmqConsumer() {
+	log.Info("init RMQ producer")
+	task.InitRmqQueue(globalConfig.Debug, task.ConnTypeConsumer)
+	log.Info("init RMQ producer success")
 }
 
 func initLogger() {

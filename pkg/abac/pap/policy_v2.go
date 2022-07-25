@@ -53,8 +53,8 @@ type policyControllerV2 struct {
 
 	resourceTypeService service.ResourceTypeService
 
-	// task taskProducer
-	taskProducer task.Producer
+	// task groupAlterEventProducer
+	groupAlterEventProducer task.GroupAlterEventProducer
 }
 
 func NewPolicyControllerV2() PolicyControllerV2 {
@@ -71,7 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
-		taskProducer: task.NewRedisProducer(),
+		groupAlterEventProducer: task.NewRedisProducer(),
 	}
 }
 
@@ -315,7 +315,7 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 	}
 
 	// 发送event 消息
-	go c.taskProducer.Publish(event)
+	go c.groupAlterEventProducer.Publish(event)
 }
 
 func (c *policyControllerV2) convertToResourceChangedContent(

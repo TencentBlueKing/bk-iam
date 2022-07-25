@@ -10,6 +10,8 @@
 
 package service
 
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
+
 import (
 	"fmt"
 
@@ -23,8 +25,6 @@ import (
 	"iam/pkg/service/types"
 )
 
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
 const GroupResourcePolicySVC = "GroupResourcePolicySVC"
 
 type GroupResourcePolicyService interface {
@@ -37,6 +37,11 @@ type GroupResourcePolicyService interface {
 		actionResourceTypePK, resourceTypePK int64,
 		resourceTypeID string,
 	) (map[int64][]int64, error)
+	ListResourceByGroupAction(
+		groupPK int64,
+		systemID string,
+		actionPK, actionResourceTypePK int64,
+	) ([]types.Resource, error)
 }
 
 type groupResourcePolicyService struct {
@@ -258,4 +263,50 @@ func (s *groupResourcePolicyService) GetAuthorizedActionGroupMap(
 	}
 
 	return actionGroupPKs, nil
+}
+
+func (s *groupResourcePolicyService) ListResourceByGroupAction(
+	groupPK int64,
+	systemID string,
+	actionPK, actionResourceTypePK int64,
+) ([]types.Resource, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "ListResourceByGroupAction")
+
+	policies, err := s.manager.ListByGroupSystemActionRelatedResourceType(
+		groupPK, systemID, actionResourceTypePK,
+	)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"manager.ListByGroupSystemActionRelatedResourceType fail,"+
+				" groupPK=`%d`, systemID=`%s`, actionRelatedResourceTypePK=`%d`",
+			groupPK,
+			systemID,
+			actionResourceTypePK,
+		)
+	}
+
+	resources := make([]types.Resource, 0, len(policies)/2)
+	for _, policy := range policies {
+		var actionPKs []int64
+		if err := jsoniter.UnmarshalFromString(policy.ActionPKs, &actionPKs); err != nil {
+			return nil, errorWrapf(
+				err,
+				"jsoniter.UnmarshalFromString fail, pk=`%d` actionPKs=`%s`",
+				policy.PK, policy.ActionPKs,
+			)
+		}
+
+		actionSet := set.NewInt64SetWithValues(actionPKs)
+		if !actionSet.Has(actionPK) {
+			continue
+		}
+
+		resources = append(resources, types.Resource{
+			ResourceTypePK: policy.ResourceTypePK,
+			ResourceID:     policy.ResourceID,
+		})
+	}
+
+	return resources, nil
 }

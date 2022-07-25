@@ -122,6 +122,21 @@ func (mr *MockSubjectGroupManagerMockRecorder) FilterSubjectPKsExistGroupPKsAfte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterSubjectPKsExistGroupPKsAfterExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).FilterSubjectPKsExistGroupPKsAfterExpiredAt), subjectPKs, groupPKs, expiredAt)
 }
 
+// GetExpiredAtBySubjectGroup mocks base method.
+func (m *MockSubjectGroupManager) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetExpiredAtBySubjectGroup", subjectPK, groupPK)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetExpiredAtBySubjectGroup indicates an expected call of GetExpiredAtBySubjectGroup.
+func (mr *MockSubjectGroupManagerMockRecorder) GetExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectGroupManager)(nil).GetExpiredAtBySubjectGroup), subjectPK, groupPK)
+}
+
 // GetGroupMemberCount mocks base method.
 func (m *MockSubjectGroupManager) GetGroupMemberCount(groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()

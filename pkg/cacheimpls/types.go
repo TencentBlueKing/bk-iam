@@ -60,3 +60,13 @@ type SystemResourceCacheKey struct {
 func (k SystemResourceCacheKey) Key() string {
 	return fmt.Sprintf("%s:%d:%d:%s", k.SystemID, k.ActionResourceTypePK, k.ResourceTypePK, k.ResourceID)
 }
+
+// GroupActionCacheKey ...
+type GroupActionCacheKey struct {
+	GroupPK  int64
+	ActionPK int64
+}
+
+func (k GroupActionCacheKey) Key() string {
+	return strconv.FormatInt(k.GroupPK, 10) + ":" + strconv.FormatInt(k.ActionPK, 10)
+}

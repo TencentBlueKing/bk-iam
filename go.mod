@@ -9,6 +9,7 @@ require (
 	github.com/adjust/rmq/v4 v4.0.5
 	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/alicebob/miniredis/v2 v2.20.0
+	github.com/bsm/redislock v0.7.2
 	github.com/dlmiddlecote/sqlstats v1.0.2
 	github.com/fatih/structs v1.1.0
 	github.com/getsentry/sentry-go v0.13.0

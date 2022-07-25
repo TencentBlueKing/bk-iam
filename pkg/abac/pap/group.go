@@ -55,7 +55,7 @@ type groupController struct {
 	subjectService         service.SubjectService
 	groupAlterEventService service.GroupAlterEventService
 
-	taskProducer task.Producer
+	alterEventProducer task.GroupAlterEventProducer
 }
 
 func NewGroupController() GroupController {
@@ -63,7 +63,7 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		taskProducer:           task.NewRedisProducer(),
+		alterEventProducer:     task.NewRedisProducer(),
 	}
 }
 
@@ -524,7 +524,7 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 	}
 
 	// 发送消息
-	go c.taskProducer.Publish(event)
+	go c.alterEventProducer.Publish(event)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

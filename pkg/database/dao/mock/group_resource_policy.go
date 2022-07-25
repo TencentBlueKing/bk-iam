@@ -92,6 +92,21 @@ func (mr *MockGroupResourcePolicyManagerMockRecorder) ListActionPKsByGroup(group
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListActionPKsByGroup", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).ListActionPKsByGroup), groupPK)
 }
 
+// ListByGroupSystemActionRelatedResourceType mocks base method.
+func (m *MockGroupResourcePolicyManager) ListByGroupSystemActionRelatedResourceType(groupPK int64, systemID string, actionRelatedResourceTypePK int64) ([]dao.GroupResourcePolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByGroupSystemActionRelatedResourceType", groupPK, systemID, actionRelatedResourceTypePK)
+	ret0, _ := ret[0].([]dao.GroupResourcePolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByGroupSystemActionRelatedResourceType indicates an expected call of ListByGroupSystemActionRelatedResourceType.
+func (mr *MockGroupResourcePolicyManagerMockRecorder) ListByGroupSystemActionRelatedResourceType(groupPK, systemID, actionRelatedResourceTypePK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroupSystemActionRelatedResourceType", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).ListByGroupSystemActionRelatedResourceType), groupPK, systemID, actionRelatedResourceTypePK)
+}
+
 // ListBySignatures mocks base method.
 func (m *MockGroupResourcePolicyManager) ListBySignatures(signatures []string) ([]dao.GroupResourcePolicy, error) {
 	m.ctrl.T.Helper()

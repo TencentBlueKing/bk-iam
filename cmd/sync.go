@@ -14,59 +14,28 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
+
+	"iam/pkg/task"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	// Register mysql resource
-	_ "github.com/go-sql-driver/mysql"
-
-	// init debug entry pool
-	_ "iam/pkg/logging/debug"
-
-	// init the pdp
-	_ "iam/pkg/abac/pdp/evalctx"
-
-	"iam/pkg/server"
 )
 
-// cmd for iam
-var cfgFile string
-
-func init() {
-	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
-	rootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
-
-	rootCmd.MarkFlagRequired("config")
-	viper.SetDefault("author", "blueking-paas")
-}
-
-var rootCmd = &cobra.Command{
-	Use:   "bk-iam",
-	Short: "bi-iam is Identity and Access Management System",
+// syncCmd represents sync RBAC policy to ABAC expression command
+var syncCmd = &cobra.Command{
+	Use:   "sync",
+	Short: "sync RBAC policy to ABAC expression",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
-           is a service that helps you securely control access to system resources`,
-
+		   sync command is used to sync RBAC policy to ABAC expression`,
 	Run: func(cmd *cobra.Command, args []string) {
 		Start()
 	},
 }
 
-// Execute ...
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
-// Start ...
-func Start() {
+// StartConsumer ...
+func StartConsumer() {
 	fmt.Println("It's IAM")
 
 	// init rand
@@ -91,17 +60,8 @@ func Start() {
 	initDatabase()
 	initRedis()
 	// NOTE: should be after initRedis
-	initRmqProducer()
+	initRmqConsumer()
 	initCaches()
-	initPolicyCacheSettings()
-	initVerifyAppCodeAppSecret()
-	initSuperAppCode()
-	initSuperUser()
-	initSupportShieldFeatures()
-	initSecurityAuditAppCode()
-	initComponents()
-	initQuota()
-	initSwitch()
 
 	// 2. watch the signal
 	ctx, cancelFunc := context.WithCancel(context.Background())
@@ -109,19 +69,11 @@ func Start() {
 		interrupt(cancelFunc)
 	}()
 
-	// 3. start the server
-	httpServer := server.NewServer(globalConfig)
-	httpServer.Run(ctx)
+	// 3. start sync consumer
+	consumer := task.NewRedisConsumer()
+	consumer.Run(ctx)
 }
 
-// a context canceled when SIGINT or SIGTERM are notified
-func interrupt(onSignal func()) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-
-	for s := range c {
-		log.Infof("Caught signal %s. Exiting.", s)
-		onSignal()
-		close(c)
-	}
+func init() {
+	rootCmd.AddCommand(syncCmd)
 }

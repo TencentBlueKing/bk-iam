@@ -27,7 +27,7 @@ type redisProducer struct {
 }
 
 // NewRedisProducer ...
-func NewRedisProducer() Producer {
+func NewRedisProducer() GroupAlterEventProducer {
 	return &redisProducer{
 		groupAlterEventService: service.NewGroupAlterEventService(),
 	}
@@ -35,7 +35,7 @@ func NewRedisProducer() Producer {
 
 // Publish ...
 func (p *redisProducer) Publish(event types.GroupAlterEvent) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(task, "Publish")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ConnTypeProducer, "Publish")
 
 	oldEvents, err := p.groupAlterEventService.ListUncheckedByGroup(event.GroupPK)
 	if err != nil {
@@ -79,7 +79,7 @@ func (p *redisProducer) Publish(event types.GroupAlterEvent) error {
 		// report to sentry
 		util.ReportToSentry("task producer sendMessages fail",
 			map[string]interface{}{
-				"layer":    task,
+				"layer":    ConnTypeProducer,
 				"messages": messages,
 				"error":    err.Error(),
 			},
@@ -91,12 +91,12 @@ func (p *redisProducer) Publish(event types.GroupAlterEvent) error {
 	return nil
 }
 
-func eventToMessages(event types.GroupAlterEvent) []Message {
-	messages := make([]Message, 0, len(event.ActionPKs)*len(event.SubjectPKs))
+func eventToMessages(event types.GroupAlterEvent) []GroupAlterMessage {
+	messages := make([]GroupAlterMessage, 0, len(event.ActionPKs)*len(event.SubjectPKs))
 
 	for _, subjectPK := range event.SubjectPKs {
 		for _, actionPK := range event.ActionPKs {
-			message := Message{
+			message := GroupAlterMessage{
 				GroupPK:   event.GroupPK,
 				ActionPK:  actionPK,
 				SubjectPK: subjectPK,
