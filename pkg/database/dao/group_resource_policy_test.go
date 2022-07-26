@@ -56,7 +56,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock.ExpectQuery(
 			"^SELECT pk, signature, group_pk, template_id, system_id," +
 				" action_pks, action_related_resource_type_pk, resource_type_pk, resource_id" +
-				" FROM group_resource_policy WHERE signature IN (.*)$",
+				" FROM rbac_group_resource_policy WHERE signature IN (.*)$",
 		).WithArgs(policy.Signature).WillReturnRows(mockRows)
 
 		policies, err := manager.ListBySignatures([]string{policy.Signature})
@@ -70,7 +70,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 	It("BulkCreateWithTx", func() {
 		mock.ExpectBegin()
 		mock.ExpectExec(
-			`INSERT INTO group_resource_policy`,
+			`INSERT INTO rbac_group_resource_policy`,
 		).WithArgs(
 			policy.Signature, policy.GroupPK, policy.TemplateID, policy.SystemID,
 			policy.ActionPKs, policy.ActionRelatedResourceTypePK, policy.ResourceTypePK, policy.ResourceID,
@@ -90,8 +90,8 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		policy.PK = int64(1)
 
 		mock.ExpectBegin()
-		mock.ExpectPrepare(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`)
-		mock.ExpectExec(`UPDATE group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`).
+		mock.ExpectPrepare(`UPDATE rbac_group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`)
+		mock.ExpectExec(`UPDATE rbac_group_resource_policy SET action_pks = (.*) WHERE pk = (.*)`).
 			WithArgs(policy.ActionPKs, policy.PK).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
@@ -107,7 +107,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 
 	It("BulkDeleteByPKsWithTx", func() {
 		mock.ExpectBegin()
-		mock.ExpectExec(`DELETE FROM group_resource_policy WHERE pk IN (.*)`).
+		mock.ExpectExec(`DELETE FROM rbac_group_resource_policy WHERE pk IN (.*)`).
 			WithArgs(int64(1), int64(2)).
 			WillReturnResult(sqlmock.NewResult(0, 2))
 		mock.ExpectCommit()
@@ -130,7 +130,7 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		mock.ExpectQuery(
 			`^SELECT 
 			group_pk, action_pks
-			FROM group_resource_policy
+			FROM rbac_group_resource_policy
 			WHERE system_id = (.*)
 			AND action_related_resource_type_pk = (.*)
 			AND resource_type_pk = (.*)
