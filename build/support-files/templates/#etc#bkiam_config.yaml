@@ -55,7 +55,7 @@ redis:
     addr: "__BK_IAM_REDIS_ADDR__"
     password: "__BK_IAM_REDIS_PASSWORD__"
     db: 0
-    poolSize: 160
+    poolSize: 50
     dialTimeout: 3
     readTimeout: 1
     writeTimeout: 1
