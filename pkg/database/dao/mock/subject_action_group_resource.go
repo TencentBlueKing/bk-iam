@@ -64,16 +64,16 @@ func (mr *MockSubjectActionGroupResourceManagerMockRecorder) GetBySubjectAction(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySubjectAction", reflect.TypeOf((*MockSubjectActionGroupResourceManager)(nil).GetBySubjectAction), subjectPK, actionPK)
 }
 
-// UpdateWithTx mocks base method.
-func (m *MockSubjectActionGroupResourceManager) UpdateWithTx(tx *sqlx.Tx, subjectActionResourceGroup dao.SubjectActionGroupResource) error {
+// UpdateGroupResourceWithTx mocks base method.
+func (m *MockSubjectActionGroupResourceManager) UpdateGroupResourceWithTx(tx *sqlx.Tx, subjectActionResourceGroup dao.SubjectActionGroupResource) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWithTx", tx, subjectActionResourceGroup)
+	ret := m.ctrl.Call(m, "UpdateGroupResourceWithTx", tx, subjectActionResourceGroup)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateWithTx indicates an expected call of UpdateWithTx.
-func (mr *MockSubjectActionGroupResourceManagerMockRecorder) UpdateWithTx(tx, subjectActionResourceGroup interface{}) *gomock.Call {
+// UpdateGroupResourceWithTx indicates an expected call of UpdateGroupResourceWithTx.
+func (mr *MockSubjectActionGroupResourceManagerMockRecorder) UpdateGroupResourceWithTx(tx, subjectActionResourceGroup interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceManager)(nil).UpdateWithTx), tx, subjectActionResourceGroup)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupResourceWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceManager)(nil).UpdateGroupResourceWithTx), tx, subjectActionResourceGroup)
 }

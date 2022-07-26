@@ -73,7 +73,7 @@ func Test_subjectActionResourceGroupManager_CreateWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectActionResourceGroupManager_UpdateWithTx(t *testing.T) {
+func Test_subjectActionResourceGroupManager_UpdateGroupResourceWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE rbac_subject_action_group_resource SET group_resource = `).WithArgs(
@@ -85,7 +85,7 @@ func Test_subjectActionResourceGroupManager_UpdateWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectActionGroupResourceManager{DB: db}
-		err = manager.UpdateWithTx(tx, SubjectActionGroupResource{
+		err = manager.UpdateGroupResourceWithTx(tx, SubjectActionGroupResource{
 			PK:            int64(1),
 			SubjectPK:     int64(1),
 			ActionPK:      int64(2),

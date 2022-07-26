@@ -138,7 +138,7 @@ func (s *subjectActionGroupResourceService) DeleteGroupWithTx(
 		return obj, err
 	}
 
-	err = s.manager.UpdateWithTx(tx, daoObj)
+	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj)
 	if err != nil {
 		err = errorWrapf(err, "manager.UpdateWithTx fail, daoObj=`%+v`", daoObj)
 	}
@@ -168,7 +168,7 @@ func (s *subjectActionGroupResourceService) updateWithTx(
 		return obj, err
 	}
 
-	err = s.manager.UpdateWithTx(tx, daoObj)
+	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj)
 	return obj, err
 }
 

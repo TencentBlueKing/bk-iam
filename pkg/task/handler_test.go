@@ -24,6 +24,7 @@ import (
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
+	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -114,11 +115,11 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), false, errors.New("error"))
+				Return(int64(0), errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
 				groupService: mockGroupService,
-				locker:       newSubjectActionLocker(),
+				locker:       newDistributedSubjectActionLocker(),
 			}
 			err := handler.Handle(GroupAlterMessage{
 				SubjectPK: 1,
@@ -140,11 +141,11 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), false, nil)
+				Return(int64(0), service.ErrNotFound)
 
 			handler := &groupAlterMessageHandler{
 				groupService: mockGroupService,
-				locker:       newSubjectActionLocker(),
+				locker:       newDistributedSubjectActionLocker(),
 			}
 			err := handler.Handle(GroupAlterMessage{
 				SubjectPK: 1,
@@ -166,7 +167,7 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), false, nil)
+				Return(int64(0), service.ErrNotFound)
 
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -176,7 +177,7 @@ var _ = Describe("Handler", func() {
 			handler := &groupAlterMessageHandler{
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
-				locker:                            newSubjectActionLocker(),
+				locker:                            newDistributedSubjectActionLocker(),
 			}
 			err := handler.Handle(GroupAlterMessage{
 				SubjectPK: 1,
@@ -200,7 +201,7 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(10), true, nil)
+				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -212,7 +213,7 @@ var _ = Describe("Handler", func() {
 			handler := &groupAlterMessageHandler{
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
-				locker:                            newSubjectActionLocker(),
+				locker:                            newDistributedSubjectActionLocker(),
 			}
 			err := handler.Handle(GroupAlterMessage{
 				SubjectPK: 1,
@@ -242,7 +243,7 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(10), true, nil)
+				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -260,7 +261,7 @@ var _ = Describe("Handler", func() {
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
-				locker:                            newSubjectActionLocker(),
+				locker:                            newDistributedSubjectActionLocker(),
 			}
 			err := handler.Handle(GroupAlterMessage{
 				SubjectPK: 1,

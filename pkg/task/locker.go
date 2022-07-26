@@ -20,17 +20,17 @@ import (
 	"iam/pkg/cache/redis"
 )
 
-type subjectActionLocker struct {
+type subjectDistributedActionLocker struct {
 	locker *redislock.Client
 }
 
-func newSubjectActionLocker() *subjectActionLocker {
-	return &subjectActionLocker{
+func newDistributedSubjectActionLocker() *subjectDistributedActionLocker {
+	return &subjectDistributedActionLocker{
 		locker: redislock.New(redis.GetDefaultRedisClient()),
 	}
 }
 
-func (l *subjectActionLocker) acquire(
+func (l *subjectDistributedActionLocker) acquire(
 	ctx context.Context,
 	subjectPK, actionPK int64,
 ) (lock *redislock.Lock, err error) {

@@ -379,10 +379,9 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
-			assert.False(GinkgoT(), found)
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
 		})
 
@@ -398,9 +397,9 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
-			assert.NoError(GinkgoT(), err)
-			assert.False(GinkgoT(), found)
+			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			assert.Error(GinkgoT(), err)
+			assert.True(GinkgoT(), errors.Is(err, ErrNotFound))
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
 		})
 
@@ -416,9 +415,8 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			expiredAt, found, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
-			assert.True(GinkgoT(), found)
 			assert.Equal(GinkgoT(), int64(10), expiredAt)
 		})
 	})

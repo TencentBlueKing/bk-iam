@@ -162,7 +162,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{}`,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            1,
 				SubjectPK:     1,
 				ActionPK:      2,
@@ -188,7 +188,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{}`,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            1,
 				SubjectPK:     1,
 				ActionPK:      2,
@@ -249,7 +249,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            1,
 				SubjectPK:     1,
 				ActionPK:      2,
@@ -273,7 +273,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            1,
 				SubjectPK:     1,
 				ActionPK:      2,

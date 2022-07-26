@@ -36,7 +36,7 @@ var syncCmd = &cobra.Command{
 
 // StartConsumer ...
 func StartConsumer() {
-	fmt.Println("It's IAM")
+	fmt.Println("It's IAM task consumer")
 
 	// init rand
 	rand.Seed(time.Now().UnixNano())

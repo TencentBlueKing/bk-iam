@@ -29,6 +29,9 @@ import (
 // GroupSVC ...
 const GroupSVC = "GroupSVC"
 
+// ErrNotFound ...
+var ErrNotFound = errors.New("not found")
+
 // GroupService ...
 type GroupService interface {
 	// 鉴权
@@ -63,7 +66,7 @@ type GroupService interface {
 	ListEffectThinSubjectGroupsBySubjectPKs(subjectPKs []int64) ([]types.ThinSubjectGroup, error)
 
 	// task
-	GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, found bool, err error)
+	GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error)
 }
 
 type groupService struct {
@@ -459,15 +462,13 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 }
 
 // GetExpiredAtBySubjectGroup ...
-func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, found bool, err error) {
+func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error) {
 	expiredAt, err = l.manager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		err = nil
-	case err == nil:
-		found = true
-	default:
+		err = ErrNotFound
+	case err != nil:
 		err = errorx.Wrapf(
 			err, GroupSVC, "manager.GetExpiredAtBySubjectGroup", "subjectPK=`%d`, groupPK=`%d`", subjectPK, groupPK,
 		)

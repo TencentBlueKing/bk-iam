@@ -31,7 +31,7 @@ type SubjectActionGroupResource struct {
 type SubjectActionGroupResourceManager interface {
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionGroupResource, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
-	UpdateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
+	UpdateGroupResourceWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
 }
 
 type subjectActionGroupResourceManager struct {
@@ -79,7 +79,7 @@ func (m *subjectActionGroupResourceManager) CreateWithTx(
 }
 
 // UpdateWithTx ...
-func (m *subjectActionGroupResourceManager) UpdateWithTx(
+func (m *subjectActionGroupResourceManager) UpdateGroupResourceWithTx(
 	tx *sqlx.Tx,
 	subjectActionResourceGroup SubjectActionGroupResource,
 ) error {
