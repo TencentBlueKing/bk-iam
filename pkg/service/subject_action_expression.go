@@ -76,7 +76,7 @@ func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 		// update
 		daoExpression.Expression = expression.Expression
 		daoExpression.ExpiredAt = expression.ExpiredAt
-		err = s.manager.UpdateWithTx(tx, daoExpression)
+		err = s.manager.UpdateExpressionExpiredAtWithTx(tx, daoExpression)
 		if err != nil {
 			err = errorWrapf(err, "manager.UpdateWithTx fail, daoExpression=`%+v`", daoExpression)
 			return err

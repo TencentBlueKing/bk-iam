@@ -79,16 +79,16 @@ func (mr *MockSubjectActionExpressionManagerMockRecorder) ListBySubjectAction(su
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySubjectAction", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).ListBySubjectAction), subjectPKs, actionPK)
 }
 
-// UpdateWithTx mocks base method.
-func (m *MockSubjectActionExpressionManager) UpdateWithTx(tx *sqlx.Tx, subjectActionExpression dao.SubjectActionExpression) error {
+// UpdateExpressionExpiredAtWithTx mocks base method.
+func (m *MockSubjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, subjectActionExpression dao.SubjectActionExpression) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWithTx", tx, subjectActionExpression)
+	ret := m.ctrl.Call(m, "UpdateExpressionExpiredAtWithTx", tx, subjectActionExpression)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateWithTx indicates an expected call of UpdateWithTx.
-func (mr *MockSubjectActionExpressionManagerMockRecorder) UpdateWithTx(tx, subjectActionExpression interface{}) *gomock.Call {
+// UpdateExpressionExpiredAtWithTx indicates an expected call of UpdateExpressionExpiredAtWithTx.
+func (mr *MockSubjectActionExpressionManagerMockRecorder) UpdateExpressionExpiredAtWithTx(tx, subjectActionExpression interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).UpdateWithTx), tx, subjectActionExpression)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpressionExpiredAtWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).UpdateExpressionExpiredAtWithTx), tx, subjectActionExpression)
 }

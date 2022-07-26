@@ -12,12 +12,23 @@ package cacheimpls
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/service"
 )
+
+// GroupActionCacheKey ...
+type GroupActionCacheKey struct {
+	GroupPK  int64
+	ActionPK int64
+}
+
+func (k GroupActionCacheKey) Key() string {
+	return strconv.FormatInt(k.GroupPK, 10) + ":" + strconv.FormatInt(k.ActionPK, 10)
+}
 
 // GetGroupActionAuthorizedResource 查询group 授权 action 的所有资源实例
 // Key: group_pk:action_pk

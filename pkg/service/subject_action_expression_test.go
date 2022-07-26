@@ -112,7 +112,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				Expression: `{}`,
 				ExpiredAt:  10,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionExpression{
+			mockManager.EXPECT().UpdateExpressionExpiredAtWithTx(gomock.Any(), dao.SubjectActionExpression{
 				PK:         1,
 				SubjectPK:  1,
 				ActionPK:   2,
@@ -143,7 +143,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				Expression: `{}`,
 				ExpiredAt:  10,
 			}, nil)
-			mockManager.EXPECT().UpdateWithTx(gomock.Any(), dao.SubjectActionExpression{
+			mockManager.EXPECT().UpdateExpressionExpiredAtWithTx(gomock.Any(), dao.SubjectActionExpression{
 				PK:         1,
 				SubjectPK:  1,
 				ActionPK:   2,

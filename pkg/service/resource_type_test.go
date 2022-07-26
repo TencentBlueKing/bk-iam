@@ -41,7 +41,7 @@ var _ = Describe("ResourceTypeService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.GetByPK(1)
+			_, err := svc.GetThinByPK(1)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetByPK")
 		})
@@ -58,7 +58,7 @@ var _ = Describe("ResourceTypeService", func() {
 				manager: mockManager,
 			}
 
-			resourceType, err := svc.GetByPK(int64(1))
+			resourceType, err := svc.GetThinByPK(int64(1))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), types.ThinResourceType{
 				PK: 1, System: "system", ID: "id",

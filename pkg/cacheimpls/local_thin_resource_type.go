@@ -33,7 +33,7 @@ func (k ResourceTypePKCacheKey) Key() string {
 func retrieveThinResourceType(key cache.Key) (interface{}, error) {
 	k := key.(ResourceTypePKCacheKey)
 	svc := service.NewResourceTypeService()
-	return svc.GetByPK(k.PK)
+	return svc.GetThinByPK(k.PK)
 }
 
 // GetThinResourceType ...

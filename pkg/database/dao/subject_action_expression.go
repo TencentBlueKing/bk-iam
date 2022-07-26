@@ -39,7 +39,7 @@ type SubjectActionExpressionManager interface {
 
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
-	UpdateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
+	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
 }
 
 type subjectActionExpressionManager struct {
@@ -115,8 +115,8 @@ func (m *subjectActionExpressionManager) CreateWithTx(
 	return database.SqlxInsertWithTx(tx, sql, subjectActionExpression)
 }
 
-// UpdateWithTx ...
-func (m *subjectActionExpressionManager) UpdateWithTx(
+// UpdateExpressionExpiredAtWithTx ...
+func (m *subjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(
 	tx *sqlx.Tx,
 	subjectActionExpression SubjectActionExpression,
 ) error {

@@ -166,7 +166,7 @@ func (s *groupAlterEventService) createEvent(event types.GroupAlterEvent) (err e
 func (s *groupAlterEventService) ListUncheckedByGroup(groupPK int64) (events []types.GroupAlterEvent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListByGroupStatus")
 
-	daoEvents, err := s.manager.ListByGroupStatus(groupPK, 0) // status:0 未处理
+	daoEvents, err := s.manager.ListByGroupStatus(groupPK, 0) // TODO status:0 未处理, 定义枚举
 	if err != nil {
 		err = errorWrapf(err, "manager.ListByGroupStatus groupPK=`%d` status=`%d` fail", groupPK, 0)
 		return nil, err
