@@ -341,18 +341,18 @@ INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALU
 INSERT INTO `group_system_auth_type` (`system_id`, `group_pk`, `auth_type`) VALUES ("demo", 2127, 15);
 
 
--- group_resource_policy
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+-- rbac_group_resource_policy
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("b43770b386441505ad200bf14b85ec44", 2105, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("ec4c2b529af94e255ab578055ddc91ae", 2106, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("063890f02170124bad493a0335847275", 2107, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("7d053f20b1afc58db479f07eaffafd50", 2125, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("c99c79d3321cb5c289e72b7fbd876758", 2126, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("e848ca9bc61dfe3dce55a3a17f46e2b9", 2127, 0, "demo", "[3]", 1, 1, "002");
-INSERT INTO `group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
+INSERT INTO `rbac_group_resource_policy` (`signature`, `group_pk`, `template_id`, `system_id`, `action_pks`, `action_related_resource_type_pk`, `resource_type_pk`, `resource_id`) VALUES 
 ("647fd04120c00f5ebca00131f3636719", 2105, 0, "demo", "[3]", 1, 2, "002");
