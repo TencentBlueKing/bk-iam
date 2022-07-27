@@ -68,16 +68,18 @@ func (c *Checker) Wait() {
 }
 
 func StartClean() {
+	logger := logging.GetWorkerLogger()
+
 	cleaner := rmq.NewCleaner(connection)
 
 	// run every 2 minutes
 	for range time.Tick(2 * time.Minute) {
 		returned, err := cleaner.Clean()
 		if err != nil {
-			log.Printf("failed to clean: %s", err)
+			logger.Warnf("failed to clean: %s", err)
 			continue
 		}
-		log.Printf("cleaned %d", returned)
+		logger.Infof("cleaned %d", returned)
 	}
 }
 
