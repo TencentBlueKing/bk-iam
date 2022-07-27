@@ -13,28 +13,31 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"errors"
+	"encoding/hex"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 )
 
+// NumEventShard 事件分片数
+const NumEventShard = 100 // TODO 改成配置输入
+
 // GroupAlterEventSVC ...
 const GroupAlterEventSVC = "GroupAlterEventSVC"
 
-// ErrEmptyGroupAlterEvent ...
-var ErrEmptyGroupAlterEvent = errors.New("empty group alter event")
-
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
-	ListUncheckedByGroup(groupPK int64) ([]types.GroupAlterEvent, error)
-
-	CreateByGroupAction(groupPK int64, actionPKs []int64) (types.GroupAlterEvent, error)
-	CreateByGroupSubject(groupPK int64, subjectPKs []int64) (types.GroupAlterEvent, error)
+	Get(pk int64) (event types.GroupAlterEvent, err error)
+	Delete(pk int64) (err error)
+	IncrCheckTimes(pk int64) (err error)
+	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
+	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
 }
 
 type groupAlterEventService struct {
@@ -52,15 +55,56 @@ func NewGroupAlterEventService() GroupAlterEventService {
 	}
 }
 
+// Get ...
+func (s *groupAlterEventService) Get(pk int64) (event types.GroupAlterEvent, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupAlterEventSVC, "Get")
+
+	daoEvent, err := s.manager.Get(pk)
+	if err != nil {
+		err = errorWrapf(err, "manager.Get pk=`%d` fail", pk)
+		return
+	}
+
+	event = types.GroupAlterEvent{
+		PK:         daoEvent.PK,
+		GroupPK:    daoEvent.GroupPK,
+		CheckTimes: daoEvent.CheckTimes,
+	}
+
+	err = jsoniter.Unmarshal([]byte(daoEvent.ActionPKs), &event.ActionPKs)
+	if err != nil {
+		err = errorWrapf(err, "jsoniter.Unmarshal actionPKs=`%s` fail", daoEvent.ActionPKs)
+		return
+	}
+
+	err = jsoniter.Unmarshal([]byte(daoEvent.SubjectPKs), &event.SubjectPKs)
+	if err != nil {
+		err = errorWrapf(err, "jsoniter.Unmarshal subjectPKs=`%s` fail", daoEvent.SubjectPKs)
+		return
+	}
+
+	return
+}
+
+// Delete ...
+func (s *groupAlterEventService) Delete(pk int64) (err error) {
+	return s.manager.Delete(pk)
+}
+
+// IncrCheckTimes ...
+func (s *groupAlterEventService) IncrCheckTimes(pk int64) (err error) {
+	return s.manager.IncrCheckTimes(pk)
+}
+
 // CreateByGroupAction ...
 func (s *groupAlterEventService) CreateByGroupAction(
 	groupPK int64,
 	actionPKs []int64,
-) (event types.GroupAlterEvent, err error) {
+) (pks []int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupAction")
 
 	if len(actionPKs) == 0 {
-		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
+		return nil, nil
 	}
 
 	subjectRelations, err := s.subjectGroupManager.ListGroupMember(groupPK)
@@ -70,7 +114,7 @@ func (s *groupAlterEventService) CreateByGroupAction(
 	}
 
 	if len(subjectRelations) == 0 {
-		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
+		return nil, nil
 	}
 
 	subjectPKs := make([]int64, 0, len(subjectRelations))
@@ -78,30 +122,24 @@ func (s *groupAlterEventService) CreateByGroupAction(
 		subjectPKs = append(subjectPKs, r.SubjectPK)
 	}
 
-	event = types.GroupAlterEvent{
-		GroupPK:    groupPK,
-		SubjectPKs: subjectPKs,
-		ActionPKs:  actionPKs,
-	}
-
-	err = s.createEvent(event)
+	pks, err = s.bulkCreate(groupPK, actionPKs, subjectPKs)
 	if err != nil {
-		err = errorWrapf(err, "createEvent event=`%+v` fail", event)
-		return
+		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`", actionPKs, subjectPKs)
+		return nil, err
 	}
 
-	return event, nil
+	return pks, nil
 }
 
 // CreateByGroupSubject ...
 func (s *groupAlterEventService) CreateByGroupSubject(
 	groupPK int64,
 	subjectPKs []int64,
-) (event types.GroupAlterEvent, err error) {
+) (pks []int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupSubject")
 
 	if len(subjectPKs) == 0 {
-		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
+		return nil, nil
 	}
 
 	actionPKsList, err := s.groupResourcePolicyManager.ListActionPKsByGroup(groupPK)
@@ -124,77 +162,66 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	}
 
 	if actionPKSet.Size() == 0 {
-		return event, errorWrapf(ErrEmptyGroupAlterEvent, "")
+		return nil, nil
 	}
 
-	event = types.GroupAlterEvent{
-		GroupPK:    groupPK,
-		SubjectPKs: subjectPKs,
-		ActionPKs:  actionPKSet.ToSlice(),
-	}
-
-	err = s.createEvent(event)
+	pks, err = s.bulkCreate(groupPK, actionPKSet.ToSlice(), subjectPKs)
 	if err != nil {
-		err = errorWrapf(err, "createEvent event=`%+v` fail", event)
-		return
-	}
-
-	return event, nil
-}
-
-func (s *groupAlterEventService) createEvent(event types.GroupAlterEvent) (err error) {
-	subjectPKs, err := jsoniter.MarshalToString(event.SubjectPKs)
-	if err != nil {
-		return
-	}
-
-	actionPKs, err := jsoniter.MarshalToString(event.ActionPKs)
-	if err != nil {
-		return
-	}
-
-	daoEvent := dao.GroupAlterEvent{
-		GroupPK:    event.GroupPK,
-		SubjectPKs: subjectPKs,
-		ActionPKs:  actionPKs,
-	}
-
-	return s.manager.Create(daoEvent)
-}
-
-// ListUncheckedByGroup 查询未处理的事件
-func (s *groupAlterEventService) ListUncheckedByGroup(groupPK int64) (events []types.GroupAlterEvent, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListByGroupStatus")
-
-	daoEvents, err := s.manager.ListByGroupStatus(groupPK, 0) // TODO status:0 未处理, 定义枚举
-	if err != nil {
-		err = errorWrapf(err, "manager.ListByGroupStatus groupPK=`%d` status=`%d` fail", groupPK, 0)
+		err = errorWrapf(
+			err,
+			"bulkCreate fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`",
+			actionPKSet.ToSlice(),
+			subjectPKs,
+		)
 		return nil, err
 	}
 
-	events = make([]types.GroupAlterEvent, 0, len(daoEvents))
-	for _, daoEvent := range daoEvents {
-		var (
-			subjectPKs []int64
-			actionPKs  []int64
-		)
+	return pks, nil
+}
 
-		if err = jsoniter.UnmarshalFromString(daoEvent.SubjectPKs, &subjectPKs); err != nil {
-			err = errorWrapf(err, "jsoniter.UnmarshalFromString subjectPKs=`%s` fail", daoEvent.SubjectPKs)
+func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs []int64) (pks []int64, err error) {
+	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	// 分片批量创建
+	step := NumEventShard / len(actionPKs)
+	if step < 1 {
+		step = 1
+	}
+
+	uuid := hex.EncodeToString(uuid.Must(uuid.NewV4()).Bytes())
+	events := make([]dao.GroupAlterEvent, 0, len(subjectPKs)/step+1)
+	for _, part := range chunks(len(subjectPKs), step) {
+		subjectPKStr, err := jsoniter.MarshalToString(subjectPKs[part[0]:part[1]])
+		if err != nil {
 			return nil, err
 		}
 
-		if err = jsoniter.UnmarshalFromString(daoEvent.ActionPKs, &actionPKs); err != nil {
-			err = errorWrapf(err, "jsoniter.UnmarshalFromString actionPKs=`%s` fail", daoEvent.ActionPKs)
-			return nil, err
-		}
-
-		events = append(events, types.GroupAlterEvent{
-			GroupPK:    daoEvent.GroupPK,
-			ActionPKs:  actionPKs,
-			SubjectPKs: subjectPKs,
+		events = append(events, dao.GroupAlterEvent{
+			UUID:       uuid,
+			GroupPK:    groupPK,
+			ActionPKs:  actionPKStr,
+			SubjectPKs: subjectPKStr,
 		})
 	}
 
-	return events, nil
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	pks, err = s.manager.BulkCreateWithTx(tx, events)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return pks, nil
 }

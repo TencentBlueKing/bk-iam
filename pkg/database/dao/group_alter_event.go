@@ -23,22 +23,22 @@ import (
 
 // GroupAlterEvent ...
 type GroupAlterEvent struct {
-	PK int64 `db:"pk"`
+	PK   int64  `db:"pk"`
+	UUID string `db:"uuid"`
 
 	GroupPK    int64  `db:"group_pk"`
 	ActionPKs  string `db:"action_pks"`
 	SubjectPKs string `db:"subject_pks"`
-	Status     int64  `db:"status"`
+	CheckTimes int64  `db:"check_times"`
 }
 
 // GroupAlterEventManager ...
 type GroupAlterEventManager interface {
 	Get(pk int64) (GroupAlterEvent, error)
-	ListByGroupStatus(groupPK int64, status int64) ([]GroupAlterEvent, error)
-	Create(groupAlterEvent GroupAlterEvent) error
-	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) error
-	UpdateStatus(pk, fromStatus, toStatus int64) (int64, error)
-	DeleteWithTx(tx *sqlx.Tx, pk int64) error
+	ListByGroupCheckTimes(groupPK int64, checkTimes int64, createdAt int64) ([]GroupAlterEvent, error)
+	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) ([]int64, error)
+	Delete(pk int64) error
+	IncrCheckTimes(pk int64) error
 }
 
 type groupAlterEventManagerManager struct {
@@ -52,74 +52,69 @@ func NewGroupAlterEventManager() GroupAlterEventManager {
 	}
 }
 
+// Get ...
 func (m *groupAlterEventManagerManager) Get(pk int64) (groupAlterEvent GroupAlterEvent, err error) {
-	query := "SELECT pk, group_pk, action_pks, subject_pks, status FROM rbac_group_alter_event WHERE pk=?"
+	query := "SELECT pk, uuid, group_pk, action_pks, subject_pks, check_times FROM rbac_group_alter_event WHERE pk=?"
 	err = database.SqlxGet(m.DB, &groupAlterEvent, query, pk)
 	return
 }
 
-func (m *groupAlterEventManagerManager) ListByGroupStatus(
+// ListByGroupCheckTimes ...
+func (m *groupAlterEventManagerManager) ListByGroupCheckTimes(
 	groupPK int64,
-	status int64,
+	checkTimes int64,
+	createdAt int64,
 ) (groupAlterEvents []GroupAlterEvent, err error) {
 	query := `SELECT
 		pk,
+		uuid,
 		group_pk,
 		action_pks,
 		subject_pks,
-		status 
+		check_times 
 		FROM rbac_group_alter_event
-		WHERE group_pk=? AND status=?`
-	err = database.SqlxSelect(m.DB, &groupAlterEvents, query, groupPK, status)
+		WHERE group_pk=?
+		AND check_times<?
+		AND created_at<FROM_UNIXTIME(?)`
+	err = database.SqlxSelect(m.DB, &groupAlterEvents, query, groupPK, checkTimes, createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return groupAlterEvents, nil
 	}
 	return
 }
 
-func (m *groupAlterEventManagerManager) BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) error {
+// BulkCreateWithTx ...
+func (m *groupAlterEventManagerManager) BulkCreateWithTx(
+	tx *sqlx.Tx,
+	groupAlterEvents []GroupAlterEvent,
+) ([]int64, error) {
 	sql := `INSERT INTO rbac_group_alter_event (
+		uuid,
 		group_pk,
 		action_pks,
 		subject_pks,
-		status
+		check_times
 	) VALUES (
+		:uuid,
 		:group_pk,
 		:action_pks,
 		:subject_pks,
-		:status
+		:check_times
 	)`
-	err := database.SqlxBulkInsertWithTx(tx, sql, groupAlterEvents)
-	return err
+	ids, err := database.SqlxBulkInsertReturnIDWithTx(tx, sql, groupAlterEvents)
+	return ids, err
 }
 
-func (m *groupAlterEventManagerManager) Create(groupAlterEvent GroupAlterEvent) error {
-	sql := `INSERT INTO rbac_group_alter_event (
-		group_pk,
-		action_pks,
-		subject_pks,
-		status
-	) VALUES (
-		:group_pk,
-		:action_pks,
-		:subject_pks,
-		:status
-	)`
-	err := database.SqlxBulkInsert(m.DB, sql, []GroupAlterEvent{groupAlterEvent})
-	return err
-}
-
-func (m *groupAlterEventManagerManager) UpdateStatus(pk, fromStatus, toStatus int64) (int64, error) {
-	sql := `UPDATE rbac_group_alter_event SET status=:to_status WHERE pk=:pk AND status=:from_status`
-	return database.SqlxUpdate(m.DB, sql, map[string]interface{}{
-		"pk":          pk,
-		"to_status":   toStatus,
-		"from_status": fromStatus,
-	})
-}
-
-func (m *groupAlterEventManagerManager) DeleteWithTx(tx *sqlx.Tx, pk int64) error {
+// Delete ...
+func (m *groupAlterEventManagerManager) Delete(pk int64) error {
 	sql := `DELETE FROM rbac_group_alter_event WHERE pk=?`
-	err := database.SqlxDeleteWithTx(tx, sql, pk)
+	err := database.SqlxExec(m.DB, sql, pk)
+	return err
+}
+
+// IncrCheckTimes ...
+func (m *groupAlterEventManagerManager) IncrCheckTimes(pk int64) error {
+	sql := `UPDATE rbac_group_alter_event SET check_times=check_times+1 WHERE pk=?`
+	err := database.SqlxExec(m.DB, sql, pk)
 	return err
 }

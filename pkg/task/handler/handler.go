@@ -8,16 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package task
+package handler
+
+//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/bsm/redislock"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/cacheimpls"
@@ -27,15 +29,16 @@ import (
 	"iam/pkg/util"
 )
 
-var ErrNeedRetry = errors.New("need retry")
+const handlerLayer = "handler"
 
-// GroupAlterMessageHandler ...
-type GroupAlterMessageHandler interface {
-	Handle(message GroupAlterMessage) error
+// MessageHandler ...
+type MessageHandler interface {
+	Handle(message string) error
 }
 
 type groupAlterMessageHandler struct {
 	groupService                      service.GroupService
+	groupAlterEventService            service.GroupAlterEventService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -43,9 +46,10 @@ type groupAlterMessageHandler struct {
 }
 
 // NewGroupAlterMessageHandler ...
-func NewGroupAlterMessageHandler() GroupAlterMessageHandler {
+func NewGroupAlterMessageHandler() MessageHandler {
 	return &groupAlterMessageHandler{
 		groupService:                      service.NewGroupService(),
+		groupAlterEventService:            service.NewGroupAlterEventService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 		locker:                            newDistributedSubjectActionLocker(),
@@ -53,12 +57,45 @@ func NewGroupAlterMessageHandler() GroupAlterMessageHandler {
 }
 
 // Handle ...
-func (h *groupAlterMessageHandler) Handle(message GroupAlterMessage) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ConnTypeConsumer, "Handle")
+func (h *groupAlterMessageHandler) Handle(message string) (err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
-	subjectPK := message.SubjectPK
-	actionPK := message.ActionPK
-	groupPK := message.GroupPK
+	pk, err := strconv.ParseInt(message, 10, 64)
+	if err != nil {
+		err = errorWrapf(err, "parse message to pk fail, message=`%s`", message)
+		return err
+	}
+
+	event, err := h.groupAlterEventService.Get(pk)
+	if err != nil {
+		err = errorWrapf(err, "groupAlterEventService.Get event fail, pk=`%d`", pk)
+		return err
+	}
+
+	// TODO 判断event check times超限，不再处理
+
+	// 循环处理所有事件
+	for _, actionPK := range event.ActionPKs {
+		for _, subjectPK := range event.SubjectPKs {
+			err = h.handleEvent(subjectPK, actionPK, event.GroupPK)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = h.groupAlterEventService.Delete(pk)
+	if err != nil {
+		err = errorWrapf(err, "groupAlterEventService.Delete event fail, pk=`%d`", pk)
+		return err
+	}
+
+	return nil
+}
+
+// handleEvent 处理独立的事件
+func (h *groupAlterMessageHandler) handleEvent(subjectPK, actionPK, groupPK int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
 	// 分布式锁, subject_pk, action_pk
 	// 请求锁最多3分钟
@@ -66,10 +103,7 @@ func (h *groupAlterMessageHandler) Handle(message GroupAlterMessage) (err error)
 	defer cancel()
 
 	lock, err := h.locker.acquire(ctx, subjectPK, actionPK)
-	if errors.Is(err, redislock.ErrNotObtained) {
-		// 锁没请求到, 消息需要重试
-		return ErrNeedRetry
-	} else if err != nil {
+	if err != nil {
 		return errorWrapf(err, "acquire lock fail, subjectPK=`%d`, actionPK`%d`", subjectPK, actionPK)
 	}
 	defer lock.Release(ctx)
@@ -122,7 +156,7 @@ func (h *groupAlterMessageHandler) Handle(message GroupAlterMessage) (err error)
 			}
 		} else {
 			// 关系不存在, 或者group授权的资源实例为空, 从subject action group resource中删除对应的groupPK
-			obj, err = h.subjectActionGroupResourceService.DeleteGroupWithTx(tx, subjectPK, actionPK, groupPK)
+			obj, err = h.subjectActionGroupResourceService.DeleteGroupResourceWithTx(tx, subjectPK, actionPK, groupPK)
 			if err != nil {
 				return errorWrapf(err,
 					"subjectActionGroupResourceService.DeleteGroupWithTx fail, subjectPK=`%d`, actionPK=`%d`, "+
@@ -168,7 +202,7 @@ func (h *groupAlterMessageHandler) Handle(message GroupAlterMessage) (err error)
 func convertToSubjectActionExpression(
 	obj types.SubjectActionGroupResource,
 ) (expression types.SubjectActionExpression, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ConnTypeConsumer, "convertToSubjectActionExpression")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "convertToSubjectActionExpression")
 
 	// 组合 subject 所有 group 授权的资源实例
 	minExpiredAt, resourceMap := mergeGroupResource(obj)
@@ -228,7 +262,7 @@ func convertToString(content []interface{}) (string, error) {
 
 // genExpressionContent 生成表达式内容
 func genExpressionContent(actionPK int64, resourceMap map[int64][]string) ([]interface{}, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ConnTypeConsumer, "genExpressionContent")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "genExpressionContent")
 	// 查询操作的信息
 	action, err := cacheimpls.GetAction(actionPK)
 	if err != nil {
@@ -238,7 +272,7 @@ func genExpressionContent(actionPK int64, resourceMap map[int64][]string) ([]int
 
 	// 查询操作关联的资源类型
 	system := action.System
-	actionDetail, err := cacheimpls.GetActionDetail(system, action.ID)
+	actionDetail, err := cacheimpls.GetLocalActionDetail(system, action.ID)
 	if err != nil {
 		err = errorWrapf(err, "cacheimpls.GetActionDetail fail, system=`%s`, actionID=`%s`", system, action.ID)
 		return nil, err

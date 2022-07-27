@@ -95,6 +95,10 @@ logger:
     level: info
     writer: file
     settings: {name: iam_web.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  worker:
+    level: info
+    writer: file
+    settings: {name: iam_worker.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
   component:
     level: error
     writer: file

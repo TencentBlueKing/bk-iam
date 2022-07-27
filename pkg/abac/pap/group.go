@@ -13,6 +13,7 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"strconv"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -23,6 +24,7 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/task"
+	"iam/pkg/task/producer"
 	"iam/pkg/util"
 )
 
@@ -55,7 +57,7 @@ type groupController struct {
 	subjectService         service.SubjectService
 	groupAlterEventService service.GroupAlterEventService
 
-	alterEventProducer task.GroupAlterEventProducer
+	alterEventProducer producer.Producer
 }
 
 func NewGroupController() GroupController {
@@ -63,7 +65,7 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		alterEventProducer:     task.NewRedisGroupAlterEventProducer(),
+		alterEventProducer:     producer.NewRedisProducer(task.GetRbacEventQueue()),
 	}
 }
 
@@ -501,13 +503,8 @@ func (c *groupController) DeleteGroupMembers(
 }
 
 func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
-	event, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
+	pks, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
 	if err != nil {
-		// NOTE: 查询group授权的rbac action列表可能为空, 不需要创建事件
-		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
-			return
-		}
-
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
 
@@ -524,7 +521,11 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 	}
 
 	// 发送消息
-	go c.alterEventProducer.Publish(event)
+	messages := make([]string, 0, len(pks))
+	for _, pk := range pks {
+		messages = append(messages, strconv.FormatInt(pk, 10))
+	}
+	go c.alterEventProducer.Publish(messages...)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

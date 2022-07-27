@@ -70,7 +70,7 @@ func Test_retrieveGroupActionAuthorizedResource(t *testing.T) {
 			PK:     int64(2),
 		}, nil
 	})
-	patches.ApplyFunc(GetActionDetail, func(_, _ string) (types.ActionDetail, error) {
+	patches.ApplyFunc(GetLocalActionDetail, func(_, _ string) (types.ActionDetail, error) {
 		return types.ActionDetail{
 			ResourceTypes: []types.ThinActionResourceType{
 				{System: "system", ID: "resource_type"},

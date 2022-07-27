@@ -13,7 +13,7 @@ package pap
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"errors"
+	"strconv"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -29,6 +29,7 @@ import (
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/task"
+	"iam/pkg/task/producer"
 	"iam/pkg/util"
 )
 
@@ -53,8 +54,7 @@ type policyControllerV2 struct {
 
 	resourceTypeService service.ResourceTypeService
 
-	// task groupAlterEventProducer
-	groupAlterEventProducer task.GroupAlterEventProducer
+	alterEventProducer producer.Producer
 }
 
 func NewPolicyControllerV2() PolicyControllerV2 {
@@ -71,7 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
-		groupAlterEventProducer: task.NewRedisGroupAlterEventProducer(),
+		alterEventProducer: producer.NewRedisProducer(task.GetRbacEventQueue()),
 	}
 }
 
@@ -292,13 +292,8 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 
 	// 创建 group_alter_event
 	actionPKs := actionPKSet.ToSlice()
-	event, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
+	pks, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
 	if err != nil {
-		// NOTE: 查询group的成员可能为空, 不需要创建事件
-		if errors.Is(err, service.ErrEmptyGroupAlterEvent) {
-			return
-		}
-
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
 
@@ -315,7 +310,11 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 	}
 
 	// 发送event 消息
-	go c.groupAlterEventProducer.Publish(event)
+	messages := make([]string, 0, len(pks))
+	for _, pk := range pks {
+		messages = append(messages, strconv.FormatInt(pk, 10))
+	}
+	go c.alterEventProducer.Publish(messages...)
 }
 
 func (c *policyControllerV2) convertToResourceChangedContent(

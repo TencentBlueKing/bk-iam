@@ -8,39 +8,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package task
+package consumer_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("task", func() {
-	Describe("Message", func() {
-		var m GroupAlterMessage
-		BeforeEach(func() {
-			m = GroupAlterMessage{
-				GroupPK:   1,
-				ActionPK:  2,
-				SubjectPK: 3,
-			}
-		})
-
-		It("UniqueID", func() {
-			assert.Equal(GinkgoT(), "1:2:3", m.UniqueID())
-		})
-
-		It("String", func() {
-			s, err := m.String()
-			assert.Nil(GinkgoT(), err)
-			assert.Len(GinkgoT(), s, 43)
-		})
-
-		It("NewMessageFromString", func() {
-			s := `{"group_pk":1,"action_pk":2,"subject_pk":3}`
-			m2, err := NewGroupAlterMessageFromString(s)
-			assert.Nil(GinkgoT(), err)
-			assert.Equal(GinkgoT(), m, m2)
-		})
-	})
-})
+func TestConsumer(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "consumer Suite")
+}

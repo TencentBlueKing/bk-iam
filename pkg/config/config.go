@@ -47,6 +47,7 @@ type Logger struct {
 	Audit     LogConfig
 	Web       LogConfig
 	Component LogConfig
+	Worker    LogConfig
 }
 
 // LogConfig ...

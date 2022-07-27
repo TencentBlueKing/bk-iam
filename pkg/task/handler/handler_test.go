@@ -8,10 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package task
+package handler
 
 import (
+	"database/sql"
 	"errors"
+	"reflect"
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -44,7 +46,7 @@ var _ = Describe("Handler", func() {
 					PK:     1,
 				}, nil
 			})
-			patches.ApplyFunc(cacheimpls.GetActionDetail, func(_, _ string) (types.ActionDetail, error) {
+			patches.ApplyFunc(cacheimpls.GetLocalActionDetail, func(_, _ string) (types.ActionDetail, error) {
 				return types.ActionDetail{
 					ResourceTypes: []types.ThinActionResourceType{
 						{System: "system", ID: "resource_type"},
@@ -87,7 +89,7 @@ var _ = Describe("Handler", func() {
 		})
 	})
 
-	Describe("Handler", func() {
+	Describe("handlerEvent", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -97,11 +99,15 @@ var _ = Describe("Handler", func() {
 				return util.NewTestRedisClient()
 			})
 
+			tx := &sql.Tx{}
+			patches.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+				return nil
+			})
+
 			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
-				return nil, nil
+				return &sqlx.Tx{Tx: tx}, nil
 			})
-			patches.ApplyFunc(database.RollBackWithLog, func(_ *sqlx.Tx) {
-			})
+			patches.ApplyFunc(database.RollBackWithLog, func(tx *sqlx.Tx) {})
 		})
 
 		AfterEach(func() {
@@ -121,11 +127,7 @@ var _ = Describe("Handler", func() {
 				groupService: mockGroupService,
 				locker:       newDistributedSubjectActionLocker(),
 			}
-			err := handler.Handle(GroupAlterMessage{
-				SubjectPK: 1,
-				GroupPK:   2,
-				ActionPK:  3,
-			})
+			err := handler.handleEvent(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
 		})
@@ -147,11 +149,7 @@ var _ = Describe("Handler", func() {
 				groupService: mockGroupService,
 				locker:       newDistributedSubjectActionLocker(),
 			}
-			err := handler.Handle(GroupAlterMessage{
-				SubjectPK: 1,
-				GroupPK:   2,
-				ActionPK:  3,
-			})
+			err := handler.handleEvent(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetGroupActionAuthorizedResource")
 		})
@@ -171,7 +169,7 @@ var _ = Describe("Handler", func() {
 
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
-				DeleteGroupWithTx(gomock.Any(), int64(1), int64(3), int64(2)).
+				DeleteGroupResourceWithTx(gomock.Any(), int64(1), int64(3), int64(2)).
 				Return(types.SubjectActionGroupResource{}, errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
@@ -179,11 +177,7 @@ var _ = Describe("Handler", func() {
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.Handle(GroupAlterMessage{
-				SubjectPK: 1,
-				GroupPK:   2,
-				ActionPK:  3,
-			})
+			err := handler.handleEvent(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "DeleteGroupWithTx")
 		})
@@ -215,11 +209,7 @@ var _ = Describe("Handler", func() {
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.Handle(GroupAlterMessage{
-				SubjectPK: 1,
-				GroupPK:   2,
-				ActionPK:  3,
-			})
+			err := handler.handleEvent(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "CreateOrUpdateWithTx")
 		})
@@ -263,13 +253,52 @@ var _ = Describe("Handler", func() {
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.Handle(GroupAlterMessage{
-				SubjectPK: 1,
-				GroupPK:   2,
-				ActionPK:  3,
-			})
+			err := handler.handleEvent(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectActionExpressionService")
+		})
+
+		It("ok", func() {
+			patches.ApplyFunc(
+				cacheimpls.GetGroupActionAuthorizedResource,
+				func(_, _ int64) (map[int64][]string, error) {
+					return map[int64][]string{
+						1: {"1", "2"},
+					}, nil
+				},
+			)
+			patches.ApplyFunc(
+				convertToSubjectActionExpression,
+				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
+					return types.SubjectActionExpression{}, nil
+				},
+			)
+
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(int64(10), nil)
+
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				CreateOrUpdateWithTx(gomock.Any(), int64(1), int64(3), int64(2), int64(10), map[int64][]string{
+					1: {"1", "2"},
+				}).
+				Return(types.SubjectActionGroupResource{}, nil)
+
+			mockSubjectActionExpressionService := mock.NewMockSubjectActionExpressionService(ctl)
+			mockSubjectActionExpressionService.EXPECT().
+				CreateOrUpdateWithTx(gomock.Any(), gomock.Any()).
+				Return(nil)
+
+			handler := &groupAlterMessageHandler{
+				groupService:                      mockGroupService,
+				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
+				subjectActionExpressionService:    mockSubjectActionExpressionService,
+				locker:                            newDistributedSubjectActionLocker(),
+			}
+			err := handler.handleEvent(1, 3, 2)
+			assert.NoError(GinkgoT(), err)
 		})
 	})
 })

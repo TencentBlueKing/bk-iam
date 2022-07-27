@@ -23,20 +23,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-// syncCmd represents sync RBAC policy to ABAC expression command
-var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "sync RBAC policy to ABAC expression",
+// workerCmd represents asynchronous task execute command
+var workerCmd = &cobra.Command{
+	Use:   "worker",
+	Short: "bk-iam worker is asynchronous task executor",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
-		   sync command is used to sync RBAC policy to ABAC expression`,
+		   worker is used to execute asynchronous task`,
 	Run: func(cmd *cobra.Command, args []string) {
-		StartConsumer()
+		StartWorker()
 	},
 }
 
-// StartConsumer ...
-func StartConsumer() {
-	fmt.Println("It's IAM task consumer")
+// StartWorker ...
+func StartWorker() {
+	fmt.Println("It's IAM worker")
 
 	// init rand
 	rand.Seed(time.Now().UnixNano())
@@ -69,11 +69,11 @@ func StartConsumer() {
 		interrupt(cancelFunc)
 	}()
 
-	// 3. start sync consumer
-	consumer := task.NewRedisGroupAlterMessageConsumer()
-	consumer.Run(ctx)
+	// 3. start sync worker
+	worker := task.NewWorker()
+	worker.Run(ctx)
 }
 
 func init() {
-	rootCmd.AddCommand(syncCmd)
+	rootCmd.AddCommand(workerCmd)
 }

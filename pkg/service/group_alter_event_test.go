@@ -11,12 +11,17 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
+	"reflect"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
@@ -26,13 +31,26 @@ var _ = Describe("GroupAlterEventService", func() {
 	Describe("CreateByGroupAction cases", func() {
 		var ctl *gomock.Controller
 		var svc GroupAlterEventService
+		var patches *gomonkey.Patches
 
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
+			tx := &sql.Tx{}
+			patches = gomonkey.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+				return nil
+			})
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return &sqlx.Tx{Tx: tx}, nil
+			})
+			patches.ApplyFunc(database.RollBackWithLog, func(tx *sqlx.Tx) {})
 		})
 
 		AfterEach(func() {
 			ctl.Finish()
+			if patches != nil {
+				patches.Reset()
+			}
 		})
 
 		It("ok", func() {
@@ -43,32 +61,23 @@ var _ = Describe("GroupAlterEventService", func() {
 			}, nil)
 
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().Create(dao.GroupAlterEvent{
-				GroupPK:    1,
-				SubjectPKs: "[11,12]",
-				ActionPKs:  "[1,2]",
-			}).Return(nil)
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return([]int64{1}, nil)
 
 			svc = &groupAlterEventService{
 				manager:             mockManager,
 				subjectGroupManager: mockSubjectGroupManager,
 			}
 
-			event, err := svc.CreateByGroupAction(1, []int64{1, 2})
+			pks, err := svc.CreateByGroupAction(1, []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), types.GroupAlterEvent{
-				GroupPK:    1,
-				SubjectPKs: []int64{11, 12},
-				ActionPKs:  []int64{1, 2},
-			}, event)
+			assert.Equal(GinkgoT(), []int64{1}, pks)
 		})
 
 		It("empty action pks", func() {
 			svc = &groupAlterEventService{}
 			_, err := svc.CreateByGroupAction(1, []int64{})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("empty subject pks", func() {
@@ -79,8 +88,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				subjectGroupManager: mockSubjectGroupManager,
 			}
 			_, err := svc.CreateByGroupAction(1, []int64{1, 2})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("ListGroupMember fail", func() {
@@ -105,11 +113,7 @@ var _ = Describe("GroupAlterEventService", func() {
 			}, nil)
 
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().Create(dao.GroupAlterEvent{
-				GroupPK:    1,
-				SubjectPKs: "[11,12]",
-				ActionPKs:  "[1,2]",
-			}).Return(errors.New("error"))
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager:             mockManager,
@@ -118,20 +122,33 @@ var _ = Describe("GroupAlterEventService", func() {
 
 			_, err := svc.CreateByGroupAction(1, []int64{1, 2})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "createEvent")
+			assert.Contains(GinkgoT(), err.Error(), "bulkCreate")
 		})
 	})
 
 	Describe("CreateByGroupSubject cases", func() {
 		var ctl *gomock.Controller
 		var svc GroupAlterEventService
+		var patches *gomonkey.Patches
 
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
+			tx := &sql.Tx{}
+			patches = gomonkey.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+				return nil
+			})
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return &sqlx.Tx{Tx: tx}, nil
+			})
+			patches.ApplyFunc(database.RollBackWithLog, func(tx *sqlx.Tx) {})
 		})
 
 		AfterEach(func() {
 			ctl.Finish()
+			if patches != nil {
+				patches.Reset()
+			}
 		})
 
 		It("ok", func() {
@@ -141,26 +158,23 @@ var _ = Describe("GroupAlterEventService", func() {
 				Return([]string{"[1,2]", "[2,3]"}, nil)
 
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().Create(gomock.Any()).Return(nil)
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return([]int64{1}, nil)
 
 			svc = &groupAlterEventService{
 				manager:                    mockManager,
 				groupResourcePolicyManager: mockGroupResourcePolicyManager,
 			}
 
-			event, err := svc.CreateByGroupSubject(1, []int64{11, 12})
+			pks, err := svc.CreateByGroupSubject(1, []int64{11, 12})
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), int64(1), event.GroupPK)
-			assert.Equal(GinkgoT(), []int64{11, 12}, event.SubjectPKs)
-			assert.Len(GinkgoT(), event.ActionPKs, 3)
+			assert.Equal(GinkgoT(), []int64{1}, pks)
 		})
 
 		It("empty subject pks", func() {
 			svc = &groupAlterEventService{}
 			_, err := svc.CreateByGroupSubject(1, []int64{})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("empty action pks", func() {
@@ -171,8 +185,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				groupResourcePolicyManager: mockGroupResourcePolicyManager,
 			}
 			_, err := svc.CreateByGroupSubject(1, []int64{11, 12})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "empty group alter event")
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("ListActionPKsByGroup fail", func() {
@@ -196,7 +209,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				Return([]string{"[1,2]", "[2,3]"}, nil)
 
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().Create(gomock.Any()).Return(errors.New("error"))
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager:                    mockManager,
@@ -205,11 +218,11 @@ var _ = Describe("GroupAlterEventService", func() {
 
 			_, err := svc.CreateByGroupSubject(1, []int64{11, 12})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "createEvent")
+			assert.Contains(GinkgoT(), err.Error(), "bulkCreate")
 		})
 	})
 
-	Describe("ListByGroupStatus cases", func() {
+	Describe("Get cases", func() {
 		var ctl *gomock.Controller
 		var svc GroupAlterEventService
 
@@ -223,34 +236,121 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ok", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListByGroupStatus(int64(1), int64(0)).Return([]dao.GroupAlterEvent{
-				{GroupPK: 1, ActionPKs: "[1,2]", SubjectPKs: "[11,12]"},
+			mockManager.EXPECT().Get(int64(1)).Return(dao.GroupAlterEvent{
+				PK:         1,
+				GroupPK:    1,
+				ActionPKs:  `[1,2]`,
+				SubjectPKs: `[11,12]`,
+				CheckTimes: 3,
 			}, nil)
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			events, err := svc.ListUncheckedByGroup(1)
+			event, err := svc.Get(1)
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []types.GroupAlterEvent{
-				{GroupPK: 1, ActionPKs: []int64{1, 2}, SubjectPKs: []int64{11, 12}},
-			}, events)
+
+			assert.Equal(GinkgoT(), types.GroupAlterEvent{
+				PK:         1,
+				GroupPK:    1,
+				ActionPKs:  []int64{1, 2},
+				SubjectPKs: []int64{11, 12},
+				CheckTimes: 3,
+			}, event)
 		})
 
-		It("ListByGroupStatus fail", func() {
+		It("get fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().
-				ListByGroupStatus(int64(1), int64(0)).
-				Return([]dao.GroupAlterEvent{}, errors.New("error"))
+			mockManager.EXPECT().Get(int64(1)).Return(dao.GroupAlterEvent{
+				PK:         1,
+				GroupPK:    1,
+				ActionPKs:  `[1,2]`,
+				SubjectPKs: `[11,12]`,
+				CheckTimes: 3,
+			}, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			_, err := svc.ListUncheckedByGroup(1)
+			_, err := svc.Get(1)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListByGroupStatus")
+			assert.Contains(GinkgoT(), err.Error(), "Get")
+		})
+	})
+
+	Describe("Delete cases", func() {
+		var ctl *gomock.Controller
+		var svc GroupAlterEventService
+
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ok", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().Delete(int64(1)).Return(nil)
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			err := svc.Delete(1)
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("delete fail", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().Delete(int64(1)).Return(errors.New("error"))
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			err := svc.Delete(1)
+			assert.Error(GinkgoT(), err)
+		})
+	})
+
+	Describe("IncrCheckTimes cases", func() {
+		var ctl *gomock.Controller
+		var svc GroupAlterEventService
+
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ok", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().IncrCheckTimes(int64(1)).Return(nil)
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			err := svc.IncrCheckTimes(1)
+			assert.NoError(GinkgoT(), err)
+		})
+
+		It("IncrCheckTimes fail", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().IncrCheckTimes(int64(1)).Return(errors.New("error"))
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			err := svc.IncrCheckTimes(1)
+			assert.Error(GinkgoT(), err)
 		})
 	})
 })

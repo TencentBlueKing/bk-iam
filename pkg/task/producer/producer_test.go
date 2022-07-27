@@ -8,32 +8,37 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package task
+package producer
 
 import (
 	"github.com/adjust/rmq/v4"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-type h struct{}
+var _ = Describe("Producer", func() {
+	Describe("Publish", func() {
+		testConn := rmq.NewTestConnection()
+		queue, _ := testConn.OpenQueue("test")
 
-func (h *h) Handle(msg GroupAlterMessage) error {
-	return nil
-}
-
-var _ = Describe("Consumer", func() {
-	Describe("Consume", func() {
-		var mockHandler GroupAlterMessageHandler
+		var ctl *gomock.Controller
 		BeforeEach(func() {
-			mockHandler = &h{}
+			ctl = gomock.NewController(GinkgoT())
+			testConn.Reset()
 		})
 
-		It("Consume", func() {
-			delivery := rmq.NewTestDeliveryString(`{"subject_pk":1,"group_pk":2,"action_pk":3}`)
-			consumer := &groupAlterMessageConsumer{GroupAlterMessageHandler: mockHandler}
-			consumer.Consume(delivery)
-			assert.Equal(GinkgoT(), rmq.Acked, delivery.State)
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ok", func() {
+			producer := NewRedisProducer(queue)
+
+			err := producer.Publish("1", "2", "3")
+
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), testConn.GetDeliveries("test"), 3)
 		})
 	})
 })

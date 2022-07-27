@@ -31,6 +31,7 @@ var webLogger *zap.Logger
 
 // use logrus for better usage
 var sqlLogger *logrus.Logger
+var workerLogger *logrus.Logger
 
 var (
 	auditLogger     *logrus.Logger
@@ -49,6 +50,7 @@ func InitLogger(logger *config.Logger) {
 		sqlLogger = newJSONLogger(&logger.SQL)
 		auditLogger = newJSONLogger(&logger.Audit)
 		componentLogger = newJSONLogger(&logger.Component)
+		workerLogger = newJSONLogger(&logger.Worker)
 	})
 }
 
@@ -206,4 +208,13 @@ func GetComponentLogger() *logrus.Logger {
 		return logrus.StandardLogger()
 	}
 	return componentLogger
+}
+
+// GetWorkerLogger ...
+func GetWorkerLogger() *logrus.Logger {
+	// if not init yet, use system logger
+	if workerLogger == nil {
+		return logrus.StandardLogger()
+	}
+	return workerLogger
 }

@@ -236,7 +236,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.DeleteGroupWithTx(nil, int64(1), int64(2), int64(3))
+			_, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetBySubjectAction")
 		})
@@ -260,7 +260,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.DeleteGroupWithTx(nil, int64(1), int64(2), int64(3))
+			_, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
 		})
@@ -284,7 +284,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			obj, err := svc.DeleteGroupWithTx(nil, int64(1), int64(2), int64(3))
+			obj, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK:     1,

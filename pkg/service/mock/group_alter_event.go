@@ -35,10 +35,10 @@ func (m *MockGroupAlterEventService) EXPECT() *MockGroupAlterEventServiceMockRec
 }
 
 // CreateByGroupAction mocks base method.
-func (m *MockGroupAlterEventService) CreateByGroupAction(groupPK int64, actionPKs []int64) (types.GroupAlterEvent, error) {
+func (m *MockGroupAlterEventService) CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateByGroupAction", groupPK, actionPKs)
-	ret0, _ := ret[0].(types.GroupAlterEvent)
+	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockGroupAlterEventServiceMockRecorder) CreateByGroupAction(groupPK, a
 }
 
 // CreateByGroupSubject mocks base method.
-func (m *MockGroupAlterEventService) CreateByGroupSubject(groupPK int64, subjectPKs []int64) (types.GroupAlterEvent, error) {
+func (m *MockGroupAlterEventService) CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateByGroupSubject", groupPK, subjectPKs)
-	ret0, _ := ret[0].(types.GroupAlterEvent)
+	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,17 +64,45 @@ func (mr *MockGroupAlterEventServiceMockRecorder) CreateByGroupSubject(groupPK, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateByGroupSubject", reflect.TypeOf((*MockGroupAlterEventService)(nil).CreateByGroupSubject), groupPK, subjectPKs)
 }
 
-// ListUncheckedByGroup mocks base method.
-func (m *MockGroupAlterEventService) ListUncheckedByGroup(groupPK int64) ([]types.GroupAlterEvent, error) {
+// Delete mocks base method.
+func (m *MockGroupAlterEventService) Delete(pk int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUncheckedByGroup", groupPK)
-	ret0, _ := ret[0].([]types.GroupAlterEvent)
+	ret := m.ctrl.Call(m, "Delete", pk)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockGroupAlterEventServiceMockRecorder) Delete(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupAlterEventService)(nil).Delete), pk)
+}
+
+// Get mocks base method.
+func (m *MockGroupAlterEventService) Get(pk int64) (types.GroupAlterEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", pk)
+	ret0, _ := ret[0].(types.GroupAlterEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListUncheckedByGroup indicates an expected call of ListUncheckedByGroup.
-func (mr *MockGroupAlterEventServiceMockRecorder) ListUncheckedByGroup(groupPK interface{}) *gomock.Call {
+// Get indicates an expected call of Get.
+func (mr *MockGroupAlterEventServiceMockRecorder) Get(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUncheckedByGroup", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListUncheckedByGroup), groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupAlterEventService)(nil).Get), pk)
+}
+
+// IncrCheckTimes mocks base method.
+func (m *MockGroupAlterEventService) IncrCheckTimes(pk int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IncrCheckTimes", pk)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IncrCheckTimes indicates an expected call of IncrCheckTimes.
+func (mr *MockGroupAlterEventServiceMockRecorder) IncrCheckTimes(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckTimes", reflect.TypeOf((*MockGroupAlterEventService)(nil).IncrCheckTimes), pk)
 }

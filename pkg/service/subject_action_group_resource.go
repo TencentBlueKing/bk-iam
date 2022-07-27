@@ -35,7 +35,7 @@ type SubjectActionGroupResourceService interface {
 		subjectPK, actionPK, groupPK, expiredAt int64,
 		resources map[int64][]string,
 	) (obj types.SubjectActionGroupResource, err error)
-	DeleteGroupWithTx(
+	DeleteGroupResourceWithTx(
 		tx *sqlx.Tx,
 		subjectPK, actionPK, groupPK int64,
 	) (obj types.SubjectActionGroupResource, err error)
@@ -111,8 +111,8 @@ func (s *subjectActionGroupResourceService) CreateOrUpdateWithTx(
 	return obj, err
 }
 
-// DeleteGroupWithTx ...
-func (s *subjectActionGroupResourceService) DeleteGroupWithTx(
+// DeleteGroupResourceWithTx ...
+func (s *subjectActionGroupResourceService) DeleteGroupResourceWithTx(
 	tx *sqlx.Tx,
 	subjectPK, actionPK, groupPK int64,
 ) (obj types.SubjectActionGroupResource, err error) {
@@ -130,7 +130,8 @@ func (s *subjectActionGroupResourceService) DeleteGroupWithTx(
 		return obj, err
 	}
 
-	delete(obj.GroupResource, groupPK)
+	// 删除group resource
+	obj.DeleteGroupResource(groupPK)
 
 	daoObj, err = convertToDaoSubjectActionGroupResource(daoObj.PK, obj)
 	if err != nil {
@@ -158,10 +159,7 @@ func (s *subjectActionGroupResourceService) updateWithTx(
 		return obj, err
 	}
 
-	obj.GroupResource[groupPK] = types.ExpiredAtResource{
-		ExpiredAt: expiredAt,
-		Resources: resources,
-	}
+	obj.UpdateGroupResource(groupPK, expiredAt, resources)
 
 	daoObj, err = convertToDaoSubjectActionGroupResource(daoObj.PK, obj)
 	if err != nil {

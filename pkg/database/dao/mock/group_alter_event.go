@@ -36,11 +36,12 @@ func (m *MockGroupAlterEventManager) EXPECT() *MockGroupAlterEventManagerMockRec
 }
 
 // BulkCreateWithTx mocks base method.
-func (m *MockGroupAlterEventManager) BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []dao.GroupAlterEvent) error {
+func (m *MockGroupAlterEventManager) BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []dao.GroupAlterEvent) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, groupAlterEvents)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
@@ -49,32 +50,18 @@ func (mr *MockGroupAlterEventManagerMockRecorder) BulkCreateWithTx(tx, groupAlte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockGroupAlterEventManager)(nil).BulkCreateWithTx), tx, groupAlterEvents)
 }
 
-// Create mocks base method.
-func (m *MockGroupAlterEventManager) Create(groupAlterEvent dao.GroupAlterEvent) error {
+// Delete mocks base method.
+func (m *MockGroupAlterEventManager) Delete(pk int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", groupAlterEvent)
+	ret := m.ctrl.Call(m, "Delete", pk)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockGroupAlterEventManagerMockRecorder) Create(groupAlterEvent interface{}) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockGroupAlterEventManagerMockRecorder) Delete(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Create), groupAlterEvent)
-}
-
-// DeleteWithTx mocks base method.
-func (m *MockGroupAlterEventManager) DeleteWithTx(tx *sqlx.Tx, pk int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteWithTx", tx, pk)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteWithTx indicates an expected call of DeleteWithTx.
-func (mr *MockGroupAlterEventManagerMockRecorder) DeleteWithTx(tx, pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWithTx", reflect.TypeOf((*MockGroupAlterEventManager)(nil).DeleteWithTx), tx, pk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Delete), pk)
 }
 
 // Get mocks base method.
@@ -92,32 +79,31 @@ func (mr *MockGroupAlterEventManagerMockRecorder) Get(pk interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Get), pk)
 }
 
-// ListByGroupStatus mocks base method.
-func (m *MockGroupAlterEventManager) ListByGroupStatus(groupPK, status int64) ([]dao.GroupAlterEvent, error) {
+// IncrCheckTimes mocks base method.
+func (m *MockGroupAlterEventManager) IncrCheckTimes(pk int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByGroupStatus", groupPK, status)
+	ret := m.ctrl.Call(m, "IncrCheckTimes", pk)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IncrCheckTimes indicates an expected call of IncrCheckTimes.
+func (mr *MockGroupAlterEventManagerMockRecorder) IncrCheckTimes(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckTimes", reflect.TypeOf((*MockGroupAlterEventManager)(nil).IncrCheckTimes), pk)
+}
+
+// ListByGroupCheckTimes mocks base method.
+func (m *MockGroupAlterEventManager) ListByGroupCheckTimes(groupPK, checkTimes, createdAt int64) ([]dao.GroupAlterEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByGroupCheckTimes", groupPK, checkTimes, createdAt)
 	ret0, _ := ret[0].([]dao.GroupAlterEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListByGroupStatus indicates an expected call of ListByGroupStatus.
-func (mr *MockGroupAlterEventManagerMockRecorder) ListByGroupStatus(groupPK, status interface{}) *gomock.Call {
+// ListByGroupCheckTimes indicates an expected call of ListByGroupCheckTimes.
+func (mr *MockGroupAlterEventManagerMockRecorder) ListByGroupCheckTimes(groupPK, checkTimes, createdAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroupStatus", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListByGroupStatus), groupPK, status)
-}
-
-// UpdateStatus mocks base method.
-func (m *MockGroupAlterEventManager) UpdateStatus(pk, fromStatus, toStatus int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus", pk, fromStatus, toStatus)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockGroupAlterEventManagerMockRecorder) UpdateStatus(pk, fromStatus, toStatus interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockGroupAlterEventManager)(nil).UpdateStatus), pk, fromStatus, toStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroupCheckTimes", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListByGroupCheckTimes), groupPK, checkTimes, createdAt)
 }

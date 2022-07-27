@@ -56,7 +56,7 @@ func retrieveGroupActionAuthorizedResource(key cache.Key) (interface{}, error) {
 		return nil, err
 	}
 
-	actionDetail, err := GetActionDetail(action.System, action.ID)
+	actionDetail, err := GetLocalActionDetail(action.System, action.ID)
 	if err != nil {
 		err = errorWrapf(err, "GetActionDetail fail system=`%s`, action=`%s`", action.System, action.ID)
 		return nil, err

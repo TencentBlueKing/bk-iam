@@ -69,9 +69,11 @@ type SubjectRelationForCreate struct {
 }
 
 type GroupAlterEvent struct {
+	PK         int64   `json:"pk"`
 	GroupPK    int64   `json:"group_pk"`
 	ActionPKs  []int64 `json:"action_pks"`
 	SubjectPKs []int64 `json:"subject_pks"`
+	CheckTimes int64   `json:"check_times"`
 }
 
 // ExpiredAtResource ...
@@ -85,6 +87,19 @@ type SubjectActionGroupResource struct {
 	SubjectPK     int64                       `json:"subject_pk"`
 	ActionPK      int64                       `json:"action_pk"`
 	GroupResource map[int64]ExpiredAtResource `json:"group_resource"` // group_pk -> ExpiredAtResource
+}
+
+// DeleteGroupResource ...
+func (s *SubjectActionGroupResource) DeleteGroupResource(groupPK int64) {
+	delete(s.GroupResource, groupPK)
+}
+
+// UpdateGroupResource ...
+func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, expiredAt int64, resources map[int64][]string) {
+	s.GroupResource[groupPK] = ExpiredAtResource{
+		ExpiredAt: expiredAt,
+		Resources: resources,
+	}
 }
 
 // SubjectActionExpression ...

@@ -182,7 +182,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
 			mockGroupAlterEventService.EXPECT().
 				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(types.GroupAlterEvent{}, errors.New("error"))
+				Return(nil, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -240,7 +240,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
 			mockGroupAlterEventService.EXPECT().
 				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(types.GroupAlterEvent{}, errors.New("error"))
+				Return(nil, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -332,7 +332,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
 			mockGroupAlterEventService.EXPECT().
 				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(types.GroupAlterEvent{}, errors.New("error"))
+				Return(nil, errors.New("error"))
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService

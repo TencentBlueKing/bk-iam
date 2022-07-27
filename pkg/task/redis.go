@@ -24,8 +24,8 @@ const (
 )
 
 var (
-	connection rmq.Connection
-	queue      rmq.Queue
+	connection     rmq.Connection
+	rbacEventQueue rmq.Queue
 )
 
 // InitRmqQueue 初始化rmq队列
@@ -42,12 +42,7 @@ func InitRmqQueue(debugMode bool, _type string) {
 		}
 	}
 
-	// cleaner 不需要初始化queue
-	if _type == ConnTypeCleaner {
-		return
-	}
-
-	queue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
+	rbacEventQueue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
 	if err != nil {
 		log.WithError(err).Error("new rmq queue fail")
 		if !debugMode {
@@ -60,4 +55,9 @@ func logRmqErrors(errChan <-chan error) {
 	for err := range errChan {
 		log.WithError(err).Error("rmq error")
 	}
+}
+
+// GetRbacEventQueue ...
+func GetRbacEventQueue() rmq.Queue {
+	return rbacEventQueue
 }

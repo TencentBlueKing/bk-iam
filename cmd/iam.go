@@ -48,7 +48,7 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "bk-iam",
-	Short: "bi-iam is Identity and Access Management System",
+	Short: "bk-iam is Identity and Access Management System",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
            is a service that helps you securely control access to system resources`,
 
