@@ -49,7 +49,9 @@ func (c *Checker) Run(ctx context.Context) {
 	go StartClean()
 
 	// Start group event checker
-	go NewGroupAlterEventChecker().Run()
+	go NewGroupAlterEventChecker(
+		producer.NewRedisProducer(rbacEventQueue),
+	).Run()
 
 	c.Wait()
 	log.Info("Shutting down")
@@ -88,10 +90,10 @@ type GroupAlterEventChecker struct {
 	producer producer.Producer
 }
 
-func NewGroupAlterEventChecker() *GroupAlterEventChecker {
+func NewGroupAlterEventChecker(producer producer.Producer) *GroupAlterEventChecker {
 	return &GroupAlterEventChecker{
 		service:  service.NewGroupAlterEventService(),
-		producer: producer.NewRedisProducer(rbacEventQueue),
+		producer: producer,
 	}
 }
 
