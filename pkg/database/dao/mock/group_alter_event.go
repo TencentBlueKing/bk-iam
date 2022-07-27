@@ -93,17 +93,17 @@ func (mr *MockGroupAlterEventManagerMockRecorder) IncrCheckTimes(pk interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckTimes", reflect.TypeOf((*MockGroupAlterEventManager)(nil).IncrCheckTimes), pk)
 }
 
-// ListByGroupCheckTimes mocks base method.
-func (m *MockGroupAlterEventManager) ListByGroupCheckTimes(groupPK, checkTimes, createdAt int64) ([]dao.GroupAlterEvent, error) {
+// ListPKByCheckTimesBeforeCreateAt mocks base method.
+func (m *MockGroupAlterEventManager) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByGroupCheckTimes", groupPK, checkTimes, createdAt)
-	ret0, _ := ret[0].([]dao.GroupAlterEvent)
+	ret := m.ctrl.Call(m, "ListPKByCheckTimesBeforeCreateAt", checkTimes, createdAt)
+	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListByGroupCheckTimes indicates an expected call of ListByGroupCheckTimes.
-func (mr *MockGroupAlterEventManagerMockRecorder) ListByGroupCheckTimes(groupPK, checkTimes, createdAt interface{}) *gomock.Call {
+// ListPKByCheckTimesBeforeCreateAt indicates an expected call of ListPKByCheckTimesBeforeCreateAt.
+func (mr *MockGroupAlterEventManagerMockRecorder) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByGroupCheckTimes", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListByGroupCheckTimes), groupPK, checkTimes, createdAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKByCheckTimesBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListPKByCheckTimesBeforeCreateAt), checkTimes, createdAt)
 }

@@ -34,10 +34,13 @@ const GroupAlterEventSVC = "GroupAlterEventSVC"
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
 	Get(pk int64) (event types.GroupAlterEvent, err error)
-	Delete(pk int64) (err error)
+	ListPKByCheckTimesBeforeCreateAt(checkTimes int64, createdAt int64) ([]int64, error)
+
 	IncrCheckTimes(pk int64) (err error)
 	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
 	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
+
+	Delete(pk int64) (err error)
 }
 
 type groupAlterEventService struct {
@@ -65,25 +68,32 @@ func (s *groupAlterEventService) Get(pk int64) (event types.GroupAlterEvent, err
 		return
 	}
 
-	event = types.GroupAlterEvent{
+	event, err = convertToSvcGroupAlterEvent(daoEvent)
+	if err != nil {
+		err = errorWrapf(err, "convertToSvcGroupAlterEvent fail event=`%+v`", daoEvent)
+		return event, err
+	}
+
+	return
+}
+
+func convertToSvcGroupAlterEvent(daoEvent dao.GroupAlterEvent) (types.GroupAlterEvent, error) {
+	event := types.GroupAlterEvent{
 		PK:         daoEvent.PK,
 		GroupPK:    daoEvent.GroupPK,
 		CheckTimes: daoEvent.CheckTimes,
 	}
 
-	err = jsoniter.Unmarshal([]byte(daoEvent.ActionPKs), &event.ActionPKs)
+	err := jsoniter.UnmarshalFromString(daoEvent.ActionPKs, &event.ActionPKs)
 	if err != nil {
-		err = errorWrapf(err, "jsoniter.Unmarshal actionPKs=`%s` fail", daoEvent.ActionPKs)
-		return
+		return event, err
 	}
 
-	err = jsoniter.Unmarshal([]byte(daoEvent.SubjectPKs), &event.SubjectPKs)
+	err = jsoniter.UnmarshalFromString(daoEvent.SubjectPKs, &event.SubjectPKs)
 	if err != nil {
-		err = errorWrapf(err, "jsoniter.Unmarshal subjectPKs=`%s` fail", daoEvent.SubjectPKs)
-		return
+		return event, err
 	}
-
-	return
+	return event, nil
 }
 
 // Delete ...
@@ -224,4 +234,11 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	}
 
 	return pks, nil
+}
+
+func (s *groupAlterEventService) ListPKByCheckTimesBeforeCreateAt(
+	checkTimes int64,
+	createdAt int64,
+) ([]int64, error) {
+	return s.manager.ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt)
 }

@@ -24,6 +24,7 @@ import (
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
+	"iam/pkg/logging"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -72,12 +73,18 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 		return err
 	}
 
-	// TODO 判断event check times超限，不再处理
+	// 判断event check times超限，不再处理
+	if event.CheckTimes >= 3 { // TODO 从配置文件中读取
+		logger := logging.GetWorkerLogger()
+		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckTimes)
+		return nil
+	}
 
 	// 循环处理所有事件
+	groupPK := event.GroupPK
 	for _, actionPK := range event.ActionPKs {
 		for _, subjectPK := range event.SubjectPKs {
-			err = h.handleEvent(subjectPK, actionPK, event.GroupPK)
+			err = h.handleEvent(subjectPK, actionPK, groupPK)
 			if err != nil {
 				return err
 			}

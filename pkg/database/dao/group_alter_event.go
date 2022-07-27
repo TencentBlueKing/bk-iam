@@ -35,7 +35,7 @@ type GroupAlterEvent struct {
 // GroupAlterEventManager ...
 type GroupAlterEventManager interface {
 	Get(pk int64) (GroupAlterEvent, error)
-	ListByGroupCheckTimes(groupPK int64, checkTimes int64, createdAt int64) ([]GroupAlterEvent, error)
+	ListPKByCheckTimesBeforeCreateAt(checkTimes int64, createdAt int64) ([]int64, error)
 	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) ([]int64, error)
 	Delete(pk int64) error
 	IncrCheckTimes(pk int64) error
@@ -60,25 +60,18 @@ func (m *groupAlterEventManagerManager) Get(pk int64) (groupAlterEvent GroupAlte
 }
 
 // ListByGroupCheckTimes ...
-func (m *groupAlterEventManagerManager) ListByGroupCheckTimes(
-	groupPK int64,
+func (m *groupAlterEventManagerManager) ListPKByCheckTimesBeforeCreateAt(
 	checkTimes int64,
 	createdAt int64,
-) (groupAlterEvents []GroupAlterEvent, err error) {
+) (pks []int64, err error) {
 	query := `SELECT
-		pk,
-		uuid,
-		group_pk,
-		action_pks,
-		subject_pks,
-		check_times 
+		pk
 		FROM rbac_group_alter_event
-		WHERE group_pk=?
-		AND check_times<?
+		WHERE check_times<?
 		AND created_at<FROM_UNIXTIME(?)`
-	err = database.SqlxSelect(m.DB, &groupAlterEvents, query, groupPK, checkTimes, createdAt)
+	err = database.SqlxSelect(m.DB, &pks, query, checkTimes, createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return groupAlterEvents, nil
+		return pks, nil
 	}
 	return
 }

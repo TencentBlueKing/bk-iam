@@ -106,3 +106,18 @@ func (mr *MockGroupAlterEventServiceMockRecorder) IncrCheckTimes(pk interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckTimes", reflect.TypeOf((*MockGroupAlterEventService)(nil).IncrCheckTimes), pk)
 }
+
+// ListPKByCheckTimesBeforeCreateAt mocks base method.
+func (m *MockGroupAlterEventService) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPKByCheckTimesBeforeCreateAt", checkTimes, createdAt)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPKByCheckTimesBeforeCreateAt indicates an expected call of ListPKByCheckTimesBeforeCreateAt.
+func (mr *MockGroupAlterEventServiceMockRecorder) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKByCheckTimesBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListPKByCheckTimesBeforeCreateAt), checkTimes, createdAt)
+}

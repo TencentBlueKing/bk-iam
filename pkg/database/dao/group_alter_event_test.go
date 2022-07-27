@@ -40,19 +40,16 @@ func Test_groupAlterEventManagerManager_Get(t *testing.T) {
 
 func Test_groupAlterEventManagerManager_ListByGroupCheckTimes(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk, uuid, group_pk, action_pks, subject_pks, check_times FROM rbac_group_alter_event WHERE group_pk=(.*) AND check_times<(.*)`
-		mockRows := sqlmock.NewRows([]string{"pk", "uuid", "group_pk", "action_pks", "subject_pks", "check_times"}).
-			AddRow(
-				int64(1), "", int64(1), "[1,2]", "[3,4]", int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
+		mockQuery := `^SELECT pk FROM rbac_group_alter_event WHERE check_times<(.*)`
+		mockRows := sqlmock.NewRows([]string{"pk"}).
+			AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		evnets, err := manager.ListByGroupCheckTimes(int64(1), 0, 0)
+		pks, err := manager.ListPKByCheckTimesBeforeCreateAt(0, 0)
 
 		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, []GroupAlterEvent{
-			{PK: int64(1), GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckTimes: int64(0)},
-		}, evnets)
+		assert.Equal(t, []int64{1}, pks)
 	})
 }
 

@@ -140,6 +140,12 @@ func initRmqConsumer() {
 	log.Info("init RMQ producer success")
 }
 
+func initRmqCleaner() {
+	log.Info("init RMQ cleaner")
+	task.InitRmqQueue(globalConfig.Debug, task.ConnTypeCleaner)
+	log.Info("init RMQ cleaner success")
+}
+
 func initLogger() {
 	logging.InitLogger(&globalConfig.Logger)
 }

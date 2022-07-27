@@ -32,12 +32,12 @@ func NewWorker() *Worker {
 }
 
 // Run ...
-func (s *Worker) Run(ctx context.Context) {
+func (w *Worker) Run(ctx context.Context) {
 	go func() {
 		<-ctx.Done()
 		log.Info("I have to go...")
 		log.Info("Stopping worker gracefully")
-		s.Stop()
+		w.Stop()
 	}()
 
 	// Start rbac event consumer
@@ -48,18 +48,18 @@ func (s *Worker) Run(ctx context.Context) {
 	)
 	go rbacEventConsumer.Run(ctx)
 
-	s.Wait()
+	w.Wait()
 	log.Info("Shutting down")
 }
 
 // Stop ...
-func (s *Worker) Stop() {
+func (w *Worker) Stop() {
 	defer log.Info("Server stopped")
 
-	s.stopChan <- struct{}{}
+	w.stopChan <- struct{}{}
 }
 
 // Wait blocks until server is shut down.
-func (s *Worker) Wait() {
-	<-s.stopChan
+func (w *Worker) Wait() {
+	<-w.stopChan
 }

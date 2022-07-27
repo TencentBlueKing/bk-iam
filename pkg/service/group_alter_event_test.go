@@ -353,4 +353,44 @@ var _ = Describe("GroupAlterEventService", func() {
 			assert.Error(GinkgoT(), err)
 		})
 	})
+
+	Describe("ListByGroupCheckTimes cases", func() {
+		var ctl *gomock.Controller
+		var svc GroupAlterEventService
+
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ok", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().ListPKByCheckTimesBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			pks, err := svc.ListPKByCheckTimesBeforeCreateAt(2, 3)
+			assert.NoError(GinkgoT(), err)
+
+			assert.Equal(GinkgoT(), []int64{1}, pks)
+		})
+
+		It("ListPKByCheckTimesBeforeCreateAt fail", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().ListPKByCheckTimesBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			_, err := svc.ListPKByCheckTimesBeforeCreateAt(2, 3)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "error")
+		})
+	})
 })
