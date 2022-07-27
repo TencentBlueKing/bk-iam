@@ -13,7 +13,6 @@ package pap
 import (
 	"database/sql"
 	"errors"
-	"strconv"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -521,10 +520,11 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 	}
 
 	// 发送消息
-	messages := make([]string, 0, len(pks))
-	for _, pk := range pks {
-		messages = append(messages, strconv.FormatInt(pk, 10))
+	if len(pks) == 0 {
+		return
 	}
+
+	messages := util.Int64SliceToStringSlice(pks)
 	go c.alterEventProducer.Publish(messages...)
 }
 

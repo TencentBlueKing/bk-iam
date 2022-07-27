@@ -241,7 +241,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				GroupPK:    1,
 				ActionPKs:  `[1,2]`,
 				SubjectPKs: `[11,12]`,
-				CheckTimes: 3,
+				CheckCount: 3,
 			}, nil)
 
 			svc = &groupAlterEventService{
@@ -256,7 +256,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				GroupPK:    1,
 				ActionPKs:  []int64{1, 2},
 				SubjectPKs: []int64{11, 12},
-				CheckTimes: 3,
+				CheckCount: 3,
 			}, event)
 		})
 
@@ -267,7 +267,7 @@ var _ = Describe("GroupAlterEventService", func() {
 				GroupPK:    1,
 				ActionPKs:  `[1,2]`,
 				SubjectPKs: `[11,12]`,
-				CheckTimes: 3,
+				CheckCount: 3,
 			}, errors.New("error"))
 
 			svc = &groupAlterEventService{
@@ -317,7 +317,7 @@ var _ = Describe("GroupAlterEventService", func() {
 		})
 	})
 
-	Describe("IncrCheckTimes cases", func() {
+	Describe("IncrCheckCount cases", func() {
 		var ctl *gomock.Controller
 		var svc GroupAlterEventService
 
@@ -331,30 +331,30 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ok", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().IncrCheckTimes(int64(1)).Return(nil)
+			mockManager.EXPECT().IncrCheckCount(int64(1)).Return(nil)
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			err := svc.IncrCheckTimes(1)
+			err := svc.IncrCheckCount(1)
 			assert.NoError(GinkgoT(), err)
 		})
 
-		It("IncrCheckTimes fail", func() {
+		It("IncrCheckCount fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().IncrCheckTimes(int64(1)).Return(errors.New("error"))
+			mockManager.EXPECT().IncrCheckCount(int64(1)).Return(errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			err := svc.IncrCheckTimes(1)
+			err := svc.IncrCheckCount(1)
 			assert.Error(GinkgoT(), err)
 		})
 	})
 
-	Describe("ListByGroupCheckTimes cases", func() {
+	Describe("ListByGroupCheckCount cases", func() {
 		var ctl *gomock.Controller
 		var svc GroupAlterEventService
 
@@ -368,27 +368,27 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ok", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKByCheckTimesBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
+			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			pks, err := svc.ListPKByCheckTimesBeforeCreateAt(2, 3)
+			pks, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
 			assert.NoError(GinkgoT(), err)
 
 			assert.Equal(GinkgoT(), []int64{1}, pks)
 		})
 
-		It("ListPKByCheckTimesBeforeCreateAt fail", func() {
+		It("ListPKByCheckCountBeforeCreateAt fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKByCheckTimesBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
+			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			_, err := svc.ListPKByCheckTimesBeforeCreateAt(2, 3)
+			_, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "error")
 		})

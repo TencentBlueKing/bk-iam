@@ -11,6 +11,8 @@
 package task
 
 import (
+	"sync"
+
 	"github.com/adjust/rmq/v4"
 	log "github.com/sirupsen/logrus"
 
@@ -28,26 +30,39 @@ var (
 	rbacEventQueue rmq.Queue
 )
 
+var (
+	connectionInitOnce     sync.Once
+	rbacEventQueueInitOnce sync.Once
+)
+
 // InitRmqQueue 初始化rmq队列
 func InitRmqQueue(debugMode bool, _type string) {
 	errChan := make(chan error, 10)
 	go logRmqErrors(errChan)
 
 	var err error
-	connection, err = rmq.OpenConnectionWithRedisClient(_type, redis.GetDefaultMQRedisClient(), errChan)
-	if err != nil {
-		log.WithError(err).Error("new rmq connection fail")
-		if !debugMode {
-			panic(err)
-		}
+	if connection == nil {
+		connectionInitOnce.Do(func() {
+			connection, err = rmq.OpenConnectionWithRedisClient(_type, redis.GetDefaultMQRedisClient(), errChan)
+			if err != nil {
+				log.WithError(err).Error("new rmq connection fail")
+				if !debugMode {
+					panic(err)
+				}
+			}
+		})
 	}
 
-	rbacEventQueue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
-	if err != nil {
-		log.WithError(err).Error("new rmq queue fail")
-		if !debugMode {
-			panic(err)
-		}
+	if rbacEventQueue == nil {
+		rbacEventQueueInitOnce.Do(func() {
+			rbacEventQueue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
+			if err != nil {
+				log.WithError(err).Error("new rmq queue fail")
+				if !debugMode {
+					panic(err)
+				}
+			}
+		})
 	}
 }
 

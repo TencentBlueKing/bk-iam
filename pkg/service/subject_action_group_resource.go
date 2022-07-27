@@ -98,7 +98,7 @@ func (s *subjectActionGroupResourceService) CreateOrUpdateWithTx(
 		}
 	} else {
 		// update
-		obj, err = s.updateWithTx(tx, daoObj, groupPK, expiredAt, resources)
+		obj, err = s.updateGroupResourceWithTx(tx, daoObj, groupPK, expiredAt, resources)
 		if err != nil {
 			err = errorWrapf(err,
 				"updateWithTx fail, daoObj=`%+v`, groupPK=`%d`, expiredAt=`%d`, resources=`%+v`",
@@ -147,7 +147,7 @@ func (s *subjectActionGroupResourceService) DeleteGroupResourceWithTx(
 	return obj, err
 }
 
-func (s *subjectActionGroupResourceService) updateWithTx(
+func (s *subjectActionGroupResourceService) updateGroupResourceWithTx(
 	tx *sqlx.Tx,
 	daoObj dao.SubjectActionGroupResource,
 	groupPK int64,

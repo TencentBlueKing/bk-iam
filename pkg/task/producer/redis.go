@@ -10,8 +10,6 @@
 
 package producer
 
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/adjust/rmq/v4"
@@ -21,11 +19,6 @@ import (
 )
 
 const producerLayer = "producer"
-
-// Producer ...
-type Producer interface {
-	Publish(messages ...string) error
-}
 
 type redisProducer struct {
 	queue rmq.Queue

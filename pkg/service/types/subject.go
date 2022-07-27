@@ -73,7 +73,7 @@ type GroupAlterEvent struct {
 	GroupPK    int64   `json:"group_pk"`
 	ActionPKs  []int64 `json:"action_pks"`
 	SubjectPKs []int64 `json:"subject_pks"`
-	CheckTimes int64   `json:"check_times"`
+	CheckCount int64   `json:"check_times"`
 }
 
 // ExpiredAtResource ...

@@ -11,6 +11,8 @@
 package cacheimpls
 
 import (
+	"strconv"
+
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/conv"
@@ -21,6 +23,17 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )
+
+// SystemSubjectPKCacheKey ...
+type SystemSubjectPKCacheKey struct {
+	SystemID  string
+	SubjectPK int64
+}
+
+// Key ...
+func (k SystemSubjectPKCacheKey) Key() string {
+	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
+}
 
 // ListSystemSubjectEffectGroups ...
 func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSubjectGroup, error) {

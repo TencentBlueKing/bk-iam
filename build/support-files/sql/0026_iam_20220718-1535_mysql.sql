@@ -23,13 +23,13 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_subject_action_expression` (
 
 CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_group_alter_event` (
   `pk` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` CHAR(32) NOT NULL,
+  `task_id` CHAR(32) NOT NULL,
   `group_pk` int(10) unsigned NOT NULL,
   `action_pks` mediumtext NOT NULL, -- json [action_pk]
   `subject_pks` mediumtext NOT NULL, -- json [subject_pk]
-  `check_times` int(10) unsigned NOT NULL DEFAULT 0,
+  `check_count` int(10) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk`),
-  INDEX `idx_check_times_created_at` (`check_times`,`created_at`)
+  INDEX `idx_check_count_created_at` (`check_count`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

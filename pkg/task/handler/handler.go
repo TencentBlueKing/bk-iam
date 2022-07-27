@@ -75,10 +75,10 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 	}
 
 	// 判断event check times超限，不再处理
-	maxCheckTimes := int64(config.GetMaxGroupAlterEventCheckTimes())
-	if event.CheckTimes >= maxCheckTimes {
+	maxCheckCount := int64(config.GetMaxGroupAlterEventCheckCount())
+	if event.CheckCount >= maxCheckCount {
 		logger := logging.GetWorkerLogger()
-		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckTimes)
+		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckCount)
 		return nil
 	}
 
@@ -86,7 +86,7 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 	groupPK := event.GroupPK
 	for _, actionPK := range event.ActionPKs {
 		for _, subjectPK := range event.SubjectPKs {
-			err = h.handleEvent(subjectPK, actionPK, groupPK)
+			err = h.alterSubjectActionGroupResource(subjectPK, actionPK, groupPK)
 			if err != nil {
 				return err
 			}
@@ -102,8 +102,8 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 	return nil
 }
 
-// handleEvent 处理独立的事件
-func (h *groupAlterMessageHandler) handleEvent(subjectPK, actionPK, groupPK int64) error {
+// alterSubjectActionGroupResource 处理独立的事件
+func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, actionPK, groupPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
 	// 分布式锁, subject_pk, action_pk
@@ -127,13 +127,13 @@ func (h *groupAlterMessageHandler) handleEvent(subjectPK, actionPK, groupPK int6
 	if groupPK != 0 {
 		// 查询subject group关系过期时间
 		expiredAt, err := h.groupService.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
-		if err != nil && !errors.Is(err, service.ErrNotFound) {
+		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
 			return errorWrapf(err,
 				"groupService.GetExpiredAtBySubjectGroup fail, subjectPK=`%d`, groupPK=`%d`",
 				subjectPK, groupPK,
 			)
 		}
-		found := !errors.Is(err, service.ErrNotFound)
+		found := !errors.Is(err, service.ErrGroupMemberNotFound)
 
 		// 查询group action授权资源实例
 		resourceMap, err := cacheimpls.GetGroupActionAuthorizedResource(

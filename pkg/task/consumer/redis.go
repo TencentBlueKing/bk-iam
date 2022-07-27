@@ -10,8 +10,6 @@
 
 package consumer
 
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
 import (
 	"context"
 	"time"
@@ -30,11 +28,6 @@ const (
 	prefetchLimit = 1000
 	pollDuration  = 100 * time.Millisecond
 )
-
-// Consumer ...
-type Consumer interface {
-	Run(ctx context.Context)
-}
 
 type redisConsumer struct {
 	connection rmq.Connection

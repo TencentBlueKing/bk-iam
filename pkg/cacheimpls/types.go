@@ -36,14 +36,3 @@ type SubjectPKCacheKey struct {
 func (k SubjectPKCacheKey) Key() string {
 	return strconv.FormatInt(k.PK, 10)
 }
-
-// SystemSubjectPKCacheKey ...
-type SystemSubjectPKCacheKey struct {
-	SystemID  string
-	SubjectPK int64
-}
-
-// Key ...
-func (k SystemSubjectPKCacheKey) Key() string {
-	return k.SystemID + ":" + strconv.FormatInt(k.SubjectPK, 10)
-}

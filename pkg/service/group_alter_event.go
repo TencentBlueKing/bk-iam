@@ -13,17 +13,15 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"encoding/hex"
-
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/config"
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 // GroupAlterEventSVC ...
@@ -32,9 +30,9 @@ const GroupAlterEventSVC = "GroupAlterEventSVC"
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
 	Get(pk int64) (event types.GroupAlterEvent, err error)
-	ListPKByCheckTimesBeforeCreateAt(checkTimes int64, createdAt int64) ([]int64, error)
+	ListPKLtCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
 
-	IncrCheckTimes(pk int64) (err error)
+	IncrCheckCount(pk int64) (err error)
 	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
 	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
 
@@ -79,7 +77,7 @@ func convertToSvcGroupAlterEvent(daoEvent dao.GroupAlterEvent) (types.GroupAlter
 	event := types.GroupAlterEvent{
 		PK:         daoEvent.PK,
 		GroupPK:    daoEvent.GroupPK,
-		CheckTimes: daoEvent.CheckTimes,
+		CheckCount: daoEvent.CheckCount,
 	}
 
 	err := jsoniter.UnmarshalFromString(daoEvent.ActionPKs, &event.ActionPKs)
@@ -99,9 +97,9 @@ func (s *groupAlterEventService) Delete(pk int64) (err error) {
 	return s.manager.Delete(pk)
 }
 
-// IncrCheckTimes ...
-func (s *groupAlterEventService) IncrCheckTimes(pk int64) (err error) {
-	return s.manager.IncrCheckTimes(pk)
+// IncrCheckCount ...
+func (s *groupAlterEventService) IncrCheckCount(pk int64) (err error) {
+	return s.manager.IncrCheckCount(pk)
 }
 
 // CreateByGroupAction ...
@@ -200,7 +198,7 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 		step = 1
 	}
 
-	uuid := hex.EncodeToString(uuid.Must(uuid.NewV4()).Bytes())
+	taskID := util.GenUUID4()
 	events := make([]dao.GroupAlterEvent, 0, len(subjectPKs)/step+1)
 	for _, part := range chunks(len(subjectPKs), step) {
 		subjectPKStr, err := jsoniter.MarshalToString(subjectPKs[part[0]:part[1]])
@@ -209,7 +207,7 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 		}
 
 		events = append(events, dao.GroupAlterEvent{
-			UUID:       uuid,
+			TaskID:     taskID,
 			GroupPK:    groupPK,
 			ActionPKs:  actionPKStr,
 			SubjectPKs: subjectPKStr,
@@ -235,9 +233,9 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	return pks, nil
 }
 
-func (s *groupAlterEventService) ListPKByCheckTimesBeforeCreateAt(
-	checkTimes int64,
+func (s *groupAlterEventService) ListPKLtCheckCountBeforeCreateAt(
+	checkCount int64,
 	createdAt int64,
 ) ([]int64, error) {
-	return s.manager.ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt)
+	return s.manager.ListPKLtCheckCountBeforeCreateAt(checkCount, createdAt)
 }

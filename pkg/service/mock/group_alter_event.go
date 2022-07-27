@@ -93,31 +93,31 @@ func (mr *MockGroupAlterEventServiceMockRecorder) Get(pk interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupAlterEventService)(nil).Get), pk)
 }
 
-// IncrCheckTimes mocks base method.
-func (m *MockGroupAlterEventService) IncrCheckTimes(pk int64) error {
+// IncrCheckCount mocks base method.
+func (m *MockGroupAlterEventService) IncrCheckCount(pk int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrCheckTimes", pk)
+	ret := m.ctrl.Call(m, "IncrCheckCount", pk)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// IncrCheckTimes indicates an expected call of IncrCheckTimes.
-func (mr *MockGroupAlterEventServiceMockRecorder) IncrCheckTimes(pk interface{}) *gomock.Call {
+// IncrCheckCount indicates an expected call of IncrCheckCount.
+func (mr *MockGroupAlterEventServiceMockRecorder) IncrCheckCount(pk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckTimes", reflect.TypeOf((*MockGroupAlterEventService)(nil).IncrCheckTimes), pk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckCount", reflect.TypeOf((*MockGroupAlterEventService)(nil).IncrCheckCount), pk)
 }
 
-// ListPKByCheckTimesBeforeCreateAt mocks base method.
-func (m *MockGroupAlterEventService) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt int64) ([]int64, error) {
+// ListPKLtCheckCountBeforeCreateAt mocks base method.
+func (m *MockGroupAlterEventService) ListPKLtCheckCountBeforeCreateAt(CheckCount, createdAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPKByCheckTimesBeforeCreateAt", checkTimes, createdAt)
+	ret := m.ctrl.Call(m, "ListPKLtCheckCountBeforeCreateAt", CheckCount, createdAt)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPKByCheckTimesBeforeCreateAt indicates an expected call of ListPKByCheckTimesBeforeCreateAt.
-func (mr *MockGroupAlterEventServiceMockRecorder) ListPKByCheckTimesBeforeCreateAt(checkTimes, createdAt interface{}) *gomock.Call {
+// ListPKLtCheckCountBeforeCreateAt indicates an expected call of ListPKLtCheckCountBeforeCreateAt.
+func (mr *MockGroupAlterEventServiceMockRecorder) ListPKLtCheckCountBeforeCreateAt(CheckCount, createdAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKByCheckTimesBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListPKByCheckTimesBeforeCreateAt), checkTimes, createdAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKLtCheckCountBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventService)(nil).ListPKLtCheckCountBeforeCreateAt), CheckCount, createdAt)
 }

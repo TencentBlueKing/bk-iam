@@ -29,8 +29,8 @@ import (
 // GroupSVC ...
 const GroupSVC = "GroupSVC"
 
-// ErrNotFound ...
-var ErrNotFound = errors.New("not found")
+// ErrGroupMemberNotFound ...
+var ErrGroupMemberNotFound = errors.New("group member not found")
 
 // GroupService ...
 type GroupService interface {
@@ -467,7 +467,7 @@ func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (exp
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		err = ErrNotFound
+		err = ErrGroupMemberNotFound
 	case err != nil:
 		err = errorx.Wrapf(
 			err, GroupSVC, "manager.GetExpiredAtBySubjectGroup", "subjectPK=`%d`, groupPK=`%d`", subjectPK, groupPK,

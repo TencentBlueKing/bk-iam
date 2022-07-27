@@ -112,13 +112,9 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				Expression: `{}`,
 				ExpiredAt:  10,
 			}, nil)
-			mockManager.EXPECT().UpdateExpressionExpiredAtWithTx(gomock.Any(), dao.SubjectActionExpression{
-				PK:         1,
-				SubjectPK:  1,
-				ActionPK:   2,
-				Expression: `{"OR":[{"content":[]}`,
-				ExpiredAt:  10,
-			}).Return(errors.New("error"))
+			mockManager.EXPECT().
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				Return(errors.New("error"))
 
 			svc := &subjectActionExpressionService{
 				manager: mockManager,
@@ -143,13 +139,9 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				Expression: `{}`,
 				ExpiredAt:  10,
 			}, nil)
-			mockManager.EXPECT().UpdateExpressionExpiredAtWithTx(gomock.Any(), dao.SubjectActionExpression{
-				PK:         1,
-				SubjectPK:  1,
-				ActionPK:   2,
-				Expression: `{"OR":[{"content":[]}`,
-				ExpiredAt:  10,
-			}).Return(nil)
+			mockManager.EXPECT().
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				Return(nil)
 
 			svc := &subjectActionExpressionService{
 				manager: mockManager,

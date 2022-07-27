@@ -127,7 +127,7 @@ var _ = Describe("Handler", func() {
 				groupService: mockGroupService,
 				locker:       newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
 		})
@@ -143,13 +143,13 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), service.ErrNotFound)
+				Return(int64(0), service.ErrGroupMemberNotFound)
 
 			handler := &groupAlterMessageHandler{
 				groupService: mockGroupService,
 				locker:       newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetGroupActionAuthorizedResource")
 		})
@@ -165,7 +165,7 @@ var _ = Describe("Handler", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), service.ErrNotFound)
+				Return(int64(0), service.ErrGroupMemberNotFound)
 
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -177,7 +177,7 @@ var _ = Describe("Handler", func() {
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "DeleteGroupWithTx")
 		})
@@ -209,7 +209,7 @@ var _ = Describe("Handler", func() {
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "CreateOrUpdateWithTx")
 		})
@@ -253,7 +253,7 @@ var _ = Describe("Handler", func() {
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectActionExpressionService")
 		})
@@ -297,7 +297,7 @@ var _ = Describe("Handler", func() {
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				locker:                            newDistributedSubjectActionLocker(),
 			}
-			err := handler.handleEvent(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.NoError(GinkgoT(), err)
 		})
 	})

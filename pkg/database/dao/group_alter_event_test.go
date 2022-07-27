@@ -22,8 +22,8 @@ import (
 
 func Test_groupAlterEventManagerManager_Get(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk, uuid, group_pk, action_pks, subject_pks, check_times FROM rbac_group_alter_event WHERE pk=(.*)`
-		mockRows := sqlmock.NewRows([]string{"pk", "uuid", "group_pk", "action_pks", "subject_pks", "check_times"}).
+		mockQuery := `^SELECT pk, task_id, group_pk, action_pks, subject_pks, check_count FROM rbac_group_alter_event WHERE pk=(.*)`
+		mockRows := sqlmock.NewRows([]string{"pk", "task_id", "group_pk", "action_pks", "subject_pks", "check_count"}).
 			AddRow(
 				int64(1), "", int64(1), "[1,2]", "[3,4]", int64(0))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
@@ -33,20 +33,20 @@ func Test_groupAlterEventManagerManager_Get(t *testing.T) {
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, GroupAlterEvent{
-			PK: int64(1), GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckTimes: int64(0),
+			PK: int64(1), GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckCount: int64(0),
 		}, evnet)
 	})
 }
 
-func Test_groupAlterEventManagerManager_ListByGroupCheckTimes(t *testing.T) {
+func Test_groupAlterEventManagerManager_ListByGroupCheckCount(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk FROM rbac_group_alter_event WHERE check_times<(.*)`
+		mockQuery := `^SELECT pk FROM rbac_group_alter_event WHERE check_count<(.*)`
 		mockRows := sqlmock.NewRows([]string{"pk"}).
 			AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		pks, err := manager.ListPKByCheckTimesBeforeCreateAt(0, 0)
+		pks, err := manager.ListPKLtCheckCountBeforeCreateAt(0, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, []int64{1}, pks)
@@ -69,7 +69,7 @@ func Test_groupAlterEventManagerManager_BulkCreateWithTx(t *testing.T) {
 
 		manager := &groupAlterEventManagerManager{DB: db}
 		ids, err := manager.BulkCreateWithTx(tx, []GroupAlterEvent{
-			{GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckTimes: int64(0)},
+			{GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckCount: int64(0)},
 		})
 
 		assert.NoError(t, err, "query from db fail.")
@@ -90,14 +90,14 @@ func Test_groupAlterEventManagerManager_Delete(t *testing.T) {
 	})
 }
 
-func Test_groupAlterEventManagerManager_IncrCheckTimes(t *testing.T) {
+func Test_groupAlterEventManagerManager_IncrCheckCount(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`^UPDATE rbac_group_alter_event SET check_times=`).WithArgs(
+		mock.ExpectExec(`^UPDATE rbac_group_alter_event SET check_count=`).WithArgs(
 			int64(1),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		err := manager.IncrCheckTimes(1)
+		err := manager.IncrCheckCount(1)
 
 		assert.NoError(t, err, "query from db fail.")
 	})

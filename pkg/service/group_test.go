@@ -399,7 +399,7 @@ var _ = Describe("GroupService", func() {
 
 			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
-			assert.True(GinkgoT(), errors.Is(err, ErrNotFound))
+			assert.True(GinkgoT(), errors.Is(err, ErrGroupMemberNotFound))
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
 		})
 

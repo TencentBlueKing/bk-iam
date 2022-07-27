@@ -198,7 +198,6 @@ func initComponents() {
 
 func initQuota() {
 	common.InitQuota(globalConfig.Quota, globalConfig.CustomQuotasMap)
-	config.InitQuota(globalConfig.Quota)
 }
 
 func initSwitch() {

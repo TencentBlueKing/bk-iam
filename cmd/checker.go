@@ -28,7 +28,7 @@ var checkerCmd = &cobra.Command{
 	Use:   "checker",
 	Short: "bk-iam checker is asynchronous task checker",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
-		   worker is used to check asynchronous task`,
+		   checker is used to check asynchronous task`,
 	Run: func(cmd *cobra.Command, args []string) {
 		StartChecker()
 	},
@@ -36,7 +36,7 @@ var checkerCmd = &cobra.Command{
 
 // StartChecker ...
 func StartChecker() {
-	fmt.Println("It's IAM worker")
+	fmt.Println("It's IAM checker")
 
 	// init rand
 	rand.Seed(time.Now().UnixNano())

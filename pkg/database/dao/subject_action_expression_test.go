@@ -115,13 +115,7 @@ func Test_subjectActionExpressionManager_UpdateWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectActionExpressionManager{DB: db}
-		err = manager.UpdateExpressionExpiredAtWithTx(tx, SubjectActionExpression{
-			PK:         int64(1),
-			SubjectPK:  int64(1),
-			ActionPK:   int64(2),
-			Expression: "{}",
-			ExpiredAt:  int64(10),
-		})
+		err = manager.UpdateExpressionExpiredAtWithTx(tx, int64(1), `{}`, int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
 	})

@@ -39,7 +39,7 @@ type SubjectActionExpressionManager interface {
 
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
-	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
+	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, expiredAt int64) error
 }
 
 type subjectActionExpressionManager struct {
@@ -118,9 +118,15 @@ func (m *subjectActionExpressionManager) CreateWithTx(
 // UpdateExpressionExpiredAtWithTx ...
 func (m *subjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(
 	tx *sqlx.Tx,
-	subjectActionExpression SubjectActionExpression,
+	pk int64,
+	expression string,
+	expiredAt int64,
 ) error {
 	sql := `UPDATE rbac_subject_action_expression SET expression = :expression, expired_at = :expired_at WHERE pk = :pk`
-	_, err := database.SqlxUpdateWithTx(tx, sql, subjectActionExpression)
+	_, err := database.SqlxUpdateWithTx(tx, sql, map[string]interface{}{
+		"pk":         pk,
+		"expression": expression,
+		"expired_at": expiredAt,
+	})
 	return err
 }

@@ -76,12 +76,15 @@ func StartClean() {
 
 	// run every 2 minutes
 	for range time.Tick(2 * time.Minute) {
+		logger.Info("Clean rmq begin")
+
 		returned, err := cleaner.Clean()
 		if err != nil {
-			logger.Warnf("failed to clean: %s", err)
+			logger.Warnf("rmq failed to clean: %s", err)
 			continue
 		}
-		logger.Infof("cleaned %d", returned)
+		logger.Infof("rmq cleaned %d", returned)
+		logger.Info("Clean rmq end")
 	}
 }
 
@@ -100,19 +103,25 @@ func NewGroupAlterEventChecker(producer producer.Producer) *GroupAlterEventCheck
 func (c *GroupAlterEventChecker) Run() {
 	logger := logging.GetWorkerLogger()
 
-	maxCheckTimes := int64(config.GetMaxGroupAlterEventCheckTimes())
+	maxCheckCount := int64(config.GetMaxGroupAlterEventCheckCount())
 	// run every 5 minutes
 	for range time.Tick(5 * time.Minute) {
+		logger.Info("Check group alter event begin")
+
 		createdAt := time.Now().Add(-5 * time.Minute).Unix()
-		pks, err := c.service.ListPKByCheckTimesBeforeCreateAt(maxCheckTimes, createdAt)
+		pks, err := c.service.ListPKLtCheckCountBeforeCreateAt(maxCheckCount, createdAt)
 		if err != nil {
 			logger.WithError(err).
-				Errorf("failed to list pk by check times before create at, checkTimes=`%d`, createdAt=`%d`",
-					maxCheckTimes, createdAt)
+				Errorf("failed to list pk by check times before create at, CheckCount=`%d`, createdAt=`%d`",
+					maxCheckCount, createdAt)
 			continue
 		}
 
+		logger.Infof("query group alter event, pks=`%+v`", pks)
+
 		for _, pk := range pks {
+			logger.Infof("do publish group alter event, pk=`%d`", pk)
+
 			err := c.producer.Publish(strconv.FormatInt(pk, 10))
 			if err != nil {
 				logger.WithError(err).Errorf(
@@ -120,12 +129,20 @@ func (c *GroupAlterEventChecker) Run() {
 				continue
 			}
 
-			err = c.service.IncrCheckTimes(pk)
+			logger.Infof("publish group alter event, pk=`%d` done", pk)
+
+			logger.Infof("do incr the checkCount of event pk=`%d` done", pk)
+
+			err = c.service.IncrCheckCount(pk)
 			if err != nil {
 				logger.WithError(err).Errorf(
-					"failed to incr pk, pk=`%d`", pk)
+					"failed to incr the checkCount of event pk=`%d`", pk)
 				continue
 			}
+
+			logger.Infof("incr the checkCount of event pk=`%d` done", pk)
 		}
+
+		logger.Info("Check group alter event end")
 	}
 }
