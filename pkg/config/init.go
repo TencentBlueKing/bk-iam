@@ -12,6 +12,16 @@ package config
 
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	log "github.com/sirupsen/logrus"
+)
+
+const (
+	// task
+	maxGroupAlterEventCheckTimesKey = "max_group_alter_event_check_times"
+	groupAlterEventShardSizeKey     = "group_alter_event_shard_size"
+
+	DefaultMaxGroupAlterEventCheckTimes = 3
+	DefaultGroupAlterEventShardSize     = 100
 )
 
 // SuperAppCodeSet ...
@@ -21,6 +31,8 @@ var (
 	SupportShieldFeaturesSet *set.StringSet
 	SecurityAuditAppCode     *set.StringSet
 )
+
+var quota = Quota{}
 
 // InitSuperAppCode ...
 func InitSuperAppCode(superAppCode string) {
@@ -60,3 +72,32 @@ func InitSupportShieldFeatures(supportShieldFeatures []string) {
 func InitSecurityAuditAppCode(securityAuditAppCode string) {
 	SecurityAuditAppCode = set.SplitStringToSet(securityAuditAppCode, ",")
 }
+
+// InitQuota ...
+func InitQuota(q Quota) {
+	quota = q
+
+	log.Infof("init quota: %+v", quota)
+}
+
+func makeGetTaskConfigFunc(key string, defaultNum int) func() int {
+	return func() int {
+		// config file default
+		if num, ok := quota.Task[key]; ok && num > 0 {
+			return num
+		}
+		// default
+		return defaultNum
+	}
+}
+
+var (
+	GetMaxGroupAlterEventCheckTimes = makeGetTaskConfigFunc(
+		maxGroupAlterEventCheckTimesKey,
+		DefaultMaxGroupAlterEventCheckTimes,
+	)
+	GetGroupAlterEventShardSize = makeGetTaskConfigFunc(
+		groupAlterEventShardSizeKey,
+		DefaultGroupAlterEventShardSize,
+	)
+)

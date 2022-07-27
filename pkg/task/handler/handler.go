@@ -23,6 +23,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/cacheimpls"
+	"iam/pkg/config"
 	"iam/pkg/database"
 	"iam/pkg/logging"
 	"iam/pkg/service"
@@ -74,7 +75,8 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 	}
 
 	// 判断event check times超限，不再处理
-	if event.CheckTimes >= 3 { // TODO 从配置文件中读取
+	maxCheckTimes := int64(config.GetMaxGroupAlterEventCheckTimes())
+	if event.CheckTimes >= maxCheckTimes {
 		logger := logging.GetWorkerLogger()
 		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckTimes)
 		return nil

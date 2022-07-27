@@ -62,6 +62,7 @@ func StartWorker() {
 	// NOTE: should be after initRedis
 	initRmqConsumer()
 	initCaches()
+	initQuota()
 
 	// 2. watch the signal
 	ctx, cancelFunc := context.WithCancel(context.Background())

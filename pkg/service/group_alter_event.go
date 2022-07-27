@@ -20,13 +20,11 @@ import (
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
 
+	"iam/pkg/config"
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 )
-
-// NumEventShard 事件分片数
-const NumEventShard = 100 // TODO 改成配置输入
 
 // GroupAlterEventSVC ...
 const GroupAlterEventSVC = "GroupAlterEventSVC"
@@ -196,7 +194,8 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	}
 
 	// 分片批量创建
-	step := NumEventShard / len(actionPKs)
+	shardSize := config.GetGroupAlterEventShardSize()
+	step := shardSize / len(actionPKs)
 	if step < 1 {
 		step = 1
 	}

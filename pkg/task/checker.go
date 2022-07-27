@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"time"
 
+	"iam/pkg/config"
 	"iam/pkg/logging"
 	"iam/pkg/service"
 	"iam/pkg/task/producer"
@@ -22,8 +23,6 @@ import (
 	"github.com/adjust/rmq/v4"
 	log "github.com/sirupsen/logrus"
 )
-
-const maxCheckTimes = 3 // TODO 从配置文件中读取
 
 // type Checker struct { ...
 type Checker struct {
@@ -97,6 +96,7 @@ func NewGroupAlterEventChecker() *GroupAlterEventChecker {
 func (c *GroupAlterEventChecker) Run() {
 	logger := logging.GetWorkerLogger()
 
+	maxCheckTimes := int64(config.GetMaxGroupAlterEventCheckTimes())
 	// run every 5 minutes
 	for range time.Tick(5 * time.Minute) {
 		createdAt := time.Now().Add(-5 * time.Minute).Unix()
