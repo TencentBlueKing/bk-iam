@@ -279,13 +279,8 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 ) {
 	actionPKSet := set.NewInt64Set()
 	for _, rcc := range resourceChangedContents {
-		for _, pk := range rcc.CreatedActionPKs {
-			actionPKSet.Add(pk)
-		}
-
-		for _, pk := range rcc.DeletedActionPKs {
-			actionPKSet.Add(pk)
-		}
+		actionPKSet.Append(rcc.CreatedActionPKs...)
+		actionPKSet.Append(rcc.DeletedActionPKs...)
 	}
 
 	// 创建 group_alter_event

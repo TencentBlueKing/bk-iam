@@ -162,9 +162,7 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 			return
 		}
 
-		for _, actionPK := range actionPKs {
-			actionPKSet.Add(actionPK)
-		}
+		actionPKSet.Append(actionPKs...)
 	}
 
 	if actionPKSet.Size() == 0 {
