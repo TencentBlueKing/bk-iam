@@ -15,12 +15,10 @@ import (
 )
 
 const (
-	// task
-	maxGroupAlterEventCheckCountKey = "max_group_alter_event_check_count"
-	groupAlterEventShardSizeKey     = "group_alter_event_shard_size"
-
+	// DefaultMaxGroupAlterEventCheckCount 默认的最大group alter event检查次数
 	DefaultMaxGroupAlterEventCheckCount = 5
-	DefaultGroupAlterEventShardSize     = 100
+	// DefaultMaxGroupAlterEventGenerationMessageCount 默认的最大group alter event生产消息数量
+	DefaultMaxGroupAlterEventGenerationMessageCount = 100
 )
 
 // SuperAppCodeSet ...
@@ -30,6 +28,9 @@ var (
 	SupportShieldFeaturesSet *set.StringSet
 	SecurityAuditAppCode     *set.StringSet
 )
+
+// worker config
+var worker = Worker{}
 
 // InitSuperAppCode ...
 func InitSuperAppCode(superAppCode string) {
@@ -70,21 +71,25 @@ func InitSecurityAuditAppCode(securityAuditAppCode string) {
 	SecurityAuditAppCode = set.SplitStringToSet(securityAuditAppCode, ",")
 }
 
-func makeGetTaskConfigFunc(key string, defaultNum int) func() int {
-	return func() int {
-		// TODO get from config
-		// default
-		return defaultNum
-	}
+// InitWorker ...
+func InitWorker(w Worker) {
+	worker = w
 }
 
-var (
-	GetMaxGroupAlterEventCheckCount = makeGetTaskConfigFunc(
-		maxGroupAlterEventCheckCountKey,
-		DefaultMaxGroupAlterEventCheckCount,
-	)
-	GetGroupAlterEventShardSize = makeGetTaskConfigFunc(
-		groupAlterEventShardSizeKey,
-		DefaultGroupAlterEventShardSize,
-	)
-)
+// GetMaxGroupAlterEventCheckCount ...
+func GetMaxGroupAlterEventCheckCount() int {
+	if worker.MaxGroupAlterEventCheckCount != 0 {
+		return worker.MaxGroupAlterEventCheckCount
+	}
+
+	return DefaultMaxGroupAlterEventCheckCount
+}
+
+// GetMaxGroupAlterEventGenerationMessageCount ...
+func GetMaxGroupAlterEventGenerationMessageCount() int {
+	if worker.MaxGroupAlterEventGenerationMessageCount != 0 {
+		return worker.MaxGroupAlterEventGenerationMessageCount
+	}
+
+	return DefaultMaxGroupAlterEventGenerationMessageCount
+}

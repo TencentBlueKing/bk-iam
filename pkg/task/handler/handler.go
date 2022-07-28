@@ -25,6 +25,7 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/database"
+	"iam/pkg/locker"
 	"iam/pkg/logging"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
@@ -44,7 +45,7 @@ type groupAlterMessageHandler struct {
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
-	locker *subjectDistributedActionLocker
+	locker *locker.SubjectDistributedActionLocker
 }
 
 // NewGroupAlterMessageHandler ...
@@ -54,7 +55,7 @@ func NewGroupAlterMessageHandler() MessageHandler {
 		groupAlterEventService:            service.NewGroupAlterEventService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
-		locker:                            newDistributedSubjectActionLocker(),
+		locker:                            locker.NewDistributedSubjectActionLocker(),
 	}
 }
 
@@ -111,7 +112,7 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(3*time.Minute))
 	defer cancel()
 
-	lock, err := h.locker.acquire(ctx, subjectPK, actionPK)
+	lock, err := h.locker.Acquire(ctx, subjectPK, actionPK)
 	if err != nil {
 		return errorWrapf(err, "acquire lock fail, subjectPK=`%d`, actionPK`%d`", subjectPK, actionPK)
 	}

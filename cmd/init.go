@@ -200,6 +200,10 @@ func initQuota() {
 	common.InitQuota(globalConfig.Quota, globalConfig.CustomQuotasMap)
 }
 
+func initWorker() {
+	config.InitWorker(globalConfig.Worker)
+}
+
 func initSwitch() {
 	common.InitSwitch(globalConfig.Switch)
 }

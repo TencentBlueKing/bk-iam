@@ -61,7 +61,7 @@ func StartChecker() {
 	initRedis()
 	// NOTE: should be after initRedis
 	initRmqCleaner()
-	initQuota()
+	initWorker()
 
 	// 2. watch the signal
 	ctx, cancelFunc := context.WithCancel(context.Background())

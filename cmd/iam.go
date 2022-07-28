@@ -101,6 +101,7 @@ func Start() {
 	initSecurityAuditAppCode()
 	initComponents()
 	initQuota()
+	initWorker()
 	initSwitch()
 
 	// 2. watch the signal

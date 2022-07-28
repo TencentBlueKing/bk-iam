@@ -26,6 +26,7 @@ import (
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
+	"iam/pkg/locker"
 	"iam/pkg/service"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
@@ -125,7 +126,7 @@ var _ = Describe("Handler", func() {
 
 			handler := &groupAlterMessageHandler{
 				groupService: mockGroupService,
-				locker:       newDistributedSubjectActionLocker(),
+				locker:       locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
@@ -147,7 +148,7 @@ var _ = Describe("Handler", func() {
 
 			handler := &groupAlterMessageHandler{
 				groupService: mockGroupService,
-				locker:       newDistributedSubjectActionLocker(),
+				locker:       locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
@@ -175,7 +176,7 @@ var _ = Describe("Handler", func() {
 			handler := &groupAlterMessageHandler{
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
-				locker:                            newDistributedSubjectActionLocker(),
+				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
@@ -207,7 +208,7 @@ var _ = Describe("Handler", func() {
 			handler := &groupAlterMessageHandler{
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
-				locker:                            newDistributedSubjectActionLocker(),
+				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
@@ -251,7 +252,7 @@ var _ = Describe("Handler", func() {
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
-				locker:                            newDistributedSubjectActionLocker(),
+				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.Error(GinkgoT(), err)
@@ -295,7 +296,7 @@ var _ = Describe("Handler", func() {
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
-				locker:                            newDistributedSubjectActionLocker(),
+				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, 2)
 			assert.NoError(GinkgoT(), err)

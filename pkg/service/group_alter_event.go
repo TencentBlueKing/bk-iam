@@ -191,16 +191,21 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 		return nil, err
 	}
 
-	// 分片批量创建
-	shardSize := config.GetGroupAlterEventShardSize()
-	step := shardSize / len(actionPKs)
-	if step < 1 {
-		step = 1
+	// 最大event能生成的消息数量
+	maxEventGenerationMessageCount := config.GetMaxGroupAlterEventGenerationMessageCount()
+
+	// 生成用户subjectPKs分片大小, 每个event的actionPKs都是相同, actionPKs不会被分片, 只分片subjectPKs
+	// 一般actionPKs的数量不会太多, subjectPKs的数量可能会很多, 所以需要使用subjectPKs分片
+	chunkSize := maxEventGenerationMessageCount / len(actionPKs)
+	if chunkSize < 1 {
+		chunkSize = 1
 	}
 
 	taskID := util.GenUUID4()
-	events := make([]dao.GroupAlterEvent, 0, len(subjectPKs)/step+1)
-	for _, part := range chunks(len(subjectPKs), step) {
+	events := make([]dao.GroupAlterEvent, 0, len(subjectPKs)/chunkSize+1)
+
+	// 使用subjectPKs分片, 每个event能生成的消息数量为 len(actionPKs) * chunkSize
+	for _, part := range chunks(len(subjectPKs), chunkSize) {
 		subjectPKStr, err := jsoniter.MarshalToString(subjectPKs[part[0]:part[1]])
 		if err != nil {
 			return nil, err

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package locker
 
 import (
 	"context"
@@ -20,17 +20,18 @@ import (
 	"iam/pkg/cache/redis"
 )
 
-type subjectDistributedActionLocker struct {
+type SubjectDistributedActionLocker struct {
 	locker *redislock.Client
 }
 
-func newDistributedSubjectActionLocker() *subjectDistributedActionLocker {
-	return &subjectDistributedActionLocker{
+func NewDistributedSubjectActionLocker() *SubjectDistributedActionLocker {
+	return &SubjectDistributedActionLocker{
 		locker: redislock.New(redis.GetDefaultRedisClient()),
 	}
 }
 
-func (l *subjectDistributedActionLocker) acquire(
+// Acquire ...
+func (l *SubjectDistributedActionLocker) Acquire(
 	ctx context.Context,
 	subjectPK, actionPK int64,
 ) (lock *redislock.Lock, err error) {
