@@ -24,8 +24,8 @@ var (
 
 // Worker ...
 var (
-	MaxGroupAlterEventCheckCount                int = 5
-	MaxMessageGenerationCountPreGroupAlterEvent int = 100
+	MaxGroupAlterEventCheckCount               int = 5
+	MaxMessageGeneratedCountPreGroupAlterEvent int = 100
 )
 
 // InitSuperAppCode ...
@@ -73,7 +73,7 @@ func InitWorker(w Worker) {
 		MaxGroupAlterEventCheckCount = w.MaxGroupAlterEventCheckCount
 	}
 
-	if w.MaxMessageGenerationCountPerGroupAlterEvent != 0 {
-		MaxMessageGenerationCountPreGroupAlterEvent = w.MaxMessageGenerationCountPerGroupAlterEvent
+	if w.MaxMessageGeneratedCountPerGroupAlterEvent != 0 {
+		MaxMessageGeneratedCountPreGroupAlterEvent = w.MaxMessageGeneratedCountPerGroupAlterEvent
 	}
 }

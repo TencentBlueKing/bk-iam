@@ -197,11 +197,11 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	}
 
 	// 每个event最多能生成message的数量
-	maxMessageGenerationCountPerEvent := config.MaxMessageGenerationCountPreGroupAlterEvent
+	maxMessageGeneratedCountPerEvent := config.MaxMessageGeneratedCountPreGroupAlterEvent
 
 	// 生成用户subjectPKs分片大小, 每个event的actionPKs都是相同, actionPKs不会被分片, 只分片subjectPKs
 	// 一般actionPKs的数量不会太多, subjectPKs的数量可能会很多, 所以需要使用subjectPKs分片
-	chunkSize := maxMessageGenerationCountPerEvent / len(actionPKs)
+	chunkSize := maxMessageGeneratedCountPerEvent / len(actionPKs)
 	if chunkSize < 1 {
 		chunkSize = 1
 	}
