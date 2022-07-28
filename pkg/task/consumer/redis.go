@@ -82,8 +82,6 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 				"error":   err.Error(),
 			},
 		)
-
-		// NOTE: 如果消息处理失败, 先ack掉, 等待检查逻辑重新发送
 	}
 
 	// ack

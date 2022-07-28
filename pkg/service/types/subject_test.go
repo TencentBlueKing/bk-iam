@@ -24,7 +24,7 @@ var _ = Describe("subject", func() {
 				obj := types.SubjectActionGroupResource{
 					SubjectPK: 1,
 					ActionPK:  2,
-					GroupResource: map[int64]types.ExpiredAtResource{
+					GroupResource: map[int64]types.ResourceExpiredAt{
 						1: {ExpiredAt: 1, Resources: map[int64][]string{1: {"a", "b"}}},
 					},
 				}
@@ -38,12 +38,12 @@ var _ = Describe("subject", func() {
 				obj := types.SubjectActionGroupResource{
 					SubjectPK: 1,
 					ActionPK:  2,
-					GroupResource: map[int64]types.ExpiredAtResource{
+					GroupResource: map[int64]types.ResourceExpiredAt{
 						1: {ExpiredAt: 1, Resources: map[int64][]string{1: {"a", "b"}}},
 					},
 				}
-				obj.UpdateGroupResource(1, 2, map[int64][]string{1: {"c", "d"}})
-				assert.Equal(GinkgoT(), map[int64]types.ExpiredAtResource{
+				obj.UpdateGroupResource(1, map[int64][]string{1: {"c", "d"}}, 2)
+				assert.Equal(GinkgoT(), map[int64]types.ResourceExpiredAt{
 					1: {ExpiredAt: 2, Resources: map[int64][]string{1: {"c", "d"}}},
 				}, obj.GroupResource)
 			})

@@ -185,18 +185,25 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	return pks, nil
 }
 
+/*
+举例: 5 个操作, 20 个用户, 总共会产生 100 个消息
+
+maxMessageGenerationCountPerEvent 是 200, chunkSize=200/5=40; 20个用户被切分成 1 段, 生成 1 个event
+maxMessageGenerationCountPerEvent 是 100, chunkSize=100/5=20, 20个用户被切分成 1 段, 生成 1 个event
+maxMessageGenerationCountPerEvent 是 50, chunkSize=50/5=10, 那么20个用户被切分成 2 段, 生成 2 个event, 每段产生 50 个消息
+*/
 func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs []int64) (pks []int64, err error) {
 	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
 	if err != nil {
 		return nil, err
 	}
 
-	// 最大event能生成的消息数量
-	maxEventGenerationMessageCount := config.GetMaxGroupAlterEventGenerationMessageCount()
+	// 每个event最多能生成message的数量
+	maxMessageGenerationCountPerEvent := config.MaxMessageGenerationCountPreGroupAlterEvent
 
 	// 生成用户subjectPKs分片大小, 每个event的actionPKs都是相同, actionPKs不会被分片, 只分片subjectPKs
 	// 一般actionPKs的数量不会太多, subjectPKs的数量可能会很多, 所以需要使用subjectPKs分片
-	chunkSize := maxEventGenerationMessageCount / len(actionPKs)
+	chunkSize := maxMessageGenerationCountPerEvent / len(actionPKs)
 	if chunkSize < 1 {
 		chunkSize = 1
 	}

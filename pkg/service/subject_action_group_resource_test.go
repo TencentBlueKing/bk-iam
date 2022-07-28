@@ -38,7 +38,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK: 2,
 				ActionPK:  3,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					4: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{
@@ -53,7 +53,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			obj := types.SubjectActionGroupResource{
 				SubjectPK: 2,
 				ActionPK:  3,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					4: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{
@@ -69,7 +69,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				PK:            0,
 				SubjectPK:     2,
 				ActionPK:      3,
-				GroupResource: `{"4":{"expired_at":10,"resources":{"5":["6"]}}}`,
+				GroupResource: `{"4":{"resources":{"5":["6"]},"expired_at":10}}`,
 			}, daoObj)
 		})
 	})
@@ -106,7 +106,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				PK:            0,
 				SubjectPK:     1,
 				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
+				GroupResource: `{"3":{"resources":{"5":["6"]},"expired_at":10}}`,
 			}).Return(errors.New("error"))
 
 			svc := &subjectActionGroupResourceService{
@@ -129,7 +129,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				PK:            0,
 				SubjectPK:     1,
 				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
+				GroupResource: `{"3":{"resources":{"5":["6"]},"expired_at":10}}`,
 			}).Return(nil)
 
 			svc := &subjectActionGroupResourceService{
@@ -143,7 +143,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK: 1,
 				ActionPK:  2,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					3: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{
@@ -162,12 +162,9 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{}`,
 			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
-			}).Return(errors.New("error"))
+			mockManager.EXPECT().
+				UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{"3":{"resources":{"5":["6"]},"expired_at":10}}`).
+				Return(errors.New("error"))
 
 			svc := &subjectActionGroupResourceService{
 				manager: mockManager,
@@ -188,12 +185,9 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{}`,
 			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
-			}).Return(nil)
+			mockManager.EXPECT().
+				UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{"3":{"resources":{"5":["6"]},"expired_at":10}}`).
+				Return(nil)
 
 			svc := &subjectActionGroupResourceService{
 				manager: mockManager,
@@ -206,7 +200,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK: 1,
 				ActionPK:  2,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					3: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{
@@ -249,12 +243,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
 			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{}`,
-			}).Return(errors.New("error"))
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{}`).Return(errors.New("error"))
 
 			svc := &subjectActionGroupResourceService{
 				manager: mockManager,
@@ -273,12 +262,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				ActionPK:      2,
 				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
 			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{}`,
-			}).Return(nil)
+			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{}`).Return(nil)
 
 			svc := &subjectActionGroupResourceService{
 				manager: mockManager,
@@ -289,7 +273,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK:     1,
 				ActionPK:      2,
-				GroupResource: map[int64]types.ExpiredAtResource{},
+				GroupResource: map[int64]types.ResourceExpiredAt{},
 			}, obj)
 		})
 	})
@@ -335,7 +319,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
 				SubjectPK: 1,
 				ActionPK:  2,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					3: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{

@@ -23,6 +23,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	workerCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
+	workerCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
+
+	workerCmd.MarkFlagRequired("config")
+}
+
 // workerCmd represents asynchronous task execute command
 var workerCmd = &cobra.Command{
 	Use:   "worker",

@@ -54,7 +54,15 @@ func NewGroupAlterEventManager() GroupAlterEventManager {
 
 // Get ...
 func (m *groupAlterEventManagerManager) Get(pk int64) (groupAlterEvent GroupAlterEvent, err error) {
-	query := "SELECT pk, task_id, group_pk, action_pks, subject_pks, check_count FROM rbac_group_alter_event WHERE pk=?"
+	query := `SELECT
+		pk,
+		task_id,
+		group_pk,
+		action_pks,
+		subject_pks,
+		check_count
+		FROM rbac_group_alter_event
+		WHERE pk=?`
 	err = database.SqlxGet(m.DB, &groupAlterEvent, query, pk)
 	return
 }

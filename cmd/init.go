@@ -202,6 +202,7 @@ func initQuota() {
 
 func initWorker() {
 	config.InitWorker(globalConfig.Worker)
+	log.Infof("init worker success, worker = %+v", globalConfig.Worker)
 }
 
 func initSwitch() {

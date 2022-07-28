@@ -23,6 +23,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	checkerCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
+	checkerCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
+
+	checkerCmd.MarkFlagRequired("config")
+}
+
 // checkerCmd represents asynchronous task check command
 var checkerCmd = &cobra.Command{
 	Use:   "checker",

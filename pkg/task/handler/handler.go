@@ -10,10 +10,9 @@
 
 package handler
 
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -33,11 +32,6 @@ import (
 )
 
 const handlerLayer = "handler"
-
-// MessageHandler ...
-type MessageHandler interface {
-	Handle(message string) error
-}
 
 type groupAlterMessageHandler struct {
 	groupService                      service.GroupService
@@ -76,8 +70,8 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 	}
 
 	// 判断event check times超限，不再处理
-	maxCheckCount := int64(config.GetMaxGroupAlterEventCheckCount())
-	if event.CheckCount >= maxCheckCount {
+	maxCheckCount := int64(config.MaxGroupAlterEventCheckCount)
+	if event.CheckCount > maxCheckCount {
 		logger := logging.GetWorkerLogger()
 		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckCount)
 		return nil
@@ -106,6 +100,8 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 // alterSubjectActionGroupResource 处理独立的事件
 func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, actionPK, groupPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
+
+	logger := logging.GetWorkerLogger()
 
 	// 分布式锁, subject_pk, action_pk
 	// 请求锁最多3分钟
@@ -167,6 +163,11 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		} else {
 			// 关系不存在, 或者group授权的资源实例为空, 从subject action group resource中删除对应的groupPK
 			obj, err = h.subjectActionGroupResourceService.DeleteGroupResourceWithTx(tx, subjectPK, actionPK, groupPK)
+			if errors.Is(err, sql.ErrNoRows) {
+				logger.Errorf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
+				return nil
+			}
+
 			if err != nil {
 				return errorWrapf(err,
 					"subjectActionGroupResourceService.DeleteGroupWithTx fail, subjectPK=`%d`, actionPK=`%d`, "+
@@ -177,7 +178,12 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		}
 	} else {
 		// groupPK == 0, 只更新表达式
-		obj, err = h.subjectActionGroupResourceService.Get(subjectPK, groupPK)
+		obj, err = h.subjectActionGroupResourceService.Get(subjectPK, actionPK)
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Errorf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
+			return nil
+		}
+
 		if err != nil {
 			return errorWrapf(err,
 				"subjectActionGroupResourceService.Get fail, subjectPK=`%d`, groupPK=`%d`",

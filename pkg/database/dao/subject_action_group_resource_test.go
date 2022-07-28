@@ -85,12 +85,7 @@ func Test_subjectActionResourceGroupManager_UpdateGroupResourceWithTx(t *testing
 		assert.NoError(t, err)
 
 		manager := &subjectActionGroupResourceManager{DB: db}
-		err = manager.UpdateGroupResourceWithTx(tx, SubjectActionGroupResource{
-			PK:            int64(1),
-			SubjectPK:     int64(1),
-			ActionPK:      int64(2),
-			GroupResource: "{}",
-		})
+		err = manager.UpdateGroupResourceWithTx(tx, int64(1), "{}")
 
 		assert.NoError(t, err, "query from db fail.")
 	})

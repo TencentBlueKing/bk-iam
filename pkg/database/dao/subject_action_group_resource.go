@@ -31,7 +31,7 @@ type SubjectActionGroupResource struct {
 type SubjectActionGroupResourceManager interface {
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionGroupResource, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
-	UpdateGroupResourceWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
+	UpdateGroupResourceWithTx(tx *sqlx.Tx, pk int64, groupResource string) error
 }
 
 type subjectActionGroupResourceManager struct {
@@ -81,9 +81,13 @@ func (m *subjectActionGroupResourceManager) CreateWithTx(
 // UpdateWithTx ...
 func (m *subjectActionGroupResourceManager) UpdateGroupResourceWithTx(
 	tx *sqlx.Tx,
-	subjectActionResourceGroup SubjectActionGroupResource,
+	pk int64,
+	groupResource string,
 ) error {
 	sql := `UPDATE rbac_subject_action_group_resource SET group_resource = :group_resource WHERE pk = :pk`
-	_, err := database.SqlxUpdateWithTx(tx, sql, subjectActionResourceGroup)
+	_, err := database.SqlxUpdateWithTx(tx, sql, map[string]interface{}{
+		"pk":             pk,
+		"group_resource": groupResource,
+	})
 	return err
 }

@@ -62,7 +62,7 @@ func (m *subjectActionExpressionManager) ListBySubjectAction(
 		return
 	}
 
-	query := `SELECT 
+	query := `SELECT
 		pk,
 		subject_pk,
 		action_pk,
@@ -83,7 +83,7 @@ func (m *subjectActionExpressionManager) ListBySubjectAction(
 func (m *subjectActionExpressionManager) GetBySubjectAction(
 	subjectPK, actionPK int64,
 ) (subjectActionExpression SubjectActionExpression, err error) {
-	query := `SELECT 
+	query := `SELECT
 		pk,
 		subject_pk,
 		action_pk,

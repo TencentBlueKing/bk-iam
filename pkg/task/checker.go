@@ -103,7 +103,7 @@ func NewGroupAlterEventChecker(producer producer.Producer) *GroupAlterEventCheck
 func (c *GroupAlterEventChecker) Run() {
 	logger := logging.GetWorkerLogger()
 
-	maxCheckCount := int64(config.GetMaxGroupAlterEventCheckCount())
+	maxCheckCount := int64(config.MaxGroupAlterEventCheckCount)
 	// run every 5 minutes
 	for range time.Tick(5 * time.Minute) {
 		logger.Info("Check group alter event begin")

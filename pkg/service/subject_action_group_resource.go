@@ -139,7 +139,7 @@ func (s *subjectActionGroupResourceService) DeleteGroupResourceWithTx(
 		return obj, err
 	}
 
-	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj)
+	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj.PK, daoObj.GroupResource)
 	if err != nil {
 		err = errorWrapf(err, "manager.UpdateWithTx fail, daoObj=`%+v`", daoObj)
 	}
@@ -159,14 +159,14 @@ func (s *subjectActionGroupResourceService) updateGroupResourceWithTx(
 		return obj, err
 	}
 
-	obj.UpdateGroupResource(groupPK, expiredAt, resources)
+	obj.UpdateGroupResource(groupPK, resources, expiredAt)
 
 	daoObj, err = convertToDaoSubjectActionGroupResource(daoObj.PK, obj)
 	if err != nil {
 		return obj, err
 	}
 
-	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj)
+	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj.PK, daoObj.GroupResource)
 	return obj, err
 }
 
@@ -181,7 +181,7 @@ func (s *subjectActionGroupResourceService) createWithTx(
 	obj := types.SubjectActionGroupResource{
 		SubjectPK: subjectPK,
 		ActionPK:  actionPK,
-		GroupResource: map[int64]types.ExpiredAtResource{
+		GroupResource: map[int64]types.ResourceExpiredAt{
 			groupPK: {
 				ExpiredAt: expiredAt,
 				Resources: resources,

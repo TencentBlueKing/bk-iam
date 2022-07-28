@@ -17,8 +17,8 @@ import (
 const (
 	// DefaultMaxGroupAlterEventCheckCount 默认的最大group alter event检查次数
 	DefaultMaxGroupAlterEventCheckCount = 5
-	// DefaultMaxGroupAlterEventGenerationMessageCount 默认的最大group alter event生产消息数量
-	DefaultMaxGroupAlterEventGenerationMessageCount = 100
+	// DefaultMaxMessageGenerationCountPerGroupAlterEvent 默认的最大group alter event生产消息数量
+	DefaultMaxMessageGenerationCountPerGroupAlterEvent = 100
 )
 
 // SuperAppCodeSet ...
@@ -29,8 +29,11 @@ var (
 	SecurityAuditAppCode     *set.StringSet
 )
 
-// worker config
-var worker = Worker{}
+// Worker ...
+var (
+	MaxGroupAlterEventCheckCount                int = DefaultMaxGroupAlterEventCheckCount
+	MaxMessageGenerationCountPreGroupAlterEvent int = DefaultMaxMessageGenerationCountPerGroupAlterEvent
+)
 
 // InitSuperAppCode ...
 func InitSuperAppCode(superAppCode string) {
@@ -73,23 +76,11 @@ func InitSecurityAuditAppCode(securityAuditAppCode string) {
 
 // InitWorker ...
 func InitWorker(w Worker) {
-	worker = w
-}
-
-// GetMaxGroupAlterEventCheckCount ...
-func GetMaxGroupAlterEventCheckCount() int {
-	if worker.MaxGroupAlterEventCheckCount != 0 {
-		return worker.MaxGroupAlterEventCheckCount
+	if w.MaxGroupAlterEventCheckCount != 0 {
+		MaxGroupAlterEventCheckCount = w.MaxGroupAlterEventCheckCount
 	}
 
-	return DefaultMaxGroupAlterEventCheckCount
-}
-
-// GetMaxGroupAlterEventGenerationMessageCount ...
-func GetMaxGroupAlterEventGenerationMessageCount() int {
-	if worker.MaxGroupAlterEventGenerationMessageCount != 0 {
-		return worker.MaxGroupAlterEventGenerationMessageCount
+	if w.MaxMessageGenerationCountPerGroupAlterEvent != 0 {
+		MaxMessageGenerationCountPreGroupAlterEvent = w.MaxMessageGenerationCountPerGroupAlterEvent
 	}
-
-	return DefaultMaxGroupAlterEventGenerationMessageCount
 }

@@ -68,7 +68,7 @@ var _ = Describe("Handler", func() {
 			obj := types.SubjectActionGroupResource{
 				SubjectPK: 1,
 				ActionPK:  1,
-				GroupResource: map[int64]types.ExpiredAtResource{
+				GroupResource: map[int64]types.ResourceExpiredAt{
 					1: {
 						ExpiredAt: 10,
 						Resources: map[int64][]string{

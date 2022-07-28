@@ -76,17 +76,17 @@ type GroupAlterEvent struct {
 	CheckCount int64   `json:"check_times"`
 }
 
-// ExpiredAtResource ...
-type ExpiredAtResource struct {
-	ExpiredAt int64              `json:"expired_at"`
+// ResourceExpiredAt ...
+type ResourceExpiredAt struct {
 	Resources map[int64][]string `json:"resources"` // resource_type_pk -> resource_ids
+	ExpiredAt int64              `json:"expired_at"`
 }
 
 // SubjectActionGroupResource ...
 type SubjectActionGroupResource struct {
 	SubjectPK     int64                       `json:"subject_pk"`
 	ActionPK      int64                       `json:"action_pk"`
-	GroupResource map[int64]ExpiredAtResource `json:"group_resource"` // group_pk -> ExpiredAtResource
+	GroupResource map[int64]ResourceExpiredAt `json:"group_resource"` // group_pk -> ExpiredAtResource
 }
 
 // DeleteGroupResource ...
@@ -95,10 +95,10 @@ func (s *SubjectActionGroupResource) DeleteGroupResource(groupPK int64) {
 }
 
 // UpdateGroupResource ...
-func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, expiredAt int64, resources map[int64][]string) {
-	s.GroupResource[groupPK] = ExpiredAtResource{
-		ExpiredAt: expiredAt,
+func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, resources map[int64][]string, expiredAt int64) {
+	s.GroupResource[groupPK] = ResourceExpiredAt{
 		Resources: resources,
+		ExpiredAt: expiredAt,
 	}
 }
 
