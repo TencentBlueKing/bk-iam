@@ -117,12 +117,15 @@ func retrieveGroupActionAuthorizedResource(key cache.Key) (interface{}, error) {
 	return authorizedResources, nil
 }
 
-// DeleteGroupActionAuthorizedResourceCache ...
-func DeleteGroupActionAuthorizedResourceCache(groupPK, actionPK int64) error {
-	key := GroupActionCacheKey{
-		GroupPK:  groupPK,
-		ActionPK: actionPK,
+// BatchDeleteGroupActionAuthorizedResourceCache ...
+func BatchDeleteGroupActionAuthorizedResourceCache(groupPK int64, actionPKs []int64) error {
+	keys := make([]cache.Key, 0, len(actionPKs))
+	for _, actionPK := range actionPKs {
+		keys = append(keys, GroupActionCacheKey{
+			GroupPK:  groupPK,
+			ActionPK: actionPK,
+		})
 	}
 
-	return GroupActionResourceCache.Delete(key)
+	return GroupActionResourceCache.BatchDelete(keys)
 }

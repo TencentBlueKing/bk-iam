@@ -283,8 +283,12 @@ func (c *policyControllerV2) createRBACGroupAlterEvent(
 		actionPKSet.Append(rcc.DeletedActionPKs...)
 	}
 
-	// 创建 group_alter_event
 	actionPKs := actionPKSet.ToSlice()
+
+	// 清group action resource 缓存
+	cacheimpls.BatchDeleteGroupActionAuthorizedResourceCache(groupPK, actionPKs)
+
+	// 创建 group_alter_event
 	pks, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
 	if err != nil {
 		log.WithError(err).
