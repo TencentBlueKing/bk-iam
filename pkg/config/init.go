@@ -14,13 +14,6 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 )
 
-const (
-	// DefaultMaxGroupAlterEventCheckCount 默认的最大group alter event检查次数
-	DefaultMaxGroupAlterEventCheckCount = 5
-	// DefaultMaxMessageGenerationCountPerGroupAlterEvent 默认的最大group alter event生产消息数量
-	DefaultMaxMessageGenerationCountPerGroupAlterEvent = 100
-)
-
 // SuperAppCodeSet ...
 var (
 	SuperAppCodeSet          *set.StringSet
@@ -31,8 +24,8 @@ var (
 
 // Worker ...
 var (
-	MaxGroupAlterEventCheckCount                int = DefaultMaxGroupAlterEventCheckCount
-	MaxMessageGenerationCountPreGroupAlterEvent int = DefaultMaxMessageGenerationCountPerGroupAlterEvent
+	MaxGroupAlterEventCheckCount                int = 5
+	MaxMessageGenerationCountPreGroupAlterEvent int = 100
 )
 
 // InitSuperAppCode ...
