@@ -26,7 +26,7 @@ import (
 	gocache "github.com/wklken/go-cache"
 )
 
-var _ = Describe("Redis", func() {
+var _ = Describe("TemporaryPolicy", func() {
 	It("genKey", func() {
 		c := &temporaryPolicyRedisCache{
 			keyPrefix:              "test" + ":",

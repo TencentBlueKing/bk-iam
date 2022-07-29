@@ -87,29 +87,30 @@ func (r *rbacPolicyRedisRetriever) ListBySubjectAction(
 	nowUnix := time.Now().Unix()
 	validExpression := make([]types.SubjectActionExpression, 0, len(expressions))
 	for _, expression := range expressions {
-		if expression.ExpiredAt < nowUnix {
-			// 已过期的数据，从原始数据中刷新缓存，并发送变更事件
-			key := strconv.FormatInt(expression.SubjectPK, 10) + ":" + strconv.FormatInt(actionPK, 10)
-			expI, err, _ := r.G.Do(key, func() (interface{}, error) {
-				return r.refreshSubjectActionExpression(expression.SubjectPK, actionPK)
-			})
-			if err != nil {
-				err = errorWrapf(
-					err,
-					"refreshSubjectActionExpression fail, subjectPK=`%d`, actionPK=`%d`",
-					expression.SubjectPK,
-					actionPK,
-				)
-				return nil, err
-			}
-
-			exp := expI.(types.SubjectActionExpression)
-			if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
-				validExpression = append(validExpression, exp)
-			}
+		if expression.ExpiredAt > nowUnix {
+			validExpression = append(validExpression, expression)
+			continue
 		}
 
-		validExpression = append(validExpression, expression)
+		// 已过期的数据，从原始数据中刷新缓存，并发送变更事件
+		key := strconv.FormatInt(expression.SubjectPK, 10) + ":" + strconv.FormatInt(actionPK, 10)
+		expI, err, _ := r.G.Do(key, func() (interface{}, error) {
+			return r.refreshSubjectActionExpression(expression.SubjectPK, actionPK)
+		})
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"refreshSubjectActionExpression fail, subjectPK=`%d`, actionPK=`%d`",
+				expression.SubjectPK,
+				actionPK,
+			)
+			return nil, err
+		}
+
+		exp := expI.(types.SubjectActionExpression)
+		if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
+			validExpression = append(validExpression, exp)
+		}
 	}
 
 	return validExpression, nil
@@ -341,25 +342,26 @@ func (r *rbacPolicyDatabaseRetriever) ListBySubjectAction(
 	nowUnix := time.Now().Unix()
 	validExpression := make([]types.SubjectActionExpression, 0, len(expressions))
 	for _, expression := range expressions {
-		if expression.ExpiredAt < nowUnix {
-			// 已过期的数据，从原始数据中转换获取
-			exp, err := r.refreshSubjectActionExpression(expression.SubjectPK, actionPK)
-			if err != nil {
-				err = errorWrapf(
-					err,
-					"refreshSubjectActionExpression fail, subjectPK=`%d`, actionPK=`%d`",
-					expression.SubjectPK,
-					actionPK,
-				)
-				return nil, err
-			}
-
-			if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
-				validExpression = append(validExpression, exp)
-			}
+		if expression.ExpiredAt > nowUnix {
+			validExpression = append(validExpression, expression)
+			continue
 		}
 
-		validExpression = append(validExpression, expression)
+		// 已过期的数据，从原始数据中转换获取
+		exp, err := r.refreshSubjectActionExpression(expression.SubjectPK, actionPK)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"refreshSubjectActionExpression fail, subjectPK=`%d`, actionPK=`%d`",
+				expression.SubjectPK,
+				actionPK,
+			)
+			return nil, err
+		}
+
+		if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
+			validExpression = append(validExpression, exp)
+		}
 	}
 
 	return validExpression, nil
