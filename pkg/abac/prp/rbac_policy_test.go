@@ -200,19 +200,28 @@ var _ = Describe("RbacPolicy", func() {
 			}
 			cacheimpls.SubjectActionExpressionCache.BatchSetWithTx(kvs, 0)
 
-			mockSubjectActionGroupResourceService.EXPECT().Get(int64(2), int64(1)).Return(types.SubjectActionGroupResource{}, nil).Times(1)
-			patches := gomonkey.ApplyFunc(handler.ConvertSubjectActionGroupResourceToExpression, func(r types.SubjectActionGroupResource) (types.SubjectActionExpression, error) {
-				return types.SubjectActionExpression{
-					PK:         2,
-					SubjectPK:  2,
-					ActionPK:   1,
-					Expression: "test",
-					ExpiredAt:  time.Now().Add(time.Minute).Unix(),
-				}, nil
-			})
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(2), int64(1)).
+				Return(types.SubjectActionGroupResource{}, nil).
+				Times(1)
+			patches := gomonkey.ApplyFunc(
+				handler.ConvertSubjectActionGroupResourceToExpression,
+				func(r types.SubjectActionGroupResource) (types.SubjectActionExpression, error) {
+					return types.SubjectActionExpression{
+						PK:         2,
+						SubjectPK:  2,
+						ActionPK:   1,
+						Expression: "test",
+						ExpiredAt:  time.Now().Add(time.Minute).Unix(),
+					}, nil
+				},
+			)
 			defer patches.Reset()
 
-			mockGroupAlterEventService.EXPECT().CreateBySubjectActionGroup(int64(2), int64(1), int64(0)).Return(int64(1), nil).Times(1)
+			mockGroupAlterEventService.EXPECT().
+				CreateBySubjectActionGroup(int64(2), int64(1), int64(0)).
+				Return(int64(1), nil).
+				Times(1)
 			mockProducer.EXPECT().Publish("1").Return(nil).Times(1)
 
 			es, err := r.ListBySubjectAction([]int64{1, 2}, 1)
