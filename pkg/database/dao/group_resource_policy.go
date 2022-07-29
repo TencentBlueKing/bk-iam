@@ -48,6 +48,12 @@ type ThinGroupResourcePolicy struct {
 
 type GroupResourcePolicyManager interface {
 	ListBySignatures(signatures []string) (policies []GroupResourcePolicy, err error)
+	ListByGroupSystemActionRelatedResourceType(
+		groupPK int64,
+		systemID string,
+		actionRelatedResourceTypePK int64,
+	) (policies []GroupResourcePolicy, err error)
+	ListActionPKsByGroup(groupPK int64) ([]string, error)
 	BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
@@ -88,6 +94,32 @@ func (m *groupResourcePolicyManager) ListBySignatures(signatures []string) (poli
 		FROM rbac_group_resource_policy
 		WHERE signature IN (?)`
 	err = database.SqlxSelect(m.DB, &policies, query, signatures)
+	if errors.Is(err, sql.ErrNoRows) {
+		return policies, nil
+	}
+	return
+}
+
+func (m *groupResourcePolicyManager) ListByGroupSystemActionRelatedResourceType(
+	groupPK int64,
+	systemID string,
+	actionRelatedResourceTypePK int64,
+) (policies []GroupResourcePolicy, err error) {
+	query := `SELECT 
+		pk,
+		signature,
+		group_pk,
+		template_id,
+		system_id,
+		action_pks,
+		action_related_resource_type_pk,
+		resource_type_pk,
+		resource_id
+		FROM rbac_group_resource_policy
+		WHERE group_pk = ?
+		AND action_related_resource_type_pk = ?
+		AND system_id = ?`
+	err = database.SqlxSelect(m.DB, &policies, query, groupPK, actionRelatedResourceTypePK, systemID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
 	}
@@ -161,4 +193,17 @@ func (m *groupResourcePolicyManager) ListThinByResource(
 	}
 
 	return policies, err
+}
+
+func (m *groupResourcePolicyManager) ListActionPKsByGroup(groupPK int64) (actionPKsList []string, err error) {
+	query := `SELECT 
+		action_pks
+		FROM rbac_group_resource_policy
+		WHERE group_pk = ?`
+	err = database.SqlxSelect(m.DB, &actionPKsList, query, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		return actionPKsList, nil
+	}
+
+	return actionPKsList, err
 }

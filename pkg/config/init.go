@@ -22,6 +22,12 @@ var (
 	SecurityAuditAppCode     *set.StringSet
 )
 
+// Worker ...
+var (
+	MaxGroupAlterEventCheckCount               int = 5
+	MaxMessageGeneratedCountPreGroupAlterEvent int = 100
+)
+
 // InitSuperAppCode ...
 func InitSuperAppCode(superAppCode string) {
 	SuperAppCodeSet = set.SplitStringToSet(superAppCode, ",")
@@ -59,4 +65,15 @@ func InitSupportShieldFeatures(supportShieldFeatures []string) {
 // InitSecurityAuditAppCode read the value from config, parse to set
 func InitSecurityAuditAppCode(securityAuditAppCode string) {
 	SecurityAuditAppCode = set.SplitStringToSet(securityAuditAppCode, ",")
+}
+
+// InitWorker ...
+func InitWorker(w Worker) {
+	if w.MaxGroupAlterEventCheckCount != 0 {
+		MaxGroupAlterEventCheckCount = w.MaxGroupAlterEventCheckCount
+	}
+
+	if w.MaxMessageGeneratedCountPerGroupAlterEvent != 0 {
+		MaxMessageGeneratedCountPreGroupAlterEvent = w.MaxMessageGeneratedCountPerGroupAlterEvent
+	}
 }

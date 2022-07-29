@@ -67,3 +67,45 @@ type SubjectRelationForCreate struct {
 	GroupPK   int64 `json:"group_pk"`
 	ExpiredAt int64 `json:"expired_at"`
 }
+
+type GroupAlterEvent struct {
+	PK         int64   `json:"pk"`
+	GroupPK    int64   `json:"group_pk"`
+	ActionPKs  []int64 `json:"action_pks"`
+	SubjectPKs []int64 `json:"subject_pks"`
+	CheckCount int64   `json:"check_times"`
+}
+
+// ResourceExpiredAt ...
+type ResourceExpiredAt struct {
+	Resources map[int64][]string `json:"resources"` // resource_type_pk -> resource_ids
+	ExpiredAt int64              `json:"expired_at"`
+}
+
+// SubjectActionGroupResource ...
+type SubjectActionGroupResource struct {
+	SubjectPK     int64                       `json:"subject_pk"`
+	ActionPK      int64                       `json:"action_pk"`
+	GroupResource map[int64]ResourceExpiredAt `json:"group_resource"` // group_pk -> ExpiredAtResource
+}
+
+// DeleteGroupResource ...
+func (s *SubjectActionGroupResource) DeleteGroupResource(groupPK int64) {
+	delete(s.GroupResource, groupPK)
+}
+
+// UpdateGroupResource ...
+func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, resources map[int64][]string, expiredAt int64) {
+	s.GroupResource[groupPK] = ResourceExpiredAt{
+		Resources: resources,
+		ExpiredAt: expiredAt,
+	}
+}
+
+// SubjectActionExpression ...
+type SubjectActionExpression struct {
+	SubjectPK  int64  `json:"subject_pk"`
+	ActionPK   int64  `json:"action_pk"`
+	Expression string `json:"expression"`
+	ExpiredAt  int64  `json:"expired_at"`
+}

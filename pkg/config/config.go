@@ -47,6 +47,7 @@ type Logger struct {
 	Audit     LogConfig
 	Web       LogConfig
 	Component LogConfig
+	Worker    LogConfig
 }
 
 // LogConfig ...
@@ -73,6 +74,7 @@ type Database struct {
 // Redis ...
 type Redis struct {
 	ID           string
+	Type         string
 	Addr         string
 	Password     string
 	DB           int
@@ -120,6 +122,11 @@ type Crypto struct {
 	Key string
 }
 
+type Worker struct {
+	MaxGroupAlterEventCheckCount               int // max count for group alter event check
+	MaxMessageGeneratedCountPerGroupAlterEvent int // max count for group alter event generation message
+}
+
 // Config ...
 type Config struct {
 	Debug bool
@@ -138,6 +145,8 @@ type Config struct {
 	SupportShieldFeatures []string
 	// 安全app_code, 共享权限模型白名单, 并且可以作为各个系统合法clients调用权限相关接口
 	SecurityAuditAppCode string
+
+	Worker Worker
 
 	Databases   []Database
 	DatabaseMap map[string]Database

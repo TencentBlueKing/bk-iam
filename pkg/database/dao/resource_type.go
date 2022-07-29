@@ -21,6 +21,7 @@ import (
 // ResourceTypeManager ...
 type ResourceTypeManager interface {
 	GetPK(system string, id string) (pk int64, err error)
+	GetByPK(pk int64) (ResourceType, error)
 	BulkCreateWithTx(tx *sqlx.Tx, resourceTypes []ResourceType) error
 	BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error
 }
@@ -43,9 +44,17 @@ func NewResourceTypeManager() ResourceTypeManager {
 	}
 }
 
+// GetPK ...
 func (m *resourceTypeManager) GetPK(system string, id string) (pk int64, err error) {
 	query := "SELECT pk FROM resource_type WHERE system_id = ? AND id = ?"
 	err = database.SqlxGet(m.DB, &pk, query, system, id)
+	return
+}
+
+// ListByPKs ...
+func (m *resourceTypeManager) GetByPK(pk int64) (resourceType ResourceType, err error) {
+	query := "SELECT pk, system_id, id FROM resource_type WHERE pk=?"
+	err = database.SqlxGet(m.DB, &resourceType, query, pk)
 	return
 }
 

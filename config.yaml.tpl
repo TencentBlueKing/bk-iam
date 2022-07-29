@@ -34,7 +34,19 @@ databases:
     name: "open_paas"
 
 redis:
-  - id: "standalone"
+  - id: "cache"
+    type: "standalone"
+    addr: "localhost:6379"
+    password: ""
+    db: 0
+    # poolSize: 400
+    # minIdleConns: 200
+    dialTimeout: 5
+    readTimeout: 5
+    writeTimeout: 5
+    masterName: ""
+  - id: "mq"
+    type: "standalone"
     addr: "localhost:6379"
     password: ""
     db: 0

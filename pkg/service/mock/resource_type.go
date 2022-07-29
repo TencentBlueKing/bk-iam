@@ -92,6 +92,21 @@ func (mr *MockResourceTypeServiceMockRecorder) GetPK(system, name interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockResourceTypeService)(nil).GetPK), system, name)
 }
 
+// GetThinByPK mocks base method.
+func (m *MockResourceTypeService) GetThinByPK(pk int64) (types.ThinResourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetThinByPK", pk)
+	ret0, _ := ret[0].(types.ThinResourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetThinByPK indicates an expected call of GetThinByPK.
+func (mr *MockResourceTypeServiceMockRecorder) GetThinByPK(pk interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetThinByPK", reflect.TypeOf((*MockResourceTypeService)(nil).GetThinByPK), pk)
+}
+
 // ListBySystem mocks base method.
 func (m *MockResourceTypeService) ListBySystem(system string) ([]types.ResourceType, error) {
 	m.ctrl.T.Helper()

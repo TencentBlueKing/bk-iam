@@ -63,7 +63,6 @@ func (c *departmentController) ListPaging(limit, offset int64) ([]SubjectDepartm
 
 	subjectMap := make(map[int64]types.Subject, len(pks))
 	for _, pk := range pks {
-		// TODO 优化批量查询缓存
 		subject, err := cacheimpls.GetSubjectByPK(pk)
 		if err != nil {
 			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
@@ -156,7 +155,6 @@ func (c *departmentController) BulkDelete(subjectIDs []string) error {
 }
 
 func convertToServiceSubjectDepartments(subjectDepartments []SubjectDepartment) ([]types.SubjectDepartment, error) {
-	// TODO 改进批量查询缓存
 	serviceSubjectDepartments := make([]types.SubjectDepartment, 0, len(subjectDepartments))
 	for _, subjectDepartment := range subjectDepartments {
 		subjectPK, err := cacheimpls.GetSubjectPK(types.UserType, subjectDepartment.SubjectID)

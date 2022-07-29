@@ -11,10 +11,7 @@
 package middleware
 
 import (
-	"encoding/hex"
-
 	"github.com/gin-gonic/gin"
-	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/util"
@@ -27,7 +24,7 @@ func RequestID() gin.HandlerFunc {
 
 		requestID := c.GetHeader(util.RequestIDHeaderKey)
 		if requestID == "" || len(requestID) != 32 {
-			requestID = hex.EncodeToString(uuid.Must(uuid.NewV4()).Bytes())
+			requestID = util.GenUUID4()
 		}
 		util.SetRequestID(c, requestID)
 		c.Writer.Header().Set(util.RequestIDHeaderKey, requestID)

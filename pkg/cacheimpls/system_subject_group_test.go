@@ -148,3 +148,12 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 		ExpiredAt: 5,
 	}}, subjectGroups)
 }
+
+func TestSystemSubjectPKCacheKey_Key(t *testing.T) {
+	key := SystemSubjectPKCacheKey{
+		SystemID:  "test",
+		SubjectPK: int64(1),
+	}
+
+	assert.Equal(t, "test:1", key.Key())
+}

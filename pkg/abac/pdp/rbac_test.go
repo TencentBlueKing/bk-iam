@@ -13,15 +13,15 @@ package pdp
 import (
 	"errors"
 
-	"iam/pkg/abac/types"
-	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
-	"iam/pkg/service/mock"
-
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/abac/types"
+	"iam/pkg/cacheimpls"
+	"iam/pkg/service"
+	"iam/pkg/service/mock"
 )
 
 var _ = Describe("rbac", func() {
@@ -58,17 +58,11 @@ var _ = Describe("rbac", func() {
 	})
 
 	Describe("parseResourceNode", func() {
-		var actionResourceType types.ActionResourceType
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
-			actionResourceType = types.ActionResourceType{
-				System: "test",
-				Type:   "t1",
-			}
-
 			patches = gomonkey.ApplyFunc(
 				cacheimpls.GetLocalResourceTypePK,
-				func(system string, id string) (int64, error) {
+				func(_ string, id string) (int64, error) {
 					switch id {
 					case "t1":
 						return 1, nil
@@ -101,7 +95,7 @@ var _ = Describe("rbac", func() {
 						"/cmdb,biz,1/test,set,2/test,module,3/test,func,5",
 					},
 				},
-			}, actionResourceType)
+			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ResourceNode{
 				{
@@ -146,7 +140,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "/cmdb,biz,1/test,set,2/test,module,3/test,func,4",
 				},
-			}, actionResourceType)
+			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ResourceNode{
 				{
@@ -184,7 +178,7 @@ var _ = Describe("rbac", func() {
 				Type:      "t1",
 				ID:        "id1",
 				Attribute: map[string]interface{}{},
-			}, actionResourceType)
+			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ResourceNode{
 				{
@@ -204,7 +198,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "//",
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "is not valid")
 		})
@@ -217,7 +211,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "",
 				},
-			}, actionResourceType)
+			})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.ResourceNode{
 				{
@@ -237,7 +231,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "abc",
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "is not valid")
 		})
@@ -250,7 +244,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": 123,
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "iamPath is not string or array")
 		})
@@ -263,7 +257,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": []interface{}{123},
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "iamPath is not string")
 		})
@@ -276,7 +270,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "/biz,1/set,2/module,3/func,4/func,5",
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "not valid")
 		})
@@ -289,7 +283,7 @@ var _ = Describe("rbac", func() {
 				Attribute: map[string]interface{}{
 					"_bk_iam_path_": "/cmdb,biz,1/test,setx,2/test,module,3/test,func,4/test,func,5",
 				},
-			}, actionResourceType)
+			})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "not found")
 		})
@@ -323,7 +317,7 @@ var _ = Describe("rbac", func() {
 
 			patches = gomonkey.ApplyFunc(
 				cacheimpls.GetLocalResourceTypePK,
-				func(system string, id string) (int64, error) {
+				func(_ string, id string) (int64, error) {
 					switch id {
 					case "t1":
 						return 1, nil

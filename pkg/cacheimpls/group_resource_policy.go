@@ -11,6 +11,7 @@
 package cacheimpls
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -24,6 +25,18 @@ import (
 )
 
 const RandExpireSeconds = 60
+
+// SystemResourceCacheKey ...
+type SystemResourceCacheKey struct {
+	SystemID             string
+	ActionResourceTypePK int64
+	ResourceTypePK       int64
+	ResourceID           string
+}
+
+func (k SystemResourceCacheKey) Key() string {
+	return fmt.Sprintf("%s:%d:%d:%s", k.SystemID, k.ActionResourceTypePK, k.ResourceTypePK, k.ResourceID)
+}
 
 // GetResourceActionAuthorizedGroupPKs 使用操作与资源信息拿rbac授权的用户组
 // Get Resource Action Authorized Group PKs from redis Hash

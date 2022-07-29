@@ -40,4 +40,20 @@ var _ = Describe("", func() {
 		assert.NoError(GinkgoT(), err)
 		assert.Equal(GinkgoT(), int64(1), pk)
 	})
+
+	It("GetByPK", func() {
+		mockRows := sqlmock.NewRows([]string{"pk", "system_id", "id"}).
+			AddRow(1, "system", "id")
+		mock.ExpectQuery(
+			"^SELECT pk, system_id, id FROM resource_type WHERE pk=(.*)$",
+		).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		resourceType, err := manager.GetByPK(1)
+		assert.NoError(GinkgoT(), err)
+		assert.Equal(GinkgoT(), ResourceType{
+			PK:     1,
+			System: "system",
+			ID:     "id",
+		}, resourceType)
+	})
 })

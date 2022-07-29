@@ -13,6 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -26,6 +28,9 @@ import (
 
 // GroupSVC ...
 const GroupSVC = "GroupSVC"
+
+// ErrGroupMemberNotFound ...
+var ErrGroupMemberNotFound = errors.New("group member not found")
 
 // GroupService ...
 type GroupService interface {
@@ -59,6 +64,9 @@ type GroupService interface {
 
 	// open api
 	ListEffectThinSubjectGroupsBySubjectPKs(subjectPKs []int64) ([]types.ThinSubjectGroup, error)
+
+	// task
+	GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error)
 }
 
 type groupService struct {
@@ -451,4 +459,20 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 	}
 
 	return nil
+}
+
+// GetExpiredAtBySubjectGroup ...
+func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error) {
+	expiredAt, err = l.manager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		err = ErrGroupMemberNotFound
+	case err != nil:
+		err = errorx.Wrapf(
+			err, GroupSVC, "manager.GetExpiredAtBySubjectGroup", "subjectPK=`%d`, groupPK=`%d`", subjectPK, groupPK,
+		)
+	}
+
+	return
 }

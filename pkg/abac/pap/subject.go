@@ -141,8 +141,6 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	// NOTE: collect the type=group subject_pk to delete the cache
 	groupPKs := make([]int64, 0, len(subjects))
 	for _, s := range svcSubjects {
-		// TODO 改进批量查询缓存
-
 		if s.Type == types.GroupType {
 			gPK, err := cacheimpls.GetSubjectPK(s.Type, s.ID)
 			if err != nil {

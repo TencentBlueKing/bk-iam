@@ -37,6 +37,7 @@ type ResourceTypeService interface {
 
 	Get(system string, id string) (types.ResourceType, error)
 	GetPK(system string, name string) (int64, error)
+	GetThinByPK(pk int64) (types.ThinResourceType, error)
 }
 
 type resourceTypeService struct {
@@ -267,4 +268,22 @@ func (l *resourceTypeService) BulkDelete(system string, resourceTypeIDs []string
 	}
 
 	return tx.Commit()
+}
+
+// GetByPK ...
+func (l *resourceTypeService) GetThinByPK(pk int64) (resourceType types.ThinResourceType, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ResourceTypeSVC, "GetByPK")
+
+	dbResourceType, err := l.manager.GetByPK(pk)
+	if err != nil {
+		return resourceType, errorWrapf(err, "manager.GetByPK fail, pk=`%d`", pk)
+	}
+
+	resourceType = types.ThinResourceType{
+		PK:     dbResourceType.PK,
+		System: dbResourceType.System,
+		ID:     dbResourceType.ID,
+	}
+
+	return
 }

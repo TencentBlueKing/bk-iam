@@ -22,6 +22,9 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	"iam/pkg/task"
+	"iam/pkg/task/producer"
+	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -50,13 +53,18 @@ type GroupController interface {
 type groupController struct {
 	service service.GroupService
 
-	subjectService service.SubjectService
+	subjectService         service.SubjectService
+	groupAlterEventService service.GroupAlterEventService
+
+	alterEventProducer producer.Producer
 }
 
 func NewGroupController() GroupController {
 	return &groupController{
-		service:        service.NewGroupService(),
-		subjectService: service.NewSubjectService(),
+		service:                service.NewGroupService(),
+		subjectService:         service.NewSubjectService(),
+		groupAlterEventService: service.NewGroupAlterEventService(),
+		alterEventProducer:     producer.NewRedisProducer(task.GetRbacEventQueue()),
 	}
 }
 
@@ -424,6 +432,9 @@ func (c *groupController) alterGroupMembers(
 		return nil, errorWrapf(err, "tx commit error")
 	}
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	// 清理缓存
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
@@ -479,12 +490,42 @@ func (c *groupController) DeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
+	// 创建group_alter_event
+	c.createGroupAlterEvent(groupPK, subjectPKs)
+
 	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
 
 	return typeCount, nil
+}
+
+func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
+	pks, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
+	if err != nil {
+		log.WithError(err).
+			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
+
+		// report to sentry
+		util.ReportToSentry("createGroupAlterEvent groupAlterEventService.CreateByGroupSubject fail",
+			map[string]interface{}{
+				"layer":      GroupCTL,
+				"groupPK":    groupPK,
+				"subjectPKs": subjectPKs,
+				"error":      err.Error(),
+			},
+		)
+		return
+	}
+
+	// 发送消息
+	if len(pks) == 0 {
+		return
+	}
+
+	messages := util.Int64SliceToStringSlice(pks)
+	go c.alterEventProducer.Publish(messages...)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

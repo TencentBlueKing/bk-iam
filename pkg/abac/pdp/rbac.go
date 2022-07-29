@@ -64,7 +64,7 @@ func rbacEval(
 	// 2. 解析资源实例的以及属性, 返回出可能被授权的资源实例节点
 	debug.AddStep(entry, "Parse Resource Nodes")
 	// 从resources中解析出用于rbac鉴权的资源实例节点 NOTE: 支持rbac鉴权的资源类型只能有一个
-	resourceNodes, err := parseResourceNode(resources[0], actionResourceTypes[0])
+	resourceNodes, err := parseResourceNode(resources[0])
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -179,17 +179,14 @@ func validResourceType(resources []types.Resource, actionResourceTypes []types.A
 }
 
 // parseResourceNode 解析资源节点并去重
-func parseResourceNode(
-	resource types.Resource,
-	actionResourceType types.ActionResourceType,
-) ([]types.ResourceNode, error) {
+func parseResourceNode(resource types.Resource) ([]types.ResourceNode, error) {
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	nodeSet := set.NewStringSet()
 
 	// 解析iam path
 	iamPaths, ok := resource.Attribute.Get(types.IamPath)
 	if ok {
-		iamPathNodes, err := parseIamPath(iamPaths, actionResourceType)
+		iamPathNodes, err := parseIamPath(iamPaths)
 		if err != nil {
 			return nil, err
 		}
@@ -224,10 +221,7 @@ func parseResourceNode(
 	return resourceNodes, nil
 }
 
-func parseIamPath(
-	iamPaths interface{},
-	actionResourceType types.ActionResourceType,
-) ([]types.ResourceNode, error) {
+func parseIamPath(iamPaths interface{}) ([]types.ResourceNode, error) {
 	resourceNodes := make([]types.ResourceNode, 0, 2)
 	paths := make([]string, 0, 2)
 	switch vs := iamPaths.(type) {
