@@ -13,6 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
@@ -258,6 +260,10 @@ func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK,
 	if err != nil {
 		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPK=`%d` subjectPK=`%d`", groupPK, actionPK, subjectPK)
 		return 0, err
+	}
+
+	if len(pks) != 1 {
+		return 0, errorWrapf(fmt.Errorf("bulkCreate return pks=`%+v`", pks), "")
 	}
 
 	return pks[0], nil

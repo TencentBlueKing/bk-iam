@@ -11,6 +11,7 @@
 package prp
 
 import (
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -40,6 +41,8 @@ subject RBAC expression 查询缓存:
 	重新计算对应subject_pk, action_pk的表达式，并更新缓存
 	发送变更通知
 */
+
+const randExpireSeconds = 60
 
 var singletonRbacPolicyRedisRetriever RbacPolicyRetriever
 
@@ -201,7 +204,10 @@ func (r *rbacPolicyRedisRetriever) setMissing(
 	}
 
 	// set cache
-	return cacheimpls.SubjectActionExpressionCache.BatchSetWithTx(kvs, 0)
+	return cacheimpls.SubjectActionExpressionCache.BatchSetWithTx(
+		kvs,
+		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(randExpireSeconds))*time.Second,
+	)
 }
 
 func (r *rbacPolicyRedisRetriever) batchGet(
@@ -275,7 +281,11 @@ func (r *rbacPolicyRedisRetriever) refreshSubjectActionExpression(
 
 	// set cache
 	key := cacheimpls.SubjectActionCacheKey{SubjectPK: subjectPK, ActionPK: actionPK}
-	err = cacheimpls.SubjectActionExpressionCache.Set(key, value, 0)
+	err = cacheimpls.SubjectActionExpressionCache.Set(
+		key,
+		value,
+		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(randExpireSeconds))*time.Second,
+	)
 	if err != nil {
 		return
 	}

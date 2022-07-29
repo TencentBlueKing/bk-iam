@@ -420,7 +420,7 @@ func (m *policyManager) listRbacBySubjectAction(
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (polices []types.AuthPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listTemporaryBySubjectAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listRbacBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
 	if entry != nil {
