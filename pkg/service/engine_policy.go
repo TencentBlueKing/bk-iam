@@ -10,14 +10,9 @@
 
 package service
 
+import "iam/pkg/service/types"
+
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
-import (
-	"github.com/TencentBlueKing/gopkg/errorx"
-
-	"iam/pkg/database/dao"
-	"iam/pkg/service/types"
-)
 
 // EnginePolicySVC is the layer-object name
 const EnginePolicySVC = "EnginePolicySVC"
@@ -26,78 +21,6 @@ const EnginePolicySVC = "EnginePolicySVC"
 type EnginePolicyService interface {
 	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
 	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
-	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EngineQueryPolicy, err error)
-	ListByPKs(pks []int64) (policies []types.EngineQueryPolicy, err error)
-}
-
-type enginePolicyService struct {
-	manager dao.EnginePolicyManager
-}
-
-// NewEnginePolicyService create the EnginePolicyService
-func NewEnginePolicyService() EnginePolicyService {
-	return &enginePolicyService{
-		manager: dao.NewEnginePolicyManager(),
-	}
-}
-
-// GetMaxPKBeforeUpdatedAt ...
-func (s *enginePolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error) {
-	return s.manager.GetMaxPKBeforeUpdatedAt(updatedAt)
-}
-
-// ListPKBetweenUpdatedAt ...
-func (s *enginePolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error) {
-	return s.manager.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
-}
-
-// ListBetweenPK ...
-func (s *enginePolicyService) ListBetweenPK(
-	expiredAt, minPK, maxPK int64,
-) (queryPolicies []types.EngineQueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListBetweenPK")
-
-	policies, err := s.manager.ListBetweenPK(expiredAt, minPK, maxPK)
-	if err != nil {
-		err = errorWrapf(err,
-			"manager.ListBetweenPK expiredAt=`%d`, minPK=`%d`, maxPK=`%d` fail",
-			expiredAt, minPK, maxPK,
-		)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToEngineQueryPolicies(policies)
-	return queryPolicies, nil
-}
-
-// ListByPKs ...
-func (s *enginePolicyService) ListByPKs(pks []int64) (queryPolicies []types.EngineQueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListByPKs")
-
-	policies, err := s.manager.ListByPKs(pks)
-	if err != nil {
-		err = errorWrapf(err, "manager.ListByPKs pks=`%+v` fail", pks)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToEngineQueryPolicies(policies)
-	return queryPolicies, nil
-}
-
-func convertPoliciesToEngineQueryPolicies(policies []dao.EnginePolicy) []types.EngineQueryPolicy {
-	queryPolicies := make([]types.EngineQueryPolicy, 0, len(policies))
-	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.EngineQueryPolicy{
-			QueryPolicy: types.QueryPolicy{
-				PK:           p.PK,
-				SubjectPK:    p.SubjectPK,
-				ActionPK:     p.ActionPK,
-				ExpressionPK: p.ExpressionPK,
-				ExpiredAt:    p.ExpiredAt,
-			},
-			TemplateID: p.TemplateID,
-			UpdatedAt:  p.UpdatedAt.Unix(),
-		})
-	}
-	return queryPolicies
+	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EnginePolicy, err error)
+	ListByPKs(pks []int64) (policies []types.EnginePolicy, err error)
 }

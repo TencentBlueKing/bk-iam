@@ -50,10 +50,10 @@ func (mr *MockEnginePolicyServiceMockRecorder) GetMaxPKBeforeUpdatedAt(updatedAt
 }
 
 // ListBetweenPK mocks base method.
-func (m *MockEnginePolicyService) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]types.EngineQueryPolicy, error) {
+func (m *MockEnginePolicyService) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]types.EnginePolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBetweenPK", expiredAt, minPK, maxPK)
-	ret0, _ := ret[0].([]types.EngineQueryPolicy)
+	ret0, _ := ret[0].([]types.EnginePolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockEnginePolicyServiceMockRecorder) ListBetweenPK(expiredAt, minPK, m
 }
 
 // ListByPKs mocks base method.
-func (m *MockEnginePolicyService) ListByPKs(pks []int64) ([]types.EngineQueryPolicy, error) {
+func (m *MockEnginePolicyService) ListByPKs(pks []int64) ([]types.EnginePolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]types.EngineQueryPolicy)
+	ret0, _ := ret[0].([]types.EnginePolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

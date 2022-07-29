@@ -11,7 +11,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -53,10 +52,10 @@ func ListPolicy(c *gin.Context) {
 	query.initDefault()
 
 	var (
-		policies []types.EngineQueryPolicy
+		policies []types.EnginePolicy
 		err      error
 	)
-	svc := service.NewEnginePolicyService()
+	svc := service.NewAbacEnginePolicyService()
 	// 有pks, 优先查询pks的数据
 	if query.hasIDs() {
 		pks, _ := query.getIDs()
@@ -76,7 +75,7 @@ func ListPolicy(c *gin.Context) {
 		}
 	}
 
-	results, err := convertEngineQueryPoliciesToEnginePolicies(policies)
+	results, err := convertEnginePoliciesToResponse(policies)
 	if err != nil {
 		err = fmt.Errorf("convertEngineQueryPoliciesToEnginePolicies policies length=`%d` fail. err=%w",
 			len(policies), err)
@@ -116,7 +115,7 @@ func ListPolicyPKs(c *gin.Context) {
 		return
 	}
 
-	svc := service.NewEnginePolicyService()
+	svc := service.NewAbacEnginePolicyService()
 	pks, err := svc.ListPKBetweenUpdatedAt(query.BeginUpdatedAt, query.EndUpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.ListPKBetweenUpdatedAt beginUpdatedAt=`%d`, endUpdatedAt=`%d` fail. err=%w",
@@ -151,7 +150,7 @@ func GetMaxPolicyPK(c *gin.Context) {
 		return
 	}
 
-	svc := service.NewEnginePolicyService()
+	svc := service.NewAbacEnginePolicyService()
 	pk, err := svc.GetMaxPKBeforeUpdatedAt(query.UpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.GetMaxPKBeforeUpdatedAt updatedAt=`%d` fail. err=%w",
@@ -165,27 +164,20 @@ func GetMaxPolicyPK(c *gin.Context) {
 
 // ===========================================================
 
-// policy subject not exist err
-var errSubjectNotExist = errors.New("subject not exist")
-
-func convertEngineQueryPoliciesToEnginePolicies(
-	policies []types.EngineQueryPolicy,
-) (enginePolicies []enginePolicyResponse, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.convertEngineQueryPoliciesToEnginePolicies")
-
-	if len(policies) == 0 {
-		return
-	}
-
+func convertEnginePoliciesToResponse(
+	enginePolicies []types.EnginePolicy,
+) (responses []enginePolicyResponse, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.convertEnginePoliciesToResponse")
 	// query all expression
-	pkExpressionStrMap, err := queryPoliciesExpression(policies)
+	pkExpressionStrMap, err := queryPoliciesExpression(enginePolicies)
 	if err != nil {
-		err = errorWrapf(err, "queryPolicyExpression policies length=`%d` fail", len(policies))
+		err = errorWrapf(err, "queryPolicyExpression policies length=`%d` fail", len(enginePolicies))
 		return
 	}
 
-	// loop policies to build enginePolicies
-	for _, p := range policies {
+	results := make([]enginePolicyResponse, len(enginePolicies))
+
+	for _, p := range enginePolicies {
 		expr, ok := pkExpressionStrMap[p.ExpressionPK]
 		if !ok {
 			log.Errorf(
@@ -196,26 +188,52 @@ func convertEngineQueryPoliciesToEnginePolicies(
 			continue
 		}
 
-		ep, err1 := constructEnginePolicy(p, expr)
-		if err1 != nil {
-			// subject 不存在, 忽略policy
-			if errors.Is(err1, errSubjectNotExist) {
-				continue
-			}
-
-			err = errorWrapf(err1, "constructEnginePolicy policy=`%+v`, expr=`%s` fail", p, expr)
-			return
+		// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
+		subj, err := cacheimpls.GetSubjectByPK(p.SubjectPK)
+		if err != nil {
+			err = errorWrapf(err, "cacheimpls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
+			log.Info(err)
+			continue
 		}
 
-		enginePolicies = append(enginePolicies, ep)
+		action, err1 := cacheimpls.GetAction(p.ActionPK)
+		if err1 != nil {
+			err = errorWrapf(err1, "cacheimpls.GetAction actionPK=`%d` fail", p.ActionPK)
+			return responses, err
+		}
+
+		translatedExpr, err2 := translate.PolicyExpressionTranslate(expr)
+		if err2 != nil {
+			err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, expr)
+			return responses, err
+		}
+
+		policy := enginePolicyResponse{
+			Version: service.PolicyVersion,
+			ID:      p.ID,
+			System:  action.System,
+			Action: policyResponseAction{
+				ID: action.ID,
+			},
+			Subject: policyResponseSubject{
+				Type: subj.Type,
+				ID:   subj.ID,
+				Name: subj.Name,
+			},
+			Expression: translatedExpr,
+			TemplateID: p.TemplateID,
+			ExpiredAt:  p.ExpiredAt,
+			UpdatedAt:  p.UpdatedAt,
+		}
+		results = append(results, policy)
 	}
-	return enginePolicies, nil
+	return results, nil
 }
 
 // AnyExpressionPK is the pk for expression=any
 const AnyExpressionPK = -1
 
-func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]string, error) {
+func queryPoliciesExpression(policies []types.EnginePolicy) (map[int64]string, error) {
 	expressionPKs := make([]int64, 0, len(policies))
 	for _, p := range policies {
 		if p.ExpressionPK != AnyExpressionPK {
@@ -232,6 +250,7 @@ func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]stri
 
 		var exprs []types.AuthExpression
 		var err error
+		// FIXME: service调用prp
 		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
 		if err != nil {
 			return nil, err
@@ -242,47 +261,4 @@ func queryPoliciesExpression(policies []types.EngineQueryPolicy) (map[int64]stri
 		}
 	}
 	return pkExpressionStrMap, nil
-}
-
-func constructEnginePolicy(p types.EngineQueryPolicy, expr string) (policy enginePolicyResponse, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.constructEnginePolicy")
-
-	action, err := cacheimpls.GetAction(p.ActionPK)
-	if err != nil {
-		err = errorWrapf(err, "cacheimpls.GetAction actionPK=`%d` fail", p.ActionPK)
-		return
-	}
-
-	translatedExpr, err := translate.PolicyExpressionTranslate(expr)
-	if err != nil {
-		err = errorWrapf(err, "translate.PolicyExpressionTranslate expr=`%s` fail", expr)
-		return
-	}
-
-	// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
-	subj, err := cacheimpls.GetSubjectByPK(p.SubjectPK)
-	if err != nil {
-		err = errorWrapf(err, "cacheimpls.GetSubjectByPK get subject subject_pk=`%d` fail", p.SubjectPK)
-		log.Info(err)
-		return policy, errSubjectNotExist
-	}
-
-	policy = enginePolicyResponse{
-		Version: service.PolicyVersion,
-		ID:      p.PK,
-		System:  action.System,
-		Action: policyResponseAction{
-			ID: action.ID,
-		},
-		Subject: policyResponseSubject{
-			Type: subj.Type,
-			ID:   subj.ID,
-			Name: subj.Name,
-		},
-		Expression: translatedExpr,
-		TemplateID: p.TemplateID,
-		ExpiredAt:  p.ExpiredAt,
-		UpdatedAt:  p.UpdatedAt,
-	}
-	return policy, nil
 }

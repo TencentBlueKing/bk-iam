@@ -30,7 +30,7 @@ func Test_enginePolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
 			`SELECT .* FROM policy WHERE updated_at <= .*`,
 		).WithArgs(now).WillReturnRows(mockRows)
 
-		manager := &enginePolicyManager{DB: db}
+		manager := &engineAbacPolicyManager{DB: db}
 		pk, err := manager.GetMaxPKBeforeUpdatedAt(now)
 
 		assert.Equal(t, int64(1), pk)
@@ -48,7 +48,7 @@ func Test_enginePolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
 			`SELECT pk FROM policy WHERE updated_at BETWEEN .* AND .*`,
 		).WithArgs(begin, end).WillReturnRows(mockRows)
 
-		manager := &enginePolicyManager{DB: db}
+		manager := &engineAbacPolicyManager{DB: db}
 		pks, err := manager.ListPKBetweenUpdatedAt(begin, end)
 
 		assert.Equal(t, []int64{1, 2}, pks)
@@ -77,12 +77,12 @@ func Test_enginePolicyManager_ListBetweenPK(t *testing.T) {
 			AND pk BETWEEN .* AND .*`,
 		).WithArgs(int64(1), int64(1), int64(100)).WillReturnRows(mockRows)
 
-		manager := &enginePolicyManager{DB: db}
+		manager := &engineAbacPolicyManager{DB: db}
 		policies, err := manager.ListBetweenPK(
 			int64(1), int64(1), int64(100),
 		)
 
-		expected := EnginePolicy{
+		expected := EngineAbacPolicy{
 			Policy: Policy{
 				PK: int64(1),
 
@@ -120,10 +120,10 @@ func Test_enginePolicyManager_ListByPKs(t *testing.T) {
 			WHERE pk IN`,
 		).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
 
-		manager := &enginePolicyManager{DB: db}
+		manager := &engineAbacPolicyManager{DB: db}
 		policies, err := manager.ListByPKs([]int64{1, 2})
 
-		expected := EnginePolicy{
+		expected := EngineAbacPolicy{
 			Policy: Policy{
 				PK: int64(1),
 

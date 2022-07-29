@@ -50,10 +50,10 @@ func (mr *MockEnginePolicyManagerMockRecorder) GetMaxPKBeforeUpdatedAt(updatedAt
 }
 
 // ListBetweenPK mocks base method.
-func (m *MockEnginePolicyManager) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]dao.EnginePolicy, error) {
+func (m *MockEnginePolicyManager) ListBetweenPK(expiredAt, minPK, maxPK int64) ([]dao.EngineAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBetweenPK", expiredAt, minPK, maxPK)
-	ret0, _ := ret[0].([]dao.EnginePolicy)
+	ret0, _ := ret[0].([]dao.EngineAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockEnginePolicyManagerMockRecorder) ListBetweenPK(expiredAt, minPK, m
 }
 
 // ListByPKs mocks base method.
-func (m *MockEnginePolicyManager) ListByPKs(pks []int64) ([]dao.EnginePolicy, error) {
+func (m *MockEnginePolicyManager) ListByPKs(pks []int64) ([]dao.EngineAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]dao.EnginePolicy)
+	ret0, _ := ret[0].([]dao.EngineAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

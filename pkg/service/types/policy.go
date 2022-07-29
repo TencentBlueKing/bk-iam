@@ -44,10 +44,24 @@ type QueryPolicy struct {
 }
 
 // EngineQueryPolicy query policy for iam engine
-type EngineQueryPolicy struct {
-	QueryPolicy
-	TemplateID int64
-	UpdatedAt  int64
+// type EngineQueryPolicy struct {
+// 	QueryPolicy
+// 	TemplateID int64
+// 	UpdatedAt  int64
+// }
+
+type EnginePolicy struct {
+	Version string
+	ID      int64
+	System  string
+	// FIXME 问题: 这里rbac是actionPKs
+	ActionPK      int64
+	SubjectPK     int64
+	ExpressionStr string
+	ExpressionPK  int64
+	TemplateID    int64
+	ExpiredAt     int64
+	UpdatedAt     int64
 }
 
 // Policy ...
