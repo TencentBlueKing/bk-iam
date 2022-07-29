@@ -84,7 +84,7 @@ var _ = Describe("Handler", func() {
 				},
 			}
 
-			expression, err := convertToSubjectActionExpression(obj)
+			expression, err := ConvertSubjectActionGroupResourceToExpression(obj)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), expression.Expression, 209)
 		})
@@ -225,7 +225,7 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				convertToSubjectActionExpression,
+				ConvertSubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},
@@ -269,11 +269,14 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				convertToSubjectActionExpression,
+				ConvertSubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},
 			)
+			patches.ApplyFunc(cacheimpls.DeleteSubjectActionExpressionCache, func(_, _ int64) error {
+				return nil
+			})
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().

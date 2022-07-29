@@ -64,6 +64,21 @@ func (mr *MockGroupAlterEventServiceMockRecorder) CreateByGroupSubject(groupPK, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateByGroupSubject", reflect.TypeOf((*MockGroupAlterEventService)(nil).CreateByGroupSubject), groupPK, subjectPKs)
 }
 
+// CreateBySubjectActionGroup mocks base method.
+func (m *MockGroupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBySubjectActionGroup", subjectPK, actionPK, groupPK)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBySubjectActionGroup indicates an expected call of CreateBySubjectActionGroup.
+func (mr *MockGroupAlterEventServiceMockRecorder) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBySubjectActionGroup", reflect.TypeOf((*MockGroupAlterEventService)(nil).CreateBySubjectActionGroup), subjectPK, actionPK, groupPK)
+}
+
 // Delete mocks base method.
 func (m *MockGroupAlterEventService) Delete(pk int64) error {
 	m.ctrl.T.Helper()

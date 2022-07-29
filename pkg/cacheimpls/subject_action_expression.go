@@ -8,17 +8,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package cacheimpls
 
-import "iam/pkg/service/types"
+import "strconv"
 
-// TemporaryPolicyRetriever ...
-type TemporaryPolicyRetriever interface {
-	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
-	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
+// SubjectActionCacheKey ...
+type SubjectActionCacheKey struct {
+	SubjectPK int64
+	ActionPK  int64
 }
 
-// RbacPolicyRetriever ...
-type RbacPolicyRetriever interface {
-	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
+// Key ...
+func (k SubjectActionCacheKey) Key() string {
+	return strconv.FormatInt(k.SubjectPK, 10) + ":" + strconv.FormatInt(k.ActionPK, 10)
+}
+
+// DeleteSubjectActionExpressionCache ...
+func DeleteSubjectActionExpressionCache(subjectPK, actionPK int64) error {
+	key := SubjectActionCacheKey{
+		SubjectPK: subjectPK,
+		ActionPK:  actionPK,
+	}
+
+	return SubjectActionExpressionCache.Delete(key)
 }

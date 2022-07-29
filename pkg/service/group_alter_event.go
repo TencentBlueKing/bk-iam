@@ -35,6 +35,7 @@ type GroupAlterEventService interface {
 	IncrCheckCount(pk int64) (err error)
 	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
 	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
+	CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error)
 
 	Delete(pk int64) (err error)
 }
@@ -243,9 +244,21 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	return pks, nil
 }
 
+// ListPKLtCheckCountBeforeCreateAt ...
 func (s *groupAlterEventService) ListPKLtCheckCountBeforeCreateAt(
 	checkCount int64,
 	createdAt int64,
 ) ([]int64, error) {
 	return s.manager.ListPKLtCheckCountBeforeCreateAt(checkCount, createdAt)
+}
+
+func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateBySubjectActionGroup")
+	pks, err := s.bulkCreate(groupPK, []int64{actionPK}, []int64{subjectPK})
+	if err != nil {
+		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPK=`%d` subjectPK=`%d`", groupPK, actionPK, subjectPK)
+		return 0, err
+	}
+
+	return pks[0], nil
 }

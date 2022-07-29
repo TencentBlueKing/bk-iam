@@ -193,7 +193,7 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 	}
 
 	// subject action resource group -> subject action expression
-	expression, err := convertToSubjectActionExpression(obj)
+	expression, err := ConvertSubjectActionGroupResourceToExpression(obj)
 	if err != nil {
 		return errorWrapf(err,
 			"convertToSubjectActionExpression fail, subjectActionResourceGroup=`%+v`",
@@ -210,12 +210,18 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		)
 	}
 
-	// TODO 清理 subject action expression缓存
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx.Commit fail")
+	}
 
-	return tx.Commit()
+	// 清理 subject action expression缓存
+	cacheimpls.DeleteSubjectActionExpressionCache(subjectPK, actionPK)
+
+	return nil
 }
 
-func convertToSubjectActionExpression(
+func ConvertSubjectActionGroupResourceToExpression(
 	obj types.SubjectActionGroupResource,
 ) (expression types.SubjectActionExpression, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "convertToSubjectActionExpression")

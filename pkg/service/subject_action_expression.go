@@ -28,6 +28,7 @@ const SubjectActionExpressionSVC = "SubjectActionExpressionSVC"
 
 // SubjectActionExpressionService ...
 type SubjectActionExpressionService interface {
+	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
 	CreateOrUpdateWithTx(tx *sqlx.Tx, expression types.SubjectActionExpression) error
 }
 
@@ -42,6 +43,7 @@ func NewSubjectActionExpressionService() SubjectActionExpressionService {
 	}
 }
 
+// CreateOrUpdateWithTx ...
 func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 	tx *sqlx.Tx,
 	expression types.SubjectActionExpression,
@@ -82,4 +84,37 @@ func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 	}
 
 	return nil
+}
+
+// ListBySubjectAction ...
+func (s *subjectActionExpressionService) ListBySubjectAction(
+	subjectPKs []int64,
+	actionPK int64,
+) ([]types.SubjectActionExpression, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectActionExpressionSVC, "ListAuthBySubjectAction")
+	daoExpressions, err := s.manager.ListBySubjectAction(subjectPKs, actionPK)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "manager.ListBySubjectAction subjectPKs=`%+v`, actionPK=`%d`",
+			subjectPKs, actionPK,
+		)
+	}
+
+	expressions := make([]types.SubjectActionExpression, 0, len(daoExpressions))
+	for _, e := range daoExpressions {
+		// 过期时间为空, 无效数据
+		if e.ExpiredAt == 0 {
+			continue
+		}
+
+		// NOTE: 这里可能有已经过期的数据, 由上层处理更新事件
+		expressions = append(expressions, types.SubjectActionExpression{
+			PK:         e.PK,
+			SubjectPK:  e.SubjectPK,
+			ActionPK:   e.ActionPK,
+			Expression: e.Expression,
+			ExpiredAt:  e.ExpiredAt,
+		})
+	}
+	return expressions, nil
 }

@@ -48,3 +48,18 @@ func (mr *MockSubjectActionExpressionServiceMockRecorder) CreateOrUpdateWithTx(t
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).CreateOrUpdateWithTx), tx, expression)
 }
+
+// ListBySubjectAction mocks base method.
+func (m *MockSubjectActionExpressionService) ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBySubjectAction", subjectPKs, actionPK)
+	ret0, _ := ret[0].([]types.SubjectActionExpression)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBySubjectAction indicates an expected call of ListBySubjectAction.
+func (mr *MockSubjectActionExpressionServiceMockRecorder) ListBySubjectAction(subjectPKs, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySubjectAction", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).ListBySubjectAction), subjectPKs, actionPK)
+}
