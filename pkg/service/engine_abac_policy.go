@@ -83,7 +83,7 @@ func convertEngineAbacPoliciesToEnginePolicies(
 		ep := types.EnginePolicy{
 			Version:      PolicyVersion,
 			ID:           p.PK,
-			ActionPK:     p.ActionPK,
+			ActionPKs:    []int64{p.ActionPK},
 			SubjectPK:    p.SubjectPK,
 			ExpressionPK: p.ExpressionPK,
 			TemplateID:   p.TemplateID,

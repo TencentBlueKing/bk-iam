@@ -66,3 +66,13 @@ func NotEndsWith(v1 interface{}, v2 interface{}) bool {
 
 	return !strings.HasSuffix(s1, s2)
 }
+
+// StringContains return true if v1 contains v2
+func StringContains(v1 interface{}, v2 interface{}) bool {
+	s1, s2, ok := convertArgsToString(v1, v2)
+	if !ok {
+		return false
+	}
+
+	return strings.Contains(s1, s2)
+}

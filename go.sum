@@ -51,8 +51,8 @@ github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWX
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/TencentBlueKing/gopkg v1.0.8 h1:yo0Od1SVXRmrH3XTaN2/viijbSGgrGIsHOyAcT8m068=
 github.com/TencentBlueKing/gopkg v1.0.8/go.mod h1:C8xV79ap0bF2pR10YfhsxO5w5LtJlPakrRunkRbl2yw=
-github.com/TencentBlueKing/iam-go-sdk v0.0.8 h1:7EkG18XDXSL88HaLr3V+V2Nw25Ndt4yH4xDrqwmapy8=
-github.com/TencentBlueKing/iam-go-sdk v0.0.8/go.mod h1:5Z5YMclIZBokfgT9dTJFUcywygZXY9nhloX8rj+zFEc=
+github.com/TencentBlueKing/iam-go-sdk v0.0.9 h1:B9V1/y7X47Yv+VbKEufb0WQBxsymZVBZGNjr5s4WoUc=
+github.com/TencentBlueKing/iam-go-sdk v0.0.9/go.mod h1:DOI6sq611zyIsDJPPaiDwUo9UGckfxlhnpVmC1r/iQU=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
 github.com/adjust/rmq/v4 v4.0.5 h1:VU3Xa9qbkIti7pTUiZE88qo3V4coMo3fmgO04l1aPro=
 github.com/adjust/rmq/v4 v4.0.5/go.mod h1:XSfjmFqSVBVA/tptvMEt/8BW/uGM1w88ZvUIt+HIRok=
@@ -432,7 +432,6 @@ github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
-github.com/onsi/gomega v1.14.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
 github.com/onsi/gomega v1.15.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
 github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
 github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=

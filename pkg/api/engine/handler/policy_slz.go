@@ -96,6 +96,7 @@ type enginePolicyResponse struct {
 	ID         int64                  `json:"id" example:"100"`
 	System     string                 `json:"system" example:"bk_cmdb"`
 	Action     policyResponseAction   `json:"action"`
+	Actions    []policyResponseAction `json:"actions"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Expression map[string]interface{} `json:"expression"`
 	TemplateID int64                  `json:"template_id"`

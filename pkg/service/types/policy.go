@@ -54,9 +54,12 @@ type EnginePolicy struct {
 	Version string
 	ID      int64
 	System  string
-	// FIXME 问题: 这里rbac是actionPKs
-	ActionPK      int64
-	SubjectPK     int64
+	// abac, policy with single action
+	// rbac, policy with multiple actions
+	ActionPKs []int64
+
+	SubjectPK int64
+
 	ExpressionStr string
 	ExpressionPK  int64
 	TemplateID    int64

@@ -196,10 +196,25 @@ func convertEnginePoliciesToResponse(
 			continue
 		}
 
-		action, err1 := cacheimpls.GetAction(p.ActionPK)
-		if err1 != nil {
-			err = errorWrapf(err1, "cacheimpls.GetAction actionPK=`%d` fail", p.ActionPK)
-			return responses, err
+		var systemID string
+		actions := make([]policyResponseAction, 0, len(p.ActionPKs))
+		for _, actionPK := range p.ActionPKs {
+			act, err1 := cacheimpls.GetAction(actionPK)
+			if err1 != nil {
+				err = errorWrapf(err1, "cacheimpls.GetAction actionPK=`%d` fail", actionPK)
+				return responses, err
+			}
+			systemID = act.System
+
+			actions = append(actions, policyResponseAction{
+				ID: act.ID,
+			})
+		}
+
+		var action policyResponseAction
+		if len(actions) == 1 {
+			action = actions[0]
+			actions = []policyResponseAction{}
 		}
 
 		translatedExpr, err2 := translate.PolicyExpressionTranslate(expr)
@@ -211,10 +226,9 @@ func convertEnginePoliciesToResponse(
 		policy := enginePolicyResponse{
 			Version: service.PolicyVersion,
 			ID:      p.ID,
-			System:  action.System,
-			Action: policyResponseAction{
-				ID: action.ID,
-			},
+			System:  systemID,
+			Action:  action,
+			Actions: actions,
 			Subject: policyResponseSubject{
 				Type: subj.Type,
 				ID:   subj.ID,
