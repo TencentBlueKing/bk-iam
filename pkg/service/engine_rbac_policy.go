@@ -14,19 +14,24 @@ package service
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
-	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
-	"iam/pkg/util"
 )
+
+type EngineRbacPolicyService interface {
+	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
+	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
+	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EngineRbacPolicy, err error)
+	ListByPKs(pks []int64) (policies []types.EngineRbacPolicy, err error)
+}
 
 type engineRbacPolicyService struct {
 	manager dao.EngineRbacPolicyManager
 }
 
 // NewRbacEnginePolicyService create the EnginePolicyService
-func NewRbacEnginePolicyService() EnginePolicyService {
+func NewEngineRbacPolicyService() EngineRbacPolicyService {
 	return &engineRbacPolicyService{
 		manager: dao.NewRbacEnginePolicyManager(),
 	}
@@ -45,7 +50,7 @@ func (s *engineRbacPolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpda
 // ListBetweenPK ...
 func (s *engineRbacPolicyService) ListBetweenPK(
 	expiredAt, minPK, maxPK int64,
-) (queryPolicies []types.EnginePolicy, err error) {
+) (queryPolicies []types.EngineRbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListBetweenPK")
 
 	policies, err := s.manager.ListBetweenPK(minPK, maxPK)
@@ -57,12 +62,11 @@ func (s *engineRbacPolicyService) ListBetweenPK(
 		return nil, err
 	}
 
-	queryPolicies = convertEngineRbacPoliciesToEnginePolicies(policies)
-	return queryPolicies, nil
+	return convertToEngineRbacPolicies(policies), nil
 }
 
 // ListByPKs ...
-func (s *engineRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.EnginePolicy, err error) {
+func (s *engineRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.EngineRbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
@@ -70,69 +74,26 @@ func (s *engineRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.
 		err = errorWrapf(err, "manager.ListByPKs pks=`%+v` fail", pks)
 		return nil, err
 	}
-
-	queryPolicies = convertEngineRbacPoliciesToEnginePolicies(policies)
-	return queryPolicies, nil
+	return convertToEngineRbacPolicies(policies), nil
 }
 
-func convertEngineRbacPoliciesToEnginePolicies(policies []dao.EngineRbacPolicy) []types.EnginePolicy {
-	queryPolicies := make([]types.EnginePolicy, 0, len(policies))
+func convertToEngineRbacPolicies(policies []dao.EngineRbacPolicy) (rbacPolicies []types.EngineRbacPolicy) {
+	if len(policies) == 0 {
+		return
+	}
+
 	for _, p := range policies {
-		actionPKs, err := util.StringToInt64Slice(p.ActionPKs, ",")
-		if err != nil {
-			log.WithError(err).
-				Errorf("engine rbac policy action pks convert to int64 slice fail, actionPKs=`%+v`", p.ActionPKs)
-			continue
-		}
-		// expr, err1 := constructExpr(p)
-		// if err1 != nil {
-		// 	log.WithError(err).Errorf("engine rbac policy constructExpr fail, policy=`%+v", p)
-		// 	continue
-		// }
-		expr := ""
-		queryPolicies = append(queryPolicies, types.EnginePolicy{
-			Version:   PolicyVersion,
-			ID:        p.PK,
-			ActionPKs: actionPKs,
-			SubjectPK: p.GroupPK,
-			// ExpressionPK: p.ExpressionPK,
-			ExpressionStr: expr,
-			TemplateID:    p.TemplateID,
-			ExpiredAt:     util.NeverExpiresUnixTime,
-			UpdatedAt:     p.UpdatedAt.Unix(),
+		rbacPolicies = append(rbacPolicies, types.EngineRbacPolicy{
+			PK:                          p.PK,
+			GroupPK:                     p.GroupPK,
+			TemplateID:                  p.TemplateID,
+			SystemID:                    p.SystemID,
+			ActionPKs:                   p.ActionPKs,
+			ActionRelatedResourceTypePK: p.ActionRelatedResourceTypePK,
+			ResourceTypePK:              p.ResourceTypePK,
+			ResourceID:                  p.ResourceID,
+			UpdatedAt:                   p.UpdatedAt,
 		})
 	}
-	return queryPolicies
+	return
 }
-
-// func constructExpr(p dao.EngineRbacPolicy) (string, error) {
-// 	var exprCell expression.ExprCell
-
-// 	action_rt, err := cacheimpls.GetThinResourceType(p.ActionRelatedResourceTypePK)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	if p.ActionRelatedResourceTypePK == p.ResourceTypePK {
-// 		// pipeline.id eq 123
-// 		exprCell = expression.ExprCell{
-// 			OP:    operator.Eq,
-// 			Field: action_rt.ID + ".id",
-// 			Value: p.ResourceID,
-// 		}
-// 	} else {
-// 		// pipeline._bk_iam_path_ string_contains "/project,1/"
-// 		rt, err := cacheimpls.GetThinResourceType(p.ResourceTypePK)
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		exprCell = expression.ExprCell{
-// 			OP:    operator.StringContains,
-// 			Field: action_rt.ID + abactypes.IamPathSuffix,
-// 			Value: fmt.Sprintf("/%s,%s/", rt.ID, p.ResourceID),
-// 		}
-// 	}
-
-// 	return jsoniter.MarshalToString(exprCell)
-// }

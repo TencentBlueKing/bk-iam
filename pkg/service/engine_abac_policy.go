@@ -19,12 +19,19 @@ import (
 	"iam/pkg/service/types"
 )
 
+type EngineAbacPolicyService interface {
+	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
+	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
+	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EngineAbacPolicy, err error)
+	ListByPKs(pks []int64) (policies []types.EngineAbacPolicy, err error)
+}
+
 type engineAbacPolicyService struct {
 	manager dao.EngineAbacPolicyManager
 }
 
 // NewEnginePolicyService create the EnginePolicyService
-func NewAbacEnginePolicyService() EnginePolicyService {
+func NewEngineAbacPolicyService() EngineAbacPolicyService {
 	return &engineAbacPolicyService{
 		manager: dao.NewAbacEnginePolicyManager(),
 	}
@@ -43,7 +50,7 @@ func (s *engineAbacPolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpda
 // ListBetweenPK ...
 func (s *engineAbacPolicyService) ListBetweenPK(
 	expiredAt, minPK, maxPK int64,
-) (queryPolicies []types.EnginePolicy, err error) {
+) (queryPolicies []types.EngineAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListBetweenPK")
 
 	policies, err := s.manager.ListBetweenPK(expiredAt, minPK, maxPK)
@@ -54,12 +61,11 @@ func (s *engineAbacPolicyService) ListBetweenPK(
 		)
 		return nil, err
 	}
-
-	return convertEngineAbacPoliciesToEnginePolicies(policies)
+	return convertToEngineAbacPolicies(policies), nil
 }
 
 // ListByPKs ...
-func (s *engineAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.EnginePolicy, err error) {
+func (s *engineAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.EngineAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
@@ -67,31 +73,24 @@ func (s *engineAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.
 		err = errorWrapf(err, "manager.ListByPKs pks=`%+v` fail", pks)
 		return nil, err
 	}
-
-	return convertEngineAbacPoliciesToEnginePolicies(policies)
+	return convertToEngineAbacPolicies(policies), nil
 }
 
-func convertEngineAbacPoliciesToEnginePolicies(
-	policies []dao.EngineAbacPolicy,
-) (enginePolicies []types.EnginePolicy, err error) {
+func convertToEngineAbacPolicies(policies []dao.EngineAbacPolicy) (abacPolicies []types.EngineAbacPolicy) {
 	if len(policies) == 0 {
 		return
 	}
 
-	// loop policies to build enginePolicies
 	for _, p := range policies {
-		ep := types.EnginePolicy{
-			Version:      PolicyVersion,
-			ID:           p.PK,
-			ActionPKs:    []int64{p.ActionPK},
+		abacPolicies = append(abacPolicies, types.EngineAbacPolicy{
+			PK:           p.PK,
 			SubjectPK:    p.SubjectPK,
+			ActionPK:     p.ActionPK,
 			ExpressionPK: p.ExpressionPK,
-			TemplateID:   p.TemplateID,
 			ExpiredAt:    p.ExpiredAt,
-			UpdatedAt:    p.UpdatedAt.Unix(),
-		}
-
-		enginePolicies = append(enginePolicies, ep)
+			TemplateID:   p.TemplateID,
+			UpdatedAt:    p.UpdatedAt,
+		})
 	}
-	return enginePolicies, nil
+	return
 }

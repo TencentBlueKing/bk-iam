@@ -10,6 +10,8 @@
 
 package types
 
+import "time"
+
 // ======== FOR AUTH ========
 
 // AuthPolicy for auth
@@ -49,22 +51,34 @@ type QueryPolicy struct {
 // 	TemplateID int64
 // 	UpdatedAt  int64
 // }
+type EngineAbacPolicy struct {
+	PK int64
 
-type EnginePolicy struct {
-	Version string
-	ID      int64
-	System  string
-	// abac, policy with single action
-	// rbac, policy with multiple actions
-	ActionPKs []int64
+	SubjectPK    int64
+	ActionPK     int64
+	ExpressionPK int64
 
-	SubjectPK int64
+	ExpiredAt  int64
+	TemplateID int64
 
-	ExpressionStr string
-	ExpressionPK  int64
-	TemplateID    int64
-	ExpiredAt     int64
-	UpdatedAt     int64
+	UpdatedAt time.Time
+}
+
+type EngineRbacPolicy struct {
+	PK int64
+
+	GroupPK    int64
+	TemplateID int64
+	SystemID   string
+
+	ActionPKs                   string
+	ActionRelatedResourceTypePK int64
+
+	// 授权的资源实例
+	ResourceTypePK int64
+	ResourceID     string
+
+	UpdatedAt time.Time
 }
 
 // Policy ...

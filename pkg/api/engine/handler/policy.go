@@ -21,7 +21,6 @@ import (
 	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
-	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -52,21 +51,21 @@ func ListPolicy(c *gin.Context) {
 	query.initDefault()
 
 	var (
-		policies []types.EnginePolicy
+		policies []prp.EnginePolicy
 		err      error
 	)
-	svc := service.NewAbacEnginePolicyService()
+	manager := prp.NewEnginePolicyManager()
 	// 有pks, 优先查询pks的数据
 	if query.hasIDs() {
 		pks, _ := query.getIDs()
-		policies, err = svc.ListByPKs(pks)
+		policies, err = manager.ListByPKs("abac", pks)
 		if err != nil {
 			err = fmt.Errorf("svc.ListByPKs pks=`%s` fail. err=%w", query.IDs, err)
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}
 	} else {
-		policies, err = svc.ListBetweenPK(query.Timestamp, query.MinID, query.MaxID)
+		policies, err = manager.ListBetweenPK("abac", query.Timestamp, query.MinID, query.MaxID)
 		if err != nil {
 			err = fmt.Errorf("svc.ListBetweenPK expiredAt=`%d`, minPK=`%d`, maxPK=`%d` fail. err=%w",
 				query.Timestamp, query.MinID, query.MaxID, err)
@@ -115,8 +114,8 @@ func ListPolicyPKs(c *gin.Context) {
 		return
 	}
 
-	svc := service.NewAbacEnginePolicyService()
-	pks, err := svc.ListPKBetweenUpdatedAt(query.BeginUpdatedAt, query.EndUpdatedAt)
+	manager := prp.NewEnginePolicyManager()
+	pks, err := manager.ListPKBetweenUpdatedAt("abac", query.BeginUpdatedAt, query.EndUpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.ListPKBetweenUpdatedAt beginUpdatedAt=`%d`, endUpdatedAt=`%d` fail. err=%w",
 			query.BeginUpdatedAt, query.EndUpdatedAt, err)
@@ -150,8 +149,8 @@ func GetMaxPolicyPK(c *gin.Context) {
 		return
 	}
 
-	svc := service.NewAbacEnginePolicyService()
-	pk, err := svc.GetMaxPKBeforeUpdatedAt(query.UpdatedAt)
+	manager := prp.NewEnginePolicyManager()
+	pk, err := manager.GetMaxPKBeforeUpdatedAt("abac", query.UpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.GetMaxPKBeforeUpdatedAt updatedAt=`%d` fail. err=%w",
 			query.UpdatedAt, err)
@@ -165,29 +164,13 @@ func GetMaxPolicyPK(c *gin.Context) {
 // ===========================================================
 
 func convertEnginePoliciesToResponse(
-	enginePolicies []types.EnginePolicy,
+	enginePolicies []prp.EnginePolicy,
 ) (responses []enginePolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.convertEnginePoliciesToResponse")
-	// query all expression
-	pkExpressionStrMap, err := queryPoliciesExpression(enginePolicies)
-	if err != nil {
-		err = errorWrapf(err, "queryPolicyExpression policies length=`%d` fail", len(enginePolicies))
-		return
-	}
 
 	results := make([]enginePolicyResponse, len(enginePolicies))
 
 	for _, p := range enginePolicies {
-		expr, ok := pkExpressionStrMap[p.ExpressionPK]
-		if !ok {
-			log.Errorf(
-				"policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
-				p.ExpressionPK,
-			)
-
-			continue
-		}
-
 		// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
 		subj, err := cacheimpls.GetSubjectByPK(p.SubjectPK)
 		if err != nil {
@@ -217,9 +200,9 @@ func convertEnginePoliciesToResponse(
 			actions = []policyResponseAction{}
 		}
 
-		translatedExpr, err2 := translate.PolicyExpressionTranslate(expr)
+		translatedExpr, err2 := translate.PolicyExpressionTranslate(p.Expression)
 		if err2 != nil {
-			err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, expr)
+			err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, p.Expression)
 			return responses, err
 		}
 
@@ -242,37 +225,4 @@ func convertEnginePoliciesToResponse(
 		results = append(results, policy)
 	}
 	return results, nil
-}
-
-// AnyExpressionPK is the pk for expression=any
-const AnyExpressionPK = -1
-
-func queryPoliciesExpression(policies []types.EnginePolicy) (map[int64]string, error) {
-	expressionPKs := make([]int64, 0, len(policies))
-	for _, p := range policies {
-		if p.ExpressionPK != AnyExpressionPK {
-			expressionPKs = append(expressionPKs, p.ExpressionPK)
-		}
-	}
-
-	pkExpressionStrMap := map[int64]string{
-		// NOTE: -1 for the `any`
-		AnyExpressionPK: "",
-	}
-	if len(expressionPKs) > 0 {
-		manager := prp.NewPolicyManager()
-
-		var exprs []types.AuthExpression
-		var err error
-		// FIXME: service调用prp
-		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, e := range exprs {
-			pkExpressionStrMap[e.PK] = e.Expression
-		}
-	}
-	return pkExpressionStrMap, nil
 }

@@ -10,17 +10,15 @@
 
 package service
 
-import "iam/pkg/service/types"
-
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 // EnginePolicySVC is the layer-object name
 const EnginePolicySVC = "EnginePolicySVC"
 
 // EnginePolicyService provide the func for iam-engine
-type EnginePolicyService interface {
-	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
-	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
-	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EnginePolicy, err error)
-	ListByPKs(pks []int64) (policies []types.EnginePolicy, err error)
-}
+// type EnginePolicyService interface {
+// 	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
+// 	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
+// 	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EnginePolicy, err error)
+// 	ListByPKs(pks []int64) (policies []types.EnginePolicy, err error)
+// }

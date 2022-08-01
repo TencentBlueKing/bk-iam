@@ -64,15 +64,14 @@ var _ = Describe("PolicyEngine", func() {
 			policies, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), []types.EnginePolicy{{
-				Version:      PolicyVersion,
-				ID:           int64(1),
+			assert.Equal(GinkgoT(), []types.EngineAbacPolicy{{
+				PK:           int64(1),
 				SubjectPK:    int64(1),
-				ActionPKs:    []int64{1},
+				ActionPK:     int64(1),
 				ExpressionPK: int64(1),
 				ExpiredAt:    int64(1),
 				TemplateID:   int64(1),
-				UpdatedAt:    updatedAt.Unix(),
+				UpdatedAt:    updatedAt,
 			}}, policies)
 		})
 
@@ -129,15 +128,14 @@ var _ = Describe("PolicyEngine", func() {
 			policies, err := svc.ListByPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), []types.EnginePolicy{{
-				Version:      PolicyVersion,
-				ID:           int64(1),
+			assert.Equal(GinkgoT(), []types.EngineAbacPolicy{{
+				PK:           int64(1),
 				SubjectPK:    int64(1),
-				ActionPKs:    []int64{1},
+				ActionPK:     int64(1),
 				ExpressionPK: int64(1),
 				ExpiredAt:    int64(1),
 				TemplateID:   int64(1),
-				UpdatedAt:    updatedAt.Unix(),
+				UpdatedAt:    updatedAt,
 			}}, policies)
 		})
 
