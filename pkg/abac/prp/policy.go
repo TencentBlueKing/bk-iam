@@ -23,6 +23,8 @@ import (
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
+	"iam/pkg/abac/prp/rbac"
+	"iam/pkg/abac/prp/temporary"
 	"iam/pkg/abac/types"
 	"iam/pkg/logging/debug"
 	"iam/pkg/service"
@@ -126,44 +128,56 @@ func (m *policyManager) ListBySubjectAction(
 	action types.Action,
 	effectGroupPKs []int64,
 	withoutCache bool,
-	parentEntry *debug.Entry,
+	entry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
-	// 1. 查询一般权限
-	policies, err = m.listBySubjectAction(
-		system, subject, action, effectGroupPKs, withoutCache, parentEntry,
-	)
-	if err != nil {
-		return
+	if entry != nil {
+		debug.WithValue(entry, "cacheEnabled", !withoutCache)
 	}
 
-	// 2. 查询临时权限
-	temporaryPolicies, err := m.listTemporaryBySubjectAction(
-		system, subject, action, withoutCache, parentEntry,
+	// 1. 查询一般权限
+	debug.AddStep(entry, "query policy")
+	policies, err = m.listBySubjectAction(
+		system, subject, action, effectGroupPKs, withoutCache, entry,
 	)
 	if err != nil {
 		return
 	}
+	debug.WithValue(entry, "policies", policies)
+
+	// 2. 查询临时权限
+	debug.AddStep(entry, "query temporary policy")
+	temporaryPolicies, err := m.listTemporaryBySubjectAction(
+		system, subject, action, withoutCache, entry,
+	)
+	if err != nil {
+		return
+	}
+	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)
 
 	if len(temporaryPolicies) != 0 {
 		policies = append(policies, temporaryPolicies...)
 	}
 
+	debug.AddStep(entry, "get action auth type")
 	actionAuthType, err := action.Attribute.GetAuthType()
 	if err != nil {
 		return policies, err
 	}
+	debug.WithValue(entry, "actionAuthType", actionAuthType)
 
 	if actionAuthType != svctypes.AuthTypeRBAC {
 		return
 	}
 
 	// 3. 查询RBAC表达式
+	debug.AddStep(entry, "query rbac policy")
 	rbacPolicies, err := m.listRbacBySubjectAction(
-		system, subject, action, withoutCache, parentEntry,
+		system, subject, action, withoutCache, entry,
 	)
 	if err != nil {
 		return
 	}
+	debug.WithValue(entry, "rbacPolicies", rbacPolicies)
 
 	if len(rbacPolicies) != 0 {
 		policies = append(policies, rbacPolicies...)
@@ -183,9 +197,6 @@ func (m *policyManager) listBySubjectAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
-	if entry != nil {
-		debug.WithValue(entry, "cacheEnabled", !withoutCache)
-	}
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
@@ -326,9 +337,6 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listTemporaryBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
-	if entry != nil {
-		debug.WithValue(entry, "cacheEnabled", !withoutCache)
-	}
 
 	// 1. get subject pk
 	debug.AddStep(entry, "Get Subject PK")
@@ -348,11 +356,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var retriever TemporaryPolicyRetriever
+	var retriever temporary.TemporaryPolicyRetriever
 	if withoutCache {
 		retriever = m.temporaryPolicyService
 	} else {
-		retriever = newTemporaryPolicyCacheRetriever(system, m.temporaryPolicyService)
+		retriever = temporary.NewTemporaryPolicyCacheRetriever(system, m.temporaryPolicyService)
 	}
 
 	// 3. 查询在有效期内的临时权限pks
@@ -423,9 +431,6 @@ func (m *policyManager) listRbacBySubjectAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listRbacBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
-	if entry != nil {
-		debug.WithValue(entry, "cacheEnabled", !withoutCache)
-	}
 
 	// 1. get subject department pk
 	debug.AddStep(entry, "Get Subject Department PK")
@@ -454,11 +459,11 @@ func (m *policyManager) listRbacBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var retriever RbacPolicyRetriever
+	var retriever rbac.RbacPolicyRetriever
 	if withoutCache {
-		retriever = newRbacPolicyDatabaseRetriever()
+		retriever = rbac.NewRbacPolicyDatabaseRetriever()
 	} else {
-		retriever = newRbacPolicyRedisRetriever()
+		retriever = rbac.NewRbacPolicyRedisRetriever()
 	}
 
 	// 4. 查询rbac表达式

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package rbac
 
 import (
 	"math/rand"
@@ -32,6 +32,8 @@ import (
 	"iam/pkg/task/producer"
 )
 
+const rbacRedisLayer = "rbacPolicyRedisLayer"
+
 /*
 subject RBAC expression 查询缓存:
 
@@ -48,7 +50,7 @@ var singletonRbacPolicyRedisRetriever RbacPolicyRetriever
 
 var rbacPolicyRedisRetrieverOnce sync.Once
 
-type rbacPolicyRedisRetriever struct {
+type RbacPolicyRedisRetriever struct {
 	subjectActionExpressionService    service.SubjectActionExpressionService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	groupAlterEventService            service.GroupAlterEventService
@@ -59,10 +61,10 @@ type rbacPolicyRedisRetriever struct {
 }
 
 // NOTE: 为保证singleflight.Group的使用，这里返回单例
-func newRbacPolicyRedisRetriever() RbacPolicyRetriever {
+func NewRbacPolicyRedisRetriever() RbacPolicyRetriever {
 	if singletonRbacPolicyRedisRetriever == nil {
 		rbacPolicyRedisRetrieverOnce.Do(func() {
-			singletonRbacPolicyRedisRetriever = &rbacPolicyRedisRetriever{
+			singletonRbacPolicyRedisRetriever = &RbacPolicyRedisRetriever{
 				subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 				subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 				groupAlterEventService:            service.NewGroupAlterEventService(),
@@ -74,21 +76,26 @@ func newRbacPolicyRedisRetriever() RbacPolicyRetriever {
 }
 
 // ListBySubjectAction ...
-func (r *rbacPolicyRedisRetriever) ListBySubjectAction(
+func (r *RbacPolicyRedisRetriever) ListBySubjectAction(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "ListBySubjectAction")
-	expressions, err := r.listBySubjectAction(subjectPKs, actionPK)
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(rbacRedisLayer, "ListBySubjectAction")
+	expressions, err := r.listBySubjectActionFromCache(subjectPKs, actionPK)
 	if err != nil {
 		return nil, err
 	}
 
 	nowUnix := time.Now().Unix()
-	validExpression := make([]types.SubjectActionExpression, 0, len(expressions))
+	validExpressions := make([]types.SubjectActionExpression, 0, len(expressions))
 	for _, expression := range expressions {
+		// NOTE: expriredAt为0表示所有的用户组都已过期, 忽略该无效数据
+		if expression.ExpiredAt == 0 {
+			continue
+		}
+
 		if expression.ExpiredAt > nowUnix {
-			validExpression = append(validExpression, expression)
+			validExpressions = append(validExpressions, expression)
 			continue
 		}
 
@@ -108,19 +115,19 @@ func (r *rbacPolicyRedisRetriever) ListBySubjectAction(
 		}
 
 		exp := expI.(types.SubjectActionExpression)
-		if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
-			validExpression = append(validExpression, exp)
+		if exp.ExpiredAt != 0 {
+			validExpressions = append(validExpressions, exp)
 		}
 	}
 
-	return validExpression, nil
+	return validExpressions, nil
 }
 
-func (r *rbacPolicyRedisRetriever) listBySubjectAction(
+func (r *RbacPolicyRedisRetriever) listBySubjectActionFromCache(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listBySubjectAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(rbacRedisLayer, "listBySubjectActionFromCache")
 
 	// query from cache
 	expressions, missSubjectPKs, err := r.batchGet(subjectPKs, actionPK)
@@ -151,7 +158,7 @@ func (r *rbacPolicyRedisRetriever) listBySubjectAction(
 	}
 
 	// set missing cache
-	err = r.setMissing(svcExpressions, missSubjectPKs, actionPK)
+	err = r.setMissing(missSubjectPKs, actionPK, svcExpressions)
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -167,10 +174,10 @@ func (r *rbacPolicyRedisRetriever) listBySubjectAction(
 	return expressions, nil
 }
 
-func (r *rbacPolicyRedisRetriever) setMissing(
-	expressions []types.SubjectActionExpression,
+func (r *RbacPolicyRedisRetriever) setMissing(
 	missingSubjectPKs []int64,
 	actionPK int64,
+	expressions []types.SubjectActionExpression,
 ) error {
 	hitSubjectPKs := set.NewInt64Set()
 	kvs := make([]redis.KV, 0, len(missingSubjectPKs))
@@ -211,7 +218,7 @@ func (r *rbacPolicyRedisRetriever) setMissing(
 	)
 }
 
-func (r *rbacPolicyRedisRetriever) batchGet(
+func (r *RbacPolicyRedisRetriever) batchGet(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, []int64, error) {
@@ -259,7 +266,7 @@ func (r *rbacPolicyRedisRetriever) batchGet(
 	return expressions, missSubjectPKs, nil
 }
 
-func (r *rbacPolicyRedisRetriever) refreshSubjectActionExpression(
+func (r *RbacPolicyRedisRetriever) refreshSubjectActionExpression(
 	subjectPK, actionPK int64,
 ) (expression types.SubjectActionExpression, err error) {
 	// query subject action group resource from db
@@ -274,19 +281,8 @@ func (r *rbacPolicyRedisRetriever) refreshSubjectActionExpression(
 		return
 	}
 
-	var value interface{} = expression
-	// NOTE: if expiredAt == 0, means all group resource is expired
-	if expression.ExpiredAt == 0 {
-		value = ""
-	}
-
 	// set cache
-	key := cacheimpls.SubjectActionCacheKey{SubjectPK: subjectPK, ActionPK: actionPK}
-	err = cacheimpls.SubjectActionExpressionCache.Set(
-		key,
-		value,
-		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(randExpireSeconds))*time.Second,
-	)
+	err = r.setSubjectActionExpressionCache(expression)
 	if err != nil {
 		return
 	}
@@ -296,7 +292,16 @@ func (r *rbacPolicyRedisRetriever) refreshSubjectActionExpression(
 	return expression, nil
 }
 
-func (r *rbacPolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, actionPK int64) {
+func (*RbacPolicyRedisRetriever) setSubjectActionExpressionCache(expression types.SubjectActionExpression) error {
+	key := cacheimpls.SubjectActionCacheKey{SubjectPK: expression.SubjectPK, ActionPK: expression.ActionPK}
+	return cacheimpls.SubjectActionExpressionCache.Set(
+		key,
+		expression,
+		cacheimpls.PolicyCacheExpiration+time.Duration(rand.Intn(randExpireSeconds))*time.Second,
+	)
+}
+
+func (r *RbacPolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, actionPK int64) {
 	pk, err := r.groupAlterEventService.CreateBySubjectActionGroup(subjectPK, actionPK, 0)
 	if err != nil {
 		log.WithError(err).Errorf("create group alter event fail, subjectPK=`%d`, actionPK=`%d`",
@@ -309,73 +314,4 @@ func (r *rbacPolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, ac
 	if err != nil {
 		log.WithError(err).Errorf("publish alter event message fail, pk=`%d`", pk)
 	}
-}
-
-type rbacPolicyDatabaseRetriever struct {
-	subjectActionExpressionService    service.SubjectActionExpressionService
-	subjectActionGroupResourceService service.SubjectActionGroupResourceService
-}
-
-func newRbacPolicyDatabaseRetriever() RbacPolicyRetriever {
-	return &rbacPolicyDatabaseRetriever{
-		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
-		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
-	}
-}
-
-func (r *rbacPolicyDatabaseRetriever) ListBySubjectAction(
-	subjectPKs []int64,
-	actionPK int64,
-) ([]types.SubjectActionExpression, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "ListBySubjectAction")
-	expressions, err := r.subjectActionExpressionService.ListBySubjectAction(subjectPKs, actionPK)
-	if err != nil {
-		err = errorWrapf(
-			err,
-			"subjectActionExpressionService.ListBySubjectAction fail, subjectPKs=`%+v`, actionPK=`%d`",
-			subjectPKs,
-			actionPK,
-		)
-		return nil, err
-	}
-
-	nowUnix := time.Now().Unix()
-	validExpression := make([]types.SubjectActionExpression, 0, len(expressions))
-	for _, expression := range expressions {
-		if expression.ExpiredAt > nowUnix {
-			validExpression = append(validExpression, expression)
-			continue
-		}
-
-		// 已过期的数据，从原始数据中转换获取
-		exp, err := r.refreshSubjectActionExpression(expression.SubjectPK, actionPK)
-		if err != nil {
-			err = errorWrapf(
-				err,
-				"refreshSubjectActionExpression fail, subjectPK=`%d`, actionPK=`%d`",
-				expression.SubjectPK,
-				actionPK,
-			)
-			return nil, err
-		}
-
-		if exp.ExpiredAt != 0 { // NOTE: 如果过期时间为0，说明所有的group都以过期，无效数据
-			validExpression = append(validExpression, exp)
-		}
-	}
-
-	return validExpression, nil
-}
-
-func (r *rbacPolicyDatabaseRetriever) refreshSubjectActionExpression(
-	subjectPK, actionPK int64,
-) (expression types.SubjectActionExpression, err error) {
-	// query subject action group resource from db
-	obj, err := r.subjectActionGroupResourceService.Get(subjectPK, actionPK)
-	if err != nil {
-		return
-	}
-
-	// to subject action expression
-	return handler.ConvertSubjectActionGroupResourceToExpression(obj)
 }

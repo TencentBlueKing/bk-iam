@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package rbac
 
 import (
 	"time"
@@ -29,7 +29,7 @@ import (
 
 var _ = Describe("RbacPolicy", func() {
 	Describe("rbacPolicyRedisRetriever", func() {
-		var r *rbacPolicyRedisRetriever
+		var r *RbacPolicyRedisRetriever
 		var ctl *gomock.Controller
 		var mockSubjectActionExpressionService *mock.MockSubjectActionExpressionService
 		var mockSubjectActionGroupResourceService *mock.MockSubjectActionGroupResourceService
@@ -42,7 +42,7 @@ var _ = Describe("RbacPolicy", func() {
 			mockGroupAlterEventService = mock.NewMockGroupAlterEventService(ctl)
 			mockProducer = producermock.NewMockProducer(ctl)
 
-			r = &rbacPolicyRedisRetriever{
+			r = &RbacPolicyRedisRetriever{
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				groupAlterEventService:            mockGroupAlterEventService,

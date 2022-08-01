@@ -102,11 +102,6 @@ func (s *subjectActionExpressionService) ListBySubjectAction(
 
 	expressions := make([]types.SubjectActionExpression, 0, len(daoExpressions))
 	for _, e := range daoExpressions {
-		// 过期时间为空, 无效数据
-		if e.ExpiredAt == 0 {
-			continue
-		}
-
 		// NOTE: 这里可能有已经过期的数据, 由上层处理更新事件
 		expressions = append(expressions, types.SubjectActionExpression{
 			PK:         e.PK,

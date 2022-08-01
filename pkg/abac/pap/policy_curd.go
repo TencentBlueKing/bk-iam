@@ -17,9 +17,9 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
+	"iam/pkg/abac/prp/temporary"
 	"iam/pkg/abac/types"
 	svctypes "iam/pkg/service/types"
 )
@@ -249,7 +249,7 @@ func (c *policyController) CreateTemporaryPolicies(
 	}
 
 	// NOTE: delete the temporary policy cache before leave
-	defer prp.DeleteTemporaryPolicyBySystemSubjectFromCache(system, subjectPK)
+	defer temporary.DeleteTemporaryPolicyBySystemSubjectFromCache(system, subjectPK)
 
 	// 3. 执行创建
 	pks, err = c.temporaryPolicyService.Create(ps)
@@ -274,7 +274,7 @@ func (c *policyController) DeleteTemporaryByIDs(system string, subjectType, subj
 	// 判断policyIDs是否为空，避免执行无效SQL
 	if len(policyIDs) > 0 {
 		// NOTE: delete cache here
-		defer prp.DeleteTemporaryPolicyBySystemSubjectFromCache(system, pk)
+		defer temporary.DeleteTemporaryPolicyBySystemSubjectFromCache(system, pk)
 
 		err := c.temporaryPolicyService.DeleteByPKs(pk, policyIDs)
 		if err != nil {

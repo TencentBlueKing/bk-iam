@@ -368,13 +368,13 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ok", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
+			mockManager.EXPECT().ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			pks, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
+			pks, err := svc.ListPKLessThanCheckCountBeforeCreateAt(2, 3)
 			assert.NoError(GinkgoT(), err)
 
 			assert.Equal(GinkgoT(), []int64{1}, pks)
@@ -382,13 +382,13 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ListPKByCheckCountBeforeCreateAt fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
+			mockManager.EXPECT().ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			_, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
+			_, err := svc.ListPKLessThanCheckCountBeforeCreateAt(2, 3)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "error")
 		})

@@ -13,7 +13,7 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -32,7 +32,7 @@ const GroupAlterEventSVC = "GroupAlterEventSVC"
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
 	Get(pk int64) (event types.GroupAlterEvent, err error)
-	ListPKLtCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
+	ListPKLessThanCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
 
 	IncrCheckCount(pk int64) (err error)
 	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
@@ -246,12 +246,12 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	return pks, nil
 }
 
-// ListPKLtCheckCountBeforeCreateAt ...
-func (s *groupAlterEventService) ListPKLtCheckCountBeforeCreateAt(
+// ListPKLessThanCheckCountBeforeCreateAt ...
+func (s *groupAlterEventService) ListPKLessThanCheckCountBeforeCreateAt(
 	checkCount int64,
 	createdAt int64,
 ) ([]int64, error) {
-	return s.manager.ListPKLtCheckCountBeforeCreateAt(checkCount, createdAt)
+	return s.manager.ListPKLessThanCheckCountBeforeCreateAt(checkCount, createdAt)
 }
 
 func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error) {
@@ -263,7 +263,8 @@ func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK,
 	}
 
 	if len(pks) != 1 {
-		return 0, errorWrapf(fmt.Errorf("bulkCreate return pks=`%+v`", pks), "")
+		err = errors.New("bulkCreate return pks length not equal 1")
+		return 0, errorWrapf(err, "groupPK=`%d` actionPK=`%d` subjectPK=`%d` pks=`%+v`", groupPK, actionPK, subjectPK, pks)
 	}
 
 	return pks[0], nil

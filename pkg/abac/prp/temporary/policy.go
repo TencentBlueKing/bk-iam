@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package temporary
 
 /*
 临时权限的查询分为2步:
@@ -54,16 +54,16 @@ const (
 	TemporaryPolicyCacheDelaySeconds = 10
 )
 
-type temporaryPolicyCache struct {
+type TemporaryPolicyCacheRetriever struct {
 	*temporaryPolicyRedisCache
 	*temporaryPolicyLocalCache
 }
 
-func newTemporaryPolicyCacheRetriever(
+func NewTemporaryPolicyCacheRetriever(
 	system string,
 	svc service.TemporaryPolicyService,
 ) TemporaryPolicyRetriever {
-	return &temporaryPolicyCache{
+	return &TemporaryPolicyCacheRetriever{
 		temporaryPolicyRedisCache: newTemporaryPolicyRedisCache(system, svc),
 		temporaryPolicyLocalCache: newTemporaryPolicyLocalCache(svc),
 	}
