@@ -164,7 +164,7 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 			// 关系不存在, 或者group授权的资源实例为空, 从subject action group resource中删除对应的groupPK
 			obj, err = h.subjectActionGroupResourceService.DeleteGroupResourceWithTx(tx, subjectPK, actionPK, groupPK)
 			if errors.Is(err, sql.ErrNoRows) {
-				logger.Errorf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
+				logger.Warnf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
 				return nil
 			}
 
@@ -180,7 +180,7 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		// groupPK == 0, 只更新表达式
 		obj, err = h.subjectActionGroupResourceService.Get(subjectPK, actionPK)
 		if errors.Is(err, sql.ErrNoRows) {
-			logger.Errorf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
+			logger.Warnf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
 			return nil
 		}
 

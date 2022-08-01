@@ -147,7 +147,7 @@ func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
 	value, err := cacheimpls.TemporaryPolicyCache.HGet(hashKeyField)
 	if err != nil {
-		log.WithError(err).Errorf("[%s] HGet fail keyPrefix=`%s`, actionPK=`%d`, subjectPK=`%d`",
+		log.WithError(err).Warnf("[%s] HGet fail keyPrefix=`%s`, actionPK=`%d`, subjectPK=`%d`",
 			TemporaryPolicyRedisLayer, c.keyPrefix, actionPK, subjectPK)
 		return
 	}
