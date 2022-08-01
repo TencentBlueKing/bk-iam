@@ -382,7 +382,9 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ListPKByCheckCountBeforeCreateAt fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
+			mockManager.EXPECT().
+				ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).
+				Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,

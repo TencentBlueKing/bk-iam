@@ -264,7 +264,14 @@ func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK,
 
 	if len(pks) != 1 {
 		err = errors.New("bulkCreate return pks length not equal 1")
-		return 0, errorWrapf(err, "groupPK=`%d` actionPK=`%d` subjectPK=`%d` pks=`%+v`", groupPK, actionPK, subjectPK, pks)
+		return 0, errorWrapf(
+			err,
+			"groupPK=`%d` actionPK=`%d` subjectPK=`%d` pks=`%+v`",
+			groupPK,
+			actionPK,
+			subjectPK,
+			pks,
+		)
 	}
 
 	return pks[0], nil

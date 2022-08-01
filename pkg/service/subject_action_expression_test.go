@@ -203,6 +203,9 @@ var _ = Describe("SubjectActionExpressionService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.SubjectActionExpression{
 				{
+					PK:        1,
+					ExpiredAt: 0,
+				}, {
 					PK:        2,
 					ExpiredAt: 10,
 				},
