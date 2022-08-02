@@ -236,7 +236,7 @@ func ConvertSubjectActionGroupResourceToExpression(
 			ActionPK:   obj.ActionPK,
 			Expression: `{}`,
 			ExpiredAt:  0,
-		}, util.ErrNilRequestBody
+		}, nil
 	}
 
 	// 生成表达式内容
