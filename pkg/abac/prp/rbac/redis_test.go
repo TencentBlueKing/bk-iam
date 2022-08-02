@@ -205,7 +205,7 @@ var _ = Describe("RbacPolicy", func() {
 				Return(types.SubjectActionGroupResource{}, nil).
 				Times(1)
 			patches := gomonkey.ApplyFunc(
-				convert.ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(r types.SubjectActionGroupResource) (types.SubjectActionExpression, error) {
 					return types.SubjectActionExpression{
 						PK:         2,

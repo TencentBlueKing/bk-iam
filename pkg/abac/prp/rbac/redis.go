@@ -276,7 +276,7 @@ func (r *RbacPolicyRedisRetriever) refreshSubjectActionExpression(
 	}
 
 	// to subject action expression
-	expression, err = convert.ConvertSubjectActionGroupResourceToExpression(obj)
+	expression, err = convert.SubjectActionGroupResourceToExpression(obj)
 	if err != nil {
 		return
 	}

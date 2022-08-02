@@ -24,7 +24,7 @@ import (
 
 const convertLayer = "convert"
 
-func ConvertSubjectActionGroupResourceToExpression(
+func SubjectActionGroupResourceToExpression(
 	obj types.SubjectActionGroupResource,
 ) (expression types.SubjectActionExpression, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(convertLayer, "convertToSubjectActionExpression")

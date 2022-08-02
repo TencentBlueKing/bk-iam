@@ -169,7 +169,7 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				convert.ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},
@@ -213,7 +213,7 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				convert.ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},

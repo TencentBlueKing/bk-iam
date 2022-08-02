@@ -93,5 +93,5 @@ func (r *RbacPolicyDatabaseRetriever) refreshSubjectActionExpression(
 	}
 
 	// to subject action expression
-	return convert.ConvertSubjectActionGroupResourceToExpression(obj)
+	return convert.SubjectActionGroupResourceToExpression(obj)
 }

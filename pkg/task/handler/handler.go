@@ -191,7 +191,7 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 	}
 
 	// subject action resource group -> subject action expression
-	expression, err := convert.ConvertSubjectActionGroupResourceToExpression(obj)
+	expression, err := convert.SubjectActionGroupResourceToExpression(obj)
 	if err != nil {
 		return errorWrapf(err,
 			"convertToSubjectActionExpression fail, subjectActionResourceGroup=`%+v`",

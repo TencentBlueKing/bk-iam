@@ -72,7 +72,7 @@ var _ = Describe("Handler", func() {
 				},
 			}
 
-			expression, err := ConvertSubjectActionGroupResourceToExpression(obj)
+			expression, err := SubjectActionGroupResourceToExpression(obj)
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), expression.Expression, 209)
 		})
