@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/iam-go-sdk/expression/operator"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
@@ -12,7 +11,6 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -23,6 +21,13 @@ import (
 // rbac, table `rbac_group_resource_policy` auto increment ID, but scope = 500000000 - 1000000000
 
 const rbacIDBegin = 500000000
+
+const (
+	EngineListPolicyTypeAbac = "abac"
+	EngineListPolicyTypeRbac = "rbac"
+)
+
+var ErrEngineListPolicyUnsupportedType = errors.New("unsupported type")
 
 type EnginePolicy struct {
 	Version string
@@ -61,7 +66,7 @@ func NewEnginePolicyManager() EnginePolicyManager {
 
 func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(_type string, updatedAt int64) (int64, error) {
 	switch _type {
-	case "abac":
+	case EngineListPolicyTypeAbac:
 		return m.abacService.GetMaxPKBeforeUpdatedAt(updatedAt)
 	case "rbac":
 		maxPK, err := m.rbacService.GetMaxPKBeforeUpdatedAt(updatedAt)
@@ -70,7 +75,7 @@ func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(_type string, updatedAt in
 		}
 		return maxPK + rbacIDBegin, nil
 	default:
-		return 0, errors.New("unknown _type")
+		return 0, ErrEngineListPolicyUnsupportedType
 	}
 }
 
@@ -79,9 +84,9 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(
 	beginUpdatedAt, endUpdatedAt int64,
 ) ([]int64, error) {
 	switch _type {
-	case "abac":
+	case EngineListPolicyTypeAbac:
 		return m.abacService.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
-	case "rbac":
+	case EngineListPolicyTypeRbac:
 		pks, err := m.rbacService.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
 		if err != nil {
 			return nil, err
@@ -92,7 +97,7 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(
 		}
 		return rbacPKs, nil
 	default:
-		return nil, errors.New("unknown _type")
+		return nil, ErrEngineListPolicyUnsupportedType
 	}
 }
 
@@ -101,43 +106,43 @@ func (m *enginePolicyManager) ListBetweenPK(
 	expiredAt, minPK, maxPK int64,
 ) (policies []EnginePolicy, err error) {
 	switch _type {
-	case "abac":
+	case EngineListPolicyTypeAbac:
 		abacPolicies, err := m.abacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
 		}
-		return convertEngineAbacPoliciesToEnginePolicies(abacPolicies)
-	case "rbac":
+		return convertAbacPolicies(abacPolicies)
+	case EngineListPolicyTypeRbac:
 		rbacPolicies, err := m.rbacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
 		}
-		return convertEngineRbacPoliciesToEnginePolicies(rbacPolicies)
+		return convertRbacPolicies(rbacPolicies)
 	default:
-		return nil, errors.New("unknown _type")
+		return nil, ErrEngineListPolicyUnsupportedType
 	}
 }
 
 func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []EnginePolicy, err error) {
 	switch _type {
-	case "abac":
+	case EngineListPolicyTypeAbac:
 		abacPolicies, err := m.abacService.ListByPKs(pks)
 		if err != nil {
 			return nil, err
 		}
-		return convertEngineAbacPoliciesToEnginePolicies(abacPolicies)
-	case "rbac":
+		return convertAbacPolicies(abacPolicies)
+	case EngineListPolicyTypeRbac:
 		rbacPolicies, err := m.rbacService.ListByPKs(pks)
 		if err != nil {
 			return nil, err
 		}
-		return convertEngineRbacPoliciesToEnginePolicies(rbacPolicies)
+		return convertRbacPolicies(rbacPolicies)
 	default:
-		return nil, errors.New("unknown _type")
+		return nil, ErrEngineListPolicyUnsupportedType
 	}
 }
 
-func convertEngineAbacPoliciesToEnginePolicies(
+func convertAbacPolicies(
 	policies []types.EngineAbacPolicy,
 ) (enginePolicies []EnginePolicy, err error) {
 	if len(policies) == 0 {
@@ -204,7 +209,6 @@ func queryPoliciesExpression(policies []types.EngineAbacPolicy) (map[int64]strin
 
 		var exprs []types.AuthExpression
 		var err error
-		// FIXME: service调用prp
 		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
 		if err != nil {
 			return nil, err
@@ -217,7 +221,7 @@ func queryPoliciesExpression(policies []types.EngineAbacPolicy) (map[int64]strin
 	return pkExpressionStrMap, nil
 }
 
-func convertEngineRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
+func convertRbacPolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
 	queryPolicies := make([]EnginePolicy, 0, len(policies))
 	for _, p := range policies {
 		actionPKs, err := util.StringToInt64Slice(p.ActionPKs, ",")
@@ -261,14 +265,14 @@ func constructRbacPolicyExpr(p types.EngineRbacPolicy) (exprCell map[string]inte
 		}
 	} else {
 		// pipeline._bk_iam_path_ string_contains "/project,1/"
-		var rt svctypes.ThinResourceType
+		var rt types.ThinResourceType
 		rt, err = cacheimpls.GetThinResourceType(p.ResourceTypePK)
 		if err != nil {
 			return
 		}
 
 		exprCell = translate.ExprCell{
-			"op":    operator.StringContains,
+			"op":    "string_contains",
 			"field": action_rt.ID + abactypes.IamPathSuffix,
 			"value": fmt.Sprintf("/%s,%s/", rt.ID, p.ResourceID),
 		}

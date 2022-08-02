@@ -11,220 +11,225 @@
 package service
 
 import (
+	"errors"
+	"time"
+
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/database/dao"
+	"iam/pkg/database/dao/mock"
+	"iam/pkg/service/types"
 )
 
-var _ = Describe("PolicyEngine RBAC", func() {
-	// Describe("ListBetweenPK cases", func() {
-	// 	var ctl *gomock.Controller
+var _ = Describe("PolicyEngine Rbac", func() {
+	Describe("ListBetweenPK cases", func() {
+		var ctl *gomock.Controller
 
-	// 	BeforeEach(func() {
-	// 		ctl = gomock.NewController(GinkgoT())
-	// 	})
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
 
-	// 	AfterEach(func() {
-	// 		ctl.Finish()
-	// 	})
+		AfterEach(func() {
+			ctl.Finish()
+		})
 
-	// 	It("ok", func() {
-	// 		updatedAt := time.Now()
-	// 		daoPolicies := []dao.EnginePolicy{
-	// 			{
-	// 				Policy: dao.Policy{
-	// 					PK: int64(1),
+		It("ok", func() {
+			updatedAt := time.Now()
+			daoPolicies := []dao.EngineRbacPolicy{
+				{
+					PK:                          int64(1),
+					GroupPK:                     int64(2),
+					TemplateID:                  int64(3),
+					SystemID:                    "",
+					ActionPKs:                   "",
+					ActionRelatedResourceTypePK: int64(4),
+					ResourceTypePK:              int64(5),
+					ResourceID:                  "",
+					UpdatedAt:                   updatedAt,
+				},
+			}
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListBetweenPK(
+				int64(1), int64(100),
+			).Return(daoPolicies, nil)
 
-	// 					SubjectPK:    int64(1),
-	// 					ActionPK:     int64(1),
-	// 					ExpressionPK: int64(1),
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 					ExpiredAt:  int64(1),
-	// 					TemplateID: int64(1),
-	// 				},
-	// 				UpdatedAt: updatedAt,
-	// 			},
-	// 		}
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListBetweenPK(
-	// 			int64(1), int64(1), int64(100),
-	// 		).Return(daoPolicies, nil)
+			policies, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
+			assert.NoError(GinkgoT(), err)
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			assert.Equal(GinkgoT(), []types.EngineRbacPolicy{{
+				PK:                          int64(1),
+				GroupPK:                     int64(2),
+				TemplateID:                  int64(3),
+				SystemID:                    "",
+				ActionPKs:                   "",
+				ActionRelatedResourceTypePK: int64(4),
+				ResourceTypePK:              int64(5),
+				ResourceID:                  "",
+				UpdatedAt:                   updatedAt,
+			}}, policies)
+		})
 
-	// 		policies, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
-	// 		assert.NoError(GinkgoT(), err)
+		It("ListBetweenPK fail", func() {
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListBetweenPK(
+				int64(1), int64(100),
+			).Return(nil, errors.New("fail"))
 
-	// 		assert.Equal(GinkgoT(), []types.EngineQueryPolicy{{
-	// 			QueryPolicy: types.QueryPolicy{
-	// 				PK:           int64(1),
-	// 				SubjectPK:    int64(1),
-	// 				ActionPK:     int64(1),
-	// 				ExpressionPK: int64(1),
-	// 				ExpiredAt:    int64(1),
-	// 			},
-	// 			TemplateID: int64(1),
-	// 			UpdatedAt:  updatedAt.Unix(),
-	// 		}}, policies)
-	// 	})
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 	It("ListBetweenPK fail", func() {
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListBetweenPK(
-	// 			int64(1), int64(1), int64(100),
-	// 		).Return(nil, errors.New("fail"))
+			_, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
+			assert.Error(GinkgoT(), err)
+		})
+	})
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+	Describe("ListByPKs cases", func() {
+		var ctl *gomock.Controller
 
-	// 		_, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
-	// 		assert.Error(GinkgoT(), err)
-	// 	})
-	// })
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
 
-	// Describe("ListByPKs cases", func() {
-	// 	var ctl *gomock.Controller
+		AfterEach(func() {
+			ctl.Finish()
+		})
 
-	// 	BeforeEach(func() {
-	// 		ctl = gomock.NewController(GinkgoT())
-	// 	})
+		It("ok", func() {
+			updatedAt := time.Now()
+			daoPolicies := []dao.EngineRbacPolicy{
+				{
+					PK:                          int64(1),
+					GroupPK:                     int64(2),
+					TemplateID:                  int64(3),
+					SystemID:                    "",
+					ActionPKs:                   "",
+					ActionRelatedResourceTypePK: int64(4),
+					ResourceTypePK:              int64(5),
+					ResourceID:                  "",
+					UpdatedAt:                   updatedAt,
+				},
+			}
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(daoPolicies, nil)
 
-	// 	AfterEach(func() {
-	// 		ctl.Finish()
-	// 	})
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 	It("ok", func() {
-	// 		updatedAt := time.Now()
-	// 		daoPolicies := []dao.EnginePolicy{
-	// 			{
-	// 				Policy: dao.Policy{
-	// 					PK: int64(1),
+			policies, err := svc.ListByPKs([]int64{1, 2})
+			assert.NoError(GinkgoT(), err)
 
-	// 					SubjectPK:    int64(1),
-	// 					ActionPK:     int64(1),
-	// 					ExpressionPK: int64(1),
+			assert.Equal(GinkgoT(), []types.EngineRbacPolicy{{
+				PK:                          int64(1),
+				GroupPK:                     int64(2),
+				TemplateID:                  int64(3),
+				SystemID:                    "",
+				ActionPKs:                   "",
+				ActionRelatedResourceTypePK: int64(4),
+				ResourceTypePK:              int64(5),
+				ResourceID:                  "",
+				UpdatedAt:                   updatedAt,
+			}}, policies)
+		})
 
-	// 					ExpiredAt:  int64(1),
-	// 					TemplateID: int64(1),
-	// 				},
-	// 				UpdatedAt: updatedAt,
-	// 			},
-	// 		}
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(daoPolicies, nil)
+		It("ListBetweenPK fail", func() {
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("fail"))
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 		policies, err := svc.ListByPKs([]int64{1, 2})
-	// 		assert.NoError(GinkgoT(), err)
+			_, err := svc.ListByPKs([]int64{1, 2})
+			assert.Error(GinkgoT(), err)
+		})
+	})
 
-	// 		assert.Equal(GinkgoT(), []types.EngineQueryPolicy{{
-	// 			QueryPolicy: types.QueryPolicy{
-	// 				PK:           int64(1),
-	// 				SubjectPK:    int64(1),
-	// 				ActionPK:     int64(1),
-	// 				ExpressionPK: int64(1),
-	// 				ExpiredAt:    int64(1),
-	// 			},
-	// 			TemplateID: int64(1),
-	// 			UpdatedAt:  updatedAt.Unix(),
-	// 		}}, policies)
-	// 	})
+	Describe("GetMaxPKBeforeUpdatedAt cases", func() {
+		var ctl *gomock.Controller
 
-	// 	It("ListBetweenPK fail", func() {
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("fail"))
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+		AfterEach(func() {
+			ctl.Finish()
+		})
 
-	// 		_, err := svc.ListByPKs([]int64{1, 2})
-	// 		assert.Error(GinkgoT(), err)
-	// 	})
-	// })
+		It("ok", func() {
+			now := int64(1617457847)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(1), nil)
 
-	// Describe("GetMaxPKBeforeUpdatedAt cases", func() {
-	// 	var ctl *gomock.Controller
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 	BeforeEach(func() {
-	// 		ctl = gomock.NewController(GinkgoT())
-	// 	})
+			cnt, err := svc.GetMaxPKBeforeUpdatedAt(now)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), cnt)
+		})
 
-	// 	AfterEach(func() {
-	// 		ctl.Finish()
-	// 	})
+		It("GetCountByActionBeforeExpiredAtBetweenUpdatedAt fail", func() {
+			now := int64(1617457847)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(0), errors.New("fail"))
 
-	// 	It("ok", func() {
-	// 		now := int64(1617457847)
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(1), nil)
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			_, err := svc.GetMaxPKBeforeUpdatedAt(now)
+			assert.Error(GinkgoT(), err)
+		})
+	})
 
-	// 		cnt, err := svc.GetMaxPKBeforeUpdatedAt(now)
-	// 		assert.NoError(GinkgoT(), err)
-	// 		assert.Equal(GinkgoT(), int64(1), cnt)
-	// 	})
+	Describe("ListPKBetweenUpdatedAt cases", func() {
+		var ctl *gomock.Controller
 
-	// 	It("GetCountByActionBeforeExpiredAtBetweenUpdatedAt fail", func() {
-	// 		now := int64(1617457847)
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(0), errors.New("fail"))
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+		AfterEach(func() {
+			ctl.Finish()
+		})
 
-	// 		_, err := svc.GetMaxPKBeforeUpdatedAt(now)
-	// 		assert.Error(GinkgoT(), err)
-	// 	})
-	// })
+		It("ok", func() {
+			begin := int64(1617457847)
+			end := int64(1617457850)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return([]int64{1, 2}, nil)
 
-	// Describe("ListPKBetweenUpdatedAt cases", func() {
-	// 	var ctl *gomock.Controller
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 	BeforeEach(func() {
-	// 		ctl = gomock.NewController(GinkgoT())
-	// 	})
+			pks, err := svc.ListPKBetweenUpdatedAt(begin, end)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []int64{1, 2}, pks)
+		})
 
-	// 	AfterEach(func() {
-	// 		ctl.Finish()
-	// 	})
+		It("ListPKBetweenUpdatedAt fail", func() {
+			begin := int64(1617457847)
+			end := int64(1617457850)
 
-	// 	It("ok", func() {
-	// 		begin := int64(1617457847)
-	// 		end := int64(1617457850)
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return([]int64{1, 2}, nil)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return(nil, errors.New("fail"))
 
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			svc := engineRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 		pks, err := svc.ListPKBetweenUpdatedAt(begin, end)
-	// 		assert.NoError(GinkgoT(), err)
-	// 		assert.Equal(GinkgoT(), []int64{1, 2}, pks)
-	// 	})
-
-	// 	It("ListPKBetweenUpdatedAt fail", func() {
-	// 		begin := int64(1617457847)
-	// 		end := int64(1617457850)
-
-	// 		mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return(nil, errors.New("fail"))
-
-	// 		svc := engineAbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
-
-	// 		_, err := svc.ListPKBetweenUpdatedAt(begin, end)
-	// 		assert.Error(GinkgoT(), err)
-	// 	})
-	// })
+			_, err := svc.ListPKBetweenUpdatedAt(begin, end)
+			assert.Error(GinkgoT(), err)
+		})
+	})
 })

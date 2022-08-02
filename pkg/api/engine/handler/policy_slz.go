@@ -13,15 +13,11 @@ package handler
 import (
 	"fmt"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/util"
 )
 
 // -- listPolicy
-
-const (
-	EngineListPolicyTypeAbac = "abac"
-	EngineListPolicyTypeRbac = "rbac"
-)
 
 type listPolicySerializer struct {
 	Timestamp int64 `form:"timestamp" json:"timestamp" binding:"omitempty,min=1" example:"1592899208"`
@@ -88,7 +84,7 @@ func (s *listPolicySerializer) initDefault() {
 	}
 
 	if s.Type == "" {
-		s.Type = EngineListPolicyTypeAbac
+		s.Type = prp.EngineListPolicyTypeAbac
 	}
 }
 

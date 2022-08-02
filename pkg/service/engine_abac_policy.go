@@ -19,6 +19,8 @@ import (
 	"iam/pkg/service/types"
 )
 
+const EnginePolicySVC = "EnginePolicySVC"
+
 type EngineAbacPolicyService interface {
 	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
 	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
