@@ -128,8 +128,9 @@ func (m *policyManager) ListBySubjectAction(
 	action types.Action,
 	effectGroupPKs []int64,
 	withoutCache bool,
-	entry *debug.Entry,
+	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
+	entry := debug.NewSubDebug(parentEntry)
 	if entry != nil {
 		debug.WithValue(entry, "cacheEnabled", !withoutCache)
 	}

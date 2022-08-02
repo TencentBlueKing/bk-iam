@@ -23,12 +23,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/singleflight"
 
+	"iam/pkg/abac/prp/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/task"
-	"iam/pkg/task/handler"
 	"iam/pkg/task/producer"
 )
 
@@ -276,7 +276,7 @@ func (r *RbacPolicyRedisRetriever) refreshSubjectActionExpression(
 	}
 
 	// to subject action expression
-	expression, err = handler.ConvertSubjectActionGroupResourceToExpression(obj)
+	expression, err = convert.ConvertSubjectActionGroupResourceToExpression(obj)
 	if err != nil {
 		return
 	}

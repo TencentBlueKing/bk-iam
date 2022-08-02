@@ -15,9 +15,9 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 
+	"iam/pkg/abac/prp/convert"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/task/handler"
 )
 
 const rbacDatabaseLayer = "rbacDatabaseLayer"
@@ -93,5 +93,5 @@ func (r *RbacPolicyDatabaseRetriever) refreshSubjectActionExpression(
 	}
 
 	// to subject action expression
-	return handler.ConvertSubjectActionGroupResourceToExpression(obj)
+	return convert.ConvertSubjectActionGroupResourceToExpression(obj)
 }

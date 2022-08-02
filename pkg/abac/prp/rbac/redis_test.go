@@ -19,11 +19,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/prp/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/task/handler"
 	producermock "iam/pkg/task/producer/mock"
 )
 
@@ -205,7 +205,7 @@ var _ = Describe("RbacPolicy", func() {
 				Return(types.SubjectActionGroupResource{}, nil).
 				Times(1)
 			patches := gomonkey.ApplyFunc(
-				handler.ConvertSubjectActionGroupResourceToExpression,
+				convert.ConvertSubjectActionGroupResourceToExpression,
 				func(r types.SubjectActionGroupResource) (types.SubjectActionExpression, error) {
 					return types.SubjectActionExpression{
 						PK:         2,
