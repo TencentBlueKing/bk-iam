@@ -34,7 +34,6 @@ import (
 )
 
 var _ = Describe("Handler", func() {
-
 	Describe("handlerEvent", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
