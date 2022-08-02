@@ -6,7 +6,6 @@ import (
 
 	"iam/pkg/abac/pap"
 	"iam/pkg/abac/types"
-	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
@@ -46,7 +45,7 @@ func AlterPoliciesV2(c *gin.Context) {
 	for _, p := range body.CreatePolicies {
 		createPolicies = append(
 			createPolicies,
-			convertToInternalTypesPolicy(systemID, subject, 0, service.PolicyTemplateIDCustom, p),
+			convertToInternalTypesPolicy(systemID, subject, 0, body.TemplateID, p),
 		)
 	}
 
@@ -54,7 +53,7 @@ func AlterPoliciesV2(c *gin.Context) {
 	for _, p := range body.UpdatePolicies {
 		updatePolicies = append(
 			updatePolicies,
-			convertToInternalTypesPolicy(systemID, subject, p.ID, service.PolicyTemplateIDCustom, p.policy),
+			convertToInternalTypesPolicy(systemID, subject, p.ID, body.TemplateID, p.policy),
 		)
 	}
 
