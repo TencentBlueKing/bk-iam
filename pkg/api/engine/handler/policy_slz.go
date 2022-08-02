@@ -18,6 +18,11 @@ import (
 
 // -- listPolicy
 
+const (
+	EngineListPolicyTypeAbac = "abac"
+	EngineListPolicyTypeRbac = "rbac"
+)
+
 type listPolicySerializer struct {
 	Timestamp int64 `form:"timestamp" json:"timestamp" binding:"omitempty,min=1" example:"1592899208"`
 
@@ -25,6 +30,8 @@ type listPolicySerializer struct {
 	MaxID int64 `form:"max_id" json:"max_id" binding:"omitempty,min=1" example:"10001"`
 
 	IDs string `form:"ids" json:"ids" binding:"omitempty" example:"1,2,3"`
+
+	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 // getIDs parse string ids to slice
@@ -79,6 +86,10 @@ func (s *listPolicySerializer) initDefault() {
 		// default: today 00:00:00
 		s.Timestamp = util.TodayStartTimestamp()
 	}
+
+	if s.Type == "" {
+		s.Type = EngineListPolicyTypeAbac
+	}
 }
 
 type policyResponseSubject struct {
@@ -95,7 +106,6 @@ type enginePolicyResponse struct {
 	Version    string                 `json:"version" example:"1"`
 	ID         int64                  `json:"id" example:"100"`
 	System     string                 `json:"system" example:"bk_cmdb"`
-	Action     policyResponseAction   `json:"action"`
 	Actions    []policyResponseAction `json:"actions"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Expression map[string]interface{} `json:"expression"`

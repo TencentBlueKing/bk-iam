@@ -4,15 +4,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/TencentBlueKing/iam-go-sdk/expression/operator"
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pdp/translate"
 	abactypes "iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -34,7 +34,7 @@ type EnginePolicy struct {
 
 	SubjectPK int64
 
-	Expression string
+	Expression map[string]interface{}
 	TemplateID int64
 	ExpiredAt  int64
 	UpdatedAt  int64
@@ -162,12 +162,18 @@ func convertEngineAbacPoliciesToEnginePolicies(
 			continue
 		}
 
+		expression, err1 := translate.PolicyExpressionTranslate(expr)
+		if err1 != nil {
+			// err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, p.Expression)
+			return nil, err
+		}
+
 		ep := EnginePolicy{
 			Version:    service.PolicyVersion,
 			ID:         p.PK,
 			ActionPKs:  []int64{p.ActionPK},
 			SubjectPK:  p.SubjectPK,
-			Expression: expr,
+			Expression: expression,
 			TemplateID: p.TemplateID,
 			ExpiredAt:  p.ExpiredAt,
 			UpdatedAt:  p.UpdatedAt.Unix(),
@@ -220,7 +226,7 @@ func convertEngineRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy
 				Errorf("engine rbac policy action pks convert to int64 slice fail, actionPKs=`%+v`", p.ActionPKs)
 			continue
 		}
-		expr, err1 := constructExpr(p)
+		expr, err1 := constructRbacPolicyExpr(p)
 		if err1 != nil {
 			log.WithError(err).Errorf("engine rbac policy constructExpr fail, policy=`%+v", p)
 			continue
@@ -240,34 +246,33 @@ func convertEngineRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy
 	return queryPolicies, nil
 }
 
-func constructExpr(p types.EngineRbacPolicy) (string, error) {
-	var exprCell expression.ExprCell
-
+func constructRbacPolicyExpr(p types.EngineRbacPolicy) (exprCell map[string]interface{}, err error) {
 	action_rt, err := cacheimpls.GetThinResourceType(p.ActionRelatedResourceTypePK)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	if p.ActionRelatedResourceTypePK == p.ResourceTypePK {
 		// pipeline.id eq 123
-		exprCell = expression.ExprCell{
-			OP:    operator.Eq,
-			Field: action_rt.ID + ".id",
-			Value: p.ResourceID,
+		exprCell = translate.ExprCell{
+			"op":    "eq",
+			"field": action_rt.ID + ".id",
+			"value": p.ResourceID,
 		}
 	} else {
 		// pipeline._bk_iam_path_ string_contains "/project,1/"
-		rt, err := cacheimpls.GetThinResourceType(p.ResourceTypePK)
+		var rt svctypes.ThinResourceType
+		rt, err = cacheimpls.GetThinResourceType(p.ResourceTypePK)
 		if err != nil {
-			return "", err
+			return
 		}
 
-		exprCell = expression.ExprCell{
-			OP:    operator.StringContains,
-			Field: action_rt.ID + abactypes.IamPathSuffix,
-			Value: fmt.Sprintf("/%s,%s/", rt.ID, p.ResourceID),
+		exprCell = translate.ExprCell{
+			"op":    operator.StringContains,
+			"field": action_rt.ID + abactypes.IamPathSuffix,
+			"value": fmt.Sprintf("/%s,%s/", rt.ID, p.ResourceID),
 		}
 	}
 
-	return jsoniter.MarshalToString(exprCell)
+	return exprCell, nil
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
@@ -58,14 +57,14 @@ func ListPolicy(c *gin.Context) {
 	// 有pks, 优先查询pks的数据
 	if query.hasIDs() {
 		pks, _ := query.getIDs()
-		policies, err = manager.ListByPKs("abac", pks)
+		policies, err = manager.ListByPKs(query.Type, pks)
 		if err != nil {
 			err = fmt.Errorf("svc.ListByPKs pks=`%s` fail. err=%w", query.IDs, err)
 			util.SystemErrorJSONResponse(c, err)
 			return
 		}
 	} else {
-		policies, err = manager.ListBetweenPK("abac", query.Timestamp, query.MinID, query.MaxID)
+		policies, err = manager.ListBetweenPK(query.Type, query.Timestamp, query.MinID, query.MaxID)
 		if err != nil {
 			err = fmt.Errorf("svc.ListBetweenPK expiredAt=`%d`, minPK=`%d`, maxPK=`%d` fail. err=%w",
 				query.Timestamp, query.MinID, query.MaxID, err)
@@ -194,30 +193,17 @@ func convertEnginePoliciesToResponse(
 			})
 		}
 
-		var action policyResponseAction
-		if len(actions) == 1 {
-			action = actions[0]
-			actions = []policyResponseAction{}
-		}
-
-		translatedExpr, err2 := translate.PolicyExpressionTranslate(p.Expression)
-		if err2 != nil {
-			err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, p.Expression)
-			return responses, err
-		}
-
 		policy := enginePolicyResponse{
 			Version: service.PolicyVersion,
 			ID:      p.ID,
 			System:  systemID,
-			Action:  action,
 			Actions: actions,
 			Subject: policyResponseSubject{
 				Type: subj.Type,
 				ID:   subj.ID,
 				Name: subj.Name,
 			},
-			Expression: translatedExpr,
+			Expression: p.Expression,
 			TemplateID: p.TemplateID,
 			ExpiredAt:  p.ExpiredAt,
 			UpdatedAt:  p.UpdatedAt,
