@@ -13,6 +13,7 @@ package service
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database/dao"
 )
@@ -26,6 +27,7 @@ type SubjectBlackListService interface {
 
 	BulkCreate(subjectPKs []int64) error
 	BulkDelete(subjectPKs []int64) error
+	BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 type subjectBlackListService struct {
 	manager dao.SubjectBlackListManager
@@ -70,4 +72,9 @@ func (l *subjectBlackListService) BulkCreate(subjectPKs []int64) error {
 // BulkDelete ...
 func (l *subjectBlackListService) BulkDelete(subjectPKs []int64) error {
 	return l.manager.BulkDelete(subjectPKs)
+}
+
+// BulkDeleteWithTx ...
+func (l *subjectBlackListService) BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	return l.manager.BulkDeleteWithTx(tx, subjectPKs)
 }

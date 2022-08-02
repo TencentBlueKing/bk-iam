@@ -42,6 +42,7 @@ type GroupResourcePolicyService interface {
 		systemID string,
 		actionPK, actionResourceTypePK int64,
 	) ([]types.Resource, error)
+	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
 }
 
 type groupResourcePolicyService struct {
@@ -309,4 +310,12 @@ func (s *groupResourcePolicyService) ListResourceByGroupAction(
 	}
 
 	return resources, nil
+}
+
+// BulkDeleteByGroupPKsWithTx ...
+func (s *groupResourcePolicyService) BulkDeleteByGroupPKsWithTx(
+	tx *sqlx.Tx,
+	groupPKs []int64,
+) error {
+	return s.manager.BulkDeleteByGroupPKsWithTx(tx, groupPKs)
 }

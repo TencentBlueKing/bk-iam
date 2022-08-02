@@ -32,6 +32,7 @@ type SubjectActionGroupResourceManager interface {
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionGroupResource, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
 	UpdateGroupResourceWithTx(tx *sqlx.Tx, pk int64, groupResource string) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectActionGroupResourceManager struct {
@@ -90,4 +91,13 @@ func (m *subjectActionGroupResourceManager) UpdateGroupResourceWithTx(
 		"group_resource": groupResource,
 	})
 	return err
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (m *subjectActionGroupResourceManager) BulkDeleteBySubjectPKsWithTx(
+	tx *sqlx.Tx,
+	subjectPKs []int64,
+) error {
+	sql := `DELETE FROM rbac_subject_action_group_resource WHERE subject_pk IN (?)`
+	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 }

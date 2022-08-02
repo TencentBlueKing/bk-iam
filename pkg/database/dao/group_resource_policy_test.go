@@ -13,6 +13,8 @@ package dao
 import (
 	"fmt"
 
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
@@ -175,3 +177,21 @@ var _ = Describe("GroupResourcePolicyManager", func() {
 		assert.Equal(GinkgoT(), []string{"[1,2,3]", "[4,5,6]"}, actionPKs)
 	})
 })
+
+func Test_groupResourcePolicyManager_BulkDeleteByGroupPKsWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`^DELETE FROM rbac_group_resource_policy WHERE group_pk IN`).WithArgs(
+			int64(1), int64(2),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &groupResourcePolicyManager{DB: db}
+		err = manager.BulkDeleteByGroupPKsWithTx(tx, []int64{1, 2})
+
+		assert.NoError(t, err, "query from db fail.")
+	})
+}

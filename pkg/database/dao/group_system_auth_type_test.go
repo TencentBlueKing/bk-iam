@@ -146,3 +146,21 @@ func Test_groupSystemAuthTypeManager_UpdateWithTx(t *testing.T) {
 		assert.Equal(t, int64(1), rows)
 	})
 }
+
+func Test_groupSystemAuthTypeManager_DeleteByGroupPKsWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`^DELETE FROM group_system_auth_type WHERE group_pk IN`).WithArgs(
+			int64(1), int64(2),
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &groupSystemAuthTypeManager{DB: db}
+		err = manager.DeleteByGroupPKsWithTx(tx, []int64{1, 2})
+
+		assert.NoError(t, err, "query from db fail.")
+	})
+}

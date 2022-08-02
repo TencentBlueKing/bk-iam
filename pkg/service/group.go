@@ -458,6 +458,12 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 		return errorWrapf(err, "subjectSystemGroupManager.DeleteBySubjectPKsWithTx subjectPKs=`%+v` fail", subjectPKs)
 	}
 
+	// 批量删除用户的group system auth_type
+	err = l.authTypeManger.DeleteByGroupPKsWithTx(tx, subjectPKs)
+	if err != nil {
+		return errorWrapf(err, "authTypeManger.DeleteByGroupsWithTx subjectPKs=`%+v` fail", subjectPKs)
+	}
+
 	return nil
 }
 

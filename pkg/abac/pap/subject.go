@@ -36,18 +36,26 @@ type subjectController struct {
 	service service.SubjectService
 
 	// 以下manager都是为了BulkDelete, 删除subject时同时删除相关数据
-	groupService      service.GroupService
-	departmentService service.DepartmentService
-	policyService     service.PolicyService
+	groupService                      service.GroupService
+	departmentService                 service.DepartmentService
+	policyService                     service.PolicyService
+	subjectBlackListService           service.SubjectBlackListService
+	subjectActionExpressionService    service.SubjectActionExpressionService
+	subjectActionGroupResourceService service.SubjectActionGroupResourceService
+	groupResourcePolicyService        service.GroupResourcePolicyService
 }
 
 func NewSubjectController() SubjectController {
 	return &subjectController{
 		service: service.NewSubjectService(),
 
-		groupService:      service.NewGroupService(),
-		departmentService: service.NewDepartmentService(),
-		policyService:     service.NewPolicyService(),
+		groupService:                      service.NewGroupService(),
+		departmentService:                 service.NewDepartmentService(),
+		policyService:                     service.NewPolicyService(),
+		subjectBlackListService:           service.NewSubjectBlackListService(),
+		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
+		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
+		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
 	}
 }
 
@@ -120,6 +128,28 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	err = c.service.BulkDeleteByPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "service.BulkDeleteByPKsWithTx pks=`%+v` failed", pks)
+	}
+
+	// 5. 删除subject blacklist
+	err = c.subjectBlackListService.BulkDeleteWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "subjectBlackListService.BulkDeleteWithTx pks=`%+v` failed", pks)
+	}
+
+	// 6. 删除rbac策略
+	err = c.subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed", pks)
+	}
+
+	err = c.subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed", pks)
+	}
+
+	err = c.groupResourcePolicyService.BulkDeleteByGroupPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "groupResourcePolicyService.BulkDeleteByGroupPKsWithTx groupPKs=`%+v` failed", pks)
 	}
 
 	// 提交事务

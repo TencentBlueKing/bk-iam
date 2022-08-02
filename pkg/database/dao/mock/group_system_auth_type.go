@@ -49,6 +49,20 @@ func (mr *MockGroupSystemAuthTypeManagerMockRecorder) CreateWithTx(tx, groupSyst
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).CreateWithTx), tx, groupSystemAuthType)
 }
 
+// DeleteByGroupPKsWithTx mocks base method.
+func (m *MockGroupSystemAuthTypeManager) DeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByGroupPKsWithTx", tx, groupPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByGroupPKsWithTx indicates an expected call of DeleteByGroupPKsWithTx.
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) DeleteByGroupPKsWithTx(tx, groupPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByGroupPKsWithTx", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).DeleteByGroupPKsWithTx), tx, groupPKs)
+}
+
 // DeleteBySystemGroupWithTx mocks base method.
 func (m *MockGroupSystemAuthTypeManager) DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()
