@@ -112,9 +112,10 @@ func ListPolicyPKs(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, message)
 		return
 	}
+	query.initDefault()
 
 	manager := prp.NewEnginePolicyManager()
-	pks, err := manager.ListPKBetweenUpdatedAt("abac", query.BeginUpdatedAt, query.EndUpdatedAt)
+	pks, err := manager.ListPKBetweenUpdatedAt(query.Type, query.BeginUpdatedAt, query.EndUpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.ListPKBetweenUpdatedAt beginUpdatedAt=`%d`, endUpdatedAt=`%d` fail. err=%w",
 			query.BeginUpdatedAt, query.EndUpdatedAt, err)
@@ -147,9 +148,10 @@ func GetMaxPolicyPK(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
+	query.initDefault()
 
 	manager := prp.NewEnginePolicyManager()
-	pk, err := manager.GetMaxPKBeforeUpdatedAt("abac", query.UpdatedAt)
+	pk, err := manager.GetMaxPKBeforeUpdatedAt(query.Type, query.UpdatedAt)
 	if err != nil {
 		err = fmt.Errorf("svc.GetMaxPKBeforeUpdatedAt updatedAt=`%d` fail. err=%w",
 			query.UpdatedAt, err)
