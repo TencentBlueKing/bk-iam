@@ -121,6 +121,7 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 
 	// 2. 删除subject relation
 	// 删除前先查询, 发送group变更事件
+	eventMessages := make([]string, 0, len(pks)*2)
 	for _, pk := range pks {
 		members, err := c.groupService.ListGroupMember(pk)
 		if err != nil {
@@ -147,8 +148,7 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 			continue
 		}
 
-		messages := util.Int64SliceToStringSlice(eventPKs)
-		go c.alterEventProducer.Publish(messages...)
+		eventMessages = append(eventMessages, util.Int64SliceToStringSlice(eventPKs)...)
 	}
 
 	err = c.groupService.BulkDeleteBySubjectPKsWithTx(tx, pks)
@@ -194,6 +194,11 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	err = tx.Commit()
 	if err != nil {
 		return errorWrapf(err, "tx commit error")
+	}
+
+	// 发送group 变更事件
+	if len(eventMessages) != 0 {
+		go c.alterEventProducer.Publish(eventMessages...)
 	}
 
 	// 5. 清除缓存
