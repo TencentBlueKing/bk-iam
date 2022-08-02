@@ -19,6 +19,9 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
+	"iam/pkg/task"
+	"iam/pkg/task/producer"
+	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -43,6 +46,8 @@ type subjectController struct {
 	subjectActionExpressionService    service.SubjectActionExpressionService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	groupResourcePolicyService        service.GroupResourcePolicyService
+	groupAlterEventService            service.GroupAlterEventService
+	alterEventProducer                producer.Producer
 }
 
 func NewSubjectController() SubjectController {
@@ -56,6 +61,8 @@ func NewSubjectController() SubjectController {
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
+		groupAlterEventService:            service.NewGroupAlterEventService(),
+		alterEventProducer:                producer.NewRedisProducer(task.GetRbacEventQueue()),
 	}
 }
 
@@ -113,6 +120,37 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	}
 
 	// 2. 删除subject relation
+	// 删除前先查询, 发送group变更事件
+	for _, pk := range pks {
+		members, err := c.groupService.ListGroupMember(pk)
+		if err != nil {
+			return errorWrapf(err, "groupService.ListGroupMember pk=`%+v` failed", pk)
+		}
+
+		if len(members) == 0 {
+			continue
+		}
+
+		memberPKs := make([]int64, 0, len(members))
+		for _, m := range members {
+			memberPKs = append(memberPKs, m.SubjectPK)
+		}
+
+		// 发送group变更事件
+		eventPKs, err := c.groupAlterEventService.CreateByGroupSubject(pk, memberPKs)
+		if err != nil {
+			return errorWrapf(err, "groupAlterEventService.CreateByGroupSubject groupPK=`%+v` memberPKs=`%+v` failed", pk, memberPKs)
+		}
+
+		// 发送event 消息
+		if len(pks) == 0 {
+			continue
+		}
+
+		messages := util.Int64SliceToStringSlice(eventPKs)
+		go c.alterEventProducer.Publish(messages...)
+	}
+
 	err = c.groupService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "groupService.BulkDeleteBySubjectPKsWithTx pks=`%+v` failed", pks)
