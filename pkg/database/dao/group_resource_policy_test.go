@@ -12,7 +12,6 @@ package dao
 
 import (
 	"fmt"
-
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"

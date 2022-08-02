@@ -151,7 +151,10 @@ var _ = Describe("GroupService", func() {
 			).AnyTimes()
 
 			mockGroupSystemAuthTypeManager := mock.NewMockGroupSystemAuthTypeManager(ctl)
-			mockGroupSystemAuthTypeManager.EXPECT().DeleteByGroupPKsWithTx(gomock.Any(), []int64{1, 2}).Return(nil).AnyTimes()
+			mockGroupSystemAuthTypeManager.EXPECT().
+				DeleteByGroupPKsWithTx(gomock.Any(), []int64{1, 2}).
+				Return(nil).
+				AnyTimes()
 
 			manager := &groupService{
 				manager:                   mockSubjectService,

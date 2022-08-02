@@ -137,13 +137,17 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 			memberPKs = append(memberPKs, m.SubjectPK)
 		}
 
-		// 发送group变更事件
+		// 生成变更信息
 		eventPKs, err := c.groupAlterEventService.CreateByGroupSubject(pk, memberPKs)
 		if err != nil {
-			return errorWrapf(err, "groupAlterEventService.CreateByGroupSubject groupPK=`%+v` memberPKs=`%+v` failed", pk, memberPKs)
+			return errorWrapf(
+				err,
+				"groupAlterEventService.CreateByGroupSubject groupPK=`%+v` memberPKs=`%+v` failed",
+				pk,
+				memberPKs,
+			)
 		}
 
-		// 发送event 消息
 		if len(pks) == 0 {
 			continue
 		}
@@ -177,12 +181,20 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	// 6. 删除rbac策略
 	err = c.subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
-		return errorWrapf(err, "subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed", pks)
+		return errorWrapf(
+			err,
+			"subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed",
+			pks,
+		)
 	}
 
 	err = c.subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
-		return errorWrapf(err, "subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed", pks)
+		return errorWrapf(
+			err,
+			"subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed",
+			pks,
+		)
 	}
 
 	err = c.groupResourcePolicyService.BulkDeleteByGroupPKsWithTx(tx, pks)
