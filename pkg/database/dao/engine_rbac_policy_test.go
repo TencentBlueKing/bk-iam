@@ -10,122 +10,132 @@
 
 package dao
 
-// func Test_enginePolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
-// 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-// 		now := int64(1617457847)
+import (
+	"testing"
+	"time"
 
-// 		mockRows := sqlmock.NewRows([]string{"MAX(pk)"}).AddRow(int64(1))
-// 		mock.ExpectQuery(
-// 			`SELECT .* FROM policy WHERE updated_at <= .*`,
-// 		).WithArgs(now).WillReturnRows(mockRows)
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/assert"
 
-// 		manager := &engineAbacPolicyManager{DB: db}
-// 		pk, err := manager.GetMaxPKBeforeUpdatedAt(now)
+	"iam/pkg/database"
+)
 
-// 		assert.Equal(t, int64(1), pk)
-// 		assert.NoError(t, err)
-// 	})
-// }
+func Test_engineRbacPolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		now := int64(1617457847)
 
-// func Test_enginePolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
-// 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-// 		begin := time.Now().Unix()
-// 		end := time.Now().Unix()
+		mockRows := sqlmock.NewRows([]string{"MAX(pk)"}).AddRow(int64(1))
+		mock.ExpectQuery(
+			`SELECT .* FROM rbac_group_resource_policy WHERE updated_at <= .*`,
+		).WithArgs(now).WillReturnRows(mockRows)
 
-// 		mockRows := sqlmock.NewRows([]string{"pk"}).AddRow(int64(1)).AddRow(int64(2))
-// 		mock.ExpectQuery(
-// 			`SELECT pk FROM policy WHERE updated_at BETWEEN .* AND .*`,
-// 		).WithArgs(begin, end).WillReturnRows(mockRows)
+		manager := &engineRbacPolicyManager{DB: db}
+		pk, err := manager.GetMaxPKBeforeUpdatedAt(now)
 
-// 		manager := &engineAbacPolicyManager{DB: db}
-// 		pks, err := manager.ListPKBetweenUpdatedAt(begin, end)
+		assert.Equal(t, int64(1), pk)
+		assert.NoError(t, err)
+	})
+}
 
-// 		assert.Equal(t, []int64{1, 2}, pks)
-// 		assert.NoError(t, err)
-// 	})
-// }
+func Test_engineRbacPolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		begin := time.Now().Unix()
+		end := time.Now().Unix()
 
-// func Test_enginePolicyManager_ListBetweenPK(t *testing.T) {
-// 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-// 		now := time.Unix(1617457847, 0)
+		mockRows := sqlmock.NewRows([]string{"pk"}).AddRow(int64(1)).AddRow(int64(2))
+		mock.ExpectQuery(
+			`SELECT pk FROM rbac_group_resource_policy WHERE updated_at BETWEEN .* AND .*`,
+		).WithArgs(begin, end).WillReturnRows(mockRows)
 
-// 		mockRows := sqlmock.NewRows([]string{
-// 			"pk", "subject_pk", "action_pk", "expression_pk", "expired_at", "template_id", "updated_at",
-// 		}).AddRow(int64(1), int64(1), int64(1), int64(1), int64(1), int64(1), now)
-// 		mock.ExpectQuery(
-// 			`SELECT
-// 			pk,
-// 			subject_pk,
-// 			action_pk,
-// 			expression_pk,
-// 			expired_at,
-// 			template_id,
-// 			updated_at
-// 			FROM policy
-// 			WHERE expired_at > .*
-// 			AND pk BETWEEN .* AND .*`,
-// 		).WithArgs(int64(1), int64(1), int64(100)).WillReturnRows(mockRows)
+		manager := &engineRbacPolicyManager{DB: db}
+		pks, err := manager.ListPKBetweenUpdatedAt(begin, end)
 
-// 		manager := &engineAbacPolicyManager{DB: db}
-// 		policies, err := manager.ListBetweenPK(
-// 			int64(1), int64(1), int64(100),
-// 		)
+		assert.Equal(t, []int64{1, 2}, pks)
+		assert.NoError(t, err)
+	})
+}
 
-// 		expected := EngineAbacPolicy{
-// 			Policy: Policy{
-// 				PK: int64(1),
+func Test_engineRbacPolicyManager_ListBetweenPK(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		now := time.Unix(1617457847, 0)
 
-// 				SubjectPK:    int64(1),
-// 				ActionPK:     int64(1),
-// 				ExpressionPK: int64(1),
+		mockRows := sqlmock.NewRows([]string{
+			"pk", "group_pk", "system_id", "template_id", "action_pks", "action_related_resource_type_pk", "resource_type_pk", "resource_id", "updated_at",
+		}).AddRow(int64(1), int64(1), "", int64(1), "", int64(1), int64(1), "", now)
+		mock.ExpectQuery(
+			`SELECT
+			pk,
+			group_pk,
+			system_id,
+			template_id,
+			action_pks,
+			action_related_resource_type_pk,
+			resource_type_pk,
+			resource_id,
+			updated_at
+			FROM rbac_group_resource_policy
+			WHERE pk BETWEEN .* AND .*`,
+		).WithArgs(int64(1), int64(100)).WillReturnRows(mockRows)
 
-// 				ExpiredAt:  int64(1),
-// 				TemplateID: int64(1),
-// 			},
-// 			UpdatedAt: now,
-// 		}
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, expected, policies[0])
-// 	})
-// }
+		manager := &engineRbacPolicyManager{DB: db}
+		policies, err := manager.ListBetweenPK(
+			int64(1), int64(100),
+		)
 
-// func Test_enginePolicyManager_ListByPKs(t *testing.T) {
-// 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-// 		now := time.Unix(1617457847, 0)
+		expected := EngineRbacPolicy{
+			PK:                          int64(1),
+			GroupPK:                     int64(1),
+			TemplateID:                  int64(1),
+			SystemID:                    "",
+			ActionPKs:                   "",
+			ActionRelatedResourceTypePK: int64(1),
+			ResourceTypePK:              int64(1),
+			ResourceID:                  "",
+			UpdatedAt:                   now,
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, policies[0])
+	})
+}
 
-// 		mockRows := sqlmock.NewRows([]string{
-// 			"pk", "subject_pk", "action_pk", "expression_pk", "expired_at", "template_id", "updated_at",
-// 		}).AddRow(int64(1), int64(1), int64(1), int64(1), int64(1), int64(1), now)
-// 		mock.ExpectQuery(
-// 			`SELECT
-// 			pk,
-// 			subject_pk,
-// 			action_pk,
-// 			expression_pk,
-// 			expired_at,
-// 			template_id,
-// 			updated_at
-// 			FROM policy
-// 			WHERE pk IN`,
-// 		).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
+func Test_engineRbacPolicyManager_ListByPKs(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		now := time.Unix(1617457847, 0)
 
-// 		manager := &engineAbacPolicyManager{DB: db}
-// 		policies, err := manager.ListByPKs([]int64{1, 2})
+		mockRows := sqlmock.NewRows([]string{
+			"pk", "group_pk", "system_id", "template_id", "action_pks", "action_related_resource_type_pk", "resource_type_pk", "resource_id", "updated_at",
+		}).AddRow(int64(1), int64(1), "", int64(1), "", int64(1), int64(1), "", now)
+		mock.ExpectQuery(
+			`SELECT
+			pk,
+			group_pk,
+			system_id,
+			template_id,
+			action_pks,
+			action_related_resource_type_pk,
+			resource_type_pk,
+			resource_id,
+			updated_at
+			FROM rbac_group_resource_policy
+			WHERE pk IN`,
+		).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
 
-// 		expected := EngineAbacPolicy{
-// 			Policy: Policy{
-// 				PK: int64(1),
+		manager := &engineRbacPolicyManager{DB: db}
+		policies, err := manager.ListByPKs([]int64{1, 2})
 
-// 				SubjectPK:    int64(1),
-// 				ActionPK:     int64(1),
-// 				ExpressionPK: int64(1),
-
-// 				ExpiredAt:  int64(1),
-// 				TemplateID: int64(1),
-// 			},
-// 			UpdatedAt: now,
-// 		}
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, expected, policies[0])
-// 	})
-// }
+		expected := EngineRbacPolicy{
+			PK:                          int64(1),
+			GroupPK:                     int64(1),
+			TemplateID:                  int64(1),
+			SystemID:                    "",
+			ActionPKs:                   "",
+			ActionRelatedResourceTypePK: int64(1),
+			ResourceTypePK:              int64(1),
+			ResourceID:                  "",
+			UpdatedAt:                   now,
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, policies[0])
+	})
+}

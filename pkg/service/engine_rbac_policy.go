@@ -13,7 +13,10 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
+	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
@@ -62,7 +65,7 @@ func (s *engineRbacPolicyService) ListBetweenPK(
 		return nil, err
 	}
 
-	return convertToEngineRbacPolicies(policies), nil
+	return convertToEngineRbacPolicies(policies)
 }
 
 // ListByPKs ...
@@ -74,21 +77,29 @@ func (s *engineRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.
 		err = errorWrapf(err, "manager.ListByPKs pks=`%+v` fail", pks)
 		return nil, err
 	}
-	return convertToEngineRbacPolicies(policies), nil
+	return convertToEngineRbacPolicies(policies)
 }
 
-func convertToEngineRbacPolicies(policies []dao.EngineRbacPolicy) (rbacPolicies []types.EngineRbacPolicy) {
+func convertToEngineRbacPolicies(policies []dao.EngineRbacPolicy) (rbacPolicies []types.EngineRbacPolicy, err error) {
 	if len(policies) == 0 {
 		return
 	}
 
 	for _, p := range policies {
+		var actionPKs []int64
+		err := jsoniter.UnmarshalFromString(p.ActionPKs, &actionPKs)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"jsoniter.UnmarshalFromString actionPKs=`%s` fail, err: %w", p.ActionPKs, err,
+			)
+		}
+
 		rbacPolicies = append(rbacPolicies, types.EngineRbacPolicy{
 			PK:                          p.PK,
 			GroupPK:                     p.GroupPK,
 			TemplateID:                  p.TemplateID,
 			SystemID:                    p.SystemID,
-			ActionPKs:                   p.ActionPKs,
+			ActionPKs:                   actionPKs,
 			ActionRelatedResourceTypePK: p.ActionRelatedResourceTypePK,
 			ResourceTypePK:              p.ResourceTypePK,
 			ResourceID:                  p.ResourceID,

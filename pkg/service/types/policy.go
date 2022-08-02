@@ -45,12 +45,6 @@ type QueryPolicy struct {
 	ExpiredAt    int64
 }
 
-// EngineQueryPolicy query policy for iam engine
-// type EngineQueryPolicy struct {
-// 	QueryPolicy
-// 	TemplateID int64
-// 	UpdatedAt  int64
-// }
 type EngineAbacPolicy struct {
 	PK int64
 
@@ -71,7 +65,7 @@ type EngineRbacPolicy struct {
 	TemplateID int64
 	SystemID   string
 
-	ActionPKs                   string
+	ActionPKs                   []int64
 	ActionRelatedResourceTypePK int64
 
 	// 授权的资源实例

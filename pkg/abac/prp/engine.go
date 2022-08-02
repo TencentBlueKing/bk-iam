@@ -224,14 +224,8 @@ func queryPoliciesExpression(policies []types.EngineAbacPolicy) (map[int64]strin
 func convertRbacPolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
 	queryPolicies := make([]EnginePolicy, 0, len(policies))
 	for _, p := range policies {
-		actionPKs, err := util.StringToInt64Slice(p.ActionPKs, ",")
+		expr, err := constructRbacPolicyExpr(p)
 		if err != nil {
-			log.WithError(err).
-				Errorf("engine rbac policy action pks convert to int64 slice fail, actionPKs=`%+v`", p.ActionPKs)
-			continue
-		}
-		expr, err1 := constructRbacPolicyExpr(p)
-		if err1 != nil {
 			log.WithError(err).Errorf("engine rbac policy constructExpr fail, policy=`%+v", p)
 			continue
 		}
@@ -239,7 +233,7 @@ func convertRbacPolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, err
 		queryPolicies = append(queryPolicies, EnginePolicy{
 			Version:    service.PolicyVersion,
 			ID:         p.PK + rbacIDBegin,
-			ActionPKs:  actionPKs,
+			ActionPKs:  p.ActionPKs,
 			SubjectPK:  p.GroupPK,
 			Expression: expr,
 			TemplateID: p.TemplateID,

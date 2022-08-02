@@ -21,7 +21,7 @@ import (
 	"iam/pkg/database"
 )
 
-func Test_enginePolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
+func Test_engineAbacPolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		now := int64(1617457847)
 
@@ -38,7 +38,7 @@ func Test_enginePolicyManager_GetMaxPKBeforeUpdatedAt(t *testing.T) {
 	})
 }
 
-func Test_enginePolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
+func Test_engineAbacPolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		begin := time.Now().Unix()
 		end := time.Now().Unix()
@@ -56,7 +56,7 @@ func Test_enginePolicyManager_ListPKBetweenUpdatedAt(t *testing.T) {
 	})
 }
 
-func Test_enginePolicyManager_ListBetweenPK(t *testing.T) {
+func Test_engineAbacPolicyManager_ListBetweenPK(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		now := time.Unix(1617457847, 0)
 
@@ -100,7 +100,7 @@ func Test_enginePolicyManager_ListBetweenPK(t *testing.T) {
 	})
 }
 
-func Test_enginePolicyManager_ListByPKs(t *testing.T) {
+func Test_engineAbacPolicyManager_ListByPKs(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		now := time.Unix(1617457847, 0)
 
