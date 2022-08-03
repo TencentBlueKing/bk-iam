@@ -14,6 +14,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pap/event"
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -39,6 +40,8 @@ type subjectController struct {
 	groupService      service.GroupService
 	departmentService service.DepartmentService
 	policyService     service.PolicyService
+
+	subjectEventProducer event.SubjectEventProducer
 }
 
 func NewSubjectController() SubjectController {
@@ -48,6 +51,8 @@ func NewSubjectController() SubjectController {
 		groupService:      service.NewGroupService(),
 		departmentService: service.NewDepartmentService(),
 		policyService:     service.NewPolicyService(),
+
+		subjectEventProducer: event.NewSubjectEventProducer(),
 	}
 }
 
@@ -140,7 +145,13 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 
 	// NOTE: collect the type=group subject_pk to delete the cache
 	groupPKs := make([]int64, 0, len(subjects))
+	eventSubjects := make([]event.Subject, 0, len(subjects))
 	for _, s := range svcSubjects {
+		eventSubjects = append(eventSubjects, event.Subject{
+			Type: s.Type,
+			ID:   s.ID,
+		})
+
 		if s.Type == types.GroupType {
 			gPK, err := cacheimpls.GetSubjectPK(s.Type, s.ID)
 			if err != nil {
@@ -159,6 +170,9 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 
 	// 清理subject system group缓存
 	cacheimpls.BatchDeleteSubjectAllSystemGroupCache(pks)
+
+	// 发送事件
+	c.subjectEventProducer.PublishDeleteEvent(eventSubjects)
 
 	return err
 }

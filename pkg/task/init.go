@@ -26,13 +26,16 @@ const (
 )
 
 var (
-	connection     rmq.Connection
-	rbacEventQueue rmq.Queue
+	connection               rmq.Connection
+	rbacEventQueue           rmq.Queue
+	engineDeletionEventQueue rmq.Queue
 )
 
 var (
 	connectionInitOnce     sync.Once
 	rbacEventQueueInitOnce sync.Once
+
+	engineDeletionEventQueueInitOnce sync.Once
 )
 
 // InitRmqQueue 初始化rmq队列
@@ -64,6 +67,18 @@ func InitRmqQueue(debugMode bool, _type string) {
 			}
 		})
 	}
+
+	if engineDeletionEventQueue == nil {
+		engineDeletionEventQueueInitOnce.Do(func() {
+			engineDeletionEventQueue, err = connection.OpenQueue("engine_deletion") // group_subject_action_delete
+			if err != nil {
+				log.WithError(err).Error("new rmq queue fail")
+				if !debugMode {
+					panic(err)
+				}
+			}
+		})
+	}
 }
 
 func logRmqErrors(errChan <-chan error) {
@@ -75,4 +90,9 @@ func logRmqErrors(errChan <-chan error) {
 // GetRbacEventQueue ...
 func GetRbacEventQueue() rmq.Queue {
 	return rbacEventQueue
+}
+
+// GetEngineDeletionEventQueue will return the event queue for policy delete
+func GetEngineDeletionEventQueue() rmq.Queue {
+	return engineDeletionEventQueue
 }

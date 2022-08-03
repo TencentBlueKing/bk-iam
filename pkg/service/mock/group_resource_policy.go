@@ -36,11 +36,12 @@ func (m *MockGroupResourcePolicyService) EXPECT() *MockGroupResourcePolicyServic
 }
 
 // Alter mocks base method.
-func (m *MockGroupResourcePolicyService) Alter(tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent) error {
+func (m *MockGroupResourcePolicyService) Alter(tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Alter", tx, groupPK, templateID, systemID, resourceChangedContents)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Alter indicates an expected call of Alter.

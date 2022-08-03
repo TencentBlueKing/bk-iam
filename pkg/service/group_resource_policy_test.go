@@ -161,7 +161,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		It("ListBySignatures error", func() {
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return(nil, errors.New("error"))
 
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
 			assert.Regexp(GinkgoT(), "manager.ListBySignatures fail", err.Error())
 		})
@@ -170,7 +170,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			daoPolicy.ActionPKs = "json error"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
 
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
 			assert.Regexp(GinkgoT(), "calculateChangedActionPKs fail", err.Error())
 		})
@@ -180,7 +180,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(errors.New("error"))
 
 			rcc.CreatedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
 			assert.Regexp(GinkgoT(), "manager.BulkCreateWithTx fail", err.Error())
 		})
@@ -190,7 +190,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(nil)
 
 			rcc.CreatedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -200,7 +200,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			mockManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), gomock.Any()).Return(errors.New("error"))
 
 			rcc.DeletedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
 			assert.Regexp(GinkgoT(), "manager.BulkDeleteByPKsWithTx fail", err.Error())
 		})
@@ -211,7 +211,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			mockManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), gomock.Any()).Return(nil)
 
 			rcc.DeletedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -222,7 +222,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 			rcc.CreatedActionPKs = []int64{3, 4}
 			rcc.DeletedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
 			assert.Regexp(GinkgoT(), "manager.BulkUpdateActionPKsWithTx fail", err.Error())
 		})
@@ -234,7 +234,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 			rcc.CreatedActionPKs = []int64{3, 4}
 			rcc.DeletedActionPKs = []int64{1}
-			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
+			_, err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.NoError(GinkgoT(), err)
 		})
 	})

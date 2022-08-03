@@ -138,6 +138,7 @@ func (c *policyController) DeleteByIDs(system string, subjectType, subjectID str
 				pk, policyIDs)
 			return err
 		}
+		c.eventProducer.PublishABACDeletePolicyEvent(policyIDs)
 	}
 	return nil
 }
@@ -194,6 +195,8 @@ func (c *policyController) AlterCustomPolicies(
 	}
 
 	defer expression.BatchDeleteExpressionsFromCache(updatedActionPKExpressionPKs)
+	// NOTE: publish policy delete pk event
+	c.eventProducer.PublishABACDeletePolicyEvent(deletePolicyIDs)
 
 	return nil
 }
@@ -219,6 +222,7 @@ func (c *policyController) DeleteByActionID(system, actionID string) error {
 		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
 		return err
 	}
+	// FIXME: 目前没有engine没有同步删除对应数据(不影响功能, 但是数据冗余, 属于脏数据)
 
 	// TODO: 删除Resource Group Policy
 

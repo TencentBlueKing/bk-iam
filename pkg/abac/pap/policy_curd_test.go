@@ -13,6 +13,7 @@ package pap
 import (
 	"errors"
 
+	eventmock "iam/pkg/abac/pap/event/mock"
 	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
@@ -93,6 +94,9 @@ var _ = Describe("PolicyCurd", func() {
 				nil,
 			).AnyTimes()
 
+			mockPolicyEventProducer := eventmock.NewMockPolicyEventProducer(ctl)
+			mockPolicyEventProducer.EXPECT().PublishABACDeletePolicyEvent(gomock.Any()).AnyTimes()
+
 			patches = gomonkey.ApplyFunc(policy.DeleteSystemSubjectPKsFromCache,
 				func(systemID string, pks []int64) error {
 					return nil
@@ -101,6 +105,8 @@ var _ = Describe("PolicyCurd", func() {
 			policyCtl := &policyController{
 				subjectService: mockSubjectService,
 				policyService:  mockPolicyService,
+
+				eventProducer: mockPolicyEventProducer,
 			}
 
 			err := policyCtl.DeleteByIDs("test", "user", "test", []int64{1, 2})
@@ -293,6 +299,9 @@ var _ = Describe("PolicyCurd", func() {
 				map[int64][]int64{}, nil,
 			).AnyTimes()
 
+			mockPolicyEventProducer := eventmock.NewMockPolicyEventProducer(ctl)
+			mockPolicyEventProducer.EXPECT().PublishABACDeletePolicyEvent(gomock.Any()).AnyTimes()
+
 			patches = gomonkey.ApplyFunc(policy.DeleteSystemSubjectPKsFromCache,
 				func(systemID string, pks []int64) error {
 					return nil
@@ -302,6 +311,8 @@ var _ = Describe("PolicyCurd", func() {
 				subjectService: mockSubjectService,
 				actionService:  mockActionService,
 				policyService:  mockPolicyService,
+
+				eventProducer: mockPolicyEventProducer,
 			}
 
 			err := policyCtl.AlterCustomPolicies("test", "user", "test", []types.Policy{}, []types.Policy{}, []int64{1})
