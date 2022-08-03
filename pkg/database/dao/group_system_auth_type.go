@@ -45,7 +45,6 @@ type GroupSystemAuthTypeManager interface {
 	CreateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) error
 	UpdateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) (int64, error)
 	DeleteBySystemGroupWithTx(tx *sqlx.Tx, systemID string, groupPK int64) (int64, error)
-	DeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
 }
 
 type groupSystemAuthTypeManager struct {
@@ -106,15 +105,6 @@ func (m *groupSystemAuthTypeManager) DeleteBySystemGroupWithTx(
 	groupPK int64,
 ) (int64, error) {
 	return m.deleteBySystemGroupWithTx(tx, systemID, groupPK)
-}
-
-// DeleteByGroupPKsWithTx ..
-func (m *groupSystemAuthTypeManager) DeleteByGroupPKsWithTx(
-	tx *sqlx.Tx,
-	groupPKs []int64,
-) error {
-	sql := `DELETE FROM group_system_auth_type WHERE group_pk IN (?)`
-	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
 }
 
 func (m *groupSystemAuthTypeManager) selectByGroup(authTypes *[]GroupSystemAuthType, groupPK int64) error {

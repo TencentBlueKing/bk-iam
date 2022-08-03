@@ -17,8 +17,3 @@ type PolicyRetriever interface {
 	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
 	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
 }
-
-// RbacPolicyRetriever ...
-type RbacPolicyRetriever interface {
-	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
-}

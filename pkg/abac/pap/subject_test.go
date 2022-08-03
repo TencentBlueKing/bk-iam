@@ -216,6 +216,7 @@ var _ = Describe("SubjectController", func() {
 				errors.New("test"),
 			).AnyTimes()
 			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -260,6 +261,7 @@ var _ = Describe("SubjectController", func() {
 				nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
 			mockDepartmentService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
@@ -313,6 +315,7 @@ var _ = Describe("SubjectController", func() {
 				nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
 			mockDepartmentService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(

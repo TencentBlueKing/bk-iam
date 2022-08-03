@@ -120,9 +120,23 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	}
 
 	// 2. 删除subject relation
-	// 删除前先查询, 发送group变更事件
 	eventMessages := make([]string, 0, len(pks)*2)
 	for _, pk := range pks {
+		// 2.1 删除subject system group/group system auth type
+		// TODO: 同步删除, 数据量大的情况下, 会很慢, 需要优化
+		systemIDs, err := c.groupService.ListGroupAuthSystemIDs(pk)
+		if err != nil {
+			return errorWrapf(err, "groupService.ListGroupAuthSystemIDs pk=`%+v` failed", pk)
+		}
+
+		for _, systemID := range systemIDs {
+			_, err = c.groupService.AlterGroupAuthType(tx, systemID, pk, types.AuthTypeNone)
+			if err != nil {
+				return errorWrapf(err, "groupService.AlterGroupAuthType systemID=`%+v` pk=`%+v` failed", systemID, pk)
+			}
+		}
+
+		// 2.2 生成删除 subject action group resource/subject action expression 事件
 		members, err := c.groupService.ListGroupMember(pk)
 		if err != nil {
 			return errorWrapf(err, "groupService.ListGroupMember pk=`%+v` failed", pk)
@@ -148,13 +162,14 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 			)
 		}
 
-		if len(pks) == 0 {
+		if len(eventPKs) == 0 {
 			continue
 		}
 
 		eventMessages = append(eventMessages, util.Int64SliceToStringSlice(eventPKs)...)
 	}
 
+	// 2.3 删除subject
 	err = c.groupService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "groupService.BulkDeleteBySubjectPKsWithTx pks=`%+v` failed", pks)
