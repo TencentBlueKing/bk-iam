@@ -18,6 +18,7 @@ import (
 	"iam/pkg/abac/pap"
 	"iam/pkg/api/common"
 	"iam/pkg/service"
+	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -98,11 +99,39 @@ func BatchDeleteSubjects(c *gin.Context) {
 	papSubjects := make([]pap.Subject, 0, len(subjects))
 	copier.Copy(&papSubjects, &subjects)
 
-	err := ctl.BulkDelete(papSubjects)
-	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "ctl.BulkDelete", "subjects=`%+v`", papSubjects)
-		util.SystemErrorJSONResponse(c, err)
-		return
+	groups := make([]pap.Subject, 0, len(subjects))
+	userOrDepartments := make([]pap.Subject, 0, len(subjects))
+	for _, subject := range papSubjects {
+		switch subject.Type {
+		case types.GroupType:
+			groups = append(groups, subject)
+		default:
+			userOrDepartments = append(userOrDepartments, subject)
+		}
+	}
+
+	if len(groups) != 0 {
+		err := ctl.BulkDeleteGroup(groups)
+		if err != nil {
+			err = errorx.Wrapf(err, "Handler", "ctl.BulkDeleteGroup", "groups=`%+v`", groups)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
+	}
+
+	if len(userOrDepartments) != 0 {
+		err := ctl.BulkDeleteUserAndDepartment(userOrDepartments)
+		if err != nil {
+			err = errorx.Wrapf(
+				err,
+				"Handler",
+				"ctl.BulkDeleteUserAndDepartment",
+				"userOrDepartments=`%+v`",
+				userOrDepartments,
+			)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)

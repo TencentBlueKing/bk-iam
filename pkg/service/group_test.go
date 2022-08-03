@@ -76,26 +76,8 @@ var _ = Describe("GroupService", func() {
 			ctl.Finish()
 		})
 
-		It("manager.BulkDeleteByGroupPKs fail", func() {
-			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().BulkDeleteByGroupPKs(gomock.Any(), []int64{1, 2}).Return(
-				errors.New("error"),
-			).AnyTimes()
-
-			manager := &groupService{
-				manager: mockSubjectService,
-			}
-
-			err := manager.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByGroupPKs")
-		})
-
 		It("manager.BulkDeleteBySubjectPKs fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().BulkDeleteByGroupPKs(gomock.Any(), []int64{1, 2}).Return(
-				nil,
-			).AnyTimes()
 
 			mockSubjectService.EXPECT().BulkDeleteBySubjectPKs(gomock.Any(), []int64{1, 2}).Return(
 				errors.New("error"),
@@ -112,9 +94,6 @@ var _ = Describe("GroupService", func() {
 
 		It("subjectSystemGroupManager.DeleteBySubjectPKsWithTx fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().BulkDeleteByGroupPKs(gomock.Any(), []int64{1, 2}).Return(
-				nil,
-			).AnyTimes()
 
 			mockSubjectService.EXPECT().BulkDeleteBySubjectPKs(gomock.Any(), []int64{1, 2}).Return(
 				nil,
@@ -137,9 +116,6 @@ var _ = Describe("GroupService", func() {
 
 		It("ok", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().BulkDeleteByGroupPKs(gomock.Any(), []int64{1, 2}).Return(
-				nil,
-			).AnyTimes()
 
 			mockSubjectService.EXPECT().BulkDeleteBySubjectPKs(gomock.Any(), []int64{1, 2}).Return(
 				nil,

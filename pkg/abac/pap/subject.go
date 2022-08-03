@@ -32,7 +32,8 @@ const SubjectCTL = "SubjectCTL"
 type SubjectController interface {
 	BulkCreate(subjects []Subject) error
 	BulkUpdateName(subjects []Subject) error
-	BulkDelete(subjects []Subject) error
+	BulkDeleteUserAndDepartment(subjects []Subject) error
+	BulkDeleteGroup(subjects []Subject) error
 }
 
 type subjectController struct {
@@ -94,9 +95,8 @@ func (c *subjectController) BulkUpdateName(subjects []Subject) error {
 	return nil
 }
 
-// BulkDelete ...
-func (c *subjectController) BulkDelete(subjects []Subject) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectCTL, "BulkDelete")
+func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectCTL, "BulkDeleteGroup")
 
 	svcSubjects := convertToServiceSubjects(subjects)
 
@@ -114,14 +114,14 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	}
 
 	// 1. 删除策略
-	err = c.policyService.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	err = c.policyService.BulkDeleteBySubjectPKsWithTx(tx, pks) // user, group, department
 	if err != nil {
 		return errorWrapf(err, "policyService.BulkDeleteBySubjectPKsWithTx pks=`%+v` failed", pks)
 	}
 
 	// 2. 删除subject relation
 	eventMessages := make([]string, 0, len(pks)*2)
-	for _, pk := range pks {
+	for _, pk := range pks { // only group
 		// 2.1 删除subject system group/group system auth type
 		// TODO: 同步删除, 数据量大的情况下, 会很慢, 需要优化
 		systemIDs, err := c.groupService.ListGroupAuthSystemIDs(pk)
@@ -169,7 +169,73 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 		eventMessages = append(eventMessages, util.Int64SliceToStringSlice(eventPKs)...)
 	}
 
-	// 2.3 删除subject
+	// 2.3 删除subject relation
+	err = c.groupService.BulkDeleteByGroupPKsWithTx(tx, pks) // user, department
+	if err != nil {
+		return errorWrapf(err, "groupService.BulkDeleteByGroupPKsWithTx pks=`%+v` failed", pks)
+	}
+
+	// 3. 删除subject
+	err = c.service.BulkDeleteByPKsWithTx(tx, pks) // user, group, department
+	if err != nil {
+		return errorWrapf(err, "service.BulkDeleteByPKsWithTx pks=`%+v` failed", pks)
+	}
+
+	// 4. 删除group resource policy
+	err = c.groupResourcePolicyService.BulkDeleteByGroupPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "groupResourcePolicyService.BulkDeleteByGroupPKsWithTx groupPKs=`%+v` failed", pks)
+	}
+
+	// 提交事务
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx commit error")
+	}
+
+	// 发送group 变更事件
+	if len(eventMessages) != 0 {
+		go c.alterEventProducer.Publish(eventMessages...)
+	}
+
+	for _, s := range subjects {
+		cacheimpls.DeleteSubjectPK(s.Type, s.ID)
+		cacheimpls.DeleteLocalSubjectPK(s.Type, s.ID)
+	}
+
+	// Note: 不需要清除subject的成员其对应的SubjectGroup和SubjectDepartment，
+	//       =>  保证拿到的group pk 没有对应的policy cache/回源也查不到
+	deleteGroupPKPolicyCache(pks)
+
+	return nil
+}
+
+// BulkDeleteUserAndDepartment ...
+func (c *subjectController) BulkDeleteUserAndDepartment(subjects []Subject) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectCTL, "BulkDeleteUserAndDepartment")
+
+	svcSubjects := convertToServiceSubjects(subjects)
+
+	pks, err := c.service.ListPKsBySubjects(svcSubjects)
+	if err != nil {
+		return errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
+	}
+
+	// 按照PK删除Subject所有相关的
+	// 使用事务
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return errorWrapf(err, "define tx error")
+	}
+
+	// 1. 删除策略
+	err = c.policyService.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(err, "policyService.BulkDeleteBySubjectPKsWithTx pks=`%+v` failed", pks)
+	}
+
+	// 2. 删除subject relation
 	err = c.groupService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "groupService.BulkDeleteBySubjectPKsWithTx pks=`%+v` failed", pks)
@@ -194,15 +260,6 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	}
 
 	// 6. 删除rbac策略
-	err = c.subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx(tx, pks)
-	if err != nil {
-		return errorWrapf(
-			err,
-			"subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed",
-			pks,
-		)
-	}
-
 	err = c.subjectActionGroupResourceService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(
@@ -212,20 +269,19 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 		)
 	}
 
-	err = c.groupResourcePolicyService.BulkDeleteByGroupPKsWithTx(tx, pks)
+	err = c.subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx(tx, pks)
 	if err != nil {
-		return errorWrapf(err, "groupResourcePolicyService.BulkDeleteByGroupPKsWithTx groupPKs=`%+v` failed", pks)
+		return errorWrapf(
+			err,
+			"subjectActionExpressionService.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` failed",
+			pks,
+		)
 	}
 
 	// 提交事务
 	err = tx.Commit()
 	if err != nil {
 		return errorWrapf(err, "tx commit error")
-	}
-
-	// 发送group 变更事件
-	if len(eventMessages) != 0 {
-		go c.alterEventProducer.Publish(eventMessages...)
 	}
 
 	// 5. 清除缓存
@@ -236,25 +292,6 @@ func (c *subjectController) BulkDelete(subjects []Subject) error {
 	for _, s := range subjects {
 		cacheimpls.DeleteSubjectPK(s.Type, s.ID)
 		cacheimpls.DeleteLocalSubjectPK(s.Type, s.ID)
-	}
-
-	// NOTE: collect the type=group subject_pk to delete the cache
-	groupPKs := make([]int64, 0, len(subjects))
-	for _, s := range svcSubjects {
-		if s.Type == types.GroupType {
-			gPK, err := cacheimpls.GetSubjectPK(s.Type, s.ID)
-			if err != nil {
-				log.WithError(err).Errorf("cacheimpls.GetSubjectPKfail type=`%s`, id=`%s`", s.Type, s.ID)
-				continue
-			}
-			groupPKs = append(groupPKs, gPK)
-		}
-	}
-
-	// Note: 不需要清除subject的成员其对应的SubjectGroup和SubjectDepartment，
-	//       =>  保证拿到的group pk 没有对应的policy cache/回源也查不到
-	if len(groupPKs) > 0 {
-		deleteGroupPKPolicyCache(groupPKs)
 	}
 
 	// 清理subject system group缓存

@@ -127,7 +127,7 @@ var _ = Describe("SubjectController", func() {
 		})
 	})
 
-	Describe("BulkDelete", func() {
+	Describe("BulkDeleteUserAndDepartment", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -152,7 +152,7 @@ var _ = Describe("SubjectController", func() {
 				service: mockSubjectService,
 			}
 
-			err := manager.BulkDelete([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteUserAndDepartment([]Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "ListPKsBySubjects")
 		})
@@ -189,7 +189,7 @@ var _ = Describe("SubjectController", func() {
 				policyService: mockPolicyService,
 			}
 
-			err := manager.BulkDelete([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteUserAndDepartment([]Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "policyService.BulkDeleteBySubjectPKsWithTx")
 		})
@@ -215,8 +215,6 @@ var _ = Describe("SubjectController", func() {
 			mockGroupService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
 				errors.New("test"),
 			).AnyTimes()
-			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -234,7 +232,7 @@ var _ = Describe("SubjectController", func() {
 				groupService:  mockGroupService,
 			}
 
-			err := manager.BulkDelete([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteUserAndDepartment([]Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "groupService.BulkDeleteBySubjectPKsWithTx")
 		})
@@ -260,8 +258,6 @@ var _ = Describe("SubjectController", func() {
 			mockGroupService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
 				nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
 			mockDepartmentService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
@@ -285,7 +281,7 @@ var _ = Describe("SubjectController", func() {
 				departmentService: mockDepartmentService,
 			}
 
-			err := manager.BulkDelete([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteUserAndDepartment([]Subject{{Type: "user", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "departmentService.BulkDeleteBySubjectPKsWithTx")
 		})
@@ -314,8 +310,6 @@ var _ = Describe("SubjectController", func() {
 			mockGroupService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
 				nil,
 			).AnyTimes()
-			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
-			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
 
 			mockDepartmentService := mock.NewMockDepartmentService(ctl)
 			mockDepartmentService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
@@ -339,7 +333,168 @@ var _ = Describe("SubjectController", func() {
 				departmentService: mockDepartmentService,
 			}
 
-			err := manager.BulkDelete([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			err := manager.BulkDeleteUserAndDepartment([]Subject{{Type: "user", Name: "name", ID: "1"}})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "service.BulkDeleteByPKsWithTx")
+		})
+	})
+
+	Describe("BulkDeleteGroup", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("service.ListPKsBySubjects fail", func() {
+			mockSubjectService := mock.NewMockSubjectService(ctl)
+			mockSubjectService.EXPECT().ListPKsBySubjects([]types.Subject{
+				{
+					ID:   "1",
+					Name: "name",
+					Type: "group",
+				},
+			}).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			manager := &subjectController{
+				service: mockSubjectService,
+			}
+
+			err := manager.BulkDeleteGroup([]Subject{{Type: "group", Name: "name", ID: "1"}})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListPKsBySubjects")
+		})
+
+		It("policyService.BulkDeleteBySubjectPKsWithTx fail", func() {
+			mockSubjectService := mock.NewMockSubjectService(ctl)
+			mockSubjectService.EXPECT().ListPKsBySubjects([]types.Subject{
+				{
+					ID:   "1",
+					Name: "name",
+					Type: "group",
+				},
+			}).Return(
+				[]int64{1, 2}, nil,
+			).AnyTimes()
+
+			mockPolicyService := mock.NewMockPolicyService(ctl)
+			mockPolicyService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				errors.New("test"),
+			).AnyTimes()
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+			defer patches.Reset()
+
+			manager := &subjectController{
+				service:       mockSubjectService,
+				policyService: mockPolicyService,
+			}
+
+			err := manager.BulkDeleteGroup([]Subject{{Type: "group", Name: "name", ID: "1"}})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "policyService.BulkDeleteBySubjectPKsWithTx")
+		})
+
+		It("groupService.BulkDeleteByGroupPKsWithTx fail", func() {
+			mockSubjectService := mock.NewMockSubjectService(ctl)
+			mockSubjectService.EXPECT().ListPKsBySubjects([]types.Subject{
+				{
+					ID:   "1",
+					Name: "name",
+					Type: "group",
+				},
+			}).Return(
+				[]int64{1, 2}, nil,
+			).AnyTimes()
+
+			mockPolicyService := mock.NewMockPolicyService(ctl)
+			mockPolicyService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			).AnyTimes()
+
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().BulkDeleteByGroupPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				errors.New("test"),
+			).AnyTimes()
+			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+			defer patches.Reset()
+
+			manager := &subjectController{
+				service:       mockSubjectService,
+				policyService: mockPolicyService,
+				groupService:  mockGroupService,
+			}
+
+			err := manager.BulkDeleteGroup([]Subject{{Type: "group", Name: "name", ID: "1"}})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "groupService.BulkDeleteByGroupPKsWithTx")
+		})
+
+		It("service.BulkDeleteByPKsWithTx fail", func() {
+			mockSubjectService := mock.NewMockSubjectService(ctl)
+			mockSubjectService.EXPECT().ListPKsBySubjects([]types.Subject{
+				{
+					ID:   "1",
+					Name: "name",
+					Type: "group",
+				},
+			}).Return(
+				[]int64{1, 2}, nil,
+			).AnyTimes()
+			mockSubjectService.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				errors.New("test"),
+			).AnyTimes()
+
+			mockPolicyService := mock.NewMockPolicyService(ctl)
+			mockPolicyService.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			).AnyTimes()
+
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().BulkDeleteByGroupPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			).AnyTimes()
+			mockGroupService.EXPECT().ListGroupMember(gomock.Any()).Return([]types.GroupMember{}, nil).AnyTimes()
+			mockGroupService.EXPECT().ListGroupAuthSystemIDs(gomock.Any()).Return([]string{}, nil).AnyTimes()
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+			defer patches.Reset()
+
+			manager := &subjectController{
+				service:       mockSubjectService,
+				policyService: mockPolicyService,
+				groupService:  mockGroupService,
+			}
+
+			err := manager.BulkDeleteGroup([]Subject{{Type: "group", Name: "name", ID: "1"}})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "service.BulkDeleteByPKsWithTx")
 		})

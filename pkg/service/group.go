@@ -44,6 +44,7 @@ type GroupService interface {
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 
 	GetGroupMemberCount(groupPK int64) (int64, error)
 	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
@@ -435,25 +436,33 @@ func (l *groupService) ListPagingGroupMemberBeforeExpiredAt(
 	return convertToGroupMembers(daoRelations), nil
 }
 
-// BulkDeleteBySubjectPKsWithTx ...
-func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKsWithTx")
+// BulkDeleteByGroupPKsWithTx ...
+func (l *groupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteByGroupPKsWithTx")
 
 	// 批量用户组删除成员关系 subjectRelation
-	err := l.manager.BulkDeleteByGroupPKs(tx, subjectPKs)
+	err := l.manager.BulkDeleteByGroupPKs(tx, subjectPKs) // only group
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", subjectPKs)
 	}
+
+	return nil
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKsWithTx")
+
 	// 批量其加入的用户组关系 subjectRelation
-	err = l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs)
+	err := l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs) // user department
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", subjectPKs)
 	}
 
 	// 批量删除用户的subject system group
-	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, subjectPKs)
+	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, subjectPKs) // user department
 	if err != nil {
 		return errorWrapf(err, "subjectSystemGroupManager.DeleteBySubjectPKsWithTx subjectPKs=`%+v` fail", subjectPKs)
 	}
