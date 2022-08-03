@@ -57,6 +57,7 @@ type GroupResourcePolicyManager interface {
 	BulkCreateWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkUpdateActionPKsWithTx(tx *sqlx.Tx, policies []GroupResourcePolicy) error
 	BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error
+	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
 
 	// auth
 	ListThinByResource(
@@ -206,4 +207,13 @@ func (m *groupResourcePolicyManager) ListActionPKsByGroup(groupPK int64) (action
 	}
 
 	return actionPKsList, err
+}
+
+// BulkDeleteByGroupPKsWithTx ...
+func (m *groupResourcePolicyManager) BulkDeleteByGroupPKsWithTx(
+	tx *sqlx.Tx,
+	groupPKs []int64,
+) error {
+	sql := `DELETE FROM rbac_group_resource_policy WHERE group_pk IN (?)`
+	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
 }

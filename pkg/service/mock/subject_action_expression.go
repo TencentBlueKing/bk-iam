@@ -35,6 +35,20 @@ func (m *MockSubjectActionExpressionService) EXPECT() *MockSubjectActionExpressi
 	return m.recorder
 }
 
+// BulkDeleteBySubjectPKsWithTx mocks base method.
+func (m *MockSubjectActionExpressionService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBySubjectPKsWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteBySubjectPKsWithTx indicates an expected call of BulkDeleteBySubjectPKsWithTx.
+func (mr *MockSubjectActionExpressionServiceMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).BulkDeleteBySubjectPKsWithTx), tx, subjectPKs)
+}
+
 // CreateOrUpdateWithTx mocks base method.
 func (m *MockSubjectActionExpressionService) CreateOrUpdateWithTx(tx *sqlx.Tx, expression types.SubjectActionExpression) error {
 	m.ctrl.T.Helper()

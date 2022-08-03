@@ -44,6 +44,7 @@ type GroupService interface {
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 
 	GetGroupMemberCount(groupPK int64) (int64, error)
 	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
@@ -435,18 +436,26 @@ func (l *groupService) ListPagingGroupMemberBeforeExpiredAt(
 	return convertToGroupMembers(daoRelations), nil
 }
 
+// BulkDeleteByGroupPKsWithTx ...
+func (l *groupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteByGroupPKsWithTx")
+
+	// 批量用户组删除成员关系 subjectRelation
+	err := l.manager.BulkDeleteByGroupPKs(tx, groupPKs)
+	if err != nil {
+		return errorWrapf(
+			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", groupPKs)
+	}
+
+	return nil
+}
+
 // BulkDeleteBySubjectPKsWithTx ...
 func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKsWithTx")
 
-	// 批量用户组删除成员关系 subjectRelation
-	err := l.manager.BulkDeleteByGroupPKs(tx, subjectPKs)
-	if err != nil {
-		return errorWrapf(
-			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", subjectPKs)
-	}
 	// 批量其加入的用户组关系 subjectRelation
-	err = l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs)
+	err := l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs)
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", subjectPKs)

@@ -215,7 +215,7 @@ func (c *policyControllerV2) alterABACPolicies(
 
 	// 模板权限
 	// 创建&删除
-	if len(createPolicies) > 0 || len(updatePolicies) > 0 {
+	if len(createPolicies) > 0 || len(deletePolicyIDs) > 0 {
 		err = c.policyService.CreateAndDeleteTemplatePoliciesWithTx(
 			tx, subjectPK, templateID, cps, deletePolicyIDs, actionPKWithResourceTypeSet)
 		if err != nil {

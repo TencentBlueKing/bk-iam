@@ -41,6 +41,7 @@ type SubjectActionExpressionManager interface {
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
 	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, signature string, expiredAt int64) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 }
 
 type subjectActionExpressionManager struct {
@@ -140,4 +141,13 @@ func (m *subjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(
 		"expired_at": expiredAt,
 	})
 	return err
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (m *subjectActionExpressionManager) BulkDeleteBySubjectPKsWithTx(
+	tx *sqlx.Tx,
+	subjectPKs []int64,
+) error {
+	sql := `DELETE FROM rbac_subject_action_expression WHERE subject_pk IN (?)`
+	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 }

@@ -30,6 +30,7 @@ const SubjectActionExpressionSVC = "SubjectActionExpressionSVC"
 type SubjectActionExpressionService interface {
 	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
 	CreateOrUpdateWithTx(tx *sqlx.Tx, expression types.SubjectActionExpression) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectActionExpressionService struct {
@@ -127,4 +128,12 @@ func (s *subjectActionExpressionService) ListBySubjectAction(
 		})
 	}
 	return expressions, nil
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (s *subjectActionExpressionService) BulkDeleteBySubjectPKsWithTx(
+	tx *sqlx.Tx,
+	subjectPKs []int64,
+) error {
+	return s.manager.BulkDeleteBySubjectPKsWithTx(tx, subjectPKs)
 }

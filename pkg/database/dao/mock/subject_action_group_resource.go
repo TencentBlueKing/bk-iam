@@ -35,6 +35,20 @@ func (m *MockSubjectActionGroupResourceManager) EXPECT() *MockSubjectActionGroup
 	return m.recorder
 }
 
+// BulkDeleteBySubjectPKsWithTx mocks base method.
+func (m *MockSubjectActionGroupResourceManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBySubjectPKsWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteBySubjectPKsWithTx indicates an expected call of BulkDeleteBySubjectPKsWithTx.
+func (mr *MockSubjectActionGroupResourceManagerMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceManager)(nil).BulkDeleteBySubjectPKsWithTx), tx, subjectPKs)
+}
+
 // CreateWithTx mocks base method.
 func (m *MockSubjectActionGroupResourceManager) CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup dao.SubjectActionGroupResource) error {
 	m.ctrl.T.Helper()
