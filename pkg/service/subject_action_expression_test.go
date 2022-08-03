@@ -113,7 +113,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				ExpiredAt:  10,
 			}, nil)
 			mockManager.EXPECT().
-				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, "", int64(10)).
 				Return(errors.New("error"))
 
 			svc := &subjectActionExpressionService{
@@ -124,6 +124,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				SubjectPK:  1,
 				ActionPK:   2,
 				Expression: `{"OR":[{"content":[]}`,
+				Signature:  "",
 				ExpiredAt:  10,
 			})
 			assert.Error(GinkgoT(), err)
@@ -140,7 +141,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				ExpiredAt:  10,
 			}, nil)
 			mockManager.EXPECT().
-				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, "", int64(10)).
 				Return(nil)
 
 			svc := &subjectActionExpressionService{
@@ -151,6 +152,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				SubjectPK:  1,
 				ActionPK:   2,
 				Expression: `{"OR":[{"content":[]}`,
+				Signature:  "",
 				ExpiredAt:  10,
 			})
 			assert.NoError(GinkgoT(), err)
@@ -203,6 +205,9 @@ var _ = Describe("SubjectActionExpressionService", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []types.SubjectActionExpression{
 				{
+					PK:        1,
+					ExpiredAt: 0,
+				}, {
 					PK:        2,
 					ExpiredAt: 10,
 				},

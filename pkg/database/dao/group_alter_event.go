@@ -35,7 +35,7 @@ type GroupAlterEvent struct {
 // GroupAlterEventManager ...
 type GroupAlterEventManager interface {
 	Get(pk int64) (GroupAlterEvent, error)
-	ListPKLtCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
+	ListPKLessThanCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
 	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) ([]int64, error)
 	Delete(pk int64) error
 	IncrCheckCount(pk int64) error
@@ -67,8 +67,8 @@ func (m *groupAlterEventManagerManager) Get(pk int64) (groupAlterEvent GroupAlte
 	return
 }
 
-// ListByGroupCheckCount ...
-func (m *groupAlterEventManagerManager) ListPKLtCheckCountBeforeCreateAt(
+// ListPKLessThanCheckCountBeforeCreateAt ...
+func (m *groupAlterEventManagerManager) ListPKLessThanCheckCountBeforeCreateAt(
 	checkCount int64,
 	createdAt int64,
 ) (pks []int64, err error) {

@@ -44,6 +44,13 @@ func NewSubjectActionExpressionService() SubjectActionExpressionService {
 	}
 }
 
+/*
+	NOTE: SubjectActionExpression不会被主动删除, 存在expiredAt==0的数据, 实际没有作用
+
+	原因: 保持subjectActionGroupResource与subjectActionExpression数据的一致性
+	前提: 查询时使用 subject_pk 与 department_pks 的总数量不会太多, 并且每个action_pk只有一条数据
+*/
+
 // CreateOrUpdateWithTx ...
 func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 	tx *sqlx.Tx,
@@ -67,6 +74,7 @@ func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 			SubjectPK:  expression.SubjectPK,
 			ActionPK:   expression.ActionPK,
 			Expression: expression.Expression,
+			Signature:  expression.Signature,
 			ExpiredAt:  expression.ExpiredAt,
 		}
 
@@ -77,7 +85,13 @@ func (s *subjectActionExpressionService) CreateOrUpdateWithTx(
 		}
 	} else {
 		// update
-		err = s.manager.UpdateExpressionExpiredAtWithTx(tx, daoExpression.PK, expression.Expression, expression.ExpiredAt)
+		err = s.manager.UpdateExpressionExpiredAtWithTx(
+			tx,
+			daoExpression.PK,
+			expression.Expression,
+			expression.Signature,
+			expression.ExpiredAt,
+		)
 		if err != nil {
 			err = errorWrapf(err, "manager.UpdateWithTx fail, daoExpression=`%+v`", daoExpression)
 			return err
@@ -103,17 +117,13 @@ func (s *subjectActionExpressionService) ListBySubjectAction(
 
 	expressions := make([]types.SubjectActionExpression, 0, len(daoExpressions))
 	for _, e := range daoExpressions {
-		// 过期时间为空, 无效数据
-		if e.ExpiredAt == 0 {
-			continue
-		}
-
 		// NOTE: 这里可能有已经过期的数据, 由上层处理更新事件
 		expressions = append(expressions, types.SubjectActionExpression{
 			PK:         e.PK,
 			SubjectPK:  e.SubjectPK,
 			ActionPK:   e.ActionPK,
 			Expression: e.Expression,
+			Signature:  e.Signature,
 			ExpiredAt:  e.ExpiredAt,
 		})
 	}

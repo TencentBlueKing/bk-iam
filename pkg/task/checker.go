@@ -109,7 +109,7 @@ func (c *GroupAlterEventChecker) Run() {
 		logger.Info("Check group alter event begin")
 
 		createdAt := time.Now().Add(-5 * time.Minute).Unix()
-		pks, err := c.service.ListPKLtCheckCountBeforeCreateAt(maxCheckCount, createdAt)
+		pks, err := c.service.ListPKLessThanCheckCountBeforeCreateAt(maxCheckCount, createdAt)
 		if err != nil {
 			logger.WithError(err).
 				Errorf("failed to list pk by check times before create at, CheckCount=`%d`, createdAt=`%d`",

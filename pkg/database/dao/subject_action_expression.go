@@ -28,6 +28,7 @@ type SubjectActionExpression struct {
 	SubjectPK  int64  `db:"subject_pk"` // 关联Subject表自增列
 	ActionPK   int64  `db:"action_pk"`  // 关联Action表自增列
 	Expression string `db:"expression"`
+	Signature  string `db:"signature"`
 
 	// 策略有效期，unix time，单位秒(s)
 	ExpiredAt int64 `db:"expired_at"`
@@ -39,8 +40,8 @@ type SubjectActionExpressionManager interface {
 
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
-	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, expiredAt int64) error
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
+	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, signature string, expiredAt int64) error
 }
 
 type subjectActionExpressionManager struct {
@@ -68,6 +69,7 @@ func (m *subjectActionExpressionManager) ListBySubjectAction(
 		subject_pk,
 		action_pk,
 		expression,
+		signature,
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk IN (?)
@@ -89,6 +91,7 @@ func (m *subjectActionExpressionManager) GetBySubjectAction(
 		subject_pk,
 		action_pk,
 		expression,
+		signature,
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk = ?
@@ -106,11 +109,13 @@ func (m *subjectActionExpressionManager) CreateWithTx(
 		subject_pk,
 		action_pk,
 		expression,
+		signature,
 		expired_at
 	) VALUES (
 		:subject_pk,
 		:action_pk,
 		:expression,
+		:signature,
 		:expired_at
 	)`
 	return database.SqlxInsertWithTx(tx, sql, subjectActionExpression)
@@ -121,12 +126,18 @@ func (m *subjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(
 	tx *sqlx.Tx,
 	pk int64,
 	expression string,
+	signature string,
 	expiredAt int64,
 ) error {
-	sql := `UPDATE rbac_subject_action_expression SET expression = :expression, expired_at = :expired_at WHERE pk = :pk`
+	sql := `UPDATE rbac_subject_action_expression SET
+		expression = :expression,
+		signature = :signature,
+		expired_at = :expired_at
+		WHERE pk = :pk`
 	_, err := database.SqlxUpdateWithTx(tx, sql, map[string]interface{}{
 		"pk":         pk,
 		"expression": expression,
+		"signature":  signature,
 		"expired_at": expiredAt,
 	})
 	return err

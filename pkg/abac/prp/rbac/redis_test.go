@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package rbac
 
 import (
 	"time"
@@ -19,17 +19,17 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/mock"
 	"iam/pkg/service/types"
-	"iam/pkg/task/handler"
 	producermock "iam/pkg/task/producer/mock"
 )
 
 var _ = Describe("RbacPolicy", func() {
 	Describe("rbacPolicyRedisRetriever", func() {
-		var r *rbacPolicyRedisRetriever
+		var r *PolicyRedisRetriever
 		var ctl *gomock.Controller
 		var mockSubjectActionExpressionService *mock.MockSubjectActionExpressionService
 		var mockSubjectActionGroupResourceService *mock.MockSubjectActionGroupResourceService
@@ -42,7 +42,7 @@ var _ = Describe("RbacPolicy", func() {
 			mockGroupAlterEventService = mock.NewMockGroupAlterEventService(ctl)
 			mockProducer = producermock.NewMockProducer(ctl)
 
-			r = &rbacPolicyRedisRetriever{
+			r = &PolicyRedisRetriever{
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				groupAlterEventService:            mockGroupAlterEventService,
@@ -205,7 +205,7 @@ var _ = Describe("RbacPolicy", func() {
 				Return(types.SubjectActionGroupResource{}, nil).
 				Times(1)
 			patches := gomonkey.ApplyFunc(
-				handler.ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(r types.SubjectActionGroupResource) (types.SubjectActionExpression, error) {
 					return types.SubjectActionExpression{
 						PK:         2,

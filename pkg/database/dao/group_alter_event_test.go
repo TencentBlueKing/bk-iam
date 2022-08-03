@@ -46,7 +46,7 @@ func Test_groupAlterEventManagerManager_ListByGroupCheckCount(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		pks, err := manager.ListPKLtCheckCountBeforeCreateAt(0, 0)
+		pks, err := manager.ListPKLessThanCheckCountBeforeCreateAt(0, 0)
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, []int64{1}, pks)

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package temporary
 
 /*
 临时权限的查询分为2步:
@@ -54,41 +54,41 @@ const (
 	TemporaryPolicyCacheDelaySeconds = 10
 )
 
-type temporaryPolicyCache struct {
-	*temporaryPolicyRedisCache
-	*temporaryPolicyLocalCache
+type PolicyCacheRetriever struct {
+	*policyRedisCache
+	*policyLocalCache
 }
 
-func newTemporaryPolicyCacheRetriever(
+func NewPolicyCacheRetriever(
 	system string,
 	svc service.TemporaryPolicyService,
-) TemporaryPolicyRetriever {
-	return &temporaryPolicyCache{
-		temporaryPolicyRedisCache: newTemporaryPolicyRedisCache(system, svc),
-		temporaryPolicyLocalCache: newTemporaryPolicyLocalCache(svc),
+) PolicyRetriever {
+	return &PolicyCacheRetriever{
+		policyRedisCache: newPolicyRedisCache(system, svc),
+		policyLocalCache: newPolicyLocalCache(svc),
 	}
 }
 
-type temporaryPolicyRedisCache struct {
-	keyPrefix              string
-	temporaryPolicyService service.TemporaryPolicyService
+type policyRedisCache struct {
+	keyPrefix     string
+	policyService service.TemporaryPolicyService
 }
 
-func newTemporaryPolicyRedisCache(
+func newPolicyRedisCache(
 	system string,
 	svc service.TemporaryPolicyService,
-) *temporaryPolicyRedisCache {
-	return &temporaryPolicyRedisCache{
-		keyPrefix:              system + ":",
-		temporaryPolicyService: svc,
+) *policyRedisCache {
+	return &policyRedisCache{
+		keyPrefix:     system + ":",
+		policyService: svc,
 	}
 }
 
-func (c *temporaryPolicyRedisCache) genKey(subjectPK int64) cache.Key {
+func (c *policyRedisCache) genKey(subjectPK int64) cache.Key {
 	return cache.NewStringKey(c.keyPrefix + strconv.FormatInt(subjectPK, 10))
 }
 
-func (c *temporaryPolicyRedisCache) genHashKeyField(subjectPK, actionPK int64) redis.HashKeyField {
+func (c *policyRedisCache) genHashKeyField(subjectPK, actionPK int64) redis.HashKeyField {
 	key := c.genKey(subjectPK)
 	field := strconv.FormatInt(actionPK, 10)
 	return redis.HashKeyField{
@@ -98,27 +98,27 @@ func (c *temporaryPolicyRedisCache) genHashKeyField(subjectPK, actionPK int64) r
 }
 
 // ListThinBySubjectAction ...
-func (c *temporaryPolicyRedisCache) ListThinBySubjectAction(
+func (c *policyRedisCache) ListThinBySubjectAction(
 	subjectPK, actionPK int64,
 ) (ps []types.ThinTemporaryPolicy, err error) {
 	// 从Redis中查询缓存
-	ps, err = c.getThinTemporaryPoliciesFromCache(subjectPK, actionPK)
+	ps, err = c.getThinPoliciesFromCache(subjectPK, actionPK)
 	if err == nil {
 		return ps, nil
 	}
 
 	// Redis miss时, 从DB查询
-	ps, err = c.temporaryPolicyService.ListThinBySubjectAction(subjectPK, actionPK)
+	ps, err = c.policyService.ListThinBySubjectAction(subjectPK, actionPK)
 	if err != nil {
 		return
 	}
 
 	// set 数据到Redis中
-	c.setThinTemporaryPoliciesToCache(subjectPK, actionPK, ps)
+	c.setThinPoliciesToCache(subjectPK, actionPK, ps)
 	return
 }
 
-func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
+func (c *policyRedisCache) setThinPoliciesToCache(
 	subjectPK, actionPK int64, ps []types.ThinTemporaryPolicy,
 ) {
 	valueByets, err := cacheimpls.TemporaryPolicyCache.Marshal(ps)
@@ -141,7 +141,7 @@ func (c *temporaryPolicyRedisCache) setThinTemporaryPoliciesToCache(
 	}
 }
 
-func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
+func (c *policyRedisCache) getThinPoliciesFromCache(
 	subjectPK, actionPK int64,
 ) (ps []types.ThinTemporaryPolicy, err error) {
 	hashKeyField := c.genHashKeyField(subjectPK, actionPK)
@@ -162,23 +162,23 @@ func (c *temporaryPolicyRedisCache) getThinTemporaryPoliciesFromCache(
 }
 
 // DeleteBySubject ...
-func (c *temporaryPolicyRedisCache) DeleteBySubject(subjectPK int64) error {
+func (c *policyRedisCache) DeleteBySubject(subjectPK int64) error {
 	key := c.genKey(subjectPK)
 	return cacheimpls.TemporaryPolicyCache.Delete(key)
 }
 
-type temporaryPolicyLocalCache struct {
-	temporaryPolicyService service.TemporaryPolicyService
+type policyLocalCache struct {
+	policyService service.TemporaryPolicyService
 }
 
-func newTemporaryPolicyLocalCache(svc service.TemporaryPolicyService) *temporaryPolicyLocalCache {
-	return &temporaryPolicyLocalCache{
-		temporaryPolicyService: svc,
+func newPolicyLocalCache(svc service.TemporaryPolicyService) *policyLocalCache {
+	return &policyLocalCache{
+		policyService: svc,
 	}
 }
 
 // ListByPKs ...
-func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
+func (c *policyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPolicy, error) {
 	// 从本地缓存中批量查询
 	policies, missPKs := c.batchGet(pks)
 	if len(missPKs) == 0 {
@@ -186,7 +186,7 @@ func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPol
 	}
 
 	// 没有查到的pks回落到db查询
-	retrievedPolicies, err := c.temporaryPolicyService.ListByPKs(missPKs)
+	retrievedPolicies, err := c.policyService.ListByPKs(missPKs)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func (c *temporaryPolicyLocalCache) ListByPKs(pks []int64) ([]types.TemporaryPol
 	return policies, nil
 }
 
-func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
+func (c *policyLocalCache) batchGet(pks []int64) ([]types.TemporaryPolicy, []int64) {
 	// 本地缓存以policy pk为key, 批量查询循环get
 	policies := make([]types.TemporaryPolicy, 0, len(pks))
 	missPKs := make([]int64, 0, len(pks))
@@ -225,7 +225,7 @@ func (c *temporaryPolicyLocalCache) batchGet(pks []int64) ([]types.TemporaryPoli
 	return policies, missPKs
 }
 
-func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy) {
+func (c *policyLocalCache) setMissing(policies []types.TemporaryPolicy) {
 	nowTimestamp := time.Now().Unix()
 	for i := range policies {
 		p := &policies[i] // NOTE: 避免循环中对象复制, 取指针地址重复
@@ -236,7 +236,7 @@ func (c *temporaryPolicyLocalCache) setMissing(policies []types.TemporaryPolicy)
 	}
 }
 
-func DeleteTemporaryPolicyBySystemSubjectFromCache(systemID string, subjectPK int64) error {
-	tpRedisCache := newTemporaryPolicyRedisCache(systemID, service.NewTemporaryPolicyService())
+func DeletePolicyBySystemSubjectFromCache(systemID string, subjectPK int64) error {
+	tpRedisCache := newPolicyRedisCache(systemID, service.NewTemporaryPolicyService())
 	return tpRedisCache.DeleteBySubject(subjectPK)
 }

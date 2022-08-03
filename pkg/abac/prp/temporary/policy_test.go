@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package temporary
 
 import (
 	"errors"
@@ -28,9 +28,9 @@ import (
 
 var _ = Describe("TemporaryPolicy", func() {
 	It("genKey", func() {
-		c := &temporaryPolicyRedisCache{
-			keyPrefix:              "test" + ":",
-			temporaryPolicyService: nil,
+		c := &policyRedisCache{
+			keyPrefix:     "test" + ":",
+			policyService: nil,
 		}
 		k := c.genKey(456)
 
@@ -38,9 +38,9 @@ var _ = Describe("TemporaryPolicy", func() {
 	})
 
 	It("genHashKeyField", func() {
-		c := &temporaryPolicyRedisCache{
-			keyPrefix:              "test" + ":",
-			temporaryPolicyService: nil,
+		c := &policyRedisCache{
+			keyPrefix:     "test" + ":",
+			policyService: nil,
 		}
 		hashKeyField := c.genHashKeyField(456, 789)
 
@@ -51,13 +51,13 @@ var _ = Describe("TemporaryPolicy", func() {
 	})
 
 	Describe("temporaryPolicyRedisCache", func() {
-		var c *temporaryPolicyRedisCache
+		var c *policyRedisCache
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
-			c = &temporaryPolicyRedisCache{
-				keyPrefix:              "test" + ":",
-				temporaryPolicyService: nil,
+			c = &policyRedisCache{
+				keyPrefix:     "test" + ":",
+				policyService: nil,
 			}
 			cacheimpls.TemporaryPolicyCache = redis.NewMockCache("test", 5*time.Minute)
 		})
@@ -66,14 +66,14 @@ var _ = Describe("TemporaryPolicy", func() {
 		})
 
 		It("get fail", func() {
-			_, err := c.getThinTemporaryPoliciesFromCache(456, 789)
+			_, err := c.getThinPoliciesFromCache(456, 789)
 			assert.ErrorIs(GinkgoT(), err, red.Nil)
 		})
 
 		It("set and get ok", func() {
 			ps := []types.ThinTemporaryPolicy{{}}
-			c.setThinTemporaryPoliciesToCache(456, 789, ps)
-			value, err := c.getThinTemporaryPoliciesFromCache(456, 789)
+			c.setThinPoliciesToCache(456, 789, ps)
+			value, err := c.getThinPoliciesFromCache(456, 789)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), ps, value)
 		})
@@ -86,7 +86,7 @@ var _ = Describe("TemporaryPolicy", func() {
 				nil, errors.New("list fail"),
 			).AnyTimes()
 
-			c.temporaryPolicyService = mockTemporaryPolicyService
+			c.policyService = mockTemporaryPolicyService
 
 			_, err := c.ListThinBySubjectAction(456, 789)
 			assert.Contains(GinkgoT(), err.Error(), "fail")
@@ -102,7 +102,7 @@ var _ = Describe("TemporaryPolicy", func() {
 				ps, nil,
 			).AnyTimes()
 
-			c.temporaryPolicyService = mockTemporaryPolicyService
+			c.policyService = mockTemporaryPolicyService
 
 			value, err := c.ListThinBySubjectAction(456, 789)
 			assert.NoError(GinkgoT(), err)
@@ -111,12 +111,12 @@ var _ = Describe("TemporaryPolicy", func() {
 	})
 
 	Describe("temporaryPolicyLocalCache", func() {
-		var c *temporaryPolicyLocalCache
+		var c *policyLocalCache
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
-			c = &temporaryPolicyLocalCache{
-				temporaryPolicyService: nil,
+			c = &policyLocalCache{
+				policyService: nil,
 			}
 			cacheimpls.LocalTemporaryPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 		})
@@ -145,7 +145,7 @@ var _ = Describe("TemporaryPolicy", func() {
 				nil, errors.New("list fail"),
 			).AnyTimes()
 
-			c.temporaryPolicyService = mockTemporaryPolicyService
+			c.policyService = mockTemporaryPolicyService
 
 			_, err := c.ListByPKs([]int64{1, 2})
 			assert.Contains(GinkgoT(), err.Error(), "fail")
@@ -160,7 +160,7 @@ var _ = Describe("TemporaryPolicy", func() {
 				ps, nil,
 			).AnyTimes()
 
-			c.temporaryPolicyService = mockTemporaryPolicyService
+			c.policyService = mockTemporaryPolicyService
 
 			value, err := c.ListByPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)

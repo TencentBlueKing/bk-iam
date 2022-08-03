@@ -14,7 +14,6 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
-	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	rds "github.com/go-redis/redis/v8"
@@ -23,6 +22,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -34,62 +34,6 @@ import (
 )
 
 var _ = Describe("Handler", func() {
-	Describe("convertToSubjectActionExpression", func() {
-		It("ok", func() {
-			patches := gomonkey.ApplyFunc(time.Now, func() time.Time {
-				return time.Time{}
-			})
-			defer patches.Reset()
-			patches.ApplyFunc(cacheimpls.GetAction, func(_ int64) (types.ThinAction, error) {
-				return types.ThinAction{
-					System: "system",
-					ID:     "action",
-					PK:     1,
-				}, nil
-			})
-			patches.ApplyFunc(cacheimpls.GetLocalActionDetail, func(_, _ string) (types.ActionDetail, error) {
-				return types.ActionDetail{
-					ResourceTypes: []types.ThinActionResourceType{
-						{System: "system", ID: "resource_type"},
-					},
-				}, nil
-			})
-			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _ string) (int64, error) {
-				return 1, nil
-			})
-			patches.ApplyFunc(cacheimpls.GetThinResourceType, func(_ int64) (types.ThinResourceType, error) {
-				return types.ThinResourceType{
-					System: "system",
-					ID:     "resource_type2",
-					PK:     2,
-				}, nil
-			})
-
-			obj := types.SubjectActionGroupResource{
-				SubjectPK: 1,
-				ActionPK:  1,
-				GroupResource: map[int64]types.ResourceExpiredAt{
-					1: {
-						ExpiredAt: 10,
-						Resources: map[int64][]string{
-							1: {"resource1", "resource2"},
-						},
-					},
-					2: {
-						ExpiredAt: 10,
-						Resources: map[int64][]string{
-							2: {"resource3", "resource4"},
-						},
-					},
-				},
-			}
-
-			expression, err := ConvertSubjectActionGroupResourceToExpression(obj)
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), expression.Expression, 209)
-		})
-	})
-
 	Describe("handlerEvent", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches
@@ -225,7 +169,7 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},
@@ -269,7 +213,7 @@ var _ = Describe("Handler", func() {
 				},
 			)
 			patches.ApplyFunc(
-				ConvertSubjectActionGroupResourceToExpression,
+				convert.SubjectActionGroupResourceToExpression,
 				func(obj types.SubjectActionGroupResource) (expression types.SubjectActionExpression, err error) {
 					return types.SubjectActionExpression{}, nil
 				},
