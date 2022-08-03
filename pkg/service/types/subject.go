@@ -104,8 +104,10 @@ func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, resource
 
 // SubjectActionExpression ...
 type SubjectActionExpression struct {
-	SubjectPK  int64  `json:"subject_pk"`
-	ActionPK   int64  `json:"action_pk"`
-	Expression string `json:"expression"`
-	ExpiredAt  int64  `json:"expired_at"`
+	PK         int64  `json:"pk" msgpack:"p"`
+	SubjectPK  int64  `json:"subject_pk" msgpack:"s1"`
+	ActionPK   int64  `json:"action_pk" msgpack:"a"`
+	Expression string `json:"expression" msgpack:"e1"`
+	Signature  string `json:"signature" msgpack:"s2"`
+	ExpiredAt  int64  `json:"expired_at" msgpack:"e2"`
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 
 	"iam/pkg/abac/types"
-	svcTypes "iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
 
 // ListSaaSBySubjectSystemTemplate 根据system和subject查询相关的policy的列表
@@ -92,16 +92,16 @@ func (c *policyController) GetByActionTemplate(
 		return
 	}
 
-	svcTypesPolicy, err := c.policyService.GetByActionTemplate(pk, actionPK, 0)
+	svctypesPolicy, err := c.policyService.GetByActionTemplate(pk, actionPK, 0)
 	if err != nil {
 		err = errorWrapf(err, "policyService.GetByActionTemplate subjectPK=`%d`, actionPK=`%d` fail", pk, actionPK)
 		return
 	}
 	policy = types.AuthPolicy{
-		Version:    svcTypesPolicy.Version,
-		ID:         svcTypesPolicy.ID,
-		Expression: svcTypesPolicy.Expression,
-		ExpiredAt:  svcTypesPolicy.ExpiredAt,
+		Version:    svctypesPolicy.Version,
+		ID:         svctypesPolicy.ID,
+		Expression: svctypesPolicy.Expression,
+		ExpiredAt:  svctypesPolicy.ExpiredAt,
 	}
 	return policy, err
 }
@@ -144,11 +144,11 @@ func (c *policyController) ListSaaSBySubjectTemplateBeforeExpiredAt(
 }
 
 func (c *policyController) convertToSaaSPolicies(
-	policies []svcTypes.ThinPolicy,
-	actions []svcTypes.ThinAction,
+	policies []svctypes.ThinPolicy,
+	actions []svctypes.ThinAction,
 ) []types.SaaSPolicy {
 	// 转换数据结构
-	actionMap := make(map[int64]svcTypes.ThinAction, len(actions))
+	actionMap := make(map[int64]svctypes.ThinAction, len(actions))
 	for _, a := range actions {
 		actionMap[a.PK] = a
 	}

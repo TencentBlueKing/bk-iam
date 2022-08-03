@@ -113,7 +113,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				ExpiredAt:  10,
 			}, nil)
 			mockManager.EXPECT().
-				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, "", int64(10)).
 				Return(errors.New("error"))
 
 			svc := &subjectActionExpressionService{
@@ -124,6 +124,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				SubjectPK:  1,
 				ActionPK:   2,
 				Expression: `{"OR":[{"content":[]}`,
+				Signature:  "",
 				ExpiredAt:  10,
 			})
 			assert.Error(GinkgoT(), err)
@@ -140,7 +141,7 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				ExpiredAt:  10,
 			}, nil)
 			mockManager.EXPECT().
-				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, int64(10)).
+				UpdateExpressionExpiredAtWithTx(gomock.Any(), int64(1), `{"OR":[{"content":[]}`, "", int64(10)).
 				Return(nil)
 
 			svc := &subjectActionExpressionService{
@@ -151,9 +152,66 @@ var _ = Describe("SubjectActionExpressionService", func() {
 				SubjectPK:  1,
 				ActionPK:   2,
 				Expression: `{"OR":[{"content":[]}`,
+				Signature:  "",
 				ExpiredAt:  10,
 			})
 			assert.NoError(GinkgoT(), err)
+		})
+	})
+
+	Describe("ListBySubjectAction", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+		It("manager.ListBySubjectAction fail", func() {
+			mockManager := mock.NewMockSubjectActionExpressionManager(ctl)
+			mockManager.EXPECT().
+				ListBySubjectAction([]int64{1}, int64(2)).
+				Return([]dao.SubjectActionExpression{}, errors.New("error"))
+
+			svc := &subjectActionExpressionService{
+				manager: mockManager,
+			}
+
+			_, err := svc.ListBySubjectAction([]int64{1}, 2)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListBySubjectAction")
+		})
+
+		It("ok", func() {
+			mockManager := mock.NewMockSubjectActionExpressionManager(ctl)
+			mockManager.EXPECT().
+				ListBySubjectAction([]int64{1}, int64(2)).
+				Return([]dao.SubjectActionExpression{
+					{
+						PK:        1,
+						ExpiredAt: 0,
+					},
+					{
+						PK:        2,
+						ExpiredAt: 10,
+					},
+				}, nil)
+
+			svc := &subjectActionExpressionService{
+				manager: mockManager,
+			}
+
+			expressions, err := svc.ListBySubjectAction([]int64{1}, 2)
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []types.SubjectActionExpression{
+				{
+					PK:        1,
+					ExpiredAt: 0,
+				}, {
+					PK:        2,
+					ExpiredAt: 10,
+				},
+			}, expressions)
 		})
 	})
 })

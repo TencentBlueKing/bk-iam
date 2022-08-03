@@ -13,6 +13,8 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
@@ -30,11 +32,12 @@ const GroupAlterEventSVC = "GroupAlterEventSVC"
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
 	Get(pk int64) (event types.GroupAlterEvent, err error)
-	ListPKLtCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
+	ListPKLessThanCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
 
 	IncrCheckCount(pk int64) (err error)
 	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
 	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
+	CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error)
 
 	Delete(pk int64) (err error)
 }
@@ -243,9 +246,33 @@ func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs
 	return pks, nil
 }
 
-func (s *groupAlterEventService) ListPKLtCheckCountBeforeCreateAt(
+// ListPKLessThanCheckCountBeforeCreateAt ...
+func (s *groupAlterEventService) ListPKLessThanCheckCountBeforeCreateAt(
 	checkCount int64,
 	createdAt int64,
 ) ([]int64, error) {
-	return s.manager.ListPKLtCheckCountBeforeCreateAt(checkCount, createdAt)
+	return s.manager.ListPKLessThanCheckCountBeforeCreateAt(checkCount, createdAt)
+}
+
+func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateBySubjectActionGroup")
+	pks, err := s.bulkCreate(groupPK, []int64{actionPK}, []int64{subjectPK})
+	if err != nil {
+		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPK=`%d` subjectPK=`%d`", groupPK, actionPK, subjectPK)
+		return 0, err
+	}
+
+	if len(pks) != 1 {
+		err = errors.New("bulkCreate return pks length not equal 1")
+		return 0, errorWrapf(
+			err,
+			"groupPK=`%d` actionPK=`%d` subjectPK=`%d` pks=`%+v`",
+			groupPK,
+			actionPK,
+			subjectPK,
+			pks,
+		)
+	}
+
+	return pks[0], nil
 }

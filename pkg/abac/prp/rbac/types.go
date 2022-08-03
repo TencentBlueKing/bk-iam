@@ -8,12 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package prp
+package rbac
 
 import "iam/pkg/service/types"
 
-// TemporaryPolicyRetriever ...
-type TemporaryPolicyRetriever interface {
-	ListThinBySubjectAction(subjectPK, actionPK int64) ([]types.ThinTemporaryPolicy, error)
-	ListByPKs(pks []int64) ([]types.TemporaryPolicy, error)
+// PolicyRetriever ...
+type PolicyRetriever interface {
+	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
 }

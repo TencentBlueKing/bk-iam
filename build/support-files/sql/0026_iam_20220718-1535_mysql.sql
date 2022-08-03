@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_subject_action_expression` (
   `subject_pk` int(10) unsigned NOT NULL,
   `action_pk` int(10) unsigned NOT NULL,
   `expression` mediumtext NOT NULL,
+  `signature` CHAR(32) NOT NULL,
   `expired_at` int(10) unsigned NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
