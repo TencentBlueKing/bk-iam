@@ -27,13 +27,16 @@ func Test_subjectActionExpressionManager_ListBySubjectAction(t *testing.T) {
 		subject_pk,
 		action_pk,
 		expression,
+		signature,
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk IN (.*)
 		AND action_pk = (.*)`
-		mockRows := sqlmock.NewRows([]string{"pk", "subject_pk", "action_pk", "expression", "expired_at"}).AddRow(
-			int64(1), int64(1), int64(3), "{}", int64(10)).AddRow(
-			int64(2), int64(2), int64(3), "{}", int64(10))
+		mockRows := sqlmock.NewRows([]string{"pk", "subject_pk", "action_pk", "expression", "signature", "expired_at"}).
+			AddRow(
+				int64(1), int64(1), int64(3), "{}", "", int64(10)).
+			AddRow(
+				int64(2), int64(2), int64(3), "{}", "", int64(10))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), int64(3)).WillReturnRows(mockRows)
 
 		manager := &subjectActionExpressionManager{DB: db}
@@ -41,8 +44,22 @@ func Test_subjectActionExpressionManager_ListBySubjectAction(t *testing.T) {
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, []SubjectActionExpression{
-			{PK: int64(1), SubjectPK: int64(1), ActionPK: int64(3), Expression: "{}", ExpiredAt: int64(10)},
-			{PK: int64(2), SubjectPK: int64(2), ActionPK: int64(3), Expression: "{}", ExpiredAt: int64(10)},
+			{
+				PK:         int64(1),
+				SubjectPK:  int64(1),
+				ActionPK:   int64(3),
+				Expression: "{}",
+				Signature:  "",
+				ExpiredAt:  int64(10),
+			},
+			{
+				PK:         int64(2),
+				SubjectPK:  int64(2),
+				ActionPK:   int64(3),
+				Expression: "{}",
+				Signature:  "",
+				ExpiredAt:  int64(10),
+			},
 		}, subjectActionExpressions)
 	})
 }
@@ -54,12 +71,14 @@ func Test_subjectActionExpressionManager_GetBySubjectAction(t *testing.T) {
 		subject_pk,
 		action_pk,
 		expression,
+		signature,
 		expired_at
 		FROM rbac_subject_action_expression
 		WHERE subject_pk = (.*)
 		AND action_pk = (.*)`
-		mockRows := sqlmock.NewRows([]string{"pk", "subject_pk", "action_pk", "expression", "expired_at"}).AddRow(
-			int64(1), int64(1), int64(3), "{}", int64(10))
+		mockRows := sqlmock.NewRows([]string{"pk", "subject_pk", "action_pk", "expression", "signature", "expired_at"}).
+			AddRow(
+				int64(1), int64(1), int64(3), "{}", "", int64(10))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(3)).WillReturnRows(mockRows)
 
 		manager := &subjectActionExpressionManager{DB: db}
@@ -73,6 +92,7 @@ func Test_subjectActionExpressionManager_GetBySubjectAction(t *testing.T) {
 				SubjectPK:  int64(1),
 				ActionPK:   int64(3),
 				Expression: "{}",
+				Signature:  "",
 				ExpiredAt:  int64(10),
 			},
 			subjectActionExpression,
@@ -84,7 +104,7 @@ func Test_subjectActionExpressionManager_CreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`INSERT INTO rbac_subject_action_expression`).WithArgs(
-			int64(1), int64(2), "{}", int64(10),
+			int64(1), int64(2), "{}", "", int64(10),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -96,6 +116,7 @@ func Test_subjectActionExpressionManager_CreateWithTx(t *testing.T) {
 			SubjectPK:  int64(1),
 			ActionPK:   int64(2),
 			Expression: "{}",
+			Signature:  "",
 			ExpiredAt:  int64(10),
 		})
 
@@ -107,7 +128,7 @@ func Test_subjectActionExpressionManager_UpdateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE rbac_subject_action_expression SET expression = `).WithArgs(
-			"{}", int64(10), int64(1),
+			"{}", "", int64(10), int64(1),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -115,7 +136,7 @@ func Test_subjectActionExpressionManager_UpdateWithTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		manager := &subjectActionExpressionManager{DB: db}
-		err = manager.UpdateExpressionExpiredAtWithTx(tx, int64(1), `{}`, int64(10))
+		err = manager.UpdateExpressionExpiredAtWithTx(tx, int64(1), `{}`, "", int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
 	})

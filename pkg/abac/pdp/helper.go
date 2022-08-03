@@ -25,7 +25,7 @@ import (
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/logging/debug"
-	svcTypes "iam/pkg/service/types"
+	svctypes "iam/pkg/service/types"
 )
 
 // PDPHelper ...
@@ -145,8 +145,6 @@ func queryAndPartialEvalConditions(
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
 
-	// TODO 支持rbac group pks的policy查询
-
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
 	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withoutCache, entry)
@@ -247,7 +245,7 @@ func getEffectAuthTypeGroupPKs(
 	}
 
 	// NOTE: 当前只有action的auth type是RBAC时才需要分离出 abac/rbac group pks
-	if actionAuthType == svcTypes.AuthTypeRBAC {
+	if actionAuthType == svctypes.AuthTypeRBAC {
 		abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsByAuthType(systemID, groupPKs)
 		if err != nil {
 			return nil, nil, err

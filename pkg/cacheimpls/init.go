@@ -59,12 +59,13 @@ var (
 	ActionListCache     *redis.Cache
 	ResourceTypePKCache *redis.Cache
 
-	PolicyCache              *redis.Cache
-	GroupResourcePolicyCache *redis.Cache
-	ExpressionCache          *redis.Cache
-	TemporaryPolicyCache     *redis.Cache
-	GroupSystemAuthTypeCache *redis.Cache
-	GroupActionResourceCache *redis.Cache
+	PolicyCache                  *redis.Cache
+	GroupResourcePolicyCache     *redis.Cache
+	ExpressionCache              *redis.Cache
+	TemporaryPolicyCache         *redis.Cache
+	GroupSystemAuthTypeCache     *redis.Cache
+	GroupActionResourceCache     *redis.Cache
+	SubjectActionExpressionCache *redis.Cache
 
 	LocalPolicyCache          *gocache.Cache
 	LocalExpressionCache      *gocache.Cache
@@ -323,6 +324,13 @@ func InitCaches(disabled bool) {
 
 	GroupActionResourceCache = redis.NewCache(
 		"gar",
+		30*time.Minute,
+	)
+
+	// 影响: RBAC操作每次鉴权
+
+	SubjectActionExpressionCache = redis.NewCache(
+		"sub_act_ex",
 		30*time.Minute,
 	)
 
