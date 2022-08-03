@@ -40,8 +40,8 @@ type SubjectActionExpressionManager interface {
 
 	GetBySubjectAction(subjectPK, actionPK int64) (SubjectActionExpression, error)
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
-	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, signature string, expiredAt int64) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 }
 
 type subjectActionExpressionManager struct {
