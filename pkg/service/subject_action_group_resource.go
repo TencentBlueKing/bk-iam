@@ -39,6 +39,7 @@ type SubjectActionGroupResourceService interface {
 		tx *sqlx.Tx,
 		subjectPK, actionPK, groupPK int64,
 	) (obj types.SubjectActionGroupResource, err error)
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectActionGroupResourceService struct {
@@ -168,6 +169,14 @@ func (s *subjectActionGroupResourceService) updateGroupResourceWithTx(
 
 	err = s.manager.UpdateGroupResourceWithTx(tx, daoObj.PK, daoObj.GroupResource)
 	return obj, err
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (s *subjectActionGroupResourceService) BulkDeleteBySubjectPKsWithTx(
+	tx *sqlx.Tx,
+	subjectPKs []int64,
+) error {
+	return s.manager.BulkDeleteBySubjectPKsWithTx(tx, subjectPKs)
 }
 
 func (s *subjectActionGroupResourceService) createWithTx(

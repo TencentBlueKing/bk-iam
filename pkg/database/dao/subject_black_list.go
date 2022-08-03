@@ -34,6 +34,7 @@ type SubjectBlackListManager interface {
 
 	BulkCreate(subjectBlackList []SubjectBlackList) error
 	BulkDelete(subjectPKs []int64) error
+	BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectBlackListManager struct {
@@ -76,5 +77,12 @@ func (m *subjectBlackListManager) BulkCreate(subjectBlackList []SubjectBlackList
 func (m *subjectBlackListManager) BulkDelete(subjectPKs []int64) error {
 	sql := `DELETE FROM subject_black_list WHERE subject_pk in (?)`
 	_, err := database.SqlxDelete(m.DB, sql, subjectPKs)
+	return err
+}
+
+// BulkDeleteWithTx ...
+func (m *subjectBlackListManager) BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	sql := `DELETE FROM subject_black_list WHERE subject_pk in (?)`
+	err := database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 	return err
 }

@@ -23,6 +23,8 @@ import (
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
+	"iam/pkg/abac/prp/rbac"
+	"iam/pkg/abac/prp/temporary"
 	"iam/pkg/abac/types"
 	"iam/pkg/logging/debug"
 	"iam/pkg/service"
@@ -128,26 +130,60 @@ func (m *policyManager) ListBySubjectAction(
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
-	// 1. 查询一般权限
-	policies, err = m.listBySubjectAction(
-		system, subject, action, effectGroupPKs, withoutCache, parentEntry,
-	)
-	if err != nil {
-		return
+	entry := debug.NewSubDebug(parentEntry)
+	if entry != nil {
+		debug.WithValue(entry, "cacheEnabled", !withoutCache)
 	}
 
-	// 2. 查询临时权限
-	temporaryPolicies, err := m.listTemporaryBySubjectAction(
-		system, subject, action, withoutCache, parentEntry,
+	// 1. 查询一般权限
+	debug.AddStep(entry, "query policy")
+	policies, err = m.listBySubjectAction(
+		system, subject, action, effectGroupPKs, withoutCache, entry,
 	)
 	if err != nil {
 		return
 	}
+	debug.WithValue(entry, "policies", policies)
+
+	// 2. 查询临时权限
+	debug.AddStep(entry, "query temporary policy")
+	temporaryPolicies, err := m.listTemporaryBySubjectAction(
+		system, subject, action, withoutCache, entry,
+	)
+	if err != nil {
+		return
+	}
+	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)
 
 	if len(temporaryPolicies) != 0 {
 		policies = append(policies, temporaryPolicies...)
 	}
-	return
+
+	debug.AddStep(entry, "get action auth type")
+	actionAuthType, err := action.Attribute.GetAuthType()
+	if err != nil {
+		return policies, err
+	}
+	debug.WithValue(entry, "actionAuthType", actionAuthType)
+
+	if actionAuthType != svctypes.AuthTypeRBAC {
+		return
+	}
+
+	// 3. 查询RBAC表达式
+	debug.AddStep(entry, "query rbac policy")
+	rbacPolicies, err := m.listRbacBySubjectAction(
+		system, subject, action, withoutCache, entry,
+	)
+	if err != nil {
+		return
+	}
+	debug.WithValue(entry, "rbacPolicies", rbacPolicies)
+
+	if len(rbacPolicies) != 0 {
+		policies = append(policies, rbacPolicies...)
+	}
+	return policies, nil
 }
 
 // listBySubjectAction 查询普通权限
@@ -162,13 +198,10 @@ func (m *policyManager) listBySubjectAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
-	if entry != nil {
-		debug.WithValue(entry, "cacheEnabled", !withoutCache)
-	}
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	effectSubjectPKs, err := m.getEffectSubjectPKs(subject, effectGroupPKs)
+	effectSubjectPKs, err := m.mergeEffectSubjectPKs(subject, effectGroupPKs)
 	if err != nil {
 		err = errorWrapf(err, "Get Effect Subject PKs")
 		return
@@ -282,15 +315,15 @@ func (m *policyManager) listBySubjectAction(
 	return policies, nil
 }
 
-func (*policyManager) getEffectSubjectPKs(subject types.Subject, effectGroupPKs []int64) ([]int64, error) {
+func (*policyManager) mergeEffectSubjectPKs(subject types.Subject, effectPKs []int64) ([]int64, error) {
 	subjectPK, err := subject.Attribute.GetPK()
 	if err != nil {
 		return nil, err
 	}
 
-	effectSubjectPKs := make([]int64, 0, len(effectGroupPKs)+1)
+	effectSubjectPKs := make([]int64, 0, len(effectPKs)+1)
 	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
-	effectSubjectPKs = append(effectSubjectPKs, effectGroupPKs...)
+	effectSubjectPKs = append(effectSubjectPKs, effectPKs...)
 	return effectSubjectPKs, nil
 }
 
@@ -305,9 +338,6 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listTemporaryBySubjectAction")
 
 	entry := debug.NewSubDebug(parentEntry)
-	if entry != nil {
-		debug.WithValue(entry, "cacheEnabled", !withoutCache)
-	}
 
 	// 1. get subject pk
 	debug.AddStep(entry, "Get Subject PK")
@@ -327,11 +357,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var retriever TemporaryPolicyRetriever
+	var retriever temporary.PolicyRetriever
 	if withoutCache {
 		retriever = m.temporaryPolicyService
 	} else {
-		retriever = newTemporaryPolicyCacheRetriever(system, m.temporaryPolicyService)
+		retriever = temporary.NewPolicyCacheRetriever(system, m.temporaryPolicyService)
 	}
 
 	// 3. 查询在有效期内的临时权限pks
@@ -385,6 +415,81 @@ func (m *policyManager) listTemporaryBySubjectAction(
 			Expression:          p.Expression,
 			ExpiredAt:           p.ExpiredAt,
 			ExpressionSignature: stringx.MD5Hash(p.Expression),
+		})
+	}
+
+	return polices, nil
+}
+
+// listRbacBySubjectAction 查询rbac表达式
+func (m *policyManager) listRbacBySubjectAction(
+	system string,
+	subject types.Subject,
+	action types.Action,
+	withoutCache bool,
+	parentEntry *debug.Entry,
+) (polices []types.AuthPolicy, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "listRbacBySubjectAction")
+
+	entry := debug.NewSubDebug(parentEntry)
+
+	// 1. get subject department pk
+	debug.AddStep(entry, "Get Subject Department PK")
+	departmentPKs, err := subject.Attribute.GetDepartments()
+	if err != nil {
+		err = errorWrapf(err, "subject.Attribute.GetDepartments subject=`%+v` fail", subject)
+		return
+	}
+	debug.WithValue(entry, "departmentPKs", departmentPKs)
+
+	// 2. get effect subject pks
+	debug.AddStep(entry, "Get Effect Subject PKs")
+	effectSubjectPKs, err := m.mergeEffectSubjectPKs(subject, departmentPKs)
+	if err != nil {
+		err = errorWrapf(err, "Get Effect Subject PKs")
+		return
+	}
+	debug.WithValue(entry, "effectSubjectPKs", effectSubjectPKs)
+
+	// 3. get action pk
+	debug.AddStep(entry, "Get Action PK")
+	actionPK, err := action.Attribute.GetPK()
+	if err != nil {
+		err = errorWrapf(err, "action.Attribute.GetPK action=`%+v` fail", action)
+		return
+	}
+	debug.WithValue(entry, "actionPK", actionPK)
+
+	var retriever rbac.PolicyRetriever
+	if withoutCache {
+		retriever = rbac.NewPolicyDatabaseRetriever()
+	} else {
+		retriever = rbac.NewPolicyRedisRetriever()
+	}
+
+	// 4. 查询rbac表达式
+	debug.AddStep(entry, "List Rbac Expression By Subject Action")
+	rbacExpressions, err := retriever.ListBySubjectAction(effectSubjectPKs, actionPK)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"retriever.ListBySubjectAction subjectPKs=`%+v`, actionPK=`%d` fail",
+			effectSubjectPKs,
+			actionPK,
+		)
+		return
+	}
+	debug.WithValue(entry, "rbacExpressions", rbacExpressions)
+
+	// 5. 转换数据结构
+	polices = make([]types.AuthPolicy, 0, len(rbacExpressions))
+	for _, p := range rbacExpressions {
+		polices = append(polices, types.AuthPolicy{
+			Version:             service.PolicyVersion,
+			ID:                  p.PK,
+			Expression:          p.Expression,
+			ExpiredAt:           p.ExpiredAt,
+			ExpressionSignature: p.Signature,
 		})
 	}
 

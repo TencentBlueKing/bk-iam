@@ -17,17 +17,13 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/service/types"
 	"iam/pkg/task"
 	"iam/pkg/task/producer"
 )
 
-type Subject struct {
-	Type string `json:"type"`
-	ID   string `json:"id"`
-}
-
 type SubjectEventProducer interface {
-	PublishDeleteEvent(deleteSubjects []Subject)
+	PublishDeleteEvent(deleteSubjects []types.Subject)
 }
 
 type subjectEventProducer struct {
@@ -40,7 +36,7 @@ func NewSubjectEventProducer() SubjectEventProducer {
 	}
 }
 
-func (p *subjectEventProducer) PublishDeleteEvent(deleteSubjects []Subject) {
+func (p *subjectEventProducer) PublishDeleteEvent(deleteSubjects []types.Subject) {
 	data := map[string]interface{}{
 		"timestamp": time.Now().Unix(),
 		"type":      EngineDeletionTypeSubject,

@@ -48,18 +48,32 @@ func (mr *MockSubjectControllerMockRecorder) BulkCreate(subjects interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectController)(nil).BulkCreate), subjects)
 }
 
-// BulkDelete mocks base method.
-func (m *MockSubjectController) BulkDelete(subjects []pap.Subject) error {
+// BulkDeleteGroup mocks base method.
+func (m *MockSubjectController) BulkDeleteGroup(subjects []pap.Subject) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", subjects)
+	ret := m.ctrl.Call(m, "BulkDeleteGroup", subjects)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockSubjectControllerMockRecorder) BulkDelete(subjects interface{}) *gomock.Call {
+// BulkDeleteGroup indicates an expected call of BulkDeleteGroup.
+func (mr *MockSubjectControllerMockRecorder) BulkDeleteGroup(subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockSubjectController)(nil).BulkDelete), subjects)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteGroup", reflect.TypeOf((*MockSubjectController)(nil).BulkDeleteGroup), subjects)
+}
+
+// BulkDeleteUserAndDepartment mocks base method.
+func (m *MockSubjectController) BulkDeleteUserAndDepartment(subjects []pap.Subject) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteUserAndDepartment", subjects)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteUserAndDepartment indicates an expected call of BulkDeleteUserAndDepartment.
+func (mr *MockSubjectControllerMockRecorder) BulkDeleteUserAndDepartment(subjects interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteUserAndDepartment", reflect.TypeOf((*MockSubjectController)(nil).BulkDeleteUserAndDepartment), subjects)
 }
 
 // BulkUpdateName mocks base method.

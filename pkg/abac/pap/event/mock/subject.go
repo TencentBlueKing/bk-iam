@@ -5,7 +5,7 @@
 package mock
 
 import (
-	event "iam/pkg/abac/pap/event"
+	types "iam/pkg/service/types"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,7 +35,7 @@ func (m *MockSubjectEventProducer) EXPECT() *MockSubjectEventProducerMockRecorde
 }
 
 // PublishDeleteEvent mocks base method.
-func (m *MockSubjectEventProducer) PublishDeleteEvent(deleteSubjects []event.Subject) {
+func (m *MockSubjectEventProducer) PublishDeleteEvent(deleteSubjects []types.Subject) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "PublishDeleteEvent", deleteSubjects)
 }

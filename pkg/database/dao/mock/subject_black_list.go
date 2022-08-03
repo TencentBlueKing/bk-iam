@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockSubjectBlackListManager is a mock of SubjectBlackListManager interface.
@@ -60,6 +61,20 @@ func (m *MockSubjectBlackListManager) BulkDelete(subjectPKs []int64) error {
 func (mr *MockSubjectBlackListManagerMockRecorder) BulkDelete(subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockSubjectBlackListManager)(nil).BulkDelete), subjectPKs)
+}
+
+// BulkDeleteWithTx mocks base method.
+func (m *MockSubjectBlackListManager) BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx.
+func (mr *MockSubjectBlackListManagerMockRecorder) BulkDeleteWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockSubjectBlackListManager)(nil).BulkDeleteWithTx), tx, subjectPKs)
 }
 
 // ListSubjectPK mocks base method.

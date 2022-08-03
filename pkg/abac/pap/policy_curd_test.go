@@ -14,8 +14,8 @@ import (
 	"errors"
 
 	eventmock "iam/pkg/abac/pap/event/mock"
-	"iam/pkg/abac/prp"
 	"iam/pkg/abac/prp/policy"
+	"iam/pkg/abac/prp/temporary"
 	"iam/pkg/abac/types"
 	"iam/pkg/service/mock"
 	svctypes "iam/pkg/service/types"
@@ -360,7 +360,7 @@ var _ = Describe("PolicyCurd", func() {
 				errors.New("delete fail"),
 			).AnyTimes()
 
-			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+			patches = gomonkey.ApplyFunc(temporary.DeletePolicyBySystemSubjectFromCache,
 				func(systemID string, subjectPK int64) error {
 					return nil
 				})
@@ -387,7 +387,7 @@ var _ = Describe("PolicyCurd", func() {
 				nil,
 			).AnyTimes()
 
-			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+			patches = gomonkey.ApplyFunc(temporary.DeletePolicyBySystemSubjectFromCache,
 				func(systemID string, subjectPK int64) error {
 					return nil
 				})
@@ -523,7 +523,7 @@ var _ = Describe("PolicyCurd", func() {
 				[]int64{}, errors.New("create fail"),
 			).AnyTimes()
 
-			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+			patches = gomonkey.ApplyFunc(temporary.DeletePolicyBySystemSubjectFromCache,
 				func(systemID string, subjectPK int64) error {
 					return nil
 				})
@@ -559,7 +559,7 @@ var _ = Describe("PolicyCurd", func() {
 				[]int64{1}, nil,
 			).AnyTimes()
 
-			patches = gomonkey.ApplyFunc(prp.DeleteTemporaryPolicyBySystemSubjectFromCache,
+			patches = gomonkey.ApplyFunc(temporary.DeletePolicyBySystemSubjectFromCache,
 				func(systemID string, subjectPK int64) error {
 					return nil
 				})

@@ -64,6 +64,20 @@ func (mr *MockGroupServiceMockRecorder) BulkCreateGroupMembersWithTx(tx, groupPK
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateGroupMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateGroupMembersWithTx), tx, groupPK, relations)
 }
 
+// BulkDeleteByGroupPKsWithTx mocks base method.
+func (m *MockGroupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteByGroupPKsWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteByGroupPKsWithTx indicates an expected call of BulkDeleteByGroupPKsWithTx.
+func (mr *MockGroupServiceMockRecorder) BulkDeleteByGroupPKsWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByGroupPKsWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteByGroupPKsWithTx), tx, subjectPKs)
+}
+
 // BulkDeleteBySubjectPKsWithTx mocks base method.
 func (m *MockGroupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	m.ctrl.T.Helper()

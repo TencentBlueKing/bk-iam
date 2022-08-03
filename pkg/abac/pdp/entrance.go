@@ -362,8 +362,6 @@ func QueryAuthPolicies(
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
 
-	// TODO 支持RBAC group pks的policy查询
-
 	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
 	policies, err = queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withoutCache, entry)

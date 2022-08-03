@@ -152,7 +152,7 @@ func TestBatchDeleteSubjects(t *testing.T) {
 	t.Run("manager error", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockManager := papMock.NewMockSubjectController(ctl)
-		mockManager.EXPECT().BulkDelete(
+		mockManager.EXPECT().BulkDeleteUserAndDepartment(
 			[]pap.Subject{{
 				Type: "user",
 				ID:   "admin",
@@ -177,7 +177,7 @@ func TestBatchDeleteSubjects(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		ctl = gomock.NewController(t)
 		mockManager := papMock.NewMockSubjectController(ctl)
-		mockManager.EXPECT().BulkDelete(
+		mockManager.EXPECT().BulkDeleteUserAndDepartment(
 			[]pap.Subject{{
 				Type: "user",
 				ID:   "admin",

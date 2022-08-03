@@ -35,6 +35,20 @@ func (m *MockSubjectActionExpressionManager) EXPECT() *MockSubjectActionExpressi
 	return m.recorder
 }
 
+// BulkDeleteBySubjectPKsWithTx mocks base method.
+func (m *MockSubjectActionExpressionManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBySubjectPKsWithTx", tx, pks)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteBySubjectPKsWithTx indicates an expected call of BulkDeleteBySubjectPKsWithTx.
+func (mr *MockSubjectActionExpressionManagerMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).BulkDeleteBySubjectPKsWithTx), tx, pks)
+}
+
 // CreateWithTx mocks base method.
 func (m *MockSubjectActionExpressionManager) CreateWithTx(tx *sqlx.Tx, subjectActionExpression dao.SubjectActionExpression) error {
 	m.ctrl.T.Helper()
@@ -80,15 +94,15 @@ func (mr *MockSubjectActionExpressionManagerMockRecorder) ListBySubjectAction(su
 }
 
 // UpdateExpressionExpiredAtWithTx mocks base method.
-func (m *MockSubjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, expiredAt int64) error {
+func (m *MockSubjectActionExpressionManager) UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression, signature string, expiredAt int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExpressionExpiredAtWithTx", tx, pk, expression, expiredAt)
+	ret := m.ctrl.Call(m, "UpdateExpressionExpiredAtWithTx", tx, pk, expression, signature, expiredAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateExpressionExpiredAtWithTx indicates an expected call of UpdateExpressionExpiredAtWithTx.
-func (mr *MockSubjectActionExpressionManagerMockRecorder) UpdateExpressionExpiredAtWithTx(tx, pk, expression, expiredAt interface{}) *gomock.Call {
+func (mr *MockSubjectActionExpressionManagerMockRecorder) UpdateExpressionExpiredAtWithTx(tx, pk, expression, signature, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpressionExpiredAtWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).UpdateExpressionExpiredAtWithTx), tx, pk, expression, expiredAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpressionExpiredAtWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).UpdateExpressionExpiredAtWithTx), tx, pk, expression, signature, expiredAt)
 }

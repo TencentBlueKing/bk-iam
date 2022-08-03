@@ -368,13 +368,13 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ok", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
+			mockManager.EXPECT().ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).Return([]int64{1}, nil)
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			pks, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
+			pks, err := svc.ListPKLessThanCheckCountBeforeCreateAt(2, 3)
 			assert.NoError(GinkgoT(), err)
 
 			assert.Equal(GinkgoT(), []int64{1}, pks)
@@ -382,15 +382,71 @@ var _ = Describe("GroupAlterEventService", func() {
 
 		It("ListPKByCheckCountBeforeCreateAt fail", func() {
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
-			mockManager.EXPECT().ListPKLtCheckCountBeforeCreateAt(int64(2), int64(3)).Return(nil, errors.New("error"))
+			mockManager.EXPECT().
+				ListPKLessThanCheckCountBeforeCreateAt(int64(2), int64(3)).
+				Return(nil, errors.New("error"))
 
 			svc = &groupAlterEventService{
 				manager: mockManager,
 			}
 
-			_, err := svc.ListPKLtCheckCountBeforeCreateAt(2, 3)
+			_, err := svc.ListPKLessThanCheckCountBeforeCreateAt(2, 3)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "error")
+		})
+	})
+
+	Describe("CreateBySubjectActionGroup cases", func() {
+		var ctl *gomock.Controller
+		var svc GroupAlterEventService
+		var patches *gomonkey.Patches
+
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+			tx := &sql.Tx{}
+			patches = gomonkey.ApplyMethod(reflect.TypeOf(tx), "Commit", func(tx *sql.Tx) error {
+				return nil
+			})
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return &sqlx.Tx{Tx: tx}, nil
+			})
+			patches.ApplyFunc(database.RollBackWithLog, func(tx *sqlx.Tx) {})
+		})
+
+		AfterEach(func() {
+			ctl.Finish()
+			if patches != nil {
+				patches.Reset()
+			}
+		})
+
+		It("ok", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return([]int64{1}, nil)
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			pk, err := svc.CreateBySubjectActionGroup(1, 1, 0)
+			assert.NoError(GinkgoT(), err)
+
+			assert.Equal(GinkgoT(), int64(1), pk)
+		})
+
+		It("create fail", func() {
+			mockManager := mock.NewMockGroupAlterEventManager(ctl)
+			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return([]int64{1}, errors.New("error"))
+
+			svc = &groupAlterEventService{
+				manager: mockManager,
+			}
+
+			_, err := svc.CreateBySubjectActionGroup(1, 1, 0)
+			assert.Error(GinkgoT(), err)
+
+			assert.Contains(GinkgoT(), err.Error(), "bulkCreate")
 		})
 	})
 })

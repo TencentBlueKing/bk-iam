@@ -35,6 +35,20 @@ func (m *MockSubjectActionExpressionService) EXPECT() *MockSubjectActionExpressi
 	return m.recorder
 }
 
+// BulkDeleteBySubjectPKsWithTx mocks base method.
+func (m *MockSubjectActionExpressionService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBySubjectPKsWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteBySubjectPKsWithTx indicates an expected call of BulkDeleteBySubjectPKsWithTx.
+func (mr *MockSubjectActionExpressionServiceMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).BulkDeleteBySubjectPKsWithTx), tx, subjectPKs)
+}
+
 // CreateOrUpdateWithTx mocks base method.
 func (m *MockSubjectActionExpressionService) CreateOrUpdateWithTx(tx *sqlx.Tx, expression types.SubjectActionExpression) error {
 	m.ctrl.T.Helper()
@@ -47,4 +61,19 @@ func (m *MockSubjectActionExpressionService) CreateOrUpdateWithTx(tx *sqlx.Tx, e
 func (mr *MockSubjectActionExpressionServiceMockRecorder) CreateOrUpdateWithTx(tx, expression interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).CreateOrUpdateWithTx), tx, expression)
+}
+
+// ListBySubjectAction mocks base method.
+func (m *MockSubjectActionExpressionService) ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBySubjectAction", subjectPKs, actionPK)
+	ret0, _ := ret[0].([]types.SubjectActionExpression)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBySubjectAction indicates an expected call of ListBySubjectAction.
+func (mr *MockSubjectActionExpressionServiceMockRecorder) ListBySubjectAction(subjectPKs, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySubjectAction", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).ListBySubjectAction), subjectPKs, actionPK)
 }
