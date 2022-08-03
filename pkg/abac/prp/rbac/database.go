@@ -15,26 +15,26 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/prp/convert"
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 )
 
 const rbacDatabaseLayer = "rbacDatabaseLayer"
 
-type RbacPolicyDatabaseRetriever struct {
+type PolicyDatabaseRetriever struct {
 	subjectActionExpressionService    service.SubjectActionExpressionService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 }
 
-func NewRbacPolicyDatabaseRetriever() RbacPolicyRetriever {
-	return &RbacPolicyDatabaseRetriever{
+func NewPolicyDatabaseRetriever() PolicyRetriever {
+	return &PolicyDatabaseRetriever{
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 	}
 }
 
-func (r *RbacPolicyDatabaseRetriever) ListBySubjectAction(
+func (r *PolicyDatabaseRetriever) ListBySubjectAction(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, error) {
@@ -83,7 +83,7 @@ func (r *RbacPolicyDatabaseRetriever) ListBySubjectAction(
 	return validExpressions, nil
 }
 
-func (r *RbacPolicyDatabaseRetriever) refreshSubjectActionExpression(
+func (r *PolicyDatabaseRetriever) refreshSubjectActionExpression(
 	subjectPK, actionPK int64,
 ) (expression types.SubjectActionExpression, err error) {
 	// query subject action group resource from db

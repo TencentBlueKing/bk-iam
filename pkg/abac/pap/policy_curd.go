@@ -249,7 +249,7 @@ func (c *policyController) CreateTemporaryPolicies(
 	}
 
 	// NOTE: delete the temporary policy cache before leave
-	defer temporary.DeleteTemporaryPolicyBySystemSubjectFromCache(system, subjectPK)
+	defer temporary.DeletePolicyBySystemSubjectFromCache(system, subjectPK)
 
 	// 3. 执行创建
 	pks, err = c.temporaryPolicyService.Create(ps)
@@ -274,7 +274,7 @@ func (c *policyController) DeleteTemporaryByIDs(system string, subjectType, subj
 	// 判断policyIDs是否为空，避免执行无效SQL
 	if len(policyIDs) > 0 {
 		// NOTE: delete cache here
-		defer temporary.DeleteTemporaryPolicyBySystemSubjectFromCache(system, pk)
+		defer temporary.DeletePolicyBySystemSubjectFromCache(system, pk)
 
 		err := c.temporaryPolicyService.DeleteByPKs(pk, policyIDs)
 		if err != nil {

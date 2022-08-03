@@ -201,7 +201,7 @@ func (m *policyManager) listBySubjectAction(
 
 	// 1. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	effectSubjectPKs, err := m.getEffectSubjectPKs(subject, effectGroupPKs)
+	effectSubjectPKs, err := m.mergeEffectSubjectPKs(subject, effectGroupPKs)
 	if err != nil {
 		err = errorWrapf(err, "Get Effect Subject PKs")
 		return
@@ -315,7 +315,7 @@ func (m *policyManager) listBySubjectAction(
 	return policies, nil
 }
 
-func (*policyManager) getEffectSubjectPKs(subject types.Subject, effectPKs []int64) ([]int64, error) {
+func (*policyManager) mergeEffectSubjectPKs(subject types.Subject, effectPKs []int64) ([]int64, error) {
 	subjectPK, err := subject.Attribute.GetPK()
 	if err != nil {
 		return nil, err
@@ -357,11 +357,11 @@ func (m *policyManager) listTemporaryBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var retriever temporary.TemporaryPolicyRetriever
+	var retriever temporary.PolicyRetriever
 	if withoutCache {
 		retriever = m.temporaryPolicyService
 	} else {
-		retriever = temporary.NewTemporaryPolicyCacheRetriever(system, m.temporaryPolicyService)
+		retriever = temporary.NewPolicyCacheRetriever(system, m.temporaryPolicyService)
 	}
 
 	// 3. 查询在有效期内的临时权限pks
@@ -444,7 +444,7 @@ func (m *policyManager) listRbacBySubjectAction(
 
 	// 2. get effect subject pks
 	debug.AddStep(entry, "Get Effect Subject PKs")
-	effectSubjectPKs, err := m.getEffectSubjectPKs(subject, departmentPKs)
+	effectSubjectPKs, err := m.mergeEffectSubjectPKs(subject, departmentPKs)
 	if err != nil {
 		err = errorWrapf(err, "Get Effect Subject PKs")
 		return
@@ -460,11 +460,11 @@ func (m *policyManager) listRbacBySubjectAction(
 	}
 	debug.WithValue(entry, "actionPK", actionPK)
 
-	var retriever rbac.RbacPolicyRetriever
+	var retriever rbac.PolicyRetriever
 	if withoutCache {
-		retriever = rbac.NewRbacPolicyDatabaseRetriever()
+		retriever = rbac.NewPolicyDatabaseRetriever()
 	} else {
-		retriever = rbac.NewRbacPolicyRedisRetriever()
+		retriever = rbac.NewPolicyRedisRetriever()
 	}
 
 	// 4. 查询rbac表达式
@@ -489,7 +489,7 @@ func (m *policyManager) listRbacBySubjectAction(
 			ID:                  p.PK,
 			Expression:          p.Expression,
 			ExpiredAt:           p.ExpiredAt,
-			ExpressionSignature: stringx.MD5Hash(p.Expression),
+			ExpressionSignature: p.Signature,
 		})
 	}
 

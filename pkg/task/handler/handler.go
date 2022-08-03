@@ -19,7 +19,7 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 
-	"iam/pkg/abac/prp/convert"
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/database"

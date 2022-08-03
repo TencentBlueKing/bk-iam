@@ -23,7 +23,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/singleflight"
 
-	"iam/pkg/abac/prp/convert"
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
@@ -46,11 +46,11 @@ subject RBAC expression 查询缓存:
 
 const randExpireSeconds = 60
 
-var singletonRbacPolicyRedisRetriever RbacPolicyRetriever
+var singletonPolicyRedisRetriever PolicyRetriever
 
-var rbacPolicyRedisRetrieverOnce sync.Once
+var policyRedisRetrieverOnce sync.Once
 
-type RbacPolicyRedisRetriever struct {
+type PolicyRedisRetriever struct {
 	subjectActionExpressionService    service.SubjectActionExpressionService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	groupAlterEventService            service.GroupAlterEventService
@@ -61,10 +61,10 @@ type RbacPolicyRedisRetriever struct {
 }
 
 // NOTE: 为保证singleflight.Group的使用，这里返回单例
-func NewRbacPolicyRedisRetriever() RbacPolicyRetriever {
-	if singletonRbacPolicyRedisRetriever == nil {
-		rbacPolicyRedisRetrieverOnce.Do(func() {
-			singletonRbacPolicyRedisRetriever = &RbacPolicyRedisRetriever{
+func NewPolicyRedisRetriever() PolicyRetriever {
+	if singletonPolicyRedisRetriever == nil {
+		policyRedisRetrieverOnce.Do(func() {
+			singletonPolicyRedisRetriever = &PolicyRedisRetriever{
 				subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 				subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 				groupAlterEventService:            service.NewGroupAlterEventService(),
@@ -72,11 +72,11 @@ func NewRbacPolicyRedisRetriever() RbacPolicyRetriever {
 			}
 		})
 	}
-	return singletonRbacPolicyRedisRetriever
+	return singletonPolicyRedisRetriever
 }
 
 // ListBySubjectAction ...
-func (r *RbacPolicyRedisRetriever) ListBySubjectAction(
+func (r *PolicyRedisRetriever) ListBySubjectAction(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, error) {
@@ -123,7 +123,7 @@ func (r *RbacPolicyRedisRetriever) ListBySubjectAction(
 	return validExpressions, nil
 }
 
-func (r *RbacPolicyRedisRetriever) listBySubjectActionFromCache(
+func (r *PolicyRedisRetriever) listBySubjectActionFromCache(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, error) {
@@ -174,7 +174,7 @@ func (r *RbacPolicyRedisRetriever) listBySubjectActionFromCache(
 	return expressions, nil
 }
 
-func (r *RbacPolicyRedisRetriever) setMissing(
+func (r *PolicyRedisRetriever) setMissing(
 	missingSubjectPKs []int64,
 	actionPK int64,
 	expressions []types.SubjectActionExpression,
@@ -218,7 +218,7 @@ func (r *RbacPolicyRedisRetriever) setMissing(
 	)
 }
 
-func (r *RbacPolicyRedisRetriever) batchGet(
+func (r *PolicyRedisRetriever) batchGet(
 	subjectPKs []int64,
 	actionPK int64,
 ) ([]types.SubjectActionExpression, []int64, error) {
@@ -266,7 +266,7 @@ func (r *RbacPolicyRedisRetriever) batchGet(
 	return expressions, missSubjectPKs, nil
 }
 
-func (r *RbacPolicyRedisRetriever) refreshSubjectActionExpression(
+func (r *PolicyRedisRetriever) refreshSubjectActionExpression(
 	subjectPK, actionPK int64,
 ) (expression types.SubjectActionExpression, err error) {
 	// query subject action group resource from db
@@ -292,7 +292,7 @@ func (r *RbacPolicyRedisRetriever) refreshSubjectActionExpression(
 	return expression, nil
 }
 
-func (*RbacPolicyRedisRetriever) setSubjectActionExpressionCache(expression types.SubjectActionExpression) error {
+func (*PolicyRedisRetriever) setSubjectActionExpressionCache(expression types.SubjectActionExpression) error {
 	key := cacheimpls.SubjectActionCacheKey{SubjectPK: expression.SubjectPK, ActionPK: expression.ActionPK}
 	return cacheimpls.SubjectActionExpressionCache.Set(
 		key,
@@ -301,7 +301,7 @@ func (*RbacPolicyRedisRetriever) setSubjectActionExpressionCache(expression type
 	)
 }
 
-func (r *RbacPolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, actionPK int64) {
+func (r *PolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, actionPK int64) {
 	pk, err := r.groupAlterEventService.CreateBySubjectActionGroup(subjectPK, actionPK, 0)
 	if err != nil {
 		log.WithError(err).Errorf("create group alter event fail, subjectPK=`%d`, actionPK=`%d`",

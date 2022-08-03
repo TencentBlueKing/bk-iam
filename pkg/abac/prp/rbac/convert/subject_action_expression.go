@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/TencentBlueKing/gopkg/stringx"
 	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/cacheimpls"
@@ -30,7 +31,7 @@ func SubjectActionGroupResourceToExpression(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(convertLayer, "convertToSubjectActionExpression")
 
 	// 组合 subject 所有 group 授权的资源实例
-	minExpiredAt, resourceMap := mergeGroupResource(obj)
+	resourceMap, minExpiredAt := mergeGroupResource(obj)
 
 	// 授权的资源实例为空, 返回空表达式, 过期时间为0
 	if len(resourceMap) == 0 {
@@ -39,7 +40,7 @@ func SubjectActionGroupResourceToExpression(
 			ActionPK:   obj.ActionPK,
 			Expression: `{}`,
 			ExpiredAt:  0,
-		}, util.ErrNilRequestBody
+		}, nil
 	}
 
 	// 生成表达式内容
@@ -50,7 +51,7 @@ func SubjectActionGroupResourceToExpression(
 	}
 
 	// 转换表达式字符串
-	exp, err := convertToString(content)
+	exp, err := convertExpressionContentToString(content)
 	if err != nil {
 		err = errorWrapf(err, "convertToString fail, content=`%+v`", content)
 		return expression, err
@@ -60,12 +61,13 @@ func SubjectActionGroupResourceToExpression(
 		SubjectPK:  obj.SubjectPK,
 		ActionPK:   obj.ActionPK,
 		Expression: exp,
+		Signature:  stringx.MD5Hash(exp),
 		ExpiredAt:  minExpiredAt,
 	}
 	return expression, nil
 }
 
-func convertToString(content []interface{}) (string, error) {
+func convertExpressionContentToString(content []interface{}) (string, error) {
 	var exp interface{}
 	if len(content) == 1 {
 		exp = content[0]
@@ -171,7 +173,7 @@ func genExpressionContent(actionPK int64, resourceMap map[int64][]string) ([]int
 }
 
 // mergeGroupResource 合并用户组授权的资源实例
-func mergeGroupResource(obj types.SubjectActionGroupResource) (int64, map[int64][]string) {
+func mergeGroupResource(obj types.SubjectActionGroupResource) (map[int64][]string, int64) {
 	// 组合 subject 所有 group 授权的资源实例
 	now := time.Now().Unix()
 	minExpiredAt := int64(util.NeverExpiresUnixTime)                  // 所有用户组中, 最小的过期时间
@@ -192,5 +194,5 @@ func mergeGroupResource(obj types.SubjectActionGroupResource) (int64, map[int64]
 		}
 	}
 
-	return minExpiredAt, resourceMap
+	return resourceMap, minExpiredAt
 }

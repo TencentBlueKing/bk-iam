@@ -12,7 +12,7 @@ package rbac
 
 import "iam/pkg/service/types"
 
-// RbacPolicyRetriever ...
-type RbacPolicyRetriever interface {
+// PolicyRetriever ...
+type PolicyRetriever interface {
 	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error)
 }

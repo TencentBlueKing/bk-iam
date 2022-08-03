@@ -19,7 +19,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
-	"iam/pkg/abac/prp/convert"
+	"iam/pkg/abac/prp/rbac/convert"
 	"iam/pkg/cache/redis"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/mock"
@@ -29,7 +29,7 @@ import (
 
 var _ = Describe("RbacPolicy", func() {
 	Describe("rbacPolicyRedisRetriever", func() {
-		var r *RbacPolicyRedisRetriever
+		var r *PolicyRedisRetriever
 		var ctl *gomock.Controller
 		var mockSubjectActionExpressionService *mock.MockSubjectActionExpressionService
 		var mockSubjectActionGroupResourceService *mock.MockSubjectActionGroupResourceService
@@ -42,7 +42,7 @@ var _ = Describe("RbacPolicy", func() {
 			mockGroupAlterEventService = mock.NewMockGroupAlterEventService(ctl)
 			mockProducer = producermock.NewMockProducer(ctl)
 
-			r = &RbacPolicyRedisRetriever{
+			r = &PolicyRedisRetriever{
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				groupAlterEventService:            mockGroupAlterEventService,
