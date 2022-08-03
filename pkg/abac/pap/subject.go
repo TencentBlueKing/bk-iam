@@ -170,13 +170,13 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 	}
 
 	// 2.3 删除subject relation
-	err = c.groupService.BulkDeleteByGroupPKsWithTx(tx, pks) // user, department
+	err = c.groupService.BulkDeleteByGroupPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "groupService.BulkDeleteByGroupPKsWithTx pks=`%+v` failed", pks)
 	}
 
 	// 3. 删除subject
-	err = c.service.BulkDeleteByPKsWithTx(tx, pks) // user, group, department
+	err = c.service.BulkDeleteByPKsWithTx(tx, pks)
 	if err != nil {
 		return errorWrapf(err, "service.BulkDeleteByPKsWithTx pks=`%+v` failed", pks)
 	}

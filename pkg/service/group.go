@@ -437,14 +437,14 @@ func (l *groupService) ListPagingGroupMemberBeforeExpiredAt(
 }
 
 // BulkDeleteByGroupPKsWithTx ...
-func (l *groupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+func (l *groupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteByGroupPKsWithTx")
 
 	// 批量用户组删除成员关系 subjectRelation
-	err := l.manager.BulkDeleteByGroupPKs(tx, subjectPKs)
+	err := l.manager.BulkDeleteByGroupPKs(tx, groupPKs)
 	if err != nil {
 		return errorWrapf(
-			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", subjectPKs)
+			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", groupPKs)
 	}
 
 	return nil
