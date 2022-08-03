@@ -12,6 +12,8 @@ package event
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 import (
+	"time"
+
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
@@ -40,7 +42,9 @@ func NewSubjectEventProducer() SubjectEventProducer {
 
 func (p *subjectEventProducer) PublishDeleteEvent(deleteSubjects []Subject) {
 	data := map[string]interface{}{
-		EngineDeletionTypeSubject: map[string]any{"subjects": deleteSubjects},
+		"timestamp": time.Now().Unix(),
+		"type":      EngineDeletionTypeSubject,
+		"data":      map[string]any{"subjects": deleteSubjects},
 	}
 	message, err := jsoniter.MarshalToString(data)
 	if err != nil {

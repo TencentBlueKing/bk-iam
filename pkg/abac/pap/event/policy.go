@@ -12,6 +12,8 @@ package event
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 import (
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
@@ -110,7 +112,9 @@ func (p *policyEventProducer) PublishABACDeletePolicyEvent(deletePolicyIDs []int
 
 func (p *policyEventProducer) publishDeletePolicyEvent(deletePolicyIDs []int64) {
 	data := map[string]interface{}{
-		EngineDeletionTypePolicy: map[string]any{"policy_ids": deletePolicyIDs},
+		"timestamp": time.Now().Unix(),
+		"type":      EngineDeletionTypePolicy,
+		"data":      map[string]any{"policy_ids": deletePolicyIDs},
 	}
 	message, err := jsoniter.MarshalToString(data)
 	if err != nil {
