@@ -269,9 +269,9 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 	}
 
 	// if not policies, no need to check
-	canDelete, err := newActionHasAnyPolicyChecker().CanAlter(systemID, actionID)
+	canAlter, err := newActionHasAnyPolicyChecker().CanAlter(systemID, actionID)
 	// TODO: 目前删除Action策略的事件只能用于删除Action模型，其他都暂时不可用，所以这里调整Action关联的资源类型还是必须保证DB里真正无策略
-	if err == nil && canDelete {
+	if err == nil && canAlter {
 		return nil
 	}
 
