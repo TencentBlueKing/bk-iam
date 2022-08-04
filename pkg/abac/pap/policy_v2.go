@@ -527,7 +527,11 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 
 		err = c.subjectActionGroupResourceService.DeleteByActionPKWithTx(tx, actionPK)
 		if err != nil {
-			err = errorWrapf(err, "subjectActionGroupResourceService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			err = errorWrapf(
+				err,
+				"subjectActionGroupResourceService.DeleteByActionPKWithTx actionPk=`%d`` fail",
+				actionPK,
+			)
 			return err
 		}
 
