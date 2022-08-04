@@ -492,7 +492,7 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "`DeleteByActionID`")
 
-	// 1. 查询 action actionDetail
+	// 1. 查询 action detail
 	actionDetail, err := cacheimpls.GetLocalActionDetail(system, actionID)
 	if err != nil {
 		err = errorWrapf(err,
@@ -500,7 +500,6 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 		return err
 	}
 
-	// 1. 查询 action pk
 	actionPK := actionDetail.PK
 
 	tx, err := database.GenerateDefaultDBTx()
