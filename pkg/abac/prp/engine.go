@@ -91,7 +91,7 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(
 		if err != nil {
 			return nil, err
 		}
-		rbacPKs := make([]int64, len(pks))
+		rbacPKs := make([]int64, 0, len(pks))
 		for _, pk := range pks {
 			rbacPKs = append(rbacPKs, pk+rbacIDBegin)
 		}
@@ -113,6 +113,8 @@ func (m *enginePolicyManager) ListBetweenPK(
 		}
 		return convertAbacPolicies(abacPolicies)
 	case EngineListPolicyTypeRbac:
+		minPK -= rbacIDBegin
+		maxPK -= rbacIDBegin
 		rbacPolicies, err := m.rbacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
@@ -132,7 +134,12 @@ func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []E
 		}
 		return convertAbacPolicies(abacPolicies)
 	case EngineListPolicyTypeRbac:
-		rbacPolicies, err := m.rbacService.ListByPKs(pks)
+		realPKs := make([]int64, 0, len(pks))
+		for _, pk := range pks {
+			realPKs = append(realPKs, pk-rbacIDBegin)
+		}
+
+		rbacPolicies, err := m.rbacService.ListByPKs(realPKs)
 		if err != nil {
 			return nil, err
 		}

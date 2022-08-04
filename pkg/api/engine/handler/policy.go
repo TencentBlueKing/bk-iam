@@ -169,7 +169,7 @@ func convertEnginePoliciesToResponse(
 ) (responses []enginePolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy.convertEnginePoliciesToResponse")
 
-	results := make([]enginePolicyResponse, len(enginePolicies))
+	results := make([]enginePolicyResponse, 0, len(enginePolicies))
 
 	for _, p := range enginePolicies {
 		// 可能存在subject被删, policy还有的情况, 这时需要忽略该错误
