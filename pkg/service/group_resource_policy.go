@@ -49,11 +49,14 @@ type GroupResourcePolicyService interface {
 
 type groupResourcePolicyService struct {
 	manager dao.GroupResourcePolicyManager
+
+	actionManager dao.ActionManager
 }
 
 func NewGroupResourcePolicyService() GroupResourcePolicyService {
 	return &groupResourcePolicyService{
-		manager: dao.NewGroupResourcePolicyManager(),
+		manager:       dao.NewGroupResourcePolicyManager(),
+		actionManager: dao.NewActionManager(),
 	}
 }
 
@@ -75,7 +78,7 @@ func (s *groupResourcePolicyService) calculateSignature(
 
 // calculateChangedActionPKs : 使用旧的ActionPKs和要变更的内容，计算出最终变更的ActionPKs
 func (s *groupResourcePolicyService) calculateChangedActionPKs(
-	oldActionPKs string, rcc types.ResourceChangedContent,
+	oldActionPKs string, rcc types.ResourceChangedContent, systemActionPKSet *set.Int64Set,
 ) (string, error) {
 	// 将ActionPKs从Json字符串转为列表格式
 	var oldActionPKList []int64
@@ -88,10 +91,16 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 		}
 	}
 
-	// TODO: 判断现有的oldActionPKList是否存在, 剔除不存在的action_pk
-
 	// 使用set对新增和删除的Action进行变更
-	actionPKSet := set.NewInt64SetWithValues(oldActionPKList)
+	actionPKSet := set.NewInt64Set()
+
+	// 剔除系统中不存在的Action
+	for _, actionPK := range oldActionPKList {
+		if systemActionPKSet.Has(actionPK) {
+			actionPKSet.Add(actionPK)
+		}
+	}
+
 	// 添加需要新增的操作
 	actionPKSet.Append(rcc.CreatedActionPKs...)
 	// 移除将被删除的操作
@@ -143,6 +152,15 @@ func (s *groupResourcePolicyService) Alter(
 	}
 
 	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
+	allActionPKs, err := s.actionManager.ListPKBySystem(systemID)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"actionManager.ListPKBySystem fail, systemID=`%s`", systemID,
+		)
+	}
+	systemActionPKSet := set.NewInt64SetWithValues(allActionPKs)
+
 	createdPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	updatedPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	deletedPolicyPKs := make([]int64, 0, len(resourceChangedContents))
@@ -151,7 +169,7 @@ func (s *groupResourcePolicyService) Alter(
 		policy, found := signatureToPolicyMap[signature]
 
 		// 根据变更内容，计算出变更后的ActionPKs Json字符串
-		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc)
+		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc, systemActionPKSet)
 		if err != nil {
 			return errorWrapf(
 				err,

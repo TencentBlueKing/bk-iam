@@ -122,3 +122,18 @@ func (mr *MockActionManagerMockRecorder) ListBySystem(system interface{}) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySystem", reflect.TypeOf((*MockActionManager)(nil).ListBySystem), system)
 }
+
+// ListPKBySystem mocks base method.
+func (m *MockActionManager) ListPKBySystem(system string) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPKBySystem", system)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPKBySystem indicates an expected call of ListPKBySystem.
+func (mr *MockActionManagerMockRecorder) ListPKBySystem(system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKBySystem", reflect.TypeOf((*MockActionManager)(nil).ListPKBySystem), system)
+}

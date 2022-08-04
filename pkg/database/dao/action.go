@@ -34,6 +34,7 @@ type ActionManager interface {
 	Get(pk int64) (Action, error)
 	ListByPKs(pks []int64) ([]Action, error)
 	ListBySystem(system string) ([]Action, error)
+	ListPKBySystem(system string) (actionPKs []int64, err error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, actions []Action) error
 	BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []string) error
@@ -98,6 +99,16 @@ func (m *actionManager) BulkDeleteWithTx(tx *sqlx.Tx, system string, ids []strin
 		return nil
 	}
 	return m.bulkDeleteWithTx(tx, system, ids)
+}
+
+// ListPKBySystem ...
+func (m *actionManager) ListPKBySystem(system string) (actionPKs []int64, err error) {
+	query := `SELECT
+		pk
+		FROM action
+		WHERE system_id=?`
+	err = database.SqlxSelect(m.DB, &actionPKs, query, system)
+	return
 }
 
 func (m *actionManager) selectPK(pk *int64, system, id string) error {

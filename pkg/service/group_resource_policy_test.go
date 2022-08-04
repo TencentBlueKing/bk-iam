@@ -13,6 +13,7 @@ package service
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/golang/mock/gomock"
 	jsoniter "github.com/json-iterator/go"
 	. "github.com/onsi/ginkgo/v2"
@@ -87,14 +88,14 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 		Context("calculateChangedActionPKs", func() {
 			It("json loads error", func() {
-				aks, err := interSvc.calculateChangedActionPKs("[x]", types.ResourceChangedContent{})
+				aks, err := interSvc.calculateChangedActionPKs("[x]", types.ResourceChangedContent{}, set.NewInt64Set())
 				assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString (.*) fail", err.Error())
 				assert.Equal(GinkgoT(), "", aks)
 			})
 			It("old_action_pks empty", func() {
 				aks, err := interSvc.calculateChangedActionPKs("", types.ResourceChangedContent{
 					CreatedActionPKs: []int64{1, 2, 3},
-				})
+				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
 				assert.NoError(GinkgoT(), err)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[1,2,3]`, aks)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[2,1,3]`, aks)
@@ -102,7 +103,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			It("old_action_pks not empty and new action_pks empty", func() {
 				aks, err := interSvc.calculateChangedActionPKs("[1, 2]", types.ResourceChangedContent{
 					DeletedActionPKs: []int64{1, 2, 3},
-				})
+				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
 				assert.NoError(GinkgoT(), err)
 				assert.Empty(GinkgoT(), aks)
 			})
@@ -110,7 +111,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 				aks, err := interSvc.calculateChangedActionPKs("[1, 2]", types.ResourceChangedContent{
 					CreatedActionPKs: []int64{4, 5},
 					DeletedActionPKs: []int64{1},
-				})
+				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
 				assert.NoError(GinkgoT(), err)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[5, 4, 2]`, aks)
 			})
@@ -119,9 +120,10 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 	Context("Alter Policy", func() {
 		var (
-			ctl         *gomock.Controller
-			mockManager *mock.MockGroupResourcePolicyManager
-			svc         GroupResourcePolicyService
+			ctl               *gomock.Controller
+			mockManager       *mock.MockGroupResourcePolicyManager
+			mockActionManager *mock.MockActionManager
+			svc               GroupResourcePolicyService
 
 			rcc       types.ResourceChangedContent
 			signature string
@@ -130,8 +132,10 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 			mockManager = mock.NewMockGroupResourcePolicyManager(ctl)
+			mockActionManager = mock.NewMockActionManager(ctl)
 			svc = &groupResourcePolicyService{
-				manager: mockManager,
+				manager:       mockManager,
+				actionManager: mockActionManager,
 			}
 
 			rcc = types.ResourceChangedContent{
@@ -169,6 +173,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		It("calculateChangedActionPKs error", func() {
 			daoPolicy.ActionPKs = "json error"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1}, nil)
 
 			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
 			assert.Error(GinkgoT(), err)
@@ -178,6 +183,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		It("BulkCreateWithTx error", func() {
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{}, nil)
 			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(errors.New("error"))
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1}, nil)
 
 			rcc.CreatedActionPKs = []int64{1}
 			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
@@ -188,6 +194,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		It("BulkCreateWithTx ok", func() {
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{}, nil)
 			mockManager.EXPECT().BulkCreateWithTx(gomock.Any(), gomock.Any()).Return(nil)
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1}, nil)
 
 			rcc.CreatedActionPKs = []int64{1}
 			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
@@ -198,6 +205,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			daoPolicy.ActionPKs = "[1]"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
 			mockManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), gomock.Any()).Return(errors.New("error"))
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1}, nil)
 
 			rcc.DeletedActionPKs = []int64{1}
 			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
@@ -209,6 +217,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			daoPolicy.ActionPKs = "[1]"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
 			mockManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), gomock.Any()).Return(nil)
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1}, nil)
 
 			rcc.DeletedActionPKs = []int64{1}
 			err := svc.Alter(nil, int64(1), int64(2), "test", []types.ResourceChangedContent{rcc})
@@ -219,6 +228,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			daoPolicy.ActionPKs = "[1,2]"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
 			mockManager.EXPECT().BulkUpdateActionPKsWithTx(gomock.Any(), gomock.Any()).Return(errors.New("error"))
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1, 3, 4}, nil)
 
 			rcc.CreatedActionPKs = []int64{3, 4}
 			rcc.DeletedActionPKs = []int64{1}
@@ -231,6 +241,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			daoPolicy.ActionPKs = "[1,2]"
 			mockManager.EXPECT().ListBySignatures([]string{signature}).Return([]dao.GroupResourcePolicy{daoPolicy}, nil)
 			mockManager.EXPECT().BulkUpdateActionPKsWithTx(gomock.Any(), gomock.Any()).Return(nil)
+			mockActionManager.EXPECT().ListPKBySystem(gomock.Any()).Return([]int64{1, 3, 4}, nil)
 
 			rcc.CreatedActionPKs = []int64{3, 4}
 			rcc.DeletedActionPKs = []int64{1}
