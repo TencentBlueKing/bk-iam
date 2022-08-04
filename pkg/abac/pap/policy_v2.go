@@ -13,9 +13,6 @@ package pap
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"database/sql"
-	"errors"
-
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
@@ -495,17 +492,16 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "`DeleteByActionID`")
 
-	// 1. 查询 action pk
-	actionPK, err := c.actionService.GetActionPK(system, actionID)
+	// 1. 查询 action actionDetail
+	actionDetail, err := cacheimpls.GetLocalActionDetail(system, actionID)
 	if err != nil {
-		// if action already deleted, just return
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
-
-		err = errorWrapf(err, "actionService.GetActionPK system=`%s`, actionID=`%s` fail", system, actionID)
+		err = errorWrapf(err,
+			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, actionID)
 		return err
 	}
+
+	// 1. 查询 action pk
+	actionPK := actionDetail.PK
 
 	tx, err := database.GenerateDefaultDBTx()
 	if err != nil {
@@ -521,24 +517,25 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	}
 
 	// 3. 删除rbac policy
+	if actionDetail.AuthType == svctypes.AuthTypeRBAC {
+		// NOTE: group resource policy 只会删除action_pks中有一个action_pk的数据, 其余的数据在变更时再判断是否有无效action_pk
+		err = c.groupResourcePolicyService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(err, "groupResourcePolicyService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			return err
+		}
 
-	// NOTE: group resource policy 只会删除action_pks中有一个action_pk的数据, 其余的数据在变更时再判断是否有无效action_pk
-	err = c.groupResourcePolicyService.DeleteByActionPKWithTx(tx, actionPK)
-	if err != nil {
-		err = errorWrapf(err, "groupResourcePolicyService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
-		return err
-	}
+		err = c.subjectActionGroupResourceService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(err, "subjectActionGroupResourceService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			return err
+		}
 
-	err = c.subjectActionGroupResourceService.DeleteByActionPKWithTx(tx, actionPK)
-	if err != nil {
-		err = errorWrapf(err, "subjectActionGroupResourceService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
-		return err
-	}
-
-	err = c.subjectActionExpressionService.DeleteByActionPKWithTx(tx, actionPK)
-	if err != nil {
-		err = errorWrapf(err, "subjectActionExpressionService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
-		return err
+		err = c.subjectActionExpressionService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(err, "subjectActionExpressionService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			return err
+		}
 	}
 
 	err = tx.Commit()
