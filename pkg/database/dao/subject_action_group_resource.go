@@ -115,7 +115,7 @@ func (m *subjectActionGroupResourceManager) HasAnyByActionPK(actionPK int64) (ex
 		FROM rbac_subject_action_group_resource
 		WHERE action_pk = ?
 		LIMIT 1`
-	err = database.SqlxGet(m.DB, pk, query, actionPK)
+	err = database.SqlxGet(m.DB, &pk, query, actionPK)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
