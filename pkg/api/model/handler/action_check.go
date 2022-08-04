@@ -231,7 +231,14 @@ func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, e
 			actionPK)
 	}
 
-	return eventExist, nil
+	if !eventExist {
+		return false, fmt.Errorf("action has releated policies, "+
+			"you can't delete it or update the related_resource_types unless delete all the related policies. "+
+			"please contact administrator. [systemID=%s, id=%s, actionPK=%d]",
+			systemID, actionID, actionPK)
+	}
+
+	return true, nil
 }
 
 func (c *actionHasAnyPolicyChecker) FilterActionCanAlter(
