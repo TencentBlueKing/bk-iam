@@ -11,11 +11,11 @@
 package pap
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
@@ -199,28 +199,14 @@ func (c *policyController) AlterCustomPolicies(
 }
 
 // DeleteByActionID 通过ActionID批量删除策略
-func (c *policyController) DeleteByActionID(system, actionID string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionID`")
+func (c *policyController) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionPKWithTx`")
 
-	// 1. 查询 action pk
-	actionPK, err := c.actionService.GetActionPK(system, actionID)
-	if err != nil {
-		// if action already deleted, just return
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
-
-		err = errorWrapf(err, "actionService.GetActionPK system=`%s`, actionID=`%s` fail", system, actionID)
-		return err
-	}
-
-	err = c.policyService.DeleteByActionPK(actionPK)
+	err := c.policyService.DeleteByActionPKWithTx(tx, actionPK)
 	if err != nil {
 		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
 		return err
 	}
-
-	// TODO: 删除Resource Group Policy
 
 	return nil
 }

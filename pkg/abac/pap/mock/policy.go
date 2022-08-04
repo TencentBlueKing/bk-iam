@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockPolicyController is a mock of PolicyController interface.
@@ -63,18 +64,18 @@ func (mr *MockPolicyControllerMockRecorder) CreateTemporaryPolicies(system, subj
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemporaryPolicies", reflect.TypeOf((*MockPolicyController)(nil).CreateTemporaryPolicies), system, subjectType, subjectID, policies)
 }
 
-// DeleteByActionID mocks base method.
-func (m *MockPolicyController) DeleteByActionID(system, actionID string) error {
+// DeleteByActionPKWithTx mocks base method.
+func (m *MockPolicyController) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByActionID", system, actionID)
+	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteByActionID indicates an expected call of DeleteByActionID.
-func (mr *MockPolicyControllerMockRecorder) DeleteByActionID(system, actionID interface{}) *gomock.Call {
+// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
+func (mr *MockPolicyControllerMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionID", reflect.TypeOf((*MockPolicyController)(nil).DeleteByActionID), system, actionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockPolicyController)(nil).DeleteByActionPKWithTx), tx, actionPK)
 }
 
 // DeleteByIDs mocks base method.

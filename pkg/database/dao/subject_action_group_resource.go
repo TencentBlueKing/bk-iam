@@ -13,6 +13,8 @@ package dao
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/database"
@@ -33,6 +35,9 @@ type SubjectActionGroupResourceManager interface {
 	CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
 	UpdateGroupResourceWithTx(tx *sqlx.Tx, pk int64, groupResource string) error
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+
+	HasAnyByActionPK(actionPK int64) (exist bool, err error)
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error)
 }
 
 type subjectActionGroupResourceManager struct {
@@ -100,4 +105,28 @@ func (m *subjectActionGroupResourceManager) BulkDeleteBySubjectPKsWithTx(
 ) error {
 	sql := `DELETE FROM rbac_subject_action_group_resource WHERE subject_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
+}
+
+// HasAnyByActionPK ...
+func (m *subjectActionGroupResourceManager) HasAnyByActionPK(actionPK int64) (exist bool, err error) {
+	var pk int64
+	query := `SELECT
+		pk
+		FROM rbac_subject_action_group_resource
+		WHERE action_pk = ?
+		LIMIT 1`
+	err = database.SqlxGet(m.DB, pk, query, actionPK)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// DeleteByActionPKWithTx ...
+func (m *subjectActionGroupResourceManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
+	sql := `DELETE FROM rbac_subject_action_group_resource WHERE action_pk = ? LIMIT ?`
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, actionPK, limit)
 }

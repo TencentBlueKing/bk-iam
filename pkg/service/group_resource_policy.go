@@ -43,6 +43,8 @@ type GroupResourcePolicyService interface {
 		actionPK, actionResourceTypePK int64,
 	) ([]types.Resource, error)
 	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
+
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 }
 
 type groupResourcePolicyService struct {
@@ -85,6 +87,8 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 			)
 		}
 	}
+
+	// TODO: 判断现有的oldActionPKList是否存在, 剔除不存在的action_pk
 
 	// 使用set对新增和删除的Action进行变更
 	actionPKSet := set.NewInt64SetWithValues(oldActionPKList)
@@ -318,4 +322,32 @@ func (s *groupResourcePolicyService) BulkDeleteByGroupPKsWithTx(
 	groupPKs []int64,
 ) error {
 	return s.manager.BulkDeleteByGroupPKsWithTx(tx, groupPKs)
+}
+
+// DeleteByActionPK ...
+// NOTE: 这里只删除action_pks中只有一个action_pk的记录, 变更的时候再检查对应的记录是否需要删除存在的action_pk
+func (s *groupResourcePolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
+
+	actionPKs, err := jsoniter.MarshalToString([]int64{actionPK})
+	if err != nil {
+		return errorWrapf(err, "jsoniter.MarshalToString fail, actionPK=`%d`", actionPK)
+	}
+
+	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
+	rowLimit := int64(10000)
+	maxAttempts := 100 // 相当于最多删除100万数据
+
+	for i := 0; i < maxAttempts; i++ {
+		rowsAffected, err := s.manager.DeleteByActionPKsWithTx(tx, actionPKs, rowLimit)
+		if err != nil {
+			return errorWrapf(err, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
+		}
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected == 0 {
+			break
+		}
+	}
+
+	return nil
 }

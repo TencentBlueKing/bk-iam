@@ -71,7 +71,7 @@ type PolicyService interface {
 
 	DeleteByPKs(subjectPK int64, pks []int64) error
 
-	DeleteByActionPK(actionPK int64) error
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 
 	CreateAndDeleteTemplatePoliciesWithTx(
 		tx *sqlx.Tx,
@@ -739,23 +739,19 @@ func (s *policyService) UpdateTemplatePoliciesWithTx(
 	return err
 }
 
-// DeleteByActionPK ...
-func (s *policyService) DeleteByActionPK(actionPK int64) error {
+// DeleteByActionPKWithTx ...
+func (s *policyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
-	tx, err := database.GenerateDefaultDBTx()
-	if err != nil {
-		return errorWrapf(err, "define tx fail")
-	}
-	defer database.RollBackWithLog(tx)
+
 	// TODO: 需要改造，先查询数据量，然后再按照数量进行删除，同时需要考虑
 	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
 	rowLimit := int64(10000)
 	maxAttempts := 100 // 相当于最多删除100万数据
 
 	for i := 0; i < maxAttempts; i++ {
-		rowsAffected, err1 := s.manager.DeleteByActionPKWithTx(tx, actionPK, rowLimit)
-		if err1 != nil {
-			return errorWrapf(err1, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
+		rowsAffected, err := s.manager.DeleteByActionPKWithTx(tx, actionPK, rowLimit)
+		if err != nil {
+			return errorWrapf(err, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
 		}
 		// 如果已经没有需要删除的了，就停止
 		if rowsAffected == 0 {
@@ -763,11 +759,7 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return errorWrapf(err, "tx.Commit fail")
-	}
-	return err
+	return nil
 }
 
 // DeleteUnreferencedExpressions 删除未被引用的expression

@@ -63,6 +63,20 @@ func (mr *MockGroupResourcePolicyServiceMockRecorder) BulkDeleteByGroupPKsWithTx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByGroupPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).BulkDeleteByGroupPKsWithTx), tx, groupPKs)
 }
 
+// DeleteByActionPKWithTx mocks base method.
+func (m *MockGroupResourcePolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
+func (mr *MockGroupResourcePolicyServiceMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).DeleteByActionPKWithTx), tx, actionPK)
+}
+
 // GetAuthorizedActionGroupMap mocks base method.
 func (m *MockGroupResourcePolicyService) GetAuthorizedActionGroupMap(systemID string, actionResourceTypePK, resourceTypePK int64, resourceTypeID string) (map[int64][]int64, error) {
 	m.ctrl.T.Helper()

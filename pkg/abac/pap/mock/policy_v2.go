@@ -47,3 +47,17 @@ func (mr *MockPolicyControllerV2MockRecorder) Alter(systemID, subjectType, subje
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockPolicyControllerV2)(nil).Alter), systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType)
 }
+
+// DeleteByActionID mocks base method.
+func (m *MockPolicyControllerV2) DeleteByActionID(system, actionID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByActionID", system, actionID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByActionID indicates an expected call of DeleteByActionID.
+func (mr *MockPolicyControllerV2MockRecorder) DeleteByActionID(system, actionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionID", reflect.TypeOf((*MockPolicyControllerV2)(nil).DeleteByActionID), system, actionID)
+}

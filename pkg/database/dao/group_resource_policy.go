@@ -65,6 +65,8 @@ type GroupResourcePolicyManager interface {
 		actionResourceTypePK, resourceTypePK int64,
 		resourceID string,
 	) (policies []ThinGroupResourcePolicy, err error)
+
+	DeleteByActionPKsWithTx(tx *sqlx.Tx, actionPKs string, limit int64) (int64, error)
 }
 
 type groupResourcePolicyManager struct {
@@ -216,4 +218,14 @@ func (m *groupResourcePolicyManager) BulkDeleteByGroupPKsWithTx(
 ) error {
 	sql := `DELETE FROM rbac_group_resource_policy WHERE group_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
+}
+
+// DeleteByActionPKWithTx ...
+func (m *groupResourcePolicyManager) DeleteByActionPKsWithTx(
+	tx *sqlx.Tx,
+	actionPKs string,
+	limit int64,
+) (int64, error) {
+	sql := `DELETE FROM rbac_group_resource_policy WHERE action_pks = ? LIMIT ?`
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, actionPKs, limit)
 }

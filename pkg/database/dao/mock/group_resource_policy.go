@@ -91,6 +91,21 @@ func (mr *MockGroupResourcePolicyManagerMockRecorder) BulkUpdateActionPKsWithTx(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateActionPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).BulkUpdateActionPKsWithTx), tx, policies)
 }
 
+// DeleteByActionPKsWithTx mocks base method.
+func (m *MockGroupResourcePolicyManager) DeleteByActionPKsWithTx(tx *sqlx.Tx, actionPKs string, limit int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByActionPKsWithTx", tx, actionPKs, limit)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteByActionPKsWithTx indicates an expected call of DeleteByActionPKsWithTx.
+func (mr *MockGroupResourcePolicyManagerMockRecorder) DeleteByActionPKsWithTx(tx, actionPKs, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKsWithTx", reflect.TypeOf((*MockGroupResourcePolicyManager)(nil).DeleteByActionPKsWithTx), tx, actionPKs, limit)
+}
+
 // ListActionPKsByGroup mocks base method.
 func (m *MockGroupResourcePolicyManager) ListActionPKsByGroup(groupPK int64) ([]string, error) {
 	m.ctrl.T.Helper()

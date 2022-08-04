@@ -63,6 +63,20 @@ func (mr *MockSubjectActionExpressionServiceMockRecorder) CreateOrUpdateWithTx(t
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).CreateOrUpdateWithTx), tx, expression)
 }
 
+// DeleteByActionPKWithTx mocks base method.
+func (m *MockSubjectActionExpressionService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
+func (mr *MockSubjectActionExpressionServiceMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockSubjectActionExpressionService)(nil).DeleteByActionPKWithTx), tx, actionPK)
+}
+
 // ListBySubjectAction mocks base method.
 func (m *MockSubjectActionExpressionService) ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]types.SubjectActionExpression, error) {
 	m.ctrl.T.Helper()

@@ -301,7 +301,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 	}
 
 	// NOTE: the action should not be deleted if action has any policies!!!!!!
-	needAsyncDeletedActionIDs, err := checkActionIDsHasAnyPolicies(systemID, ids)
+	needAsyncDeletedActionIDs, err := newActionHasAnyPolicyChecker().FilterActionCanAlter(systemID, ids)
 	if err != nil {
 		util.ConflictJSONResponse(c, err.Error())
 		return
