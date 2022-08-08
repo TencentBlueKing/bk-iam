@@ -30,7 +30,7 @@ const GroupResourcePolicySVC = "GroupResourcePolicySVC"
 type GroupResourcePolicyService interface {
 	Alter(
 		tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
-	) error
+	) ([]int64, error)
 
 	GetAuthorizedActionGroupMap(
 		systemID string,
@@ -126,7 +126,7 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 
 func (s *groupResourcePolicyService) Alter(
 	tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
-) error {
+) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "Alter")
 
 	// Note: 底层这里没有保证并发同时修改的问题，而是顶层调用者SaaS通过分布式锁保证的
@@ -140,7 +140,7 @@ func (s *groupResourcePolicyService) Alter(
 	// 2. 查询每条策略
 	policies, err := s.manager.ListBySignatures(signatures)
 	if err != nil {
-		return errorWrapf(
+		return nil, errorWrapf(
 			err,
 			"manager.ListBySignatures fail, groupPK=`%d`, templateID=`%d`, systemID=`%s`, resourceChangedContents=`%v`",
 			groupPK, templateID, systemID, resourceChangedContents,
@@ -154,7 +154,7 @@ func (s *groupResourcePolicyService) Alter(
 	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
 	allActionPKs, err := s.actionManager.ListPKBySystem(systemID)
 	if err != nil {
-		return errorWrapf(
+		return nil, errorWrapf(
 			err,
 			"actionManager.ListPKBySystem fail, systemID=`%s`", systemID,
 		)
@@ -171,7 +171,7 @@ func (s *groupResourcePolicyService) Alter(
 		// 根据变更内容，计算出变更后的ActionPKs Json字符串
 		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc, systemActionPKSet)
 		if err != nil {
-			return errorWrapf(
+			return nil, errorWrapf(
 				err,
 				"calculateChangedActionPKs fail, signature=`%s`, groupPK=`%d`, templateID=`%d`,"+
 					" systemID=`%s`, resourceChangedContent=`%v`",
@@ -214,25 +214,25 @@ func (s *groupResourcePolicyService) Alter(
 	if len(createdPolicies) > 0 {
 		err := s.manager.BulkCreateWithTx(tx, createdPolicies)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkCreateWithTx fail policies=`%v`", createdPolicies)
+			return nil, errorWrapf(err, "manager.BulkCreateWithTx fail policies=`%v`", createdPolicies)
 		}
 	}
 	// 删
 	if len(deletedPolicyPKs) > 0 {
 		err := s.manager.BulkDeleteByPKsWithTx(tx, deletedPolicyPKs)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkDeleteByPKsWithTx fail pks=`%v`", deletedPolicyPKs)
+			return nil, errorWrapf(err, "manager.BulkDeleteByPKsWithTx fail pks=`%v`", deletedPolicyPKs)
 		}
 	}
 	// 改
 	if len(updatedPolicies) > 0 {
 		err := s.manager.BulkUpdateActionPKsWithTx(tx, updatedPolicies)
 		if err != nil {
-			return errorWrapf(err, "manager.BulkUpdateActionPKsWithTx fail policies=`%v`", updatedPolicies)
+			return nil, errorWrapf(err, "manager.BulkUpdateActionPKsWithTx fail policies=`%v`", updatedPolicies)
 		}
 	}
 
-	return nil
+	return deletedPolicyPKs, nil
 }
 
 // GetAuthorizedActionGroupMap 查询有权限的用户组的操作

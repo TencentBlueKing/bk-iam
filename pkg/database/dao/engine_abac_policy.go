@@ -22,37 +22,37 @@ import (
 	"iam/pkg/database"
 )
 
-// EnginePolicy ...
-type EnginePolicy struct {
+// EngineAbacPolicy ...
+type EngineAbacPolicy struct {
 	Policy
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-// EnginePolicyManager provide the database query for iam-engine
-type EnginePolicyManager interface {
-	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []EnginePolicy, err error)
-	ListByPKs(pks []int64) (policies []EnginePolicy, err error)
+// EngineAbacPolicyManager provide the database query for iam-engine
+type EngineAbacPolicyManager interface {
+	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []EngineAbacPolicy, err error)
+	ListByPKs(pks []int64) (policies []EngineAbacPolicy, err error)
 	GetMaxPKBeforeUpdatedAt(updatedAt int64) (pk int64, err error)
 	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) (pks []int64, err error)
 }
 
-type enginePolicyManager struct {
+type engineAbacPolicyManager struct {
 	DB *sqlx.DB
 }
 
-// NewEnginePolicyManager create EnginePolicyManager
-func NewEnginePolicyManager() EnginePolicyManager {
-	return &enginePolicyManager{
+// NewAbacEnginePolicyManager create EnginePolicyManager
+func NewAbacEnginePolicyManager() EngineAbacPolicyManager {
+	return &engineAbacPolicyManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
 }
 
 // ListBetweenPK 查询 range pk 之间的所有策略
-func (m *enginePolicyManager) ListBetweenPK(
+func (m *engineAbacPolicyManager) ListBetweenPK(
 	expiredAt,
 	minPK,
 	maxPK int64,
-) (policies []EnginePolicy, err error) {
+) (policies []EngineAbacPolicy, err error) {
 	err = m.selectBetweenPK(&policies, expiredAt, minPK, maxPK)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
@@ -61,7 +61,7 @@ func (m *enginePolicyManager) ListBetweenPK(
 }
 
 // ListByPKs 查询指定pk的策略
-func (m *enginePolicyManager) ListByPKs(pks []int64) (policies []EnginePolicy, err error) {
+func (m *engineAbacPolicyManager) ListByPKs(pks []int64) (policies []EngineAbacPolicy, err error) {
 	err = m.selectByPKs(&policies, pks)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
@@ -70,7 +70,7 @@ func (m *enginePolicyManager) ListByPKs(pks []int64) (policies []EnginePolicy, e
 }
 
 // GetMaxPKBeforeUpdatedAt 查询更新时间之前的最大pk
-func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(updatedAt int64) (pk int64, err error) {
+func (m *engineAbacPolicyManager) GetMaxPKBeforeUpdatedAt(updatedAt int64) (pk int64, err error) {
 	var maxPK sql.NullInt64
 	err = m.selectMaxPKBeforeUpdatedAt(&maxPK, updatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -90,7 +90,7 @@ func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(updatedAt int64) (pk int64
 }
 
 // ListPKBetweenUpdatedAt 查询更新时间之间的所有pk
-func (m *enginePolicyManager) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) (pks []int64, err error) {
+func (m *engineAbacPolicyManager) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) (pks []int64, err error) {
 	err = m.selectPKBetweenUpdatedAt(&pks, beginUpdatedAt, endUpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return pks, nil
@@ -98,8 +98,8 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedA
 	return
 }
 
-func (m *enginePolicyManager) selectBetweenPK(
-	policies *[]EnginePolicy,
+func (m *engineAbacPolicyManager) selectBetweenPK(
+	policies *[]EngineAbacPolicy,
 	expiredAt int64,
 	minPK int64,
 	maxPK int64,
@@ -118,7 +118,7 @@ func (m *enginePolicyManager) selectBetweenPK(
 	return database.SqlxSelect(m.DB, policies, query, expiredAt, minPK, maxPK)
 }
 
-func (m *enginePolicyManager) selectByPKs(policies *[]EnginePolicy, pks []int64) error {
+func (m *engineAbacPolicyManager) selectByPKs(policies *[]EngineAbacPolicy, pks []int64) error {
 	query := `SELECT
 		pk,
 		subject_pk,
@@ -132,12 +132,12 @@ func (m *enginePolicyManager) selectByPKs(policies *[]EnginePolicy, pks []int64)
 	return database.SqlxSelect(m.DB, policies, query, pks)
 }
 
-func (m *enginePolicyManager) selectPKBetweenUpdatedAt(pks *[]int64, beginUpdatedAt, endUpdatedAt int64) error {
+func (m *engineAbacPolicyManager) selectPKBetweenUpdatedAt(pks *[]int64, beginUpdatedAt, endUpdatedAt int64) error {
 	query := `SELECT pk FROM policy WHERE updated_at BETWEEN FROM_UNIXTIME(?) AND FROM_UNIXTIME(?)`
 	return database.SqlxSelect(m.DB, pks, query, beginUpdatedAt, endUpdatedAt)
 }
 
-func (m *enginePolicyManager) selectMaxPKBeforeUpdatedAt(maxPK *sql.NullInt64, updatedAt int64) error {
+func (m *engineAbacPolicyManager) selectMaxPKBeforeUpdatedAt(maxPK *sql.NullInt64, updatedAt int64) error {
 	query := `SELECT MAX(pk) FROM policy WHERE updated_at <= FROM_UNIXTIME(?)`
 	return database.SqlxGet(m.DB, maxPK, query, updatedAt)
 }

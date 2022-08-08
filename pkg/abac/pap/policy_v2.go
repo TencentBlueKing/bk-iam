@@ -16,8 +16,8 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pap/event"
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
 	"iam/pkg/abac/prp/policy"
@@ -26,9 +26,6 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
-	"iam/pkg/task"
-	"iam/pkg/task/producer"
-	"iam/pkg/util"
 )
 
 const PolicyCTLV2 = "PolicyCTLV2"
@@ -50,7 +47,6 @@ type policyControllerV2 struct {
 	// RBAC
 	groupResourcePolicyService service.GroupResourcePolicyService
 	groupService               service.GroupService
-	groupAlterEventService     service.GroupAlterEventService
 
 	resourceTypeService service.ResourceTypeService
 
@@ -58,7 +54,7 @@ type policyControllerV2 struct {
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
-	alterEventProducer producer.Producer
+	eventProducer event.PolicyEventProducer
 }
 
 func NewPolicyControllerV2() PolicyControllerV2 {
@@ -72,13 +68,12 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 
 		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 		groupService:               service.NewGroupService(),
-		groupAlterEventService:     service.NewGroupAlterEventService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
-		alterEventProducer: producer.NewRedisProducer(task.GetRbacEventQueue()),
+		eventProducer: event.NewPolicyEventProducer(),
 	}
 }
 
@@ -139,7 +134,7 @@ func (c *policyControllerV2) Alter(
 	}
 
 	// 4. 创建RBAC变更消息
-	c.createRBACGroupAlterEvent(subjectPK, resourceChangedContents)
+	c.eventProducer.PublishRBACGroupAlterEvent(subjectPK, resourceChangedContents)
 
 	// 5. 清理缓存
 	// 5.1 ABAC相关缓存
@@ -218,6 +213,8 @@ func (c *policyControllerV2) alterABACPolicies(
 			err = errorWrapf(err, "policyService.AlterPolicies subjectPK=`%d` fail", subjectPK)
 			return
 		}
+		// publish policy delete event
+		c.eventProducer.PublishABACDeletePolicyEvent(deletePolicyIDs)
 		// Note: 这里必须直接返回，否则会走到模板权限逻辑
 		return
 	}
@@ -231,6 +228,9 @@ func (c *policyControllerV2) alterABACPolicies(
 			err = errorWrapf(err, "policyService.CreateAndDeleteTemplatePolicies subjectPK=`%d` fail", subjectPK)
 			return
 		}
+
+		// publish policy delete event
+		c.eventProducer.PublishABACDeletePolicyEvent(deletePolicyIDs)
 	}
 	// 更新
 	if len(updatePolicies) > 0 {
@@ -268,7 +268,14 @@ func (c *policyControllerV2) alterRBACPolicies(
 	}
 
 	// 2. 变更RBAC策略
-	err = c.groupResourcePolicyService.Alter(tx, groupPK, templateID, systemID, resourceChangedContents)
+	var deletedPolicyPKs []int64
+	deletedPolicyPKs, err = c.groupResourcePolicyService.Alter(
+		tx,
+		groupPK,
+		templateID,
+		systemID,
+		resourceChangedContents,
+	)
 	if err != nil {
 		return resourceChangedContents, errorWrapf(
 			err,
@@ -278,98 +285,8 @@ func (c *policyControllerV2) alterRBACPolicies(
 		)
 	}
 
-	return resourceChangedContents, nil
-}
-
-// createRBACGroupAlterEvent 创建用户组变更事件
-func (c *policyControllerV2) createRBACGroupAlterEvent(
-	groupPK int64,
-	resourceChangedContents []svctypes.ResourceChangedContent,
-) {
-	actionPKSet := set.NewInt64Set()
-	for _, rcc := range resourceChangedContents {
-		actionPKSet.Append(rcc.CreatedActionPKs...)
-		actionPKSet.Append(rcc.DeletedActionPKs...)
-	}
-
-	actionPKs := actionPKSet.ToSlice()
-
-	// 清group action resource 缓存
-	cacheimpls.BatchDeleteGroupActionAuthorizedResourceCache(groupPK, actionPKs)
-
-	// 创建 group_alter_event
-	pks, err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
-	if err != nil {
-		log.WithError(err).
-			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
-
-		// report to sentry
-		util.ReportToSentry("createRBACGroupAlterEvent groupAlterEventService.CreateByGroupAction fail",
-			map[string]interface{}{
-				"layer":     PolicyCTLV2,
-				"groupPK":   groupPK,
-				"actionPKs": actionPKs,
-				"error":     err.Error(),
-			},
-		)
-		return
-	}
-
-	// 发送event 消息
-	if len(pks) == 0 {
-		return
-	}
-
-	messages := util.Int64SliceToStringSlice(pks)
-	go c.alterEventProducer.Publish(messages...)
-}
-
-func (c *policyControllerV2) convertToResourceChangedContent(
-	systemID string, resourceChangedActions []types.ResourceChangedAction,
-) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "convertToResourceChangedContent")
-
-	// 1. 查询每个操作的详情
-	actionDetailMap, err := c.queryActionDetail(systemID, &resourceChangedActions)
-	if err != nil {
-		return resourceChangedContents, errorWrapf(
-			err, "queryActionDetail systemID=`%s` resourceChangedActions=`%v` fail", systemID, resourceChangedActions,
-		)
-	}
-
-	// 2. 查询每个资源类型的PK
-	resourceTypePKMap, err := c.queryResourceTypePK(&resourceChangedActions)
-	if err != nil {
-		return resourceChangedContents, errorWrapf(
-			err, "queryResourceTypePK resourceChangedActions=`%v` fail", resourceChangedActions,
-		)
-	}
-
-	// 3. 组装数据
-	resourceChangedContents = make([]svctypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
-	for _, rca := range resourceChangedActions {
-		// 根据ActionRelatedResourceTypePK对Action进行分组
-		relatedResourceTypePKToChangedActionMap, err := c.groupByActionRelatedResourceTypePK(
-			rca.CreatedActionIDs, rca.DeletedActionIDs, &actionDetailMap,
-		)
-		if err != nil {
-			return nil, errorWrapf(
-				err, "groupByActionRelatedResourceTypePK rca=`%v` fail", rca,
-			)
-		}
-
-		// 组织最终数据
-		resourceTypePK := resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type]
-		for relatedResourceTypePK, ca := range relatedResourceTypePKToChangedActionMap {
-			resourceChangedContents = append(resourceChangedContents, svctypes.ResourceChangedContent{
-				ResourceTypePK:              resourceTypePK,
-				ResourceID:                  rca.Resource.ID,
-				ActionRelatedResourceTypePK: relatedResourceTypePK,
-				CreatedActionPKs:            ca.CreatedActionPKs,
-				DeletedActionPKs:            ca.DeletedActionPKs,
-			})
-		}
-	}
+	// publish the rbac delete pks to the engine redis queue
+	c.eventProducer.PublishRBACDeletePolicyEvent(deletedPolicyPKs)
 
 	return resourceChangedContents, nil
 }
@@ -547,4 +464,54 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	}
 
 	return nil
+}
+
+func (c *policyControllerV2) convertToResourceChangedContent(
+	systemID string, resourceChangedActions []types.ResourceChangedAction,
+) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "convertToResourceChangedContent")
+
+	// 1. 查询每个操作的详情
+	actionDetailMap, err := c.queryActionDetail(systemID, &resourceChangedActions)
+	if err != nil {
+		return resourceChangedContents, errorWrapf(
+			err, "queryActionDetail systemID=`%s` resourceChangedActions=`%v` fail", systemID, resourceChangedActions,
+		)
+	}
+
+	// 2. 查询每个资源类型的PK
+	resourceTypePKMap, err := c.queryResourceTypePK(&resourceChangedActions)
+	if err != nil {
+		return resourceChangedContents, errorWrapf(
+			err, "queryResourceTypePK resourceChangedActions=`%v` fail", resourceChangedActions,
+		)
+	}
+
+	// 3. 组装数据
+	resourceChangedContents = make([]svctypes.ResourceChangedContent, 0, 3*len(resourceChangedActions))
+	for _, rca := range resourceChangedActions {
+		// 根据ActionRelatedResourceTypePK对Action进行分组
+		relatedResourceTypePKToChangedActionMap, err := c.groupByActionRelatedResourceTypePK(
+			rca.CreatedActionIDs, rca.DeletedActionIDs, &actionDetailMap,
+		)
+		if err != nil {
+			return nil, errorWrapf(
+				err, "groupByActionRelatedResourceTypePK rca=`%v` fail", rca,
+			)
+		}
+
+		// 组织最终数据
+		resourceTypePK := resourceTypePKMap[rca.Resource.System+":"+rca.Resource.Type]
+		for relatedResourceTypePK, ca := range relatedResourceTypePKToChangedActionMap {
+			resourceChangedContents = append(resourceChangedContents, svctypes.ResourceChangedContent{
+				ResourceTypePK:              resourceTypePK,
+				ResourceID:                  rca.Resource.ID,
+				ActionRelatedResourceTypePK: relatedResourceTypePK,
+				CreatedActionPKs:            ca.CreatedActionPKs,
+				DeletedActionPKs:            ca.DeletedActionPKs,
+			})
+		}
+	}
+
+	return resourceChangedContents, nil
 }

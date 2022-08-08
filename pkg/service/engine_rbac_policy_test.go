@@ -23,7 +23,7 @@ import (
 	"iam/pkg/service/types"
 )
 
-var _ = Describe("PolicyEngine", func() {
+var _ = Describe("PolicyEngine Rbac", func() {
 	Describe("ListBetweenPK cases", func() {
 		var ctl *gomock.Controller
 
@@ -37,53 +37,51 @@ var _ = Describe("PolicyEngine", func() {
 
 		It("ok", func() {
 			updatedAt := time.Now()
-			daoPolicies := []dao.EnginePolicy{
+			daoPolicies := []dao.EngineRbacPolicy{
 				{
-					Policy: dao.Policy{
-						PK: int64(1),
-
-						SubjectPK:    int64(1),
-						ActionPK:     int64(1),
-						ExpressionPK: int64(1),
-
-						ExpiredAt:  int64(1),
-						TemplateID: int64(1),
-					},
-					UpdatedAt: updatedAt,
+					PK:                          int64(1),
+					GroupPK:                     int64(2),
+					TemplateID:                  int64(3),
+					SystemID:                    "",
+					ActionPKs:                   "[1,2]",
+					ActionRelatedResourceTypePK: int64(4),
+					ResourceTypePK:              int64(5),
+					ResourceID:                  "",
+					UpdatedAt:                   updatedAt,
 				},
 			}
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListBetweenPK(
-				int64(1), int64(1), int64(100),
+				int64(1), int64(100),
 			).Return(daoPolicies, nil)
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
 			policies, err := svc.ListBetweenPK(int64(1), int64(1), int64(100))
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), []types.EngineQueryPolicy{{
-				QueryPolicy: types.QueryPolicy{
-					PK:           int64(1),
-					SubjectPK:    int64(1),
-					ActionPK:     int64(1),
-					ExpressionPK: int64(1),
-					ExpiredAt:    int64(1),
-				},
-				TemplateID: int64(1),
-				UpdatedAt:  updatedAt.Unix(),
+			assert.Equal(GinkgoT(), []types.EngineRbacPolicy{{
+				PK:                          int64(1),
+				GroupPK:                     int64(2),
+				TemplateID:                  int64(3),
+				SystemID:                    "",
+				ActionPKs:                   []int64{1, 2},
+				ActionRelatedResourceTypePK: int64(4),
+				ResourceTypePK:              int64(5),
+				ResourceID:                  "",
+				UpdatedAt:                   updatedAt,
 			}}, policies)
 		})
 
 		It("ListBetweenPK fail", func() {
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListBetweenPK(
-				int64(1), int64(1), int64(100),
+				int64(1), int64(100),
 			).Return(nil, errors.New("fail"))
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
@@ -105,49 +103,47 @@ var _ = Describe("PolicyEngine", func() {
 
 		It("ok", func() {
 			updatedAt := time.Now()
-			daoPolicies := []dao.EnginePolicy{
+			daoPolicies := []dao.EngineRbacPolicy{
 				{
-					Policy: dao.Policy{
-						PK: int64(1),
-
-						SubjectPK:    int64(1),
-						ActionPK:     int64(1),
-						ExpressionPK: int64(1),
-
-						ExpiredAt:  int64(1),
-						TemplateID: int64(1),
-					},
-					UpdatedAt: updatedAt,
+					PK:                          int64(1),
+					GroupPK:                     int64(2),
+					TemplateID:                  int64(3),
+					SystemID:                    "",
+					ActionPKs:                   "[1,2]",
+					ActionRelatedResourceTypePK: int64(4),
+					ResourceTypePK:              int64(5),
+					ResourceID:                  "",
+					UpdatedAt:                   updatedAt,
 				},
 			}
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(daoPolicies, nil)
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
 			policies, err := svc.ListByPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 
-			assert.Equal(GinkgoT(), []types.EngineQueryPolicy{{
-				QueryPolicy: types.QueryPolicy{
-					PK:           int64(1),
-					SubjectPK:    int64(1),
-					ActionPK:     int64(1),
-					ExpressionPK: int64(1),
-					ExpiredAt:    int64(1),
-				},
-				TemplateID: int64(1),
-				UpdatedAt:  updatedAt.Unix(),
+			assert.Equal(GinkgoT(), []types.EngineRbacPolicy{{
+				PK:                          int64(1),
+				GroupPK:                     int64(2),
+				TemplateID:                  int64(3),
+				SystemID:                    "",
+				ActionPKs:                   []int64{1, 2},
+				ActionRelatedResourceTypePK: int64(4),
+				ResourceTypePK:              int64(5),
+				ResourceID:                  "",
+				UpdatedAt:                   updatedAt,
 			}}, policies)
 		})
 
 		It("ListBetweenPK fail", func() {
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("fail"))
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
@@ -169,10 +165,10 @@ var _ = Describe("PolicyEngine", func() {
 
 		It("ok", func() {
 			now := int64(1617457847)
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(1), nil)
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
@@ -183,10 +179,10 @@ var _ = Describe("PolicyEngine", func() {
 
 		It("GetCountByActionBeforeExpiredAtBetweenUpdatedAt fail", func() {
 			now := int64(1617457847)
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().GetMaxPKBeforeUpdatedAt(now).Return(int64(0), errors.New("fail"))
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
@@ -209,10 +205,10 @@ var _ = Describe("PolicyEngine", func() {
 		It("ok", func() {
 			begin := int64(1617457847)
 			end := int64(1617457850)
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return([]int64{1, 2}, nil)
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 
@@ -225,10 +221,10 @@ var _ = Describe("PolicyEngine", func() {
 			begin := int64(1617457847)
 			end := int64(1617457850)
 
-			mockPolicyManager := mock.NewMockEnginePolicyManager(ctl)
+			mockPolicyManager := mock.NewMockEngineRbacPolicyManager(ctl)
 			mockPolicyManager.EXPECT().ListPKBetweenUpdatedAt(begin, end).Return(nil, errors.New("fail"))
 
-			svc := enginePolicyService{
+			svc := engineRbacPolicyService{
 				manager: mockPolicyManager,
 			}
 

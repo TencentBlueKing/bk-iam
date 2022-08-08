@@ -13,6 +13,7 @@ package handler
 import (
 	"fmt"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/util"
 )
 
@@ -25,6 +26,8 @@ type listPolicySerializer struct {
 	MaxID int64 `form:"max_id" json:"max_id" binding:"omitempty,min=1" example:"10001"`
 
 	IDs string `form:"ids" json:"ids" binding:"omitempty" example:"1,2,3"`
+
+	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 // getIDs parse string ids to slice
@@ -79,6 +82,10 @@ func (s *listPolicySerializer) initDefault() {
 		// default: today 00:00:00
 		s.Timestamp = util.TodayStartTimestamp()
 	}
+
+	if s.Type == "" {
+		s.Type = prp.EngineListPolicyTypeAbac
+	}
 }
 
 type policyResponseSubject struct {
@@ -95,7 +102,7 @@ type enginePolicyResponse struct {
 	Version    string                 `json:"version" example:"1"`
 	ID         int64                  `json:"id" example:"100"`
 	System     string                 `json:"system" example:"bk_cmdb"`
-	Action     policyResponseAction   `json:"action"`
+	Actions    []policyResponseAction `json:"actions"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Expression map[string]interface{} `json:"expression"`
 	TemplateID int64                  `json:"template_id"`
@@ -111,8 +118,9 @@ type policyListResponse struct {
 // -- listPolicyPKs
 
 type listPolicyIDsSerializer struct {
-	BeginUpdatedAt int64 `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1" example:"1592899208"`
-	EndUpdatedAt   int64 `form:"end_updated_at" json:"end_updated_at" binding:"min=1" example:"1592899208"`
+	BeginUpdatedAt int64  `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1" example:"1592899208"`
+	EndUpdatedAt   int64  `form:"end_updated_at" json:"end_updated_at" binding:"min=1" example:"1592899208"`
+	Type           string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 func (s *listPolicyIDsSerializer) validate() (bool, string) {
@@ -127,6 +135,12 @@ func (s *listPolicyIDsSerializer) validate() (bool, string) {
 	return true, "ok"
 }
 
+func (s *listPolicyIDsSerializer) initDefault() {
+	if s.Type == "" {
+		s.Type = prp.EngineListPolicyTypeAbac
+	}
+}
+
 type listPolicyIDsResponse struct {
 	IDs []int64 `json:"ids"`
 }
@@ -134,7 +148,14 @@ type listPolicyIDsResponse struct {
 // --a getMaxPolicyPK
 
 type getMaxPolicyIDSerializer struct {
-	UpdatedAt int64 `form:"updated_at" json:"updated_at" binding:"min=1" example:"1592899208"`
+	UpdatedAt int64  `form:"updated_at" json:"updated_at" binding:"min=1" example:"1592899208"`
+	Type      string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
+}
+
+func (s *getMaxPolicyIDSerializer) initDefault() {
+	if s.Type == "" {
+		s.Type = prp.EngineListPolicyTypeAbac
+	}
 }
 
 type getMaxPolicyIDResponse struct {
