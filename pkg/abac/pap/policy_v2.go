@@ -436,12 +436,12 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 
 	// 3. 删除rbac policy
 	if actionDetail.AuthType == svctypes.AuthTypeRBAC {
-		// NOTE: group resource policy 只会删除action_pks中有一个action_pk的数据, 其余的数据在变更时再判断是否有无效action_pk
-		err = c.groupResourcePolicyService.DeleteByActionPKWithTx(tx, actionPK)
-		if err != nil {
-			err = errorWrapf(err, "groupResourcePolicyService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
-			return err
-		}
+		// TODO: 删除时会导致全表扫描, 避免影响鉴权, 先不处理
+		// err = c.groupResourcePolicyService.DeleteByActionPKWithTx(tx, actionPK)
+		// if err != nil {
+		// 	err = errorWrapf(err, "groupResourcePolicyService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+		// 	return err
+		// }
 
 		err = c.subjectActionGroupResourceService.DeleteByActionPKWithTx(tx, actionPK)
 		if err != nil {
