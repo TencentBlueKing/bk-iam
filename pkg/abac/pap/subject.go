@@ -14,6 +14,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pap/event"
 	pl "iam/pkg/abac/prp/policy"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
@@ -49,6 +50,8 @@ type subjectController struct {
 	groupResourcePolicyService        service.GroupResourcePolicyService
 	groupAlterEventService            service.GroupAlterEventService
 	alterEventProducer                producer.Producer
+
+	subjectEventProducer event.SubjectEventProducer
 }
 
 func NewSubjectController() SubjectController {
@@ -64,6 +67,7 @@ func NewSubjectController() SubjectController {
 		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
 		groupAlterEventService:            service.NewGroupAlterEventService(),
 		alterEventProducer:                producer.NewRedisProducer(task.GetRbacEventQueue()),
+		subjectEventProducer:              event.NewSubjectEventProducer(),
 	}
 }
 
@@ -198,6 +202,9 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 		go c.alterEventProducer.Publish(eventMessages...)
 	}
 
+	// 发送事件
+	c.subjectEventProducer.PublishDeleteEvent(svcSubjects)
+
 	for _, s := range subjects {
 		cacheimpls.DeleteSubjectPK(s.Type, s.ID)
 		cacheimpls.DeleteLocalSubjectPK(s.Type, s.ID)
@@ -206,6 +213,9 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 	// Note: 不需要清除subject的成员其对应的SubjectGroup和SubjectDepartment，
 	//       =>  保证拿到的group pk 没有对应的policy cache/回源也查不到
 	deleteGroupPKPolicyCache(pks)
+
+	// 发送事件
+	c.subjectEventProducer.PublishDeleteEvent(svcSubjects)
 
 	return nil
 }
@@ -296,6 +306,9 @@ func (c *subjectController) BulkDeleteUserAndDepartment(subjects []Subject) erro
 
 	// 清理subject system group缓存
 	cacheimpls.BatchDeleteSubjectAllSystemGroupCache(pks)
+
+	// 发送事件
+	c.subjectEventProducer.PublishDeleteEvent(svcSubjects)
 
 	return err
 }

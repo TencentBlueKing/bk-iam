@@ -13,6 +13,7 @@ package pap
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"iam/pkg/abac/pap/event"
 	"iam/pkg/abac/types"
 	"iam/pkg/service"
 )
@@ -55,6 +56,8 @@ type policyController struct {
 	actionService          service.ActionService
 	policyService          service.PolicyService
 	temporaryPolicyService service.TemporaryPolicyService
+
+	eventProducer event.PolicyEventProducer
 }
 
 func NewPolicyController() PolicyController {
@@ -63,5 +66,7 @@ func NewPolicyController() PolicyController {
 		actionService:          service.NewActionService(),
 		policyService:          service.NewPolicyService(),
 		temporaryPolicyService: service.NewTemporaryPolicyService(),
+
+		eventProducer: event.NewPolicyEventProducer(),
 	}
 }

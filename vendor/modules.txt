@@ -13,9 +13,11 @@ github.com/TencentBlueKing/gopkg/collection/set
 github.com/TencentBlueKing/gopkg/conv
 github.com/TencentBlueKing/gopkg/errorx
 github.com/TencentBlueKing/gopkg/stringx
-# github.com/TencentBlueKing/iam-go-sdk v0.0.8
+# github.com/TencentBlueKing/iam-go-sdk v0.0.9
 ## explicit; go 1.16
+github.com/TencentBlueKing/iam-go-sdk/expression
 github.com/TencentBlueKing/iam-go-sdk/expression/eval
+github.com/TencentBlueKing/iam-go-sdk/expression/operator
 # github.com/adjust/rmq/v4 v4.0.5
 ## explicit; go 1.13
 github.com/adjust/rmq/v4

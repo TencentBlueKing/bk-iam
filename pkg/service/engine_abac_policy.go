@@ -19,42 +19,40 @@ import (
 	"iam/pkg/service/types"
 )
 
-// EnginePolicySVC is the layer-object name
 const EnginePolicySVC = "EnginePolicySVC"
 
-// EnginePolicyService provide the func for iam-engine
-type EnginePolicyService interface {
+type EngineAbacPolicyService interface {
 	GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error)
 	ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error)
-	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EngineQueryPolicy, err error)
-	ListByPKs(pks []int64) (policies []types.EngineQueryPolicy, err error)
+	ListBetweenPK(expiredAt, minPK, maxPK int64) (policies []types.EngineAbacPolicy, err error)
+	ListByPKs(pks []int64) (policies []types.EngineAbacPolicy, err error)
 }
 
-type enginePolicyService struct {
-	manager dao.EnginePolicyManager
+type engineAbacPolicyService struct {
+	manager dao.EngineAbacPolicyManager
 }
 
 // NewEnginePolicyService create the EnginePolicyService
-func NewEnginePolicyService() EnginePolicyService {
-	return &enginePolicyService{
-		manager: dao.NewEnginePolicyManager(),
+func NewEngineAbacPolicyService() EngineAbacPolicyService {
+	return &engineAbacPolicyService{
+		manager: dao.NewAbacEnginePolicyManager(),
 	}
 }
 
 // GetMaxPKBeforeUpdatedAt ...
-func (s *enginePolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error) {
+func (s *engineAbacPolicyService) GetMaxPKBeforeUpdatedAt(updatedAt int64) (int64, error) {
 	return s.manager.GetMaxPKBeforeUpdatedAt(updatedAt)
 }
 
 // ListPKBetweenUpdatedAt ...
-func (s *enginePolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error) {
+func (s *engineAbacPolicyService) ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt int64) ([]int64, error) {
 	return s.manager.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
 }
 
 // ListBetweenPK ...
-func (s *enginePolicyService) ListBetweenPK(
+func (s *engineAbacPolicyService) ListBetweenPK(
 	expiredAt, minPK, maxPK int64,
-) (queryPolicies []types.EngineQueryPolicy, err error) {
+) (queryPolicies []types.EngineAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListBetweenPK")
 
 	policies, err := s.manager.ListBetweenPK(expiredAt, minPK, maxPK)
@@ -65,13 +63,11 @@ func (s *enginePolicyService) ListBetweenPK(
 		)
 		return nil, err
 	}
-
-	queryPolicies = convertPoliciesToEngineQueryPolicies(policies)
-	return queryPolicies, nil
+	return convertToEngineAbacPolicies(policies), nil
 }
 
 // ListByPKs ...
-func (s *enginePolicyService) ListByPKs(pks []int64) (queryPolicies []types.EngineQueryPolicy, err error) {
+func (s *engineAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.EngineAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(EnginePolicySVC, "ListByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
@@ -79,25 +75,24 @@ func (s *enginePolicyService) ListByPKs(pks []int64) (queryPolicies []types.Engi
 		err = errorWrapf(err, "manager.ListByPKs pks=`%+v` fail", pks)
 		return nil, err
 	}
-
-	queryPolicies = convertPoliciesToEngineQueryPolicies(policies)
-	return queryPolicies, nil
+	return convertToEngineAbacPolicies(policies), nil
 }
 
-func convertPoliciesToEngineQueryPolicies(policies []dao.EnginePolicy) []types.EngineQueryPolicy {
-	queryPolicies := make([]types.EngineQueryPolicy, 0, len(policies))
+func convertToEngineAbacPolicies(policies []dao.EngineAbacPolicy) (abacPolicies []types.EngineAbacPolicy) {
+	if len(policies) == 0 {
+		return
+	}
+
 	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.EngineQueryPolicy{
-			QueryPolicy: types.QueryPolicy{
-				PK:           p.PK,
-				SubjectPK:    p.SubjectPK,
-				ActionPK:     p.ActionPK,
-				ExpressionPK: p.ExpressionPK,
-				ExpiredAt:    p.ExpiredAt,
-			},
-			TemplateID: p.TemplateID,
-			UpdatedAt:  p.UpdatedAt.Unix(),
+		abacPolicies = append(abacPolicies, types.EngineAbacPolicy{
+			PK:           p.PK,
+			SubjectPK:    p.SubjectPK,
+			ActionPK:     p.ActionPK,
+			ExpressionPK: p.ExpressionPK,
+			ExpiredAt:    p.ExpiredAt,
+			TemplateID:   p.TemplateID,
+			UpdatedAt:    p.UpdatedAt,
 		})
 	}
-	return queryPolicies
+	return
 }
