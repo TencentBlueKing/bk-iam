@@ -64,6 +64,20 @@ func (mr *MockSubjectActionGroupResourceServiceMockRecorder) CreateOrUpdateWithT
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).CreateOrUpdateWithTx), tx, subjectPK, actionPK, groupPK, expiredAt, resources)
 }
 
+// DeleteByActionPKWithTx mocks base method.
+func (m *MockSubjectActionGroupResourceService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
+func (mr *MockSubjectActionGroupResourceServiceMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).DeleteByActionPKWithTx), tx, actionPK)
+}
+
 // DeleteGroupResourceWithTx mocks base method.
 func (m *MockSubjectActionGroupResourceService) DeleteGroupResourceWithTx(tx *sqlx.Tx, subjectPK, actionPK, groupPK int64) (types.SubjectActionGroupResource, error) {
 	m.ctrl.T.Helper()
@@ -92,4 +106,19 @@ func (m *MockSubjectActionGroupResourceService) Get(subjectPK, actionPK int64) (
 func (mr *MockSubjectActionGroupResourceServiceMockRecorder) Get(subjectPK, actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).Get), subjectPK, actionPK)
+}
+
+// HasAnyByActionPK mocks base method.
+func (m *MockSubjectActionGroupResourceService) HasAnyByActionPK(actionPK int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasAnyByActionPK", actionPK)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasAnyByActionPK indicates an expected call of HasAnyByActionPK.
+func (mr *MockSubjectActionGroupResourceServiceMockRecorder) HasAnyByActionPK(actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasAnyByActionPK", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).HasAnyByActionPK), actionPK)
 }

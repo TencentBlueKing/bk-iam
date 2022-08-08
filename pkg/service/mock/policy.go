@@ -94,18 +94,18 @@ func (mr *MockPolicyServiceMockRecorder) CreateAndDeleteTemplatePoliciesWithTx(t
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAndDeleteTemplatePoliciesWithTx", reflect.TypeOf((*MockPolicyService)(nil).CreateAndDeleteTemplatePoliciesWithTx), tx, subjectPK, templateID, createPolicies, deletePolicyIDs, actionPKWithResourceTypeSet)
 }
 
-// DeleteByActionPK mocks base method.
-func (m *MockPolicyService) DeleteByActionPK(actionPK int64) error {
+// DeleteByActionPKWithTx mocks base method.
+func (m *MockPolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByActionPK", actionPK)
+	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteByActionPK indicates an expected call of DeleteByActionPK.
-func (mr *MockPolicyServiceMockRecorder) DeleteByActionPK(actionPK interface{}) *gomock.Call {
+// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
+func (mr *MockPolicyServiceMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPK", reflect.TypeOf((*MockPolicyService)(nil).DeleteByActionPK), actionPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockPolicyService)(nil).DeleteByActionPKWithTx), tx, actionPK)
 }
 
 // DeleteByPKs mocks base method.

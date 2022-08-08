@@ -37,6 +37,8 @@ type PolicyControllerV2 interface {
 		resourceChangedActions []types.ResourceChangedAction,
 		groupAuthType int64,
 	) (err error)
+
+	DeleteByActionID(system, actionID string) error
 }
 
 type policyControllerV2 struct {
@@ -47,6 +49,11 @@ type policyControllerV2 struct {
 	groupService               service.GroupService
 
 	resourceTypeService service.ResourceTypeService
+
+	// for policy delete
+	policyService                     service.PolicyService
+	subjectActionGroupResourceService service.SubjectActionGroupResourceService
+	subjectActionExpressionService    service.SubjectActionExpressionService
 
 	eventProducer event.PolicyEventProducer
 }
@@ -63,6 +70,10 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 		groupService:               service.NewGroupService(),
 		resourceTypeService:        service.NewResourceTypeService(),
+
+		policyService:                     service.NewPolicyService(),
+		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
+		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
 		eventProducer: event.NewPolicyEventProducer(),
 	}
@@ -394,6 +405,67 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 	}
 
 	return relatedResourceTypePKToChangedActionMap, nil
+}
+
+// DeleteByActionID 通过ActionID批量删除策略
+func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "`DeleteByActionID`")
+
+	// 1. 查询 action detail
+	actionDetail, err := cacheimpls.GetLocalActionDetail(system, actionID)
+	if err != nil {
+		err = errorWrapf(err,
+			"cacheimpls.GetActionDetail system=`%s` actionID=`%s` fail", system, actionID)
+		return err
+	}
+
+	actionPK := actionDetail.PK
+
+	tx, err := database.GenerateDefaultDBTx()
+	if err != nil {
+		return errorWrapf(err, "define tx fail")
+	}
+	defer database.RollBackWithLog(tx)
+
+	// 2. 删除abac policy
+	err = c.policyService.DeleteByActionPKWithTx(tx, actionPK)
+	if err != nil {
+		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
+		return err
+	}
+
+	// 3. 删除rbac policy
+	if actionDetail.AuthType == svctypes.AuthTypeRBAC {
+		// NOTE: group resource policy 只会删除action_pks中有一个action_pk的数据, 其余的数据在变更时再判断是否有无效action_pk
+		err = c.groupResourcePolicyService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(err, "groupResourcePolicyService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			return err
+		}
+
+		err = c.subjectActionGroupResourceService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"subjectActionGroupResourceService.DeleteByActionPKWithTx actionPk=`%d`` fail",
+				actionPK,
+			)
+			return err
+		}
+
+		err = c.subjectActionExpressionService.DeleteByActionPKWithTx(tx, actionPK)
+		if err != nil {
+			err = errorWrapf(err, "subjectActionExpressionService.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx.Commit fail")
+	}
+
+	return nil
 }
 
 func (c *policyControllerV2) convertToResourceChangedContent(

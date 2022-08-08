@@ -39,7 +39,6 @@ type PolicyController interface {
 		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error
 
 	DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
-	DeleteByActionID(system, actionID string) error
 
 	// temporary policy
 

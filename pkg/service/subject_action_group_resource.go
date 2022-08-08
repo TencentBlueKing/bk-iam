@@ -40,6 +40,9 @@ type SubjectActionGroupResourceService interface {
 		subjectPK, actionPK, groupPK int64,
 	) (obj types.SubjectActionGroupResource, err error)
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+
+	HasAnyByActionPK(actionPK int64) (bool, error)
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 }
 
 type subjectActionGroupResourceService struct {
@@ -205,6 +208,32 @@ func (s *subjectActionGroupResourceService) createWithTx(
 
 	err = s.manager.CreateWithTx(tx, daoObj)
 	return obj, err
+}
+
+// HasAnyByActionPK ...
+func (s *subjectActionGroupResourceService) HasAnyByActionPK(actionPK int64) (bool, error) {
+	return s.manager.HasAnyByActionPK(actionPK)
+}
+
+// DeleteByActionPK ...
+func (s *subjectActionGroupResourceService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
+	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
+	rowLimit := int64(10000)
+	maxAttempts := 100 // 相当于最多删除100万数据
+
+	for i := 0; i < maxAttempts; i++ {
+		rowsAffected, err := s.manager.DeleteByActionPKWithTx(tx, actionPK, rowLimit)
+		if err != nil {
+			return errorWrapf(err, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
+		}
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected == 0 {
+			break
+		}
+	}
+
+	return nil
 }
 
 func convertToSvcSubjectActionGroupResource(

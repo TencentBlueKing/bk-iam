@@ -11,7 +11,6 @@
 package pap
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -197,34 +196,6 @@ func (c *policyController) AlterCustomPolicies(
 	defer expression.BatchDeleteExpressionsFromCache(updatedActionPKExpressionPKs)
 	// NOTE: publish policy delete pk event
 	c.eventProducer.PublishABACDeletePolicyEvent(deletePolicyIDs)
-
-	return nil
-}
-
-// DeleteByActionID 通过ActionID批量删除策略
-func (c *policyController) DeleteByActionID(system, actionID string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionID`")
-
-	// 1. 查询 action pk
-	actionPK, err := c.actionService.GetActionPK(system, actionID)
-	if err != nil {
-		// if action already deleted, just return
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
-
-		err = errorWrapf(err, "actionService.GetActionPK system=`%s`, actionID=`%s` fail", system, actionID)
-		return err
-	}
-
-	err = c.policyService.DeleteByActionPK(actionPK)
-	if err != nil {
-		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
-		return err
-	}
-	// FIXME: 目前没有engine没有同步删除对应数据(不影响功能, 但是数据冗余, 属于脏数据)
-
-	// TODO: 删除Resource Group Policy
 
 	return nil
 }

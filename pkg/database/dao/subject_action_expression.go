@@ -42,6 +42,8 @@ type SubjectActionExpressionManager interface {
 	CreateWithTx(tx *sqlx.Tx, subjectActionExpression SubjectActionExpression) error
 	UpdateExpressionExpiredAtWithTx(tx *sqlx.Tx, pk int64, expression string, signature string, expiredAt int64) error
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
+
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error)
 }
 
 type subjectActionExpressionManager struct {
@@ -150,4 +152,10 @@ func (m *subjectActionExpressionManager) BulkDeleteBySubjectPKsWithTx(
 ) error {
 	sql := `DELETE FROM rbac_subject_action_expression WHERE subject_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
+}
+
+// DeleteByActionPKWithTx ...
+func (m *subjectActionExpressionManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
+	sql := `DELETE FROM rbac_subject_action_expression WHERE action_pk = ? LIMIT ?`
+	return database.SqlxDeleteReturnRowsWithTx(tx, sql, actionPK, limit)
 }

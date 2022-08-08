@@ -43,15 +43,20 @@ type GroupResourcePolicyService interface {
 		actionPK, actionResourceTypePK int64,
 	) ([]types.Resource, error)
 	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
+
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 }
 
 type groupResourcePolicyService struct {
 	manager dao.GroupResourcePolicyManager
+
+	actionManager dao.ActionManager
 }
 
 func NewGroupResourcePolicyService() GroupResourcePolicyService {
 	return &groupResourcePolicyService{
-		manager: dao.NewGroupResourcePolicyManager(),
+		manager:       dao.NewGroupResourcePolicyManager(),
+		actionManager: dao.NewActionManager(),
 	}
 }
 
@@ -73,7 +78,7 @@ func (s *groupResourcePolicyService) calculateSignature(
 
 // calculateChangedActionPKs : 使用旧的ActionPKs和要变更的内容，计算出最终变更的ActionPKs
 func (s *groupResourcePolicyService) calculateChangedActionPKs(
-	oldActionPKs string, rcc types.ResourceChangedContent,
+	oldActionPKs string, systemActionPKSet *set.Int64Set, rcc types.ResourceChangedContent,
 ) (string, error) {
 	// 将ActionPKs从Json字符串转为列表格式
 	var oldActionPKList []int64
@@ -87,7 +92,15 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 	}
 
 	// 使用set对新增和删除的Action进行变更
-	actionPKSet := set.NewInt64SetWithValues(oldActionPKList)
+	actionPKSet := set.NewInt64Set()
+
+	// 剔除系统中不存在的Action
+	for _, actionPK := range oldActionPKList {
+		if systemActionPKSet.Has(actionPK) {
+			actionPKSet.Add(actionPK)
+		}
+	}
+
 	// 添加需要新增的操作
 	actionPKSet.Append(rcc.CreatedActionPKs...)
 	// 移除将被删除的操作
@@ -139,6 +152,15 @@ func (s *groupResourcePolicyService) Alter(
 	}
 
 	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
+	allActionPKs, err := s.actionManager.ListPKBySystem(systemID)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"actionManager.ListPKBySystem fail, systemID=`%s`", systemID,
+		)
+	}
+	systemActionPKSet := set.NewInt64SetWithValues(allActionPKs)
+
 	createdPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	updatedPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	deletedPolicyPKs := make([]int64, 0, len(resourceChangedContents))
@@ -147,7 +169,7 @@ func (s *groupResourcePolicyService) Alter(
 		policy, found := signatureToPolicyMap[signature]
 
 		// 根据变更内容，计算出变更后的ActionPKs Json字符串
-		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc)
+		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, systemActionPKSet, rcc)
 		if err != nil {
 			return nil, errorWrapf(
 				err,
@@ -318,4 +340,32 @@ func (s *groupResourcePolicyService) BulkDeleteByGroupPKsWithTx(
 	groupPKs []int64,
 ) error {
 	return s.manager.BulkDeleteByGroupPKsWithTx(tx, groupPKs)
+}
+
+// DeleteByActionPK ...
+// NOTE: 这里只删除action_pks中只有一个action_pk的记录, 变更的时候再检查对应的记录是否需要删除存在的action_pk
+func (s *groupResourcePolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
+
+	actionPKs, err := jsoniter.MarshalToString([]int64{actionPK})
+	if err != nil {
+		return errorWrapf(err, "jsoniter.MarshalToString fail, actionPK=`%d`", actionPK)
+	}
+
+	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
+	rowLimit := int64(10000)
+	maxAttempts := 100 // 相当于最多删除100万数据
+
+	for i := 0; i < maxAttempts; i++ {
+		rowsAffected, err := s.manager.DeleteByActionPKsWithTx(tx, actionPKs, rowLimit)
+		if err != nil {
+			return errorWrapf(err, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
+		}
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected == 0 {
+			break
+		}
+	}
+
+	return nil
 }

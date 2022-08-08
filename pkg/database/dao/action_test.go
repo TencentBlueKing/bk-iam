@@ -53,3 +53,18 @@ func Test_actionManager_ListBySystem(t *testing.T) {
 		}})
 	})
 }
+
+func Test_actionManager_ListPKBySystem(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT pk FROM action WHERE system_id=(.*)`
+		mockRows := sqlmock.NewRows([]string{"pk"}).
+			AddRow(int64(1)).AddRow(int64(2))
+		mock.ExpectQuery(mockQuery).WithArgs("test").WillReturnRows(mockRows)
+
+		manager := &actionManager{DB: db}
+		pks, err := manager.ListPKBySystem("test")
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, []int64{1, 2}, pks)
+	})
+}
