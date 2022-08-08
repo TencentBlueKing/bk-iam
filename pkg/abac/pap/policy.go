@@ -13,8 +13,6 @@ package pap
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"github.com/jmoiron/sqlx"
-
 	"iam/pkg/abac/pap/event"
 	"iam/pkg/abac/types"
 	"iam/pkg/service"
@@ -41,7 +39,6 @@ type PolicyController interface {
 		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error
 
 	DeleteByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
-	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 
 	// temporary policy
 

@@ -15,7 +15,6 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/jmoiron/sqlx"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/policy"
@@ -197,20 +196,6 @@ func (c *policyController) AlterCustomPolicies(
 	defer expression.BatchDeleteExpressionsFromCache(updatedActionPKExpressionPKs)
 	// NOTE: publish policy delete pk event
 	c.eventProducer.PublishABACDeletePolicyEvent(deletePolicyIDs)
-
-	return nil
-}
-
-// DeleteByActionID 通过ActionID批量删除策略
-func (c *policyController) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionPKWithTx`")
-
-	err := c.policyService.DeleteByActionPKWithTx(tx, actionPK)
-	if err != nil {
-		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
-		return err
-	}
-	// FIXME: 目前没有engine没有同步删除对应数据(不影响功能, 但是数据冗余, 属于脏数据)
 
 	return nil
 }

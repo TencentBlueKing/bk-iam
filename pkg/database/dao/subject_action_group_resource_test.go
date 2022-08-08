@@ -108,3 +108,24 @@ func Test_subjectActionGroupResourceManager_BulkDeleteBySubjectPKsWithTx(t *test
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
+
+func Test_subjectActionGroupResourceManager_DeleteByActionPKWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`^DELETE FROM rbac_subject_action_group_resource WHERE action_pk = (.*) LIMIT (.*)`).WithArgs(
+			int64(1), int64(2),
+		).WillReturnResult(sqlmock.NewResult(1, 2))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &subjectActionGroupResourceManager{DB: db}
+		count, err := manager.DeleteByActionPKWithTx(tx, 1, 2)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+		assert.Equal(t, count, int64(2))
+	})
+}

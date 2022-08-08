@@ -88,30 +88,42 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 		Context("calculateChangedActionPKs", func() {
 			It("json loads error", func() {
-				aks, err := interSvc.calculateChangedActionPKs("[x]", types.ResourceChangedContent{}, set.NewInt64Set())
+				aks, err := interSvc.calculateChangedActionPKs("[x]", set.NewInt64Set(), types.ResourceChangedContent{})
 				assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString (.*) fail", err.Error())
 				assert.Equal(GinkgoT(), "", aks)
 			})
 			It("old_action_pks empty", func() {
-				aks, err := interSvc.calculateChangedActionPKs("", types.ResourceChangedContent{
-					CreatedActionPKs: []int64{1, 2, 3},
-				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
+				aks, err := interSvc.calculateChangedActionPKs(
+					"",
+					set.NewInt64SetWithValues([]int64{1, 2, 3}),
+					types.ResourceChangedContent{
+						CreatedActionPKs: []int64{1, 2, 3},
+					},
+				)
 				assert.NoError(GinkgoT(), err)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[1,2,3]`, aks)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[2,1,3]`, aks)
 			})
 			It("old_action_pks not empty and new action_pks empty", func() {
-				aks, err := interSvc.calculateChangedActionPKs("[1, 2]", types.ResourceChangedContent{
-					DeletedActionPKs: []int64{1, 2, 3},
-				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
+				aks, err := interSvc.calculateChangedActionPKs(
+					"[1, 2]",
+					set.NewInt64SetWithValues([]int64{1, 2, 3}),
+					types.ResourceChangedContent{
+						DeletedActionPKs: []int64{1, 2, 3},
+					},
+				)
 				assert.NoError(GinkgoT(), err)
 				assert.Empty(GinkgoT(), aks)
 			})
 			It("old_action_pks not empty and new action_pks not empty", func() {
-				aks, err := interSvc.calculateChangedActionPKs("[1, 2]", types.ResourceChangedContent{
-					CreatedActionPKs: []int64{4, 5},
-					DeletedActionPKs: []int64{1},
-				}, set.NewInt64SetWithValues([]int64{1, 2, 3}))
+				aks, err := interSvc.calculateChangedActionPKs(
+					"[1, 2]",
+					set.NewInt64SetWithValues([]int64{1, 2, 3}),
+					types.ResourceChangedContent{
+						CreatedActionPKs: []int64{4, 5},
+						DeletedActionPKs: []int64{1},
+					},
+				)
 				assert.NoError(GinkgoT(), err)
 				assertJsonStringOfInt64Slice(GinkgoT(), `[5, 4, 2]`, aks)
 			})

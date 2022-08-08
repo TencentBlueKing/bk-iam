@@ -78,7 +78,7 @@ func (s *groupResourcePolicyService) calculateSignature(
 
 // calculateChangedActionPKs : 使用旧的ActionPKs和要变更的内容，计算出最终变更的ActionPKs
 func (s *groupResourcePolicyService) calculateChangedActionPKs(
-	oldActionPKs string, rcc types.ResourceChangedContent, systemActionPKSet *set.Int64Set,
+	oldActionPKs string, systemActionPKSet *set.Int64Set, rcc types.ResourceChangedContent,
 ) (string, error) {
 	// 将ActionPKs从Json字符串转为列表格式
 	var oldActionPKList []int64
@@ -169,7 +169,7 @@ func (s *groupResourcePolicyService) Alter(
 		policy, found := signatureToPolicyMap[signature]
 
 		// 根据变更内容，计算出变更后的ActionPKs Json字符串
-		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, rcc, systemActionPKSet)
+		actionPKs, err := s.calculateChangedActionPKs(policy.ActionPKs, systemActionPKSet, rcc)
 		if err != nil {
 			return nil, errorWrapf(
 				err,

@@ -50,7 +50,8 @@ type policyControllerV2 struct {
 
 	resourceTypeService service.ResourceTypeService
 
-	// for rbac policy delete
+	// for policy delete
+	policyService                     service.PolicyService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -70,6 +71,7 @@ func NewPolicyControllerV2() PolicyControllerV2 {
 		groupService:               service.NewGroupService(),
 		resourceTypeService:        service.NewResourceTypeService(),
 
+		policyService:                     service.NewPolicyService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
@@ -426,9 +428,9 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	defer database.RollBackWithLog(tx)
 
 	// 2. 删除abac policy
-	err = c.policyController.DeleteByActionPKWithTx(tx, actionPK)
+	err = c.policyService.DeleteByActionPKWithTx(tx, actionPK)
 	if err != nil {
-		err = errorWrapf(err, "policyController.DeleteByActionPKWithTx actionPk=`%d`` fail", actionPK)
+		err = errorWrapf(err, "policyService.DeleteByActionPK actionPk=`%d`` fail", actionPK)
 		return err
 	}
 

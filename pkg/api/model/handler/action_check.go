@@ -211,7 +211,7 @@ func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, e
 
 	policyExist, err := c.hasAnyPolicy(actionPK)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("query action policy fail, actionPK=%d, error=%v", actionPK, err)
 	}
 
 	if !policyExist {
