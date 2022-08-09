@@ -59,18 +59,17 @@ type PolicyController interface {
 }
 
 type policyController struct {
-	subjectService         service.SubjectService
-	actionService          service.ActionService
+	subjectService      service.SubjectService
+	actionService       service.ActionService
+	resourceTypeService service.ResourceTypeService
+
+	// ABAC
 	policyService          service.PolicyService
 	temporaryPolicyService service.TemporaryPolicyService
 
 	// RBAC
-	groupResourcePolicyService service.GroupResourcePolicyService
-	groupService               service.GroupService
-
-	resourceTypeService service.ResourceTypeService
-
-	// for policy delete
+	groupResourcePolicyService        service.GroupResourcePolicyService
+	groupService                      service.GroupService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -79,15 +78,15 @@ type policyController struct {
 
 func NewPolicyController() PolicyController {
 	return &policyController{
-		subjectService:         service.NewSubjectService(),
-		actionService:          service.NewActionService(),
+		subjectService:      service.NewSubjectService(),
+		actionService:       service.NewActionService(),
+		resourceTypeService: service.NewResourceTypeService(),
+
 		policyService:          service.NewPolicyService(),
 		temporaryPolicyService: service.NewTemporaryPolicyService(),
 
-		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
-		groupService:               service.NewGroupService(),
-		resourceTypeService:        service.NewResourceTypeService(),
-
+		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
+		groupService:                      service.NewGroupService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
