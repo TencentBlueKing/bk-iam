@@ -55,7 +55,6 @@ type PolicyService interface {
 
 	// for saas
 
-	GetByActionTemplate(subjectPK, actionPK, templateID int64) (policy types.Policy, err error)
 	ListThinBySubjectActionTemplate(subjectPK int64, actionPKs []int64, templateID int64) ([]types.ThinPolicy, error)
 	ListThinBySubjectTemplateBeforeExpiredAt(subjectPK int64, templateID, expiredAt int64) ([]types.ThinPolicy, error)
 
@@ -208,47 +207,6 @@ func (s *policyService) ListThinBySubjectTemplateBeforeExpiredAt(
 	}
 
 	return s.convertToThinPolicies(daoPolicies), nil
-}
-
-// GetByActionTemplate ...
-func (s *policyService) GetByActionTemplate(subjectPK, actionPK, templateID int64) (policy types.Policy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "GetByAction")
-
-	daoPolicy, err := s.manager.GetByActionTemplate(subjectPK, actionPK, templateID)
-	if err != nil {
-		return policy, errorWrapf(
-			err,
-			"manager.GetByActionTemplate subjectPK=`%d`, actionPK=`%d`, templateID=",
-			subjectPK,
-			actionPK,
-			templateID,
-		)
-	}
-	if daoPolicy.ExpressionPK == expressionPKActionWithoutResource {
-		policy = types.Policy{
-			Version:   PolicyVersion,
-			ID:        daoPolicy.PK,
-			SubjectPK: daoPolicy.SubjectPK,
-			ActionPK:  daoPolicy.ActionPK,
-			ExpiredAt: daoPolicy.ExpiredAt,
-		}
-		return
-	}
-	expressions, err := s.expressionManger.ListAuthByPKs([]int64{daoPolicy.ExpressionPK})
-	if err != nil || len(expressions) == 0 {
-		return policy, errorWrapf(err, "expressionManger.ListAuthByPKs expressionPK=`%d`", daoPolicy.ExpressionPK)
-	}
-	expression := expressions[0]
-	policy = types.Policy{
-		Version:    PolicyVersion,
-		ID:         daoPolicy.PK,
-		SubjectPK:  daoPolicy.SubjectPK,
-		ActionPK:   daoPolicy.ActionPK,
-		ExpiredAt:  daoPolicy.ExpiredAt,
-		Expression: expression.Expression,
-		Signature:  expression.Signature,
-	}
-	return policy, err
 }
 
 // AlterCustomPolicies subject custom alter policies

@@ -342,7 +342,7 @@ func (s *groupResourcePolicyService) BulkDeleteByGroupPKsWithTx(
 	return s.manager.BulkDeleteByGroupPKsWithTx(tx, groupPKs)
 }
 
-// DeleteByActionPK ...
+// DeleteByActionPKWithTx ...
 // NOTE: 这里只删除action_pks中只有一个action_pk的记录, 变更的时候再检查对应的记录是否需要删除存在的action_pk
 func (s *groupResourcePolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")

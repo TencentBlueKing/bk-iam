@@ -50,7 +50,6 @@ type PolicyManager interface {
 
 	// for saas
 
-	GetByActionTemplate(subjectPK, actionPK, templateID int64) (Policy, error)
 	ListBySubjectPKAndPKs(subjectPK int64, pks []int64) ([]Policy, error)
 	ListBySubjectActionTemplate(subjectPK int64, actionPKs []int64, templateID int64) ([]Policy, error)
 	ListExpressionBySubjectsTemplate(subjectPKs []int64, templateID int64) ([]int64, error)
@@ -148,12 +147,6 @@ func (m *policyManager) ListBySubjectActionTemplate(
 	return
 }
 
-// GetByActionTemplate ...
-func (m *policyManager) GetByActionTemplate(subjectPK, actionPK, templateID int64) (policy Policy, err error) {
-	err = m.getByActionTemplate(&policy, subjectPK, actionPK, templateID)
-	return
-}
-
 // BulkCreateWithTx ...
 func (m *policyManager) BulkCreateWithTx(tx *sqlx.Tx, policies []Policy) error {
 	if len(policies) == 0 {
@@ -244,24 +237,6 @@ func (m *policyManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy
 // DeleteByActionPKWithTx ...
 func (m *policyManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
 	return m.deleteByActionPKWithTx(tx, actionPK, limit)
-}
-
-func (m *policyManager) getByActionTemplate(
-	policy *Policy, subjectPK, actionPK, templateID int64,
-) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		action_pk,
-		expression_pk,
-		expired_at,
-		template_id
-		FROM policy
-		WHERE subject_pk = ?
-		AND action_pk = ?
-		AND template_id = ?
-		LIMIT 1`
-	return database.SqlxGet(m.DB, policy, query, subjectPK, actionPK, templateID)
 }
 
 func (m *policyManager) selectByPK(

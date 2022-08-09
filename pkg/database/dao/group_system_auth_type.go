@@ -98,7 +98,7 @@ func (m *groupSystemAuthTypeManager) UpdateWithTx(tx *sqlx.Tx, groupSystemAuthTy
 	return m.updateWithTx(tx, &groupSystemAuthType)
 }
 
-// DeleteByGroupSystem ..
+// DeleteBySystemGroupWithTx ..
 func (m *groupSystemAuthTypeManager) DeleteBySystemGroupWithTx(
 	tx *sqlx.Tx,
 	systemID string,

@@ -2509,50 +2509,6 @@ paths:
       summary: token get
       tags:
       - model
-  /api/v1/web/custom-policy:
-    get:
-      consumes:
-      - application/json
-      description: get custom policy
-      operationId: api-web-get-custom-policy
-      parameters:
-      - description: system id
-        in: path
-        name: system_id
-        required: true
-        type: string
-      - description: subject type
-        in: query
-        name: subject_type
-        required: true
-        type: string
-      - description: subject id
-        in: query
-        name: subject_id
-        required: true
-        type: string
-      - description: action id
-        in: query
-        name: action_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: GetCustomPolicy/获取自定义策略
-      tags:
-      - web
   /api/v1/web/policies:
     delete:
       consumes:

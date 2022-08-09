@@ -69,43 +69,6 @@ func (c *policyController) ListSaaSBySubjectSystemTemplate(
 	return c.convertToSaaSPolicies(policies, actions), nil
 }
 
-// GetByActionTemplate ...
-func (c *policyController) GetByActionTemplate(
-	system,
-	subjectType,
-	subjectID,
-	actionID string,
-	templateID int64,
-) (policy types.AuthPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "GetCustomByAction")
-	// 查询subject pk
-	pk, err := c.subjectService.GetPK(subjectType, subjectID)
-	if err != nil {
-		err = errorWrapf(err, "subjectService.GetPK subjectType=`%s`, subjectID=`%s` fail",
-			subjectType, subjectID)
-		return
-	}
-
-	actionPK, err := c.actionService.GetActionPK(system, actionID)
-	if err != nil {
-		err = errorWrapf(err, "actionService.Get system=`%s` actionID=`%s` fail", system, actionID)
-		return
-	}
-
-	svctypesPolicy, err := c.policyService.GetByActionTemplate(pk, actionPK, 0)
-	if err != nil {
-		err = errorWrapf(err, "policyService.GetByActionTemplate subjectPK=`%d`, actionPK=`%d` fail", pk, actionPK)
-		return
-	}
-	policy = types.AuthPolicy{
-		Version:    svctypesPolicy.Version,
-		ID:         svctypesPolicy.ID,
-		Expression: svctypesPolicy.Expression,
-		ExpiredAt:  svctypesPolicy.ExpiredAt,
-	}
-	return policy, err
-}
-
 // ListSaaSBySubjectTemplateBeforeExpiredAt 根据system和subject查询相关的policy的列表
 func (c *policyController) ListSaaSBySubjectTemplateBeforeExpiredAt(
 	subjectType, subjectID string,

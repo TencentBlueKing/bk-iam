@@ -151,21 +151,6 @@ func (mr *MockPolicyServiceMockRecorder) Get(pk interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPolicyService)(nil).Get), pk)
 }
 
-// GetByActionTemplate mocks base method.
-func (m *MockPolicyService) GetByActionTemplate(subjectPK, actionPK, templateID int64) (types.Policy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByActionTemplate", subjectPK, actionPK, templateID)
-	ret0, _ := ret[0].(types.Policy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByActionTemplate indicates an expected call of GetByActionTemplate.
-func (mr *MockPolicyServiceMockRecorder) GetByActionTemplate(subjectPK, actionPK, templateID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByActionTemplate", reflect.TypeOf((*MockPolicyService)(nil).GetByActionTemplate), subjectPK, actionPK, templateID)
-}
-
 // GetCountByActionBeforeExpiredAt mocks base method.
 func (m *MockPolicyService) GetCountByActionBeforeExpiredAt(actionPK, expiredAt int64) (int64, error) {
 	m.ctrl.T.Helper()

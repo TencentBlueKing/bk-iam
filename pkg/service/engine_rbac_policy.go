@@ -33,7 +33,7 @@ type engineRbacPolicyService struct {
 	manager dao.EngineRbacPolicyManager
 }
 
-// NewRbacEnginePolicyService create the EnginePolicyService
+// NewEngineRbacPolicyService create the EnginePolicyService
 func NewEngineRbacPolicyService() EngineRbacPolicyService {
 	return &engineRbacPolicyService{
 		manager: dao.NewRbacEnginePolicyManager(),

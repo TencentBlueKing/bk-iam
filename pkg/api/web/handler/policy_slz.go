@@ -70,12 +70,6 @@ type policiesDeleteSerializer struct {
 	IDs      []int64 `json:"ids" binding:"required,gt=0"`
 }
 
-type queryPolicySerializer struct {
-	SubjectType string `form:"subject_type" json:"subject_type" binding:"required"`
-	SubjectID   string `form:"subject_id" json:"subject_id" binding:"required"`
-	ActionID    string `form:"action_id" json:"action_id" binding:"required"`
-}
-
 type queryListPolicySerializer struct {
 	SubjectType     string `form:"subject_type" json:"subject_type" binding:"required"`
 	SubjectID       string `form:"subject_id" json:"subject_id" binding:"required"`
