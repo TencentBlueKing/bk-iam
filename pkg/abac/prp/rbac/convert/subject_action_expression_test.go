@@ -77,4 +77,62 @@ var _ = Describe("Handler", func() {
 			assert.Len(GinkgoT(), expression.Expression, 209)
 		})
 	})
+
+	Describe("mergeGroupResource", func() {
+		It("ok", func() {
+			obj := types.SubjectActionGroupResource{
+				SubjectPK: 1,
+				ActionPK:  1,
+				GroupResource: map[int64]types.ResourceExpiredAt{
+					1: {
+						ExpiredAt: 10,
+						Resources: map[int64][]string{
+							1: {"resource1", "resource2"},
+						},
+					},
+					2: {
+						ExpiredAt: 12,
+						Resources: map[int64][]string{
+							2: {"resource3", "resource4"},
+						},
+					},
+				},
+			}
+
+			resourceListMap, minExpiredAt := mergeGroupResource(obj)
+			assert.Equal(GinkgoT(), int64(10), minExpiredAt)
+			assert.Len(GinkgoT(), resourceListMap, 2)
+			for _, resourceList := range resourceListMap {
+				assert.Len(GinkgoT(), resourceList, 2)
+			}
+		})
+
+		It("duplicate", func() {
+			obj := types.SubjectActionGroupResource{
+				SubjectPK: 1,
+				ActionPK:  1,
+				GroupResource: map[int64]types.ResourceExpiredAt{
+					1: {
+						ExpiredAt: 10,
+						Resources: map[int64][]string{
+							1: {"resource1", "resource2"},
+						},
+					},
+					2: {
+						ExpiredAt: 12,
+						Resources: map[int64][]string{
+							1: {"resource2", "resource3"},
+						},
+					},
+				},
+			}
+
+			resourceListMap, minExpiredAt := mergeGroupResource(obj)
+			assert.Equal(GinkgoT(), int64(10), minExpiredAt)
+			assert.Len(GinkgoT(), resourceListMap, 1)
+			for _, resourceList := range resourceListMap {
+				assert.Len(GinkgoT(), resourceList, 3)
+			}
+		})
+	})
 })

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	jsoniter "github.com/json-iterator/go"
@@ -176,8 +177,8 @@ func genExpressionContent(actionPK int64, resourceMap map[int64][]string) ([]int
 func mergeGroupResource(obj types.SubjectActionGroupResource) (map[int64][]string, int64) {
 	// 组合 subject 所有 group 授权的资源实例
 	now := time.Now().Unix()
-	minExpiredAt := int64(util.NeverExpiresUnixTime)                  // 所有用户组中, 最小的过期时间
-	resourceMap := make(map[int64][]string, len(obj.GroupResource)*2) // resource_type_pk -> resource_ids
+	minExpiredAt := int64(util.NeverExpiresUnixTime)                           // 所有用户组中, 最小的过期时间
+	resourceSetMap := make(map[int64]*set.StringSet, len(obj.GroupResource)*2) // resource_type_pk -> resource_ids
 
 	for _, groupResource := range obj.GroupResource {
 		// 忽略过期的用户组
@@ -190,9 +191,18 @@ func mergeGroupResource(obj types.SubjectActionGroupResource) (map[int64][]strin
 		}
 
 		for resourceTypePK, resourceIDs := range groupResource.Resources {
-			resourceMap[resourceTypePK] = append(resourceMap[resourceTypePK], resourceIDs...)
+			if _, ok := resourceSetMap[resourceTypePK]; !ok {
+				resourceSetMap[resourceTypePK] = set.NewStringSet()
+			}
+
+			resourceSetMap[resourceTypePK].Append(resourceIDs...)
 		}
 	}
 
-	return resourceMap, minExpiredAt
+	resourceListMap := make(map[int64][]string, len(resourceSetMap))
+	for resourceTypePK, resourceSet := range resourceSetMap {
+		resourceListMap[resourceTypePK] = resourceSet.ToSlice()
+	}
+
+	return resourceListMap, minExpiredAt
 }
