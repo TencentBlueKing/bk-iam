@@ -48,7 +48,7 @@ type PolicyController interface {
 	DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
 
 	// rbac
-	Alter(
+	AlterGroupPolicies(
 		systemID, subjectType, subjectID string, templateID int64,
 		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 		resourceChangedActions []types.ResourceChangedAction,

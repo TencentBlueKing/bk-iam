@@ -71,7 +71,7 @@ func AlterPoliciesV2(c *gin.Context) {
 	}
 
 	ctl := pap.NewPolicyController()
-	err := ctl.Alter(
+	err := ctl.AlterGroupPolicies(
 		systemID, body.Subject.Type, body.Subject.ID, body.TemplateID,
 		createPolicies, updatePolicies, body.DeletePolicyIDs,
 		resourceChangedActions,

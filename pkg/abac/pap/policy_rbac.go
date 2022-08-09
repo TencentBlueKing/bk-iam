@@ -24,7 +24,7 @@ import (
 	svctypes "iam/pkg/service/types"
 )
 
-func (c *policyController) Alter(
+func (c *policyController) AlterGroupPolicies(
 	systemID, subjectType, subjectID string, templateID int64,
 	createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 	resourceChangedActions []types.ResourceChangedAction,

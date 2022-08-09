@@ -34,20 +34,6 @@ func (m *MockPolicyController) EXPECT() *MockPolicyControllerMockRecorder {
 	return m.recorder
 }
 
-// Alter mocks base method.
-func (m *MockPolicyController) Alter(systemID, subjectType, subjectID string, templateID int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64, resourceChangedActions []types.ResourceChangedAction, groupAuthType int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Alter", systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Alter indicates an expected call of Alter.
-func (mr *MockPolicyControllerMockRecorder) Alter(systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockPolicyController)(nil).Alter), systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType)
-}
-
 // AlterCustomPolicies mocks base method.
 func (m *MockPolicyController) AlterCustomPolicies(system, subjectType, subjectID string, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64) error {
 	m.ctrl.T.Helper()
@@ -60,6 +46,20 @@ func (m *MockPolicyController) AlterCustomPolicies(system, subjectType, subjectI
 func (mr *MockPolicyControllerMockRecorder) AlterCustomPolicies(system, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlterCustomPolicies", reflect.TypeOf((*MockPolicyController)(nil).AlterCustomPolicies), system, subjectType, subjectID, createPolicies, updatePolicies, deletePolicyIDs)
+}
+
+// AlterGroupPolicies mocks base method.
+func (m *MockPolicyController) AlterGroupPolicies(systemID, subjectType, subjectID string, templateID int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64, resourceChangedActions []types.ResourceChangedAction, groupAuthType int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlterGroupPolicies", systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AlterGroupPolicies indicates an expected call of AlterGroupPolicies.
+func (mr *MockPolicyControllerMockRecorder) AlterGroupPolicies(systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlterGroupPolicies", reflect.TypeOf((*MockPolicyController)(nil).AlterGroupPolicies), systemID, subjectType, subjectID, templateID, createPolicies, updatePolicies, deletePolicyIDs, resourceChangedActions, groupAuthType)
 }
 
 // CreateTemporaryPolicies mocks base method.
