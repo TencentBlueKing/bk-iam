@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockPolicyController is a mock of PolicyController interface.
@@ -64,20 +63,6 @@ func (mr *MockPolicyControllerMockRecorder) CreateTemporaryPolicies(system, subj
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemporaryPolicies", reflect.TypeOf((*MockPolicyController)(nil).CreateTemporaryPolicies), system, subjectType, subjectID, policies)
 }
 
-// DeleteByActionPKWithTx mocks base method.
-func (m *MockPolicyController) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByActionPKWithTx", tx, actionPK)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteByActionPKWithTx indicates an expected call of DeleteByActionPKWithTx.
-func (mr *MockPolicyControllerMockRecorder) DeleteByActionPKWithTx(tx, actionPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockPolicyController)(nil).DeleteByActionPKWithTx), tx, actionPK)
-}
-
 // DeleteByIDs mocks base method.
 func (m *MockPolicyController) DeleteByIDs(system, subjectType, subjectID string, policyIDs []int64) error {
 	m.ctrl.T.Helper()
@@ -118,21 +103,6 @@ func (m *MockPolicyController) DeleteTemporaryByIDs(system, subjectType, subject
 func (mr *MockPolicyControllerMockRecorder) DeleteTemporaryByIDs(system, subjectType, subjectID, policyIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemporaryByIDs", reflect.TypeOf((*MockPolicyController)(nil).DeleteTemporaryByIDs), system, subjectType, subjectID, policyIDs)
-}
-
-// GetByActionTemplate mocks base method.
-func (m *MockPolicyController) GetByActionTemplate(system, subjectType, subjectID, actionID string, templateID int64) (types.AuthPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByActionTemplate", system, subjectType, subjectID, actionID, templateID)
-	ret0, _ := ret[0].(types.AuthPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByActionTemplate indicates an expected call of GetByActionTemplate.
-func (mr *MockPolicyControllerMockRecorder) GetByActionTemplate(system, subjectType, subjectID, actionID, templateID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByActionTemplate", reflect.TypeOf((*MockPolicyController)(nil).GetByActionTemplate), system, subjectType, subjectID, actionID, templateID)
 }
 
 // ListSaaSBySubjectSystemTemplate mocks base method.

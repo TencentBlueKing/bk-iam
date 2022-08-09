@@ -41,14 +41,14 @@ type subjectBlackListManager struct {
 	DB *sqlx.DB
 }
 
-// NewSubjectBlackListManager...
+// NewSubjectBlackListManager ...
 func NewSubjectBlackListManager() SubjectBlackListManager {
 	return &subjectBlackListManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
 }
 
-// ListSubject get all the subject pks in black list
+// ListSubjectPK get all the subject pks in black list
 func (m *subjectBlackListManager) ListSubjectPK() ([]int64, error) {
 	subjectPKs := []int64{}
 	query := `SELECT

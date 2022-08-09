@@ -45,7 +45,7 @@ type groupAlterEventManagerManager struct {
 	DB *sqlx.DB
 }
 
-// GroupAlterEventManager ...
+// NewGroupAlterEventManager ...
 func NewGroupAlterEventManager() GroupAlterEventManager {
 	return &groupAlterEventManagerManager{
 		DB: database.GetDefaultDBClient().DB,

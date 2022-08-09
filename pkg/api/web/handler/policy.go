@@ -171,46 +171,6 @@ func BatchDeletePolicies(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", gin.H{})
 }
 
-// GetCustomPolicy godoc
-// @Summary GetCustomPolicy/获取自定义策略
-// @Description get custom policy
-// @ID api-web-get-custom-policy
-// @Tags web
-// @Accept json
-// @Produce json
-// @Param system_id path string true "system id"
-// @Param subject_type query string true "subject type"
-// @Param subject_id query string true "subject id"
-// @Param action_id query string true "action id"
-// @Success 200 {object} util.Response
-// @Header 200 {string} X-Request-Id "the request id"
-// @Security AppCode
-// @Security AppSecret
-// @Router /api/v1/web/custom-policy [get]
-func GetCustomPolicy(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "GetCustomPolicy")
-
-	var query queryPolicySerializer
-	if err := c.ShouldBindQuery(&query); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
-
-	systemID := c.Param("system_id")
-	ctl := pap.NewPolicyController()
-	policy, err := ctl.GetByActionTemplate(
-		systemID, query.SubjectType, query.SubjectID, query.ActionID, service.PolicyTemplateIDCustom,
-	)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID})
-}
-
 // ListPolicy godoc
 // @Summary List policy/获取策略列表
 // @Description query all authorized policies: subject/template[required]

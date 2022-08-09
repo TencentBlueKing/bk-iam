@@ -34,7 +34,7 @@ type SubjectActionExpression struct {
 	ExpiredAt int64 `db:"expired_at"`
 }
 
-// SubjectActionExpression ...
+// SubjectActionExpressionManager ...
 type SubjectActionExpressionManager interface {
 	ListBySubjectAction(subjectPKs []int64, actionPK int64) ([]SubjectActionExpression, error)
 

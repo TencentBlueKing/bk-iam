@@ -32,7 +32,7 @@ type engineAbacPolicyService struct {
 	manager dao.EngineAbacPolicyManager
 }
 
-// NewEnginePolicyService create the EnginePolicyService
+// NewEngineAbacPolicyService create the EnginePolicyService
 func NewEngineAbacPolicyService() EngineAbacPolicyService {
 	return &engineAbacPolicyService{
 		manager: dao.NewAbacEnginePolicyManager(),

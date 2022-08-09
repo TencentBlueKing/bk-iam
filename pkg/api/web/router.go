@@ -49,7 +49,6 @@ func Register(r *gin.RouterGroup) {
 		// policies 变更
 		s.POST("/policies", handler.AlterPolicies)
 		// 获取自定义申请的策略
-		s.GET("/custom-policy", handler.GetCustomPolicy)
 		// 根据Action删除策略
 		s.DELETE("/actions/:action_id/policies", handler.DeleteActionPolicies)
 
@@ -134,7 +133,7 @@ func Register(r *gin.RouterGroup) {
 		// 查询subject所在的用户组/部门
 		r.GET("/subject-relations", handler.ListSubjectGroups)
 
-		// TODO: 需要考虑分页了 => https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
+		// 带分页 https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
 		r.GET("/subject-groups", handler.ListSubjectGroups)
 
 		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5&inherit=true
@@ -144,16 +143,12 @@ func Register(r *gin.RouterGroup) {
 	// Resource: role-subjects
 	{
 		// Deprecated: use the NEW instead
-		// 查询subject role
-		r.GET("/subject-roles", handler.ListRoleSubject)
 		// 批量添加subject role
 		r.POST("/subject-roles", handler.BatchAddRoleSubject)
 		// 批量删除subject role
 		r.DELETE("/subject-roles", handler.BatchDeleteRoleSubject)
 
 		// NEW:
-		// 查询role subjects
-		r.GET("/role-subjects", handler.ListRoleSubject)
 		// 批量添加role subjects
 		r.POST("/role-subjects", handler.BatchAddRoleSubject)
 		// 批量删除role subject

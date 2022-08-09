@@ -51,7 +51,7 @@ func (m *resourceTypeManager) GetPK(system string, id string) (pk int64, err err
 	return
 }
 
-// ListByPKs ...
+// GetByPK ...
 func (m *resourceTypeManager) GetByPK(pk int64) (resourceType ResourceType, err error) {
 	query := "SELECT pk, system_id, id FROM resource_type WHERE pk=?"
 	err = database.SqlxGet(m.DB, &resourceType, query, pk)

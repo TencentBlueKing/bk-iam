@@ -220,7 +220,7 @@ func (m *groupResourcePolicyManager) BulkDeleteByGroupPKsWithTx(
 	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
 }
 
-// DeleteByActionPKWithTx ...
+// DeleteByActionPKsWithTx ...
 func (m *groupResourcePolicyManager) DeleteByActionPKsWithTx(
 	tx *sqlx.Tx,
 	actionPKs string,

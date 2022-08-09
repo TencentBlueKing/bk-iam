@@ -20,7 +20,7 @@ import (
 	"iam/pkg/database"
 )
 
-/// SubjectActionGroupResource ...
+// SubjectActionGroupResource ...
 type SubjectActionGroupResource struct {
 	PK int64 `db:"pk"`
 
@@ -84,7 +84,7 @@ func (m *subjectActionGroupResourceManager) CreateWithTx(
 	return database.SqlxInsertWithTx(tx, sql, subjectActionResourceGroup)
 }
 
-// UpdateWithTx ...
+// UpdateGroupResourceWithTx ...
 func (m *subjectActionGroupResourceManager) UpdateGroupResourceWithTx(
 	tx *sqlx.Tx,
 	pk int64,

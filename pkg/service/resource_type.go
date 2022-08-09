@@ -270,7 +270,7 @@ func (l *resourceTypeService) BulkDelete(system string, resourceTypeIDs []string
 	return tx.Commit()
 }
 
-// GetByPK ...
+// GetThinByPK ...
 func (l *resourceTypeService) GetThinByPK(pk int64) (resourceType types.ThinResourceType, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ResourceTypeSVC, "GetByPK")
 

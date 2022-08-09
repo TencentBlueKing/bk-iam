@@ -140,7 +140,7 @@ func (s *subjectActionExpressionService) BulkDeleteBySubjectPKsWithTx(
 	return s.manager.BulkDeleteBySubjectPKsWithTx(tx, subjectPKs)
 }
 
-// DeleteByActionPK ...
+// DeleteByActionPKWithTx ...
 func (s *subjectActionExpressionService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
 	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次

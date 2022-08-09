@@ -25,8 +25,6 @@ type PolicyController interface {
 	// TODO: 目前PolicyController集成了自定义权限、模板权限、临时权限，是否切分出TemplateController、TemporaryPolicyController ??
 	// policy list
 
-	GetByActionTemplate(
-		system, subjectType, subjectID, actionID string, templateID int64) (policy types.AuthPolicy, err error)
 	ListSaaSBySubjectSystemTemplate(system, subjectType, subjectID string, templateID int64) ([]types.SaaSPolicy,
 		error)
 	ListSaaSBySubjectTemplateBeforeExpiredAt(subjectType, subjectID string, templateID, expiredAt int64) (
