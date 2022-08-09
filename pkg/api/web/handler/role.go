@@ -82,33 +82,3 @@ func BatchDeleteRoleSubject(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
-
-// ListRoleSubject ...
-func ListRoleSubject(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BulkDeleteSubjectRole")
-
-	var query roleSubjectQuerySerializer
-
-	if err := c.ShouldBindQuery(&query); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
-
-	if valid, message := query.validate(); !valid {
-		util.BadRequestErrorJSONResponse(c, message)
-		return
-	}
-
-	ctl := pap.NewRoleController()
-	subjects, err := ctl.ListSubjectByRole(query.RoleType, query.SystemID)
-	if err != nil {
-		err = errorWrapf(
-			err, "ctl.ListSubjectByRole roleType=`%s`, system=`%s`",
-			query.RoleType, query.SystemID,
-		)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", subjects)
-}

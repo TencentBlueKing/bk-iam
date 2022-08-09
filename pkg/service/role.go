@@ -30,7 +30,6 @@ type RoleService interface {
 
 	// web api
 
-	ListSubjectPKByRole(roleType, system string) ([]int64, error)
 	BulkAddSubjects(roleType, system string, subjectPKs []int64) error
 	BulkDeleteSubjects(roleType, system string, subjectPKs []int64) error
 }
@@ -49,11 +48,6 @@ func NewRoleService() RoleService {
 // ListSystemIDBySubjectPK ...
 func (l *roleService) ListSystemIDBySubjectPK(pk int64) ([]string, error) {
 	return l.manager.ListSystemIDBySubjectPK(pk)
-}
-
-// ListSubjectPKByRole ...
-func (l *roleService) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
-	return l.manager.ListSubjectPKByRole(roleType, system)
 }
 
 // BulkAddSubjects ...

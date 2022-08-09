@@ -62,46 +62,6 @@ var _ = Describe("RoleService", func() {
 		})
 	})
 
-	Describe("ListSubjectPKByRole", func() {
-		var ctl *gomock.Controller
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("manager.ListSubjectPKByRole fail", func() {
-			mockSubjectService := mock.NewMockSubjectRoleManager(ctl)
-			mockSubjectService.EXPECT().ListSubjectPKByRole("super", "test").Return(
-				nil, errors.New("get pk fail"),
-			).AnyTimes()
-
-			manager := &roleService{
-				manager: mockSubjectService,
-			}
-
-			_, err := manager.ListSubjectPKByRole("super", "test")
-			assert.Error(GinkgoT(), err)
-			// assert.Contains(GinkgoT(), err.Error(), "ListSubjectPKByRole")
-		})
-
-		It("ok", func() {
-			mockSubjectService := mock.NewMockSubjectRoleManager(ctl)
-			mockSubjectService.EXPECT().ListSubjectPKByRole("super", "test").Return(
-				[]int64{1}, nil,
-			).AnyTimes()
-
-			manager := &roleService{
-				manager: mockSubjectService,
-			}
-
-			subjectPKs, err := manager.ListSubjectPKByRole("super", "test")
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), []int64{1}, subjectPKs)
-		})
-	})
-
 	Describe("BulkCreateSubjectRoles", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {

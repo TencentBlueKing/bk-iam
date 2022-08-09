@@ -12,7 +12,6 @@ package pap
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
-	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
@@ -24,7 +23,6 @@ import (
 const RoleCTL = "RoleCTL"
 
 type RoleController interface {
-	ListSubjectByRole(roleType, system string) ([]Subject, error)
 	BulkAddSubjects(roleType, system string, subjects []Subject) error
 	BulkDeleteSubjects(roleType, system string, subjects []Subject) error
 }
@@ -93,29 +91,4 @@ func (c *roleController) BulkDeleteSubjects(roleType, system string, subjects []
 	}
 
 	return nil
-}
-
-// ListSubjectByRole ...
-func (c *roleController) ListSubjectByRole(roleType, system string) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RoleCTL, "ListSubjectByRole")
-
-	subjectPKs, err := c.service.ListSubjectPKByRole(roleType, system)
-	if err != nil {
-		return nil, errorWrapf(err, "service.ListSubjectByRole roleType=`%s` system=`%s` fail", roleType, system)
-	}
-
-	subjects := make([]Subject, 0, len(subjectPKs))
-	for _, subjectPK := range subjectPKs {
-		svcSubject, err := cacheimpls.GetSubjectByPK(subjectPK)
-		if err != nil {
-			log.WithError(err).Warningf("cacheimpls.GetSubjectByPK fail subjectPK=`%d`", subjectPK)
-		}
-		subjects = append(subjects, Subject{
-			Type: svcSubject.Type,
-			ID:   svcSubject.ID,
-			Name: svcSubject.Name,
-		})
-	}
-
-	return subjects, nil
 }

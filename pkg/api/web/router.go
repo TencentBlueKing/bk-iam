@@ -143,17 +143,12 @@ func Register(r *gin.RouterGroup) {
 	// Resource: role-subjects
 	{
 		// Deprecated: use the NEW instead
-		// 查询subject role
-		r.GET("/subject-roles", handler.ListRoleSubject)
 		// 批量添加subject role
 		r.POST("/subject-roles", handler.BatchAddRoleSubject)
 		// 批量删除subject role
 		r.DELETE("/subject-roles", handler.BatchDeleteRoleSubject)
 
 		// NEW:
-		// 查询role subjects
-		// FIXME: deleted
-		r.GET("/role-subjects", handler.ListRoleSubject)
 		// 批量添加role subjects
 		r.POST("/role-subjects", handler.BatchAddRoleSubject)
 		// 批量删除role subject
