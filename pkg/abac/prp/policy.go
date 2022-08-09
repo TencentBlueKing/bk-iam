@@ -135,9 +135,6 @@ func (m *policyManager) ListBySubjectAction(
 		debug.WithValue(entry, "cacheEnabled", !withoutCache)
 	}
 
-	// 用于去重相同signature的policy
-	signatureSet := set.NewStringSet()
-
 	// 1. 查询一般权限
 	debug.AddStep(entry, "query policy")
 	policies, err := m.listBySubjectAction(
@@ -147,6 +144,9 @@ func (m *policyManager) ListBySubjectAction(
 		return nil, err
 	}
 	debug.WithValue(entry, "policies", policies)
+
+	// 用于去重相同signature的policy
+	signatureSet := set.NewStringSet()
 
 	effectPolicies = make([]types.AuthPolicy, 0, len(policies)*2)
 	for _, p := range policies {
