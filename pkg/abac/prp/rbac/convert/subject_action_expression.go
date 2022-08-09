@@ -195,9 +195,7 @@ func mergeGroupResource(obj types.SubjectActionGroupResource) (map[int64][]strin
 				resourceSetMap[resourceTypePK] = set.NewStringSet()
 			}
 
-			for _, resourceID := range resourceIDs {
-				resourceSetMap[resourceTypePK].Add(resourceID)
-			}
+			resourceSetMap[resourceTypePK].Append(resourceIDs...)
 		}
 	}
 
