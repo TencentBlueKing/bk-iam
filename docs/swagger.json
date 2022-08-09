@@ -117,6 +117,16 @@
                         "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -183,6 +193,16 @@
                         "example": 1592899208,
                         "name": "end_updated_at",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -236,6 +256,16 @@
                 "summary": "policy max id",
                 "operationId": "api-engine-policy-id-max",
                 "parameters": [
+                    {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
+                        "in": "query"
+                    },
                     {
                         "minimum": 1,
                         "type": "integer",
@@ -2302,149 +2332,6 @@
                 }
             }
         },
-        "/api/v1/web/perm-templates/policies": {
-            "put": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "update template policy",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "web"
-                ],
-                "summary": "update template policy/更新模板授权的策略",
-                "operationId": "api-web-update-template-policies",
-                "parameters": [
-                    {
-                        "description": "update templates policies",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.updateTemplatePolicySerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "Create and delete template policy",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "web"
-                ],
-                "summary": "Create and delete template policy/创建删除模板授权的策略",
-                "operationId": "api-web-create-delete-template-policies",
-                "parameters": [
-                    {
-                        "description": "create and delete templates policies",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.createAndDeleteTemplatePolicySerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "delete template policy",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "web"
-                ],
-                "summary": "delete template policy/删除模板授权的策略",
-                "operationId": "api-web-delete-template-policies",
-                "parameters": [
-                    {
-                        "description": "delete templates policies",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.subjectTemplateSerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/web/policies": {
             "get": {
                 "security": [
@@ -2553,55 +2440,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/handler.policiesDeleteSerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/web/policies/expired_at": {
-            "put": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "renew policies",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "web"
-                ],
-                "summary": "Renew policies/权限续期",
-                "operationId": "api-web-renew-policies",
-                "parameters": [
-                    {
-                        "description": "renew policies",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.policiesUpdateExpiredAtSerializer"
                         }
                     }
                 ],
@@ -2907,6 +2745,174 @@
                 }
             }
         },
+        "/api/v2/policy/systems/{system_id}/auth": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "eval all the policies queried by conditions: system/subject/action and resources[required]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "policy auth/鉴权",
+                "operationId": "api-v2-policy-auth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/policy/systems/{system_id}/query": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "query the policy by conditions: system/subject/action and resources[optional]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "policy query/策略查询",
+                "operationId": "api-v2-policy-query",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/web/systems/{system_id}/policies": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "alter policies v2",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "web"
+                ],
+                "summary": "Alter policies v2/变更用户自定义申请策略",
+                "operationId": "v2-api-web-alter-policies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "system id",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "create and update policies",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.policiesAlterSerializerV2"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "description": "/healthz to make sure the server is health",
@@ -3121,6 +3127,14 @@
                 "name_en"
             ],
             "properties": {
+                "auth_type": {
+                    "type": "string",
+                    "enum": [
+                        "rbac",
+                        "abac"
+                    ],
+                    "example": "abac"
+                },
                 "description": {
                     "type": "string",
                     "example": "biz_create is"
@@ -3190,6 +3204,14 @@
         "handler.actionUpdateSerializer": {
             "type": "object",
             "properties": {
+                "auth_type": {
+                    "type": "string",
+                    "enum": [
+                        "rbac",
+                        "abac"
+                    ],
+                    "example": "abac"
+                },
                 "description": {
                     "type": "string",
                     "example": "biz_create is"
@@ -3378,40 +3400,6 @@
                 }
             }
         },
-        "handler.createAndDeleteTemplatePolicySerializer": {
-            "type": "object",
-            "required": [
-                "create_policies",
-                "delete_policy_ids",
-                "subject",
-                "system_id",
-                "template_id"
-            ],
-            "properties": {
-                "create_policies": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.policy"
-                    }
-                },
-                "delete_policy_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "subject": {
-                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
-                },
-                "system_id": {
-                    "type": "string"
-                },
-                "template_id": {
-                    "type": "integer",
-                    "minimum": 1
-                }
-            }
-        },
         "handler.credentialsVerifyResponseSerializer": {
             "type": "object",
             "properties": {
@@ -3450,8 +3438,11 @@
         "handler.enginePolicyResponse": {
             "type": "object",
             "properties": {
-                "action": {
-                    "$ref": "#/definitions/iam_pkg_api_engine_handler.policyResponseAction"
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iam_pkg_api_engine_handler.policyResponseAction"
+                    }
                 },
                 "expired_at": {
                     "type": "integer",
@@ -3512,23 +3503,6 @@
         "handler.getMaxPolicyIDResponse": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handler.idExpiredAtSerializer": {
-            "type": "object",
-            "required": [
-                "expired_at",
-                "id"
-            ],
-            "properties": {
-                "expired_at": {
-                    "type": "integer",
-                    "maximum": 4102444800,
-                    "minimum": 0
-                },
                 "id": {
                     "type": "integer"
                 }
@@ -3629,6 +3603,14 @@
                     "type": "integer",
                     "minimum": 1,
                     "example": 1592899208
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "abac",
+                        "rbac"
+                    ],
+                    "example": "abac"
                 }
             }
         },
@@ -3664,6 +3646,58 @@
                 }
             }
         },
+        "handler.policiesAlterSerializerV2": {
+            "type": "object",
+            "required": [
+                "create_policies",
+                "delete_policy_ids",
+                "group_auth_type",
+                "resource_actions",
+                "subject",
+                "update_policies"
+            ],
+            "properties": {
+                "create_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.policy"
+                    }
+                },
+                "delete_policy_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "group_auth_type": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "rbac",
+                        "abac",
+                        "none"
+                    ]
+                },
+                "resource_actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resourceAction"
+                    }
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
+                },
+                "template_id": {
+                    "type": "integer"
+                },
+                "update_policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.updatePolicy"
+                    }
+                }
+            }
+        },
         "handler.policiesDeleteSerializer": {
             "type": "object",
             "required": [
@@ -3690,28 +3724,6 @@
                 },
                 "template_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "handler.policiesUpdateExpiredAtSerializer": {
-            "type": "object",
-            "required": [
-                "policies",
-                "subject_id",
-                "subject_type"
-            ],
-            "properties": {
-                "policies": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.idExpiredAtSerializer"
-                    }
-                },
-                "subject_id": {
-                    "type": "string"
-                },
-                "subject_type": {
-                    "type": "string"
                 }
             }
         },
@@ -4020,6 +4032,31 @@
                 }
             }
         },
+        "handler.resourceAction": {
+            "type": "object",
+            "required": [
+                "created_action_ids",
+                "deleted_action_ids",
+                "resource"
+            ],
+            "properties": {
+                "created_action_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "deleted_action_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resource": {
+                    "$ref": "#/definitions/handler.resourceSerializer"
+                }
+            }
+        },
         "handler.resourceProviderConfig": {
             "type": "object",
             "required": [
@@ -4030,6 +4067,25 @@
                     "description": "TODO: valid path?",
                     "type": "string",
                     "example": "/api/v1/resources/biz_set/query"
+                }
+            }
+        },
+        "handler.resourceSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "system_id",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "system_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -4143,30 +4199,6 @@
                 "type": {
                     "type": "string",
                     "example": "user"
-                }
-            }
-        },
-        "handler.subjectTemplateSerializer": {
-            "type": "object",
-            "required": [
-                "subject_id",
-                "subject_type",
-                "system_id",
-                "template_id"
-            ],
-            "properties": {
-                "subject_id": {
-                    "type": "string"
-                },
-                "subject_type": {
-                    "type": "string"
-                },
-                "system_id": {
-                    "type": "string"
-                },
-                "template_id": {
-                    "type": "integer",
-                    "minimum": 1
                 }
             }
         },
@@ -4418,33 +4450,6 @@
                 },
                 "resource_expression": {
                     "type": "string"
-                }
-            }
-        },
-        "handler.updateTemplatePolicySerializer": {
-            "type": "object",
-            "required": [
-                "subject",
-                "system_id",
-                "template_id",
-                "update_policies"
-            ],
-            "properties": {
-                "subject": {
-                    "$ref": "#/definitions/iam_pkg_api_web_handler.subject"
-                },
-                "system_id": {
-                    "type": "string"
-                },
-                "template_id": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "update_policies": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.updatePolicy"
-                    }
                 }
             }
         },
