@@ -46,23 +46,49 @@ type PolicyController interface {
 	) ([]int64, error)
 	DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
 	DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
+
+	// rbac
+	AlterGroupPolicies(
+		systemID, subjectType, subjectID string, templateID int64,
+		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
+		resourceChangedActions []types.ResourceChangedAction,
+		groupAuthType int64,
+	) (err error)
+
+	DeleteByActionID(system, actionID string) error
 }
 
 type policyController struct {
-	subjectService         service.SubjectService
-	actionService          service.ActionService
+	subjectService      service.SubjectService
+	actionService       service.ActionService
+	resourceTypeService service.ResourceTypeService
+
+	// ABAC
 	policyService          service.PolicyService
 	temporaryPolicyService service.TemporaryPolicyService
+
+	// RBAC
+	groupResourcePolicyService        service.GroupResourcePolicyService
+	groupService                      service.GroupService
+	subjectActionGroupResourceService service.SubjectActionGroupResourceService
+	subjectActionExpressionService    service.SubjectActionExpressionService
 
 	eventProducer event.PolicyEventProducer
 }
 
 func NewPolicyController() PolicyController {
 	return &policyController{
-		subjectService:         service.NewSubjectService(),
-		actionService:          service.NewActionService(),
+		subjectService:      service.NewSubjectService(),
+		actionService:       service.NewActionService(),
+		resourceTypeService: service.NewResourceTypeService(),
+
 		policyService:          service.NewPolicyService(),
 		temporaryPolicyService: service.NewTemporaryPolicyService(),
+
+		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
+		groupService:                      service.NewGroupService(),
+		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
+		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
 		eventProducer: event.NewPolicyEventProducer(),
 	}

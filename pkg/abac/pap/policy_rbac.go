@@ -10,82 +10,27 @@
 
 package pap
 
-//go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
-
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
-	"iam/pkg/abac/pap/event"
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
 	"iam/pkg/abac/prp/policy"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
-	"iam/pkg/service"
 	svctypes "iam/pkg/service/types"
 )
 
-const PolicyCTLV2 = "PolicyCTLV2"
-
-type PolicyControllerV2 interface {
-	Alter(
-		systemID, subjectType, subjectID string, templateID int64,
-		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
-		resourceChangedActions []types.ResourceChangedAction,
-		groupAuthType int64,
-	) (err error)
-
-	DeleteByActionID(system, actionID string) error
-}
-
-type policyControllerV2 struct {
-	policyController
-
-	// RBAC
-	groupResourcePolicyService service.GroupResourcePolicyService
-	groupService               service.GroupService
-
-	resourceTypeService service.ResourceTypeService
-
-	// for policy delete
-	policyService                     service.PolicyService
-	subjectActionGroupResourceService service.SubjectActionGroupResourceService
-	subjectActionExpressionService    service.SubjectActionExpressionService
-
-	eventProducer event.PolicyEventProducer
-}
-
-func NewPolicyControllerV2() PolicyControllerV2 {
-	return &policyControllerV2{
-		policyController: policyController{
-			subjectService:         service.NewSubjectService(),
-			actionService:          service.NewActionService(),
-			policyService:          service.NewPolicyService(),
-			temporaryPolicyService: service.NewTemporaryPolicyService(),
-		},
-
-		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
-		groupService:               service.NewGroupService(),
-		resourceTypeService:        service.NewResourceTypeService(),
-
-		policyService:                     service.NewPolicyService(),
-		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
-		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
-
-		eventProducer: event.NewPolicyEventProducer(),
-	}
-}
-
-func (c *policyControllerV2) Alter(
+func (c *policyController) AlterGroupPolicies(
 	systemID, subjectType, subjectID string, templateID int64,
 	createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 	resourceChangedActions []types.ResourceChangedAction,
 	groupAuthType int64,
 ) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "Alter")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "Alter")
 	// 0. 通用处理
 	// 查询subject、action 相关的信息
 	subjectPK, actionPKMap, actionPKWithResourceTypeSet, err := c.querySubjectActionForAlterPolicies(
@@ -165,7 +110,7 @@ func (c *policyControllerV2) Alter(
 	return err
 }
 
-func (c *policyControllerV2) alterABACPolicies(
+func (c *policyController) alterABACPolicies(
 	tx *sqlx.Tx,
 	subjectPK, templateID int64,
 	createPolicies []types.Policy,
@@ -174,7 +119,7 @@ func (c *policyControllerV2) alterABACPolicies(
 	actionPKMap map[string]int64,
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterABACPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "alterABACPolicies")
 
 	// 避免无需变更情况，也进行各种数据查询
 	if len(createPolicies) == 0 && len(updatePolicies) == 0 && len(deletePolicyIDs) == 0 {
@@ -246,13 +191,13 @@ func (c *policyControllerV2) alterABACPolicies(
 	return updatedActionPKExpressionPKs, nil
 }
 
-func (c *policyControllerV2) alterRBACPolicies(
+func (c *policyController) alterRBACPolicies(
 	tx *sqlx.Tx,
 	groupPK, templateID int64,
 	systemID string,
 	resourceChangedActions []types.ResourceChangedAction,
 ) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "alterRBACPolicy")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "alterRBACPolicy")
 
 	// 避免无需变更情况，也进行各种数据查询
 	if len(resourceChangedActions) == 0 {
@@ -293,10 +238,10 @@ func (c *policyControllerV2) alterRBACPolicies(
 	return resourceChangedContents, nil
 }
 
-func (c *policyControllerV2) queryResourceTypePK(
+func (c *policyController) queryResourceTypePK(
 	resourceChangedActions *[]types.ResourceChangedAction,
 ) (resourceTypePKMap map[string]int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "queryResourceTypePK")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "queryResourceTypePK")
 
 	resourceTypePKMap = make(map[string]int64, len(*resourceChangedActions))
 	for _, rca := range *resourceChangedActions {
@@ -315,10 +260,10 @@ func (c *policyControllerV2) queryResourceTypePK(
 	return resourceTypePKMap, nil
 }
 
-func (c *policyControllerV2) queryActionDetail(
+func (c *policyController) queryActionDetail(
 	systemID string, resourceChangedActions *[]types.ResourceChangedAction,
 ) (actionDetailMap map[string]svctypes.ActionDetail, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "queryActionDetail")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "queryActionDetail")
 
 	// 1. 只查询有需要的Action
 	actionIDSet := set.NewStringSet()
@@ -347,7 +292,7 @@ type changedAction struct {
 	DeletedActionPKs []int64
 }
 
-func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
+func (c *policyController) groupByActionRelatedResourceTypePK(
 	createdActionIDs, deletedActionIDs []string,
 	actionDetailMap *map[string]svctypes.ActionDetail,
 ) (relatedResourceTypePKToChangedActionMap map[int64]changedAction, err error) {
@@ -408,8 +353,8 @@ func (c *policyControllerV2) groupByActionRelatedResourceTypePK(
 }
 
 // DeleteByActionID 通过ActionID批量删除策略
-func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "`DeleteByActionID`")
+func (c *policyController) DeleteByActionID(system, actionID string) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "`DeleteByActionID`")
 
 	// 1. 查询 action detail
 	actionDetail, err := cacheimpls.GetLocalActionDetail(system, actionID)
@@ -468,10 +413,10 @@ func (c *policyControllerV2) DeleteByActionID(system, actionID string) error {
 	return nil
 }
 
-func (c *policyControllerV2) convertToResourceChangedContent(
+func (c *policyController) convertToResourceChangedContent(
 	systemID string, resourceChangedActions []types.ResourceChangedAction,
 ) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTLV2, "convertToResourceChangedContent")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "convertToResourceChangedContent")
 
 	// 1. 查询每个操作的详情
 	actionDetailMap, err := c.queryActionDetail(systemID, &resourceChangedActions)
