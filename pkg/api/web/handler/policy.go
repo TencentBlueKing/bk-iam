@@ -214,7 +214,7 @@ func DeleteActionPolicies(c *gin.Context) {
 	systemID := c.Param("system_id")
 	actionID := c.Param("action_id")
 
-	ctl := pap.NewPolicyControllerV2()
+	ctl := pap.NewPolicyController()
 	err := ctl.DeleteByActionID(systemID, actionID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "DeleteActionPolicies",

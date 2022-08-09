@@ -46,6 +46,16 @@ type PolicyController interface {
 	) ([]int64, error)
 	DeleteTemporaryByIDs(system string, subjectType, subjectID string, policyIDs []int64) error
 	DeleteTemporaryBeforeExpiredAt(expiredAt int64) error
+
+	// rbac
+	Alter(
+		systemID, subjectType, subjectID string, templateID int64,
+		createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
+		resourceChangedActions []types.ResourceChangedAction,
+		groupAuthType int64,
+	) (err error)
+
+	DeleteByActionID(system, actionID string) error
 }
 
 type policyController struct {
@@ -53,6 +63,16 @@ type policyController struct {
 	actionService          service.ActionService
 	policyService          service.PolicyService
 	temporaryPolicyService service.TemporaryPolicyService
+
+	// RBAC
+	groupResourcePolicyService service.GroupResourcePolicyService
+	groupService               service.GroupService
+
+	resourceTypeService service.ResourceTypeService
+
+	// for policy delete
+	subjectActionGroupResourceService service.SubjectActionGroupResourceService
+	subjectActionExpressionService    service.SubjectActionExpressionService
 
 	eventProducer event.PolicyEventProducer
 }
@@ -63,6 +83,13 @@ func NewPolicyController() PolicyController {
 		actionService:          service.NewActionService(),
 		policyService:          service.NewPolicyService(),
 		temporaryPolicyService: service.NewTemporaryPolicyService(),
+
+		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
+		groupService:               service.NewGroupService(),
+		resourceTypeService:        service.NewResourceTypeService(),
+
+		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
+		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 
 		eventProducer: event.NewPolicyEventProducer(),
 	}
