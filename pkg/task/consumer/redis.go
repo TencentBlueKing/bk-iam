@@ -69,6 +69,8 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 	// parse message
 	payload := delivery.Payload()
 
+	logger.Debugf("receive message: %s", payload)
+
 	// handle message
 	err := c.handler.Handle(payload)
 	if err != nil {
@@ -83,6 +85,8 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 			},
 		)
 	}
+
+	logger.Debugf("handle message `%+v` done", payload)
 
 	// ack
 	if err = delivery.Ack(); err != nil {
