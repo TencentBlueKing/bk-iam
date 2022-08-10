@@ -14,6 +14,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -117,12 +118,16 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 		return "", nil
 	}
 
-	actionPKs, err := jsoniter.MarshalToString(actionPKSet.ToSlice())
+	// 排序， 以便后续的比较
+	actionPKs := actionPKSet.ToSlice()
+	sort.Slice(actionPKs, func(i, j int) bool { return actionPKs[i] < actionPKs[j] })
+
+	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
 	if err != nil {
 		return "", fmt.Errorf("jsoniter.MarshalToString actionPKs=`%v` fail, err: %w", actionPKs, err)
 	}
 
-	return actionPKs, nil
+	return actionPKStr, nil
 }
 
 func (s *groupResourcePolicyService) Alter(
@@ -201,6 +206,12 @@ func (s *groupResourcePolicyService) Alter(
 		}
 
 		// 3.3 只更新ActionPKs
+
+		// 判断actionPKs是否变化，如果没有变化，则不需要更新
+		if actionPKs == policy.ActionPKs {
+			continue
+		}
+
 		policy.ActionPKs = actionPKs
 		updatedPolicies = append(updatedPolicies, policy)
 	}

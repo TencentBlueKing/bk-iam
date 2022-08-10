@@ -78,6 +78,10 @@ logger:
     level: info
     writer: file
     settings: {name: iam_web.log, size: 100, backups: 10, age: 7, path: ./}
+  worker:
+    level: info
+    writer: file
+    settings: {name: iam_worker.log, size: 100, backups: 10, age: 7, path: ./}
   component:
     level: info
     writer: file
