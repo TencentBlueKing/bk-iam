@@ -12,6 +12,7 @@ package config
 
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	log "github.com/sirupsen/logrus"
 )
 
 // SuperAppCodeSet ...
@@ -76,4 +77,10 @@ func InitWorker(w Worker) {
 	if w.MaxMessageGeneratedCountPerGroupAlterEvent != 0 {
 		MaxMessageGeneratedCountPreGroupAlterEvent = w.MaxMessageGeneratedCountPerGroupAlterEvent
 	}
+
+	log.Infof(
+		"init worker success, MaxMessageGeneratedCountPreGroupAlterEvent=%d, MaxGroupAlterEventCheckCount=%d",
+		MaxMessageGeneratedCountPreGroupAlterEvent,
+		MaxGroupAlterEventCheckCount,
+	)
 }
