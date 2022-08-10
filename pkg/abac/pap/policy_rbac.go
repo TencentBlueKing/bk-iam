@@ -60,7 +60,18 @@ func (c *policyController) AlterGroupPolicies(
 	}
 
 	// 2. 处理RBAC策略处理
-	resourceChangedContents, err := c.alterRBACPolicies(tx, subjectPK, templateID, systemID, resourceChangedActions)
+	systemActionPKSet := set.NewFixedLengthInt64Set(len(actionPKMap))
+	for _, actionPK := range actionPKMap {
+		systemActionPKSet.Add(actionPK)
+	}
+	resourceChangedContents, err := c.alterRBACPolicies(
+		tx,
+		subjectPK,
+		templateID,
+		systemID,
+		systemActionPKSet,
+		resourceChangedActions,
+	)
 	if err != nil {
 		err = errorWrapf(err, "c.alterRBACPolicy systemID=`%s` subjectPK=`%d` fail", systemID, subjectPK)
 		return
@@ -195,6 +206,7 @@ func (c *policyController) alterRBACPolicies(
 	tx *sqlx.Tx,
 	groupPK, templateID int64,
 	systemID string,
+	systemActionPKSet *set.Int64Set,
 	resourceChangedActions []types.ResourceChangedAction,
 ) (resourceChangedContents []svctypes.ResourceChangedContent, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicyCTL, "alterRBACPolicy")
@@ -221,6 +233,7 @@ func (c *policyController) alterRBACPolicies(
 		groupPK,
 		templateID,
 		systemID,
+		systemActionPKSet,
 		resourceChangedContents,
 	)
 	if err != nil {

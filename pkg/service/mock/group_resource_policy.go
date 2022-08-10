@@ -8,6 +8,7 @@ import (
 	types "iam/pkg/service/types"
 	reflect "reflect"
 
+	set "github.com/TencentBlueKing/gopkg/collection/set"
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
 )
@@ -36,18 +37,18 @@ func (m *MockGroupResourcePolicyService) EXPECT() *MockGroupResourcePolicyServic
 }
 
 // Alter mocks base method.
-func (m *MockGroupResourcePolicyService) Alter(tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent) ([]int64, error) {
+func (m *MockGroupResourcePolicyService) Alter(tx *sqlx.Tx, groupPK, templateID int64, systemID string, systemActionPKSet *set.Int64Set, resourceChangedContents []types.ResourceChangedContent) ([]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Alter", tx, groupPK, templateID, systemID, resourceChangedContents)
+	ret := m.ctrl.Call(m, "Alter", tx, groupPK, templateID, systemID, systemActionPKSet, resourceChangedContents)
 	ret0, _ := ret[0].([]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Alter indicates an expected call of Alter.
-func (mr *MockGroupResourcePolicyServiceMockRecorder) Alter(tx, groupPK, templateID, systemID, resourceChangedContents interface{}) *gomock.Call {
+func (mr *MockGroupResourcePolicyServiceMockRecorder) Alter(tx, groupPK, templateID, systemID, systemActionPKSet, resourceChangedContents interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).Alter), tx, groupPK, templateID, systemID, resourceChangedContents)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alter", reflect.TypeOf((*MockGroupResourcePolicyService)(nil).Alter), tx, groupPK, templateID, systemID, systemActionPKSet, resourceChangedContents)
 }
 
 // BulkDeleteByGroupPKsWithTx mocks base method.

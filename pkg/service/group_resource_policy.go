@@ -29,7 +29,11 @@ const GroupResourcePolicySVC = "GroupResourcePolicySVC"
 
 type GroupResourcePolicyService interface {
 	Alter(
-		tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
+		tx *sqlx.Tx,
+		groupPK, templateID int64,
+		systemID string,
+		systemActionPKSet *set.Int64Set,
+		resourceChangedContents []types.ResourceChangedContent,
 	) ([]int64, error)
 
 	GetAuthorizedActionGroupMap(
@@ -49,14 +53,11 @@ type GroupResourcePolicyService interface {
 
 type groupResourcePolicyService struct {
 	manager dao.GroupResourcePolicyManager
-
-	actionManager dao.ActionManager
 }
 
 func NewGroupResourcePolicyService() GroupResourcePolicyService {
 	return &groupResourcePolicyService{
-		manager:       dao.NewGroupResourcePolicyManager(),
-		actionManager: dao.NewActionManager(),
+		manager: dao.NewGroupResourcePolicyManager(),
 	}
 }
 
@@ -125,7 +126,11 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 }
 
 func (s *groupResourcePolicyService) Alter(
-	tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
+	tx *sqlx.Tx,
+	groupPK, templateID int64,
+	systemID string,
+	systemActionPKSet *set.Int64Set,
+	resourceChangedContents []types.ResourceChangedContent,
 ) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "Alter")
 
@@ -152,15 +157,6 @@ func (s *groupResourcePolicyService) Alter(
 	}
 
 	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
-	allActionPKs, err := s.actionManager.ListPKBySystem(systemID)
-	if err != nil {
-		return nil, errorWrapf(
-			err,
-			"actionManager.ListPKBySystem fail, systemID=`%s`", systemID,
-		)
-	}
-	systemActionPKSet := set.NewInt64SetWithValues(allActionPKs)
-
 	createdPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	updatedPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	deletedPolicyPKs := make([]int64, 0, len(resourceChangedContents))
