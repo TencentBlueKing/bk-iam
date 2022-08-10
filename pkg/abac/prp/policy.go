@@ -146,7 +146,7 @@ func (m *policyManager) ListBySubjectAction(
 	debug.WithValue(entry, "policies", policies)
 
 	// 用于去重相同signature的policy
-	signatureSet := set.NewStringSet()
+	signatureSet := set.NewFixedLengthStringSet(len(policies))
 
 	effectPolicies = make([]types.AuthPolicy, 0, len(policies)*2)
 	for _, p := range policies {
