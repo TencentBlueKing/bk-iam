@@ -14,6 +14,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -29,7 +30,11 @@ const GroupResourcePolicySVC = "GroupResourcePolicySVC"
 
 type GroupResourcePolicyService interface {
 	Alter(
-		tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
+		tx *sqlx.Tx,
+		groupPK, templateID int64,
+		systemID string,
+		systemActionPKSet *set.Int64Set,
+		resourceChangedContents []types.ResourceChangedContent,
 	) ([]int64, error)
 
 	GetAuthorizedActionGroupMap(
@@ -49,14 +54,11 @@ type GroupResourcePolicyService interface {
 
 type groupResourcePolicyService struct {
 	manager dao.GroupResourcePolicyManager
-
-	actionManager dao.ActionManager
 }
 
 func NewGroupResourcePolicyService() GroupResourcePolicyService {
 	return &groupResourcePolicyService{
-		manager:       dao.NewGroupResourcePolicyManager(),
-		actionManager: dao.NewActionManager(),
+		manager: dao.NewGroupResourcePolicyManager(),
 	}
 }
 
@@ -116,16 +118,24 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 		return "", nil
 	}
 
-	actionPKs, err := jsoniter.MarshalToString(actionPKSet.ToSlice())
+	// 排序， 以便后续的比较
+	actionPKs := actionPKSet.ToSlice()
+	sort.Slice(actionPKs, func(i, j int) bool { return actionPKs[i] < actionPKs[j] })
+
+	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
 	if err != nil {
 		return "", fmt.Errorf("jsoniter.MarshalToString actionPKs=`%v` fail, err: %w", actionPKs, err)
 	}
 
-	return actionPKs, nil
+	return actionPKStr, nil
 }
 
 func (s *groupResourcePolicyService) Alter(
-	tx *sqlx.Tx, groupPK, templateID int64, systemID string, resourceChangedContents []types.ResourceChangedContent,
+	tx *sqlx.Tx,
+	groupPK, templateID int64,
+	systemID string,
+	systemActionPKSet *set.Int64Set,
+	resourceChangedContents []types.ResourceChangedContent,
 ) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupResourcePolicySVC, "Alter")
 
@@ -152,15 +162,6 @@ func (s *groupResourcePolicyService) Alter(
 	}
 
 	// 3. 遍历策略，根据要变更的内容，分析计算出要创建、更新、删除的策略
-	allActionPKs, err := s.actionManager.ListPKBySystem(systemID)
-	if err != nil {
-		return nil, errorWrapf(
-			err,
-			"actionManager.ListPKBySystem fail, systemID=`%s`", systemID,
-		)
-	}
-	systemActionPKSet := set.NewInt64SetWithValues(allActionPKs)
-
 	createdPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	updatedPolicies := make([]dao.GroupResourcePolicy, 0, len(resourceChangedContents))
 	deletedPolicyPKs := make([]int64, 0, len(resourceChangedContents))
@@ -205,6 +206,12 @@ func (s *groupResourcePolicyService) Alter(
 		}
 
 		// 3.3 只更新ActionPKs
+
+		// 判断actionPKs是否变化，如果没有变化，则不需要更新
+		if actionPKs == policy.ActionPKs {
+			continue
+		}
+
 		policy.ActionPKs = actionPKs
 		updatedPolicies = append(updatedPolicies, policy)
 	}

@@ -129,7 +129,7 @@ func (m *policyManager) ListBySubjectAction(
 	effectGroupPKs []int64,
 	withoutCache bool,
 	parentEntry *debug.Entry,
-) (policies []types.AuthPolicy, err error) {
+) (effectPolicies []types.AuthPolicy, err error) {
 	entry := debug.NewSubDebug(parentEntry)
 	if entry != nil {
 		debug.WithValue(entry, "cacheEnabled", !withoutCache)
@@ -137,13 +137,24 @@ func (m *policyManager) ListBySubjectAction(
 
 	// 1. 查询一般权限
 	debug.AddStep(entry, "query policy")
-	policies, err = m.listBySubjectAction(
+	policies, err := m.listBySubjectAction(
 		system, subject, action, effectGroupPKs, withoutCache, entry,
 	)
 	if err != nil {
-		return
+		return nil, err
 	}
 	debug.WithValue(entry, "policies", policies)
+
+	// 用于去重相同signature的policy
+	signatureSet := set.NewFixedLengthStringSet(len(policies))
+
+	effectPolicies = make([]types.AuthPolicy, 0, len(policies)*2)
+	for _, p := range policies {
+		if !signatureSet.Has(p.ExpressionSignature) {
+			signatureSet.Add(p.ExpressionSignature)
+			effectPolicies = append(effectPolicies, p)
+		}
+	}
 
 	// 2. 查询临时权限
 	debug.AddStep(entry, "query temporary policy")
@@ -151,23 +162,27 @@ func (m *policyManager) ListBySubjectAction(
 		system, subject, action, withoutCache, entry,
 	)
 	if err != nil {
-		return
+		return nil, err
 	}
 	debug.WithValue(entry, "temporaryPolicies", temporaryPolicies)
 
-	if len(temporaryPolicies) != 0 {
-		policies = append(policies, temporaryPolicies...)
+	for _, p := range temporaryPolicies {
+		if !signatureSet.Has(p.ExpressionSignature) {
+			signatureSet.Add(p.ExpressionSignature)
+			effectPolicies = append(effectPolicies, p)
+		}
 	}
 
 	debug.AddStep(entry, "get action auth type")
 	actionAuthType, err := action.Attribute.GetAuthType()
 	if err != nil {
-		return policies, err
+		return nil, err
 	}
 	debug.WithValue(entry, "actionAuthType", actionAuthType)
 
 	if actionAuthType != svctypes.AuthTypeRBAC {
-		return
+		debug.WithValue(entry, "effectPolicies", effectPolicies)
+		return effectPolicies, nil
 	}
 
 	// 3. 查询RBAC表达式
@@ -176,14 +191,20 @@ func (m *policyManager) ListBySubjectAction(
 		system, subject, action, withoutCache, entry,
 	)
 	if err != nil {
-		return
+		return nil, err
 	}
 	debug.WithValue(entry, "rbacPolicies", rbacPolicies)
 
-	if len(rbacPolicies) != 0 {
-		policies = append(policies, rbacPolicies...)
+	for _, p := range rbacPolicies {
+		if !signatureSet.Has(p.ExpressionSignature) {
+			signatureSet.Add(p.ExpressionSignature)
+			effectPolicies = append(effectPolicies, p)
+		}
 	}
-	return policies, nil
+
+	debug.WithValue(entry, "effectPolicies", effectPolicies)
+
+	return effectPolicies, nil
 }
 
 // listBySubjectAction 查询普通权限
@@ -299,14 +320,9 @@ func (m *policyManager) listBySubjectAction(
 	}
 
 	// NOTE: any 排在前面的逻辑去掉, 应该在计算或转换的时候处理合并 remove policy with `Any` first
-	signatureSet := set.NewFixedLengthStringSet(len(effectPolicies))
 	for _, p := range effectPolicies {
 		expression := expressionMap[p.ExpressionPK]
-		if !signatureSet.Has(expression.Signature) {
-			signatureSet.Add(expression.Signature)
-
-			policies = append(policies, convertToAuthPolicy(p, expression))
-		}
+		policies = append(policies, convertToAuthPolicy(p, expression))
 	}
 
 	// 7. return

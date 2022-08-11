@@ -108,7 +108,7 @@ func (c *GroupAlterEventChecker) Run() {
 	for range time.Tick(5 * time.Minute) {
 		logger.Info("Check group alter event begin")
 
-		createdAt := time.Now().Add(-5 * time.Minute).Unix()
+		createdAt := time.Now().Add(-10 * time.Minute).Unix()
 		pks, err := c.service.ListPKLessThanCheckCountBeforeCreateAt(maxCheckCount, createdAt)
 		if err != nil {
 			logger.WithError(err).
@@ -117,10 +117,10 @@ func (c *GroupAlterEventChecker) Run() {
 			continue
 		}
 
-		logger.Infof("query group alter event, pks=`%+v`", pks)
+		logger.Debugf("query group alter event, pks=`%+v`", pks)
 
 		for _, pk := range pks {
-			logger.Infof("do publish group alter event, pk=`%d`", pk)
+			logger.Debugf("do publish group alter event, pk=`%d`", pk)
 
 			err := c.producer.Publish(strconv.FormatInt(pk, 10))
 			if err != nil {
@@ -129,9 +129,9 @@ func (c *GroupAlterEventChecker) Run() {
 				continue
 			}
 
-			logger.Infof("publish group alter event, pk=`%d` done", pk)
+			logger.Debugf("publish group alter event, pk=`%d` done", pk)
 
-			logger.Infof("do incr the checkCount of event pk=`%d` done", pk)
+			logger.Debugf("do incr the checkCount of event pk=`%d` done", pk)
 
 			err = c.service.IncrCheckCount(pk)
 			if err != nil {
@@ -140,9 +140,9 @@ func (c *GroupAlterEventChecker) Run() {
 				continue
 			}
 
-			logger.Infof("incr the checkCount of event pk=`%d` done", pk)
+			logger.Debugf("incr the checkCount of event pk=`%d` done", pk)
 		}
 
-		logger.Info("Check group alter event end")
+		logger.Infof("Check group alter event end with pks=`%+v`", pks)
 	}
 }
