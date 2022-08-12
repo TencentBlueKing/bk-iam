@@ -12,24 +12,20 @@ package task
 
 import (
 	"context"
-	"strconv"
 	"time"
 
-	"iam/pkg/config"
 	"iam/pkg/logging"
-	"iam/pkg/service"
-	"iam/pkg/task/producer"
 
 	"github.com/adjust/rmq/v4"
 	log "github.com/sirupsen/logrus"
 )
 
-// type Checker struct { ...
+// type Checker ...
 type Checker struct {
 	stopChan chan struct{}
 }
 
-// NewWorker ...
+// NewChecker ...
 func NewChecker() *Checker {
 	return &Checker{
 		stopChan: make(chan struct{}, 1),
@@ -47,11 +43,6 @@ func (c *Checker) Run(ctx context.Context) {
 
 	// Start rmq cleaner
 	go StartClean()
-
-	// Start group event checker
-	go NewGroupAlterEventChecker(
-		producer.NewRedisProducer(rbacEventQueue),
-	).Run()
 
 	c.Wait()
 	log.Info("Shutting down")
@@ -85,64 +76,5 @@ func StartClean() {
 		}
 		logger.Infof("rmq cleaned %d", returned)
 		logger.Info("Clean rmq end")
-	}
-}
-
-type GroupAlterEventChecker struct {
-	service  service.GroupAlterEventService
-	producer producer.Producer
-}
-
-func NewGroupAlterEventChecker(producer producer.Producer) *GroupAlterEventChecker {
-	return &GroupAlterEventChecker{
-		service:  service.NewGroupAlterEventService(),
-		producer: producer,
-	}
-}
-
-func (c *GroupAlterEventChecker) Run() {
-	logger := logging.GetWorkerLogger()
-
-	maxCheckCount := int64(config.MaxGroupAlterEventCheckCount)
-	// run every 5 minutes
-	for range time.Tick(5 * time.Minute) {
-		logger.Info("Check group alter event begin")
-
-		createdAt := time.Now().Add(-10 * time.Minute).Unix()
-		pks, err := c.service.ListPKLessThanCheckCountBeforeCreateAt(maxCheckCount, createdAt)
-		if err != nil {
-			logger.WithError(err).
-				Errorf("failed to list pk by check times before create at, CheckCount=`%d`, createdAt=`%d`",
-					maxCheckCount, createdAt)
-			continue
-		}
-
-		logger.Debugf("query group alter event, pks=`%+v`", pks)
-
-		for _, pk := range pks {
-			logger.Debugf("do publish group alter event, pk=`%d`", pk)
-
-			err := c.producer.Publish(strconv.FormatInt(pk, 10))
-			if err != nil {
-				logger.WithError(err).Errorf(
-					"failed to publish pk, pk=`%d`", pk)
-				continue
-			}
-
-			logger.Debugf("publish group alter event, pk=`%d` done", pk)
-
-			logger.Debugf("do incr the checkCount of event pk=`%d` done", pk)
-
-			err = c.service.IncrCheckCount(pk)
-			if err != nil {
-				logger.WithError(err).Errorf(
-					"failed to incr the checkCount of event pk=`%d`", pk)
-				continue
-			}
-
-			logger.Debugf("incr the checkCount of event pk=`%d` done", pk)
-		}
-
-		logger.Infof("Check group alter event end with pks=`%+v`", pks)
 	}
 }

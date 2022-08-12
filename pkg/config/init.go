@@ -25,8 +25,8 @@ var (
 
 // Worker ...
 var (
-	MaxGroupAlterEventCheckCount               int = 5
-	MaxMessageGeneratedCountPreGroupAlterEvent int = 100
+	MaxSubjectActionAlterMessageCheckCount         int = 3
+	MaxGenerationCountPreSubjectActionAlterMessage int = 100
 )
 
 // InitSuperAppCode ...
@@ -70,17 +70,17 @@ func InitSecurityAuditAppCode(securityAuditAppCode string) {
 
 // InitWorker ...
 func InitWorker(w Worker) {
-	if w.MaxGroupAlterEventCheckCount != 0 {
-		MaxGroupAlterEventCheckCount = w.MaxGroupAlterEventCheckCount
+	if w.MaxSubjectActionAlterMessageCheckCount != 0 {
+		MaxSubjectActionAlterMessageCheckCount = w.MaxSubjectActionAlterMessageCheckCount
 	}
 
-	if w.MaxMessageGeneratedCountPerGroupAlterEvent != 0 {
-		MaxMessageGeneratedCountPreGroupAlterEvent = w.MaxMessageGeneratedCountPerGroupAlterEvent
+	if w.MaxGenerationCountPerSubjectActionAlterMessage != 0 {
+		MaxGenerationCountPreSubjectActionAlterMessage = w.MaxGenerationCountPerSubjectActionAlterMessage
 	}
 
 	log.Infof(
-		"init worker success, MaxMessageGeneratedCountPreGroupAlterEvent=%d, MaxGroupAlterEventCheckCount=%d",
-		MaxMessageGeneratedCountPreGroupAlterEvent,
-		MaxGroupAlterEventCheckCount,
+		"init worker success, MaxGenerationCountPreSubjectActionAlterMessage=%d, MaxSubjectActionAlterMessageCheckCount=%d",
+		MaxGenerationCountPreSubjectActionAlterMessage,
+		MaxSubjectActionAlterMessageCheckCount,
 	)
 }

@@ -123,8 +123,8 @@ type Crypto struct {
 }
 
 type Worker struct {
-	MaxGroupAlterEventCheckCount               int // max count for group alter event check
-	MaxMessageGeneratedCountPerGroupAlterEvent int // max count for group alter event generation message
+	MaxSubjectActionAlterMessageCheckCount         int // max count for subject action alter message check
+	MaxGenerationCountPerSubjectActionAlterMessage int // max count for subject action alter message generation message
 }
 
 // Config ...

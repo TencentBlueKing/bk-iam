@@ -68,7 +68,7 @@ func (p *policyEventProducer) PublishRBACGroupAlterEvent(
 	cacheimpls.BatchDeleteGroupActionAuthorizedResourceCache(groupPK, actionPKs)
 
 	// 创建 group_alter_event
-	pks, err := p.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
+	err := p.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
 	if err != nil {
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
@@ -82,16 +82,7 @@ func (p *policyEventProducer) PublishRBACGroupAlterEvent(
 				"error":     err.Error(),
 			},
 		)
-		return
 	}
-
-	// 发送event 消息
-	if len(pks) == 0 {
-		return
-	}
-
-	messages := util.Int64SliceToStringSlice(pks)
-	go p.alterEventProducer.Publish(messages...)
 }
 
 // FIXME: duplicated with prp/engine.go

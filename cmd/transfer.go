@@ -24,26 +24,26 @@ import (
 )
 
 func init() {
-	checkerCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
-	checkerCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
+	transferCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "config file (default is config.yml;required)")
+	transferCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
 
-	checkerCmd.MarkFlagRequired("config")
+	transferCmd.MarkFlagRequired("config")
 }
 
-// checkerCmd represents asynchronous task check command
-var checkerCmd = &cobra.Command{
-	Use:   "checker",
-	Short: "bk-iam checker is asynchronous task checker",
+// transferCmd represents asynchronous task transfer command
+var transferCmd = &cobra.Command{
+	Use:   "transfer",
+	Short: "bk-iam transfer is asynchronous task transfer",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
-		   checker is used to check asynchronous task`,
+		transfer is used to transform subject action alter message`,
 	Run: func(cmd *cobra.Command, args []string) {
-		StartChecker()
+		StartTransfer()
 	},
 }
 
-// StartChecker ...
-func StartChecker() {
-	fmt.Println("It's IAM checker")
+// StartTransfer ...
+func StartTransfer() {
+	fmt.Println("It's IAM transfer")
 
 	// init rand
 	rand.Seed(time.Now().UnixNano())
@@ -65,7 +65,6 @@ func StartChecker() {
 	initSentry()
 	initMetrics()
 	initDatabase()
-	initRedis()
 	// NOTE: should be after initRedis
 	initRmqCleaner()
 	initWorker()
@@ -76,11 +75,11 @@ func StartChecker() {
 		interrupt(cancelFunc)
 	}()
 
-	// 3. start sync checker
-	checker := task.NewChecker()
+	// 3. start sync transfer
+	checker := task.NewTransfer()
 	checker.Run(ctx)
 }
 
 func init() {
-	rootCmd.AddCommand(checkerCmd)
+	rootCmd.AddCommand(transferCmd)
 }

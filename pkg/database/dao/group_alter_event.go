@@ -23,22 +23,18 @@ import (
 
 // GroupAlterEvent ...
 type GroupAlterEvent struct {
-	PK     int64  `db:"pk"`
-	TaskID string `db:"task_id"`
+	UUID string `db:"uuid"`
 
 	GroupPK    int64  `db:"group_pk"`
 	ActionPKs  string `db:"action_pks"`
 	SubjectPKs string `db:"subject_pks"`
-	CheckCount int64  `db:"check_count"`
 }
 
 // GroupAlterEventManager ...
 type GroupAlterEventManager interface {
-	Get(pk int64) (GroupAlterEvent, error)
-	ListPKLessThanCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
-	BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []GroupAlterEvent) ([]int64, error)
-	Delete(pk int64) error
-	IncrCheckCount(pk int64) error
+	ListBeforeCreateAt(createdAt int64, limit int64) ([]GroupAlterEvent, error)
+	Create(event GroupAlterEvent) error
+	BulkDeleteWithTx(tx *sqlx.Tx, uuids []string) error
 }
 
 type groupAlterEventManagerManager struct {
@@ -52,70 +48,46 @@ func NewGroupAlterEventManager() GroupAlterEventManager {
 	}
 }
 
-// Get ...
-func (m *groupAlterEventManagerManager) Get(pk int64) (groupAlterEvent GroupAlterEvent, err error) {
+// ListBeforeCreateAt ...
+func (m *groupAlterEventManagerManager) ListBeforeCreateAt(
+	createdAt int64,
+	limit int64,
+) (events []GroupAlterEvent, err error) {
 	query := `SELECT
-		pk,
-		task_id,
+		uuid,
 		group_pk,
 		action_pks,
-		subject_pks,
-		check_count
+		subject_pks
 		FROM rbac_group_alter_event
-		WHERE pk=?`
-	err = database.SqlxGet(m.DB, &groupAlterEvent, query, pk)
-	return
-}
-
-// ListPKLessThanCheckCountBeforeCreateAt ...
-func (m *groupAlterEventManagerManager) ListPKLessThanCheckCountBeforeCreateAt(
-	checkCount int64,
-	createdAt int64,
-) (pks []int64, err error) {
-	query := `SELECT
-		pk
-		FROM rbac_group_alter_event
-		WHERE check_count<?
-		AND created_at<FROM_UNIXTIME(?)`
-	err = database.SqlxSelect(m.DB, &pks, query, checkCount, createdAt)
+		WHERE created_at<FROM_UNIXTIME(?)
+		LIMIT ?`
+	err = database.SqlxSelect(m.DB, &events, query, createdAt, limit)
 	if errors.Is(err, sql.ErrNoRows) {
-		return pks, nil
+		return events, nil
 	}
 	return
 }
 
-// BulkCreateWithTx ...
-func (m *groupAlterEventManagerManager) BulkCreateWithTx(
-	tx *sqlx.Tx,
-	groupAlterEvents []GroupAlterEvent,
-) ([]int64, error) {
+// Create ...
+func (m *groupAlterEventManagerManager) Create(
+	event GroupAlterEvent,
+) error {
 	sql := `INSERT INTO rbac_group_alter_event (
-		task_id,
+		uuid,
 		group_pk,
 		action_pks,
-		subject_pks,
-		check_count
+		subject_pks
 	) VALUES (
-		:task_id,
+		:uuid,
 		:group_pk,
 		:action_pks,
-		:subject_pks,
-		:check_count
+		:subject_pks
 	)`
-	ids, err := database.SqlxBulkInsertReturnIDWithTx(tx, sql, groupAlterEvents)
-	return ids, err
+	return database.SqlxBulkInsert(m.DB, sql, []GroupAlterEvent{event})
 }
 
-// Delete ...
-func (m *groupAlterEventManagerManager) Delete(pk int64) error {
-	sql := `DELETE FROM rbac_group_alter_event WHERE pk=?`
-	err := database.SqlxExec(m.DB, sql, pk)
-	return err
-}
-
-// IncrCheckCount ...
-func (m *groupAlterEventManagerManager) IncrCheckCount(pk int64) error {
-	sql := `UPDATE rbac_group_alter_event SET check_count=check_count+1 WHERE pk=?`
-	err := database.SqlxExec(m.DB, sql, pk)
-	return err
+// BulkDelete ...
+func (m *groupAlterEventManagerManager) BulkDeleteWithTx(tx *sqlx.Tx, uuids []string) error {
+	sql := `DELETE FROM rbac_group_alter_event WHERE uuid IN (?)`
+	return database.SqlxDeleteWithTx(tx, sql, uuids)
 }

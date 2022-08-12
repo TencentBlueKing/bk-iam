@@ -69,11 +69,10 @@ type SubjectRelationForCreate struct {
 }
 
 type GroupAlterEvent struct {
-	PK         int64   `json:"pk"`
+	UUID       string  `json:"uuid"`
 	GroupPK    int64   `json:"group_pk"`
 	ActionPKs  []int64 `json:"action_pks"`
 	SubjectPKs []int64 `json:"subject_pks"`
-	CheckCount int64   `json:"check_times"`
 }
 
 // ResourceExpiredAt ...
@@ -84,6 +83,8 @@ type ResourceExpiredAt struct {
 
 // SubjectActionGroupResource ...
 type SubjectActionGroupResource struct {
+	PK int64 `db:"pk"`
+
 	SubjectPK     int64                       `json:"subject_pk"`
 	ActionPK      int64                       `json:"action_pk"`
 	GroupResource map[int64]ResourceExpiredAt `json:"group_resource"` // group_pk -> ExpiredAtResource
@@ -111,3 +112,24 @@ type SubjectActionExpression struct {
 	Signature  string `json:"signature" msgpack:"s2"`
 	ExpiredAt  int64  `json:"expired_at" msgpack:"e2"`
 }
+
+// SubjectActionGroupMessage ...
+type SubjectActionGroupMessage struct {
+	SubjectPK int64   `json:"subject_pk"`
+	ActionPK  int64   `json:"action_pk"`
+	GroupPKs  []int64 `json:"group_pks"`
+}
+
+// SubjectActionAlterMessage ...
+type SubjectActionAlterMessage struct {
+	UUID       string                      `json:"uuid"`
+	Messages   []SubjectActionGroupMessage `json:"messages"`
+	Status     int64                       `json:"status"`
+	CheckCount int64                       `json:"check_count"`
+}
+
+const (
+	SubjectActionAlterMessageStatusCreated int64 = iota
+	SubjectActionAlterMessageStatusPushed
+	SubjectActionAlterMessageStatusProcessed
+)

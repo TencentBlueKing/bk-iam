@@ -129,3 +129,25 @@ func Test_subjectActionGroupResourceManager_DeleteByActionPKWithTx(t *testing.T)
 		assert.Equal(t, count, int64(2))
 	})
 }
+
+func Test_subjectActionGroupResourceManager_DeleteBySubjectActionWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`^DELETE FROM rbac_subject_action_group_resource WHERE subject_pk = (.*) AND action_pk = (.*)`).
+			WithArgs(
+				int64(1), int64(2),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 2))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+
+		manager := &subjectActionGroupResourceManager{DB: db}
+		err = manager.DeleteBySubjectActionWithTx(tx, 1, 2)
+
+		tx.Commit()
+
+		assert.NoError(t, err)
+	})
+}
