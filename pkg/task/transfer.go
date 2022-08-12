@@ -14,6 +14,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	log "github.com/sirupsen/logrus"
+
 	"iam/pkg/config"
 	"iam/pkg/database"
 	"iam/pkg/logging"
@@ -21,10 +25,6 @@ import (
 	"iam/pkg/service/types"
 	"iam/pkg/task/producer"
 	"iam/pkg/util"
-
-	"github.com/TencentBlueKing/gopkg/collection/set"
-	"github.com/TencentBlueKing/gopkg/errorx"
-	log "github.com/sirupsen/logrus"
 )
 
 const eventLimit int64 = 1000
