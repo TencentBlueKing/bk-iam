@@ -113,6 +113,10 @@ func (t *GroupAlterEventTransfer) transform() error {
 		return errorWrapf(err, "service.ListBeforeCreateAt fail createdAt=`%d`", createdAt)
 	}
 
+	if len(events) == 0 {
+		return nil
+	}
+
 	// 生成subject action alter message
 	subjectActionAlterMessages := convertToSubjectActionAlterMessage(events)
 

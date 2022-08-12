@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_group_alter_event` (
 
 CREATE TABLE `bkiam`.`rbac_subject_action_alter_message` (
   `uuid` char(32) NOT NULL, -- uuid
-  `data` int(10) unsigned NOT NULL, -- json
+  `data` mediumtext NOT NULL, -- json
   `status` int(10) unsigned NOT NULL DEFAULT '0',
   `check_count` int(10) unsigned NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
