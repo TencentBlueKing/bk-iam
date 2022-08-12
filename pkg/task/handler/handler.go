@@ -54,7 +54,7 @@ func NewGroupAlterMessageHandler() MessageHandler {
 func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
-	message, err := h.subjectActionAlterEventService.Get(uuid)
+	event, err := h.subjectActionAlterEventService.Get(uuid)
 	if err != nil {
 		err = errorWrapf(err, "subjectActionAlterEventService.Get event fail, uuid=`%s`", uuid)
 		return err
@@ -62,12 +62,12 @@ func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 
 	// 判断event check times超限，不再处理
 	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
-	if message.CheckCount > maxCheckCount {
+	if event.CheckCount > maxCheckCount {
 		logger := logging.GetWorkerLogger()
 		logger.Errorf(
 			"subject action alter event uuid=`%s` check times exceed limit, check times=`%d`",
 			uuid,
-			message.CheckCount,
+			event.CheckCount,
 		)
 		return nil
 	}
@@ -88,7 +88,7 @@ func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 	}
 
 	// 循环处理所有事件
-	for _, m := range message.Messages {
+	for _, m := range event.Messages {
 		err = h.alterSubjectActionGroupResource(m.SubjectPK, m.ActionPK, m.GroupPKs)
 		if err != nil {
 			err = errorWrapf(err, "alterSubjectActionGroupResource fail, message=`%v`", m)
