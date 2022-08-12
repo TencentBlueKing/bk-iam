@@ -11,14 +11,13 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -43,13 +42,14 @@ func PolicyGet(c *gin.Context) {
 		return
 	}
 
-	// 1. query policy
-	policyService := service.NewPolicyService()
-	queryPolicy, err := policyService.Get(pathParams.PolicyID)
+	systemID := c.Param("system_id")
+	_type := "abac"
+
+	manager := prp.NewOpenPolicyManager()
+	policy, err := manager.Get(_type, systemID, pathParams.PolicyID)
 	if err != nil {
-		// 不存在的情况, 404
-		if errors.Is(err, sql.ErrNoRows) {
-			util.NotFoundJSONResponse(c, "policy not exist")
+		if errors.Is(err, prp.ErrPolicyNotFound) {
+			util.NotFoundJSONResponse(c, err.Error())
 			return
 		}
 
@@ -57,42 +57,34 @@ func PolicyGet(c *gin.Context) {
 		return
 	}
 
-	// 2. query systemAction from cache
-	systemAction, err := cacheimpls.GetAction(queryPolicy.ActionPK)
+	data, err := convertOpenPolicyToPolicyGetResponse(policy)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	systemID := c.Param("system_id")
-	if systemID != systemAction.System {
-		util.ForbiddenJSONResponse(c, fmt.Sprintf("system(%s) can't access system(%s)'s policy",
-			systemID, systemAction.System))
+	if systemID != data.System {
+		util.ForbiddenJSONResponse(c, fmt.Sprintf("system(%s) can't access system(%s)'s policy", systemID, data.System))
 		return
 	}
 
-	// 4. query subj from cache
-	subj, err := cacheimpls.GetSubjectByPK(queryPolicy.SubjectPK)
+	util.SuccessJSONResponse(c, "ok", data)
+}
+
+func convertOpenPolicyToPolicyGetResponse(policy prp.OpenPolicy) (policyGetResponse, error) {
+	subj, err := cacheimpls.GetSubjectByPK(policy.SubjectPK)
 	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
+		return policyGetResponse{}, err
 	}
 
-	// 5. get expression
-	pkExpressionMap, err := translateExpressions([]int64{queryPolicy.ExpressionPK})
+	systemAction, err := cacheimpls.GetAction(policy.ActionPK)
 	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-	expression, ok := pkExpressionMap[queryPolicy.ExpressionPK]
-	if !ok {
-		util.SystemErrorJSONResponse(c, fmt.Errorf("expression pk=`%d` missing", queryPolicy.ExpressionPK))
-		return
+		return policyGetResponse{}, err
 	}
 
-	policy := policyGetResponse{
-		Version: service.PolicyVersion,
-		ID:      queryPolicy.PK,
+	resp := policyGetResponse{
+		Version: policy.Version,
+		ID:      policy.ID,
 		System:  systemAction.System,
 		Subject: policyResponseSubject{
 			Type: subj.Type,
@@ -102,9 +94,8 @@ func PolicyGet(c *gin.Context) {
 		Action: policyResponseAction{
 			ID: systemAction.ID,
 		},
-		Expression: expression,
-		ExpiredAt:  queryPolicy.ExpiredAt,
+		Expression: policy.Expression,
+		ExpiredAt:  policy.ExpiredAt,
 	}
-
-	util.SuccessJSONResponse(c, "ok", policy)
+	return resp, nil
 }

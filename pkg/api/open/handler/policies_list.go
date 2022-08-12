@@ -19,11 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
-	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -74,43 +71,37 @@ func PolicyList(c *gin.Context) {
 		return
 	}
 
-	// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
-	policyService := service.NewPolicyService()
-	count, err := policyService.GetCountByActionBeforeExpiredAt(actionPK, query.Timestamp)
+	_type := "abac"
+	offset := (query.Page - 1) * query.PageSize
+	limit := query.PageSize
+
+	manager := prp.NewOpenPolicyManager()
+	count, policies, err := manager.List(_type, actionPK, query.Timestamp, offset, limit)
 	if err != nil {
-		err = fmt.Errorf("getCountByAction actionID=`%s`, actionPK=`%d`, timestamp=`%d` fail. err=%w",
-			actionID, actionPK, query.Timestamp, err)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
-	results := []thinPolicyResponse{}
-	if count != 0 {
-		offset := (query.Page - 1) * query.PageSize
-		limit := query.PageSize
-		policies, err := policyService.ListPagingQueryByActionBeforeExpiredAt(actionPK, query.Timestamp, offset, limit)
-		if err != nil {
-			err = fmt.Errorf(
-				"listPoliciesByAction actionID=`%s`, actionPK=`%d`, timestamp=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
-				actionID,
-				actionPK,
-				query.Timestamp,
-				offset,
-				limit,
-				err,
-			)
-			util.SystemErrorJSONResponse(c, err)
-			return
-		}
+	if count == 0 {
+		util.SuccessJSONResponse(c, "ok", policyListResponse{
+			Metadata: policyListResponseMetadata{
+				System:    systemID,
+				Action:    policyResponseAction{ID: actionID},
+				Timestamp: query.Timestamp,
+			},
+			Count:   count,
+			Results: nil,
+		})
+	}
 
-		results, err = convertQueryPoliciesToThinPolicies(policies)
-		if err != nil {
-			err = fmt.Errorf(
-				"convertQueryPoliciesToThinPolicies system=`%s`, action=`%s` fail. err=%w",
-				systemID, actionID, err)
-			util.SystemErrorJSONResponse(c, err)
-			return
-		}
+	var results []thinPolicyResponse
+	results, err = convertOpenPoliciesToThinPolicies(policies)
+	if err != nil {
+		err = fmt.Errorf(
+			"convertQueryPoliciesToThinPolicies system=`%s`, action=`%s` fail. err=%w",
+			systemID, actionID, err)
+		util.SystemErrorJSONResponse(c, err)
+		return
 	}
 
 	// 返回每条策略, 包含的过期时间, 接入方得二次校验
@@ -125,26 +116,11 @@ func PolicyList(c *gin.Context) {
 	})
 }
 
-func convertQueryPoliciesToThinPolicies(
-	policies []types.QueryPolicy,
-) (thinPolicies []thinPolicyResponse, err error) {
+func convertOpenPoliciesToThinPolicies(
+	policies []prp.OpenPolicy,
+) (responses []thinPolicyResponse, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.convertQueryPoliciesToThinPolicies")
 	if len(policies) == 0 {
-		return
-	}
-
-	// 1. collect all expression pks
-	expressionPKs := make([]int64, 0, len(policies))
-	for _, p := range policies {
-		if p.ExpressionPK != -1 {
-			expressionPKs = append(expressionPKs, p.ExpressionPK)
-		}
-	}
-
-	// 2. query expression from cache
-	pkExpressionMap, err := translateExpressions(expressionPKs)
-	if err != nil {
-		err = errorWrapf(err, "translateExpressions expressionPKs=`%+v` fail", expressionPKs)
 		return
 	}
 
@@ -160,66 +136,17 @@ func convertQueryPoliciesToThinPolicies(
 			continue
 		}
 
-		// if missing the expression, continue
-		expression, ok := pkExpressionMap[p.ExpressionPK]
-		if !ok {
-			log.Errorf("policy_list.convertQueryPoliciesToThinPolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
-				p.ExpressionPK)
-			continue
-		}
-
-		thinPolicies = append(thinPolicies, thinPolicyResponse{
-			Version: service.PolicyVersion,
-			ID:      p.PK,
+		responses = append(responses, thinPolicyResponse{
+			Version: p.Version,
+			ID:      p.ID,
 			Subject: policyResponseSubject{
 				Type: subj.Type,
 				ID:   subj.ID,
 				Name: subj.Name,
 			},
-			Expression: expression,
+			Expression: p.Expression,
 			ExpiredAt:  p.ExpiredAt,
 		})
 	}
-	return thinPolicies, nil
-}
-
-// translateExpressions translate expression to json format
-func translateExpressions(
-	expressionPKs []int64,
-) (expressionMap map[int64]map[string]interface{}, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.translateExpressions")
-
-	// when the pk is -1, will translate to any
-	pkExpressionStrMap := map[int64]string{
-		-1: "",
-	}
-	if len(expressionPKs) > 0 {
-		manager := prp.NewPolicyManager()
-
-		var exprs []types.AuthExpression
-		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
-		if err != nil {
-			err = errorWrapf(err, "policyManager.GetExpressionsFromCache pks=`%+v` fail", expressionPKs)
-			return
-		}
-
-		for _, e := range exprs {
-			pkExpressionStrMap[e.PK] = e.Expression
-		}
-	}
-
-	// translate one by one
-	expressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
-	for pk, expr := range pkExpressionStrMap {
-		// TODO: 如何优化这里的性能?
-		// TODO: 理论上, signature一样的只需要转一次
-		// e.Signature
-		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
-		if err1 != nil {
-			err = errorWrapf(err1, "translate fail", "")
-			return
-		}
-		expressionMap[pk] = translatedExpr
-	}
-	return expressionMap, nil
+	return responses, nil
 }
