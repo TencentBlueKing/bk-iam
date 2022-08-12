@@ -32,7 +32,7 @@ const handlerLayer = "handler"
 
 type groupAlterMessageHandler struct {
 	groupService                      service.GroupService
-	subjectActionAlterMessageService  service.SubjectActionAlterMessageService
+	subjectActionAlterEventService    service.SubjectActionAlterEventService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -43,7 +43,7 @@ type groupAlterMessageHandler struct {
 func NewGroupAlterMessageHandler() MessageHandler {
 	return &groupAlterMessageHandler{
 		groupService:                      service.NewGroupService(),
-		subjectActionAlterMessageService:  service.NewSubjectActionAlterMessageService(),
+		subjectActionAlterEventService:    service.NewSubjectActionAlterEventService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 		locker:                            locker.NewDistributedSubjectActionLocker(),
@@ -54,37 +54,37 @@ func NewGroupAlterMessageHandler() MessageHandler {
 func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
-	message, err := h.subjectActionAlterMessageService.Get(uuid)
+	message, err := h.subjectActionAlterEventService.Get(uuid)
 	if err != nil {
-		err = errorWrapf(err, "subjectActionAlterMessageService.Get event fail, uuid=`%s`", uuid)
-		return err
-	}
-
-	// update message status to processing
-	err = h.subjectActionAlterMessageService.BulkUpdateStatus(
-		[]string{uuid},
-		types.SubjectActionAlterMessageStatusProcessed,
-	)
-	if err != nil {
-		err = errorWrapf(
-			err,
-			"subjectActionAlterMessageService.BulkUpdateStatus event fail, uuid=`%s`, status=`%d`",
-			uuid,
-			types.SubjectActionAlterMessageStatusProcessed,
-		)
+		err = errorWrapf(err, "subjectActionAlterEventService.Get event fail, uuid=`%s`", uuid)
 		return err
 	}
 
 	// 判断event check times超限，不再处理
-	maxCheckCount := int64(config.MaxSubjectActionAlterMessageCheckCount)
+	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
 	if message.CheckCount > maxCheckCount {
 		logger := logging.GetWorkerLogger()
 		logger.Errorf(
-			"subject action alter message uuid=`%s` check times exceed limit, check times=`%d`",
+			"subject action alter event uuid=`%s` check times exceed limit, check times=`%d`",
 			uuid,
 			message.CheckCount,
 		)
 		return nil
+	}
+
+	// update message status to processing
+	err = h.subjectActionAlterEventService.BulkUpdateStatus(
+		[]string{uuid},
+		types.SubjectActionAlterEventStatusProcessing,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"subjectActionAlterEventService.BulkUpdateStatus event fail, uuid=`%s`, status=`%d`",
+			uuid,
+			types.SubjectActionAlterEventStatusProcessing,
+		)
+		return err
 	}
 
 	// 循环处理所有事件
@@ -96,9 +96,9 @@ func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 		}
 	}
 
-	err = h.subjectActionAlterMessageService.Delete(uuid)
+	err = h.subjectActionAlterEventService.Delete(uuid)
 	if err != nil {
-		err = errorWrapf(err, "subjectActionAlterMessageService.Delete event fail, uuid=`%d`", uuid)
+		err = errorWrapf(err, "subjectActionAlterEventService.Delete event fail, uuid=`%d`", uuid)
 		return err
 	}
 

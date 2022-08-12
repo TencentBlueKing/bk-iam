@@ -20,19 +20,19 @@ import (
 	"iam/pkg/database"
 )
 
-func Test_subjectActionAlterMessageManager_Get(t *testing.T) {
+func Test_subjectActionAlterEventManager_Get(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT
 		uuid,
 		data,
 		status,
 		check_count
-		FROM rbac_subject_action_alter_message
-		WHERE uuid = (.*)`
+		FROM rbac_subject_action_alter_event
+		WHERE uuid =`
 		mockRows := sqlmock.NewRows([]string{"uuid"}).AddRow("uuid")
 		mock.ExpectQuery(mockQuery).WithArgs("uuid").WillReturnRows(mockRows)
 
-		manager := &subjectActionAlterMessageManager{DB: db}
+		manager := &subjectActionAlterEventManager{DB: db}
 		message, err := manager.Get("uuid")
 
 		assert.NoError(t, err, "query from db fail.")
@@ -40,18 +40,18 @@ func Test_subjectActionAlterMessageManager_Get(t *testing.T) {
 	})
 }
 
-func Test_subjectActionAlterMessageManager_BulkCreateWithTx(t *testing.T) {
+func Test_subjectActionAlterEventManager_BulkCreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`^INSERT INTO rbac_subject_action_alter_message`).WithArgs(
+		mock.ExpectExec(`^INSERT INTO rbac_subject_action_alter_event`).WithArgs(
 			"uuid", "test", int64(0), int64(0),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
-		manager := &subjectActionAlterMessageManager{DB: db}
-		err = manager.BulkCreateWithTx(tx, []SubjectActionAlterMessage{
+		manager := &subjectActionAlterEventManager{DB: db}
+		err = manager.BulkCreateWithTx(tx, []SubjectActionAlterEvent{
 			{
 				UUID:       "uuid",
 				Data:       "test",
@@ -64,26 +64,26 @@ func Test_subjectActionAlterMessageManager_BulkCreateWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectActionAlterMessageManager_BulkUpdateStatus(t *testing.T) {
+func Test_subjectActionAlterEventManager_BulkUpdateStatus(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`UPDATE rbac_subject_action_alter_message SET status =`).WithArgs(
+		mock.ExpectExec(`UPDATE rbac_subject_action_alter_event SET status =`).WithArgs(
 			int64(1), "uuid1", "uuid2",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
-		manager := &subjectActionAlterMessageManager{DB: db}
+		manager := &subjectActionAlterEventManager{DB: db}
 		err := manager.BulkUpdateStatus([]string{"uuid1", "uuid2"}, 1)
 
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
 
-func Test_subjectActionAlterMessageManager_Delete(t *testing.T) {
+func Test_subjectActionAlterEventManager_Delete(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`DELETE FROM rbac_subject_action_alter_message WHERE uuid =`).WithArgs(
+		mock.ExpectExec(`DELETE FROM rbac_subject_action_alter_event WHERE uuid =`).WithArgs(
 			"uuid",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
-		manager := &subjectActionAlterMessageManager{DB: db}
+		manager := &subjectActionAlterEventManager{DB: db}
 		err := manager.Delete("uuid")
 
 		assert.NoError(t, err, "query from db fail.")

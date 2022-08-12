@@ -120,8 +120,8 @@ type SubjectActionGroupMessage struct {
 	GroupPKs  []int64 `json:"group_pks"`
 }
 
-// SubjectActionAlterMessage ...
-type SubjectActionAlterMessage struct {
+// SubjectActionAlterEvent ...
+type SubjectActionAlterEvent struct {
 	UUID       string                      `json:"uuid"`
 	Messages   []SubjectActionGroupMessage `json:"messages"`
 	Status     int64                       `json:"status"`
@@ -129,7 +129,7 @@ type SubjectActionAlterMessage struct {
 }
 
 const (
-	SubjectActionAlterMessageStatusCreated int64 = iota
-	SubjectActionAlterMessageStatusPushed
-	SubjectActionAlterMessageStatusProcessed
+	SubjectActionAlterEventStatusCreated int64 = iota
+	SubjectActionAlterEventStatusPushed
+	SubjectActionAlterEventStatusProcessing
 )

@@ -18,56 +18,57 @@ import (
 	"iam/pkg/database"
 )
 
-// SubjectActionAlterMessage ...
-type SubjectActionAlterMessage struct {
+// SubjectActionAlterEvent ...
+type SubjectActionAlterEvent struct {
 	UUID string `db:"uuid"`
 
-	Data       string `db:"data"`
+	Data       string `db:"data"` // [{subject_pk action_pk group_pks}]
 	Status     int64  `db:"status"`
 	CheckCount int64  `db:"check_count"`
 }
 
-// SubjectActionAlterMessageManager ...
-type SubjectActionAlterMessageManager interface {
-	Get(uuid string) (SubjectActionAlterMessage, error)
-	BulkCreateWithTx(tx *sqlx.Tx, messages []SubjectActionAlterMessage) error
+// SubjectActionAlterEventManager ...
+type SubjectActionAlterEventManager interface {
+	Get(uuid string) (SubjectActionAlterEvent, error)
+	BulkCreateWithTx(tx *sqlx.Tx, messages []SubjectActionAlterEvent) error
 	BulkUpdateStatus(uuids []string, status int64) error
 	Delete(uuid string) error
 }
 
-type subjectActionAlterMessageManager struct {
+type subjectActionAlterEventManager struct {
 	DB *sqlx.DB
 }
 
-// NewSubjectActionAlterMessageManager ...
-func NewSubjectActionAlterMessageManager() SubjectActionAlterMessageManager {
-	return &subjectActionAlterMessageManager{
+// NewSubjectActionAlterEventManager ...
+func NewSubjectActionAlterEventManager() SubjectActionAlterEventManager {
+	return &subjectActionAlterEventManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
 }
 
 // Get ...
-func (m *subjectActionAlterMessageManager) Get(uuid string) (message SubjectActionAlterMessage, err error) {
+func (m *subjectActionAlterEventManager) Get(uuid string) (message SubjectActionAlterEvent, err error) {
 	sql := `SELECT
 		uuid,
 		data,
 		status,
 		check_count
-		FROM rbac_subject_action_alter_message
-		WHERE uuid = ?`
+		FROM rbac_subject_action_alter_event
+		WHERE uuid = ?
+		LIMIT 1`
 	err = database.SqlxGet(m.DB, &message, sql, uuid)
 	return message, err
 }
 
 // BulkCreateWithTx ...
-func (m *subjectActionAlterMessageManager) BulkCreateWithTx(
+func (m *subjectActionAlterEventManager) BulkCreateWithTx(
 	tx *sqlx.Tx,
-	messages []SubjectActionAlterMessage,
+	messages []SubjectActionAlterEvent,
 ) (err error) {
 	if len(messages) == 0 {
 		return nil
 	}
-	sql := `INSERT INTO rbac_subject_action_alter_message (
+	sql := `INSERT INTO rbac_subject_action_alter_event (
 		uuid,
 		data,
 		status,
@@ -82,16 +83,16 @@ func (m *subjectActionAlterMessageManager) BulkCreateWithTx(
 }
 
 // UpdateStatus ...
-func (m *subjectActionAlterMessageManager) BulkUpdateStatus(uuids []string, status int64) error {
-	sql := `UPDATE rbac_subject_action_alter_message
+func (m *subjectActionAlterEventManager) BulkUpdateStatus(uuids []string, status int64) error {
+	sql := `UPDATE rbac_subject_action_alter_event
 		SET status = ?
 		WHERE uuid IN (?)`
 	return database.SqlxExec(m.DB, sql, status, uuids)
 }
 
 // Delete ...
-func (m *subjectActionAlterMessageManager) Delete(uuid string) error {
-	sql := `DELETE FROM rbac_subject_action_alter_message
+func (m *subjectActionAlterEventManager) Delete(uuid string) error {
+	sql := `DELETE FROM rbac_subject_action_alter_event
 		WHERE uuid = ?`
 	return database.SqlxExec(m.DB, sql, uuid)
 }

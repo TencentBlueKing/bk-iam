@@ -35,7 +35,7 @@ var transferCmd = &cobra.Command{
 	Use:   "transfer",
 	Short: "bk-iam transfer is asynchronous task transfer",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
-		transfer is used to transform subject action alter message`,
+		transfer is used to transform subject action alter event`,
 	Run: func(cmd *cobra.Command, args []string) {
 		StartTransfer()
 	},
@@ -77,8 +77,8 @@ func StartTransfer() {
 	}()
 
 	// 3. start sync transfer
-	checker := task.NewTransfer()
-	checker.Run(ctx)
+	transfer := task.NewTransfer()
+	transfer.Run(ctx)
 }
 
 func init() {

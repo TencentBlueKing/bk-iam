@@ -59,10 +59,10 @@ var _ = Describe("transfer", func() {
 			}].Size(), 1)
 		})
 	})
-	Describe("convertToSubjectActionAlterMessage", func() {
+	Describe("convertToSubjectActionAlterEvent", func() {
 		var events []types.GroupAlterEvent
 		BeforeEach(func() {
-			config.MaxGenerationCountPreSubjectActionAlterMessage = 3
+			config.MaxMessageGeneratedCountPreSubjectActionAlterEvent = 3
 			events = []types.GroupAlterEvent{
 				{
 					GroupPK:    1,
@@ -83,8 +83,8 @@ var _ = Describe("transfer", func() {
 		})
 
 		It("ok", func() {
-			subjectActionAlterMessages := convertToSubjectActionAlterMessage(events)
-			assert.Len(GinkgoT(), subjectActionAlterMessages, 4)
+			subjectActionAlterEvents := convertToSubjectActionAlterEvent(events)
+			assert.Len(GinkgoT(), subjectActionAlterEvents, 4)
 		})
 	})
 })

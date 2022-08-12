@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `bkiam`.`rbac_group_alter_event` (
   PRIMARY KEY (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `bkiam`.`rbac_subject_action_alter_message` (
+CREATE TABLE `bkiam`.`rbac_subject_action_alter_event` (
   `uuid` char(32) NOT NULL, -- uuid
   `data` mediumtext NOT NULL, -- json
   `status` int(10) unsigned NOT NULL DEFAULT '0',

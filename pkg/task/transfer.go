@@ -76,17 +76,31 @@ type subjectAction struct {
 	ActionPK  int64
 }
 
+type stats struct {
+	totalCount          int64
+	successCount        int64
+	failCount           int64
+	startTime           time.Time
+	lastShowProcessTime time.Time
+}
+
 type GroupAlterEventTransfer struct {
-	service                          service.GroupAlterEventService
-	subjectActionAlterMessageService service.SubjectActionAlterMessageService
-	producer                         producer.Producer
+	service                        service.GroupAlterEventService
+	subjectActionAlterEventService service.SubjectActionAlterEventService
+	producer                       producer.Producer
+
+	stats stats
 }
 
 func NewGroupAlterEventTransfer(producer producer.Producer) *GroupAlterEventTransfer {
 	return &GroupAlterEventTransfer{
-		service:                          service.NewGroupAlterEventService(),
-		subjectActionAlterMessageService: service.NewSubjectActionAlterMessageService(),
-		producer:                         producer,
+		service:                        service.NewGroupAlterEventService(),
+		subjectActionAlterEventService: service.NewSubjectActionAlterEventService(),
+		producer:                       producer,
+		stats: stats{
+			startTime:           time.Now(),
+			lastShowProcessTime: time.Now(),
+		},
 	}
 }
 
@@ -95,11 +109,21 @@ func (t *GroupAlterEventTransfer) Run() {
 
 	// run every 30 seconds
 	for range time.Tick(30 * time.Second) {
-		logger.Info("Start transfer group alter event to subject action alter message")
+		logger.Info("Start transfer group alter event to subject action alter event")
+		t.stats.totalCount += 1
 
 		err := t.transform()
 		if err != nil {
+			t.stats.failCount += 1
 			logger.WithError(err).Error("transform fail")
+		} else {
+			t.stats.successCount += 1
+		}
+
+		if t.stats.totalCount%1000 == 0 || time.Since(t.stats.lastShowProcessTime) > 30*time.Second {
+			t.stats.lastShowProcessTime = time.Now()
+			logger.Infof("consumer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
+				t.stats.totalCount, t.stats.successCount, t.stats.failCount, time.Since(t.stats.startTime))
 		}
 	}
 }
@@ -117,8 +141,8 @@ func (t *GroupAlterEventTransfer) transform() error {
 		return nil
 	}
 
-	// 生成subject action alter message
-	subjectActionAlterMessages := convertToSubjectActionAlterMessage(events)
+	// 生成subject action alter event
+	subjectActionAlterEvents := convertToSubjectActionAlterEvent(events)
 
 	tx, err := database.GenerateDefaultDBTx()
 	if err != nil {
@@ -126,13 +150,13 @@ func (t *GroupAlterEventTransfer) transform() error {
 	}
 	defer database.RollBackWithLog(tx)
 
-	// 生成 subject action alter message 并同时删除 group alter event
-	err = t.subjectActionAlterMessageService.BulkCreateWithTx(tx, subjectActionAlterMessages)
+	// 生成 subject action alter event 并同时删除 group alter event
+	err = t.subjectActionAlterEventService.BulkCreateWithTx(tx, subjectActionAlterEvents)
 	if err != nil {
 		return errorWrapf(
 			err,
-			"subjectActionAlterMessageService.BulkCreateWithTx fail message=`%v`",
-			subjectActionAlterMessages,
+			"subjectActionAlterEventService.BulkCreateWithTx fail events=`%v`",
+			subjectActionAlterEvents,
 		)
 	}
 
@@ -151,8 +175,8 @@ func (t *GroupAlterEventTransfer) transform() error {
 		return errorWrapf(err, "tx.Commit fail", "")
 	}
 
-	messageUUIDs := make([]string, 0, len(subjectActionAlterMessages))
-	for _, message := range subjectActionAlterMessages {
+	messageUUIDs := make([]string, 0, len(subjectActionAlterEvents))
+	for _, message := range subjectActionAlterEvents {
 		messageUUIDs = append(messageUUIDs, message.UUID)
 	}
 
@@ -163,28 +187,27 @@ func (t *GroupAlterEventTransfer) transform() error {
 	}
 
 	// 变更消息状态为已推送
-	err = t.subjectActionAlterMessageService.BulkUpdateStatus(messageUUIDs, types.SubjectActionAlterMessageStatusPushed)
+	err = t.subjectActionAlterEventService.BulkUpdateStatus(messageUUIDs, types.SubjectActionAlterEventStatusPushed)
 	if err != nil {
 		return errorWrapf(
 			err,
-			"subjectActionAlterMessageService.BulkUpdateStatus fail messageUUIDs=`%v`, status=`%d`",
+			"subjectActionAlterEventService.BulkUpdateStatus fail messageUUIDs=`%v`, status=`%d`",
 			messageUUIDs,
-			types.SubjectActionAlterMessageStatusPushed,
+			types.SubjectActionAlterEventStatusPushed,
 		)
 	}
 
 	return nil
 }
 
-func convertToSubjectActionAlterMessage(events []types.GroupAlterEvent) []types.SubjectActionAlterMessage {
+func convertToSubjectActionAlterEvent(events []types.GroupAlterEvent) []types.SubjectActionAlterEvent {
 	// 合并去重，所有的subject action group
 	subjectActionGroupMap := mergeSubjectActionGroup(events)
 
-	// 生成subject action alter message
-	subjectActionAlterMessages := make([]types.SubjectActionAlterMessage, 0, len(subjectActionGroupMap)*2)
+	// 生成subject action alter event
+	subjectActionAlterEvents := make([]types.SubjectActionAlterEvent, 0, len(subjectActionGroupMap)*2)
 
-	count := config.MaxGenerationCountPreSubjectActionAlterMessage
-	messages := make([]types.SubjectActionGroupMessage, 0, count)
+	messages := make([]types.SubjectActionGroupMessage, 0, len(subjectActionGroupMap))
 	for key, groupPKSet := range subjectActionGroupMap {
 		message := types.SubjectActionGroupMessage{
 			SubjectPK: key.SubjectPK,
@@ -193,25 +216,17 @@ func convertToSubjectActionAlterMessage(events []types.GroupAlterEvent) []types.
 		}
 
 		messages = append(messages, message)
-		if len(messages) == count {
-			subjectActionAlterMessages = append(subjectActionAlterMessages, types.SubjectActionAlterMessage{
-				UUID:     util.GenUUID4(),
-				Messages: messages,
-			})
-
-			// 清空messages
-			messages = make([]types.SubjectActionGroupMessage, 0, count)
-		}
 	}
 
-	if len(messages) > 0 {
-		subjectActionAlterMessages = append(subjectActionAlterMessages, types.SubjectActionAlterMessage{
+	step := config.MaxMessageGeneratedCountPreSubjectActionAlterEvent
+	for _, index := range util.Chunks(len(messages), step) {
+		subjectActionAlterEvents = append(subjectActionAlterEvents, types.SubjectActionAlterEvent{
 			UUID:     util.GenUUID4(),
-			Messages: messages,
+			Messages: messages[index.Begin:index.End],
 		})
 	}
 
-	return subjectActionAlterMessages
+	return subjectActionAlterEvents
 }
 
 func mergeSubjectActionGroup(events []types.GroupAlterEvent) map[subjectAction]*set.Int64Set {
