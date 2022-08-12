@@ -77,7 +77,7 @@ func convertOpenPolicyToPolicyGetResponse(policy prp.OpenPolicy) (policyGetRespo
 		return policyGetResponse{}, err
 	}
 
-	systemAction, err := cacheimpls.GetAction(policy.ActionPK)
+	action, err := cacheimpls.GetAction(policy.ActionPK)
 	if err != nil {
 		return policyGetResponse{}, err
 	}
@@ -85,14 +85,14 @@ func convertOpenPolicyToPolicyGetResponse(policy prp.OpenPolicy) (policyGetRespo
 	resp := policyGetResponse{
 		Version: policy.Version,
 		ID:      policy.ID,
-		System:  systemAction.System,
+		System:  action.System,
 		Subject: policyResponseSubject{
 			Type: subj.Type,
 			ID:   subj.ID,
 			Name: subj.Name,
 		},
 		Action: policyResponseAction{
-			ID: systemAction.ID,
+			ID: action.ID,
 		},
 		Expression: policy.Expression,
 		ExpiredAt:  policy.ExpiredAt,

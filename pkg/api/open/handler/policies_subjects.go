@@ -74,7 +74,7 @@ func PoliciesSubjects(c *gin.Context) {
 		subj, err1 := cacheimpls.GetSubjectByPK(subjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
-			log.Info(errorWrapf(err1, "policy_list.PoliciesSubjects GetSubjectByPK subject_pk=`%d` fail", subjectPK))
+			log.Info(errorWrapf(err1, "cacheimpls.GetSubjectByPK subject_pk=`%d` fail", subjectPK))
 
 			continue
 		}

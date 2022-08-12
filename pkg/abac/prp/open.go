@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/pdp/translate"
@@ -54,37 +53,37 @@ func NewOpenPolicyManager() OpenPolicyManager {
 
 var ErrPolicyNotFound = errors.New("policy not found")
 
-func (m *openPolicyManager) Get(_type string, systemID string, pk int64) (policy OpenPolicy, err error) {
+func (m *openPolicyManager) Get(_type string, systemID string, pk int64) (openPolicy OpenPolicy, err error) {
 	// 1. query policy
-	queryPolicy, err := m.policyService.Get(pk)
+	policy, err := m.policyService.Get(pk)
 	if err != nil {
 		// 不存在的情况, 404
 		if errors.Is(err, sql.ErrNoRows) {
-			return policy, ErrPolicyNotFound
+			return openPolicy, ErrPolicyNotFound
 		}
-		return policy, err
+		return openPolicy, err
 	}
 
-	// 5. get expression
-	pkExpressionMap, err := translateExpressions([]int64{queryPolicy.ExpressionPK})
+	// 2. get expression
+	pkExpressionMap, err := translateExpressions([]int64{policy.ExpressionPK})
 	if err != nil {
-		return policy, err
+		return openPolicy, err
 	}
-	expression, ok := pkExpressionMap[queryPolicy.ExpressionPK]
+	expression, ok := pkExpressionMap[policy.ExpressionPK]
 	if !ok {
-		return policy, fmt.Errorf("expression pk=`%d` missing", queryPolicy.ExpressionPK)
+		return openPolicy, fmt.Errorf("expression pk=`%d` missing", policy.ExpressionPK)
 	}
 
-	policy = OpenPolicy{
+	openPolicy = OpenPolicy{
 		Version:    service.PolicyVersion,
-		ID:         queryPolicy.PK,
-		ActionPK:   queryPolicy.ActionPK,
-		SubjectPK:  queryPolicy.SubjectPK,
+		ID:         policy.PK,
+		ActionPK:   policy.ActionPK,
+		SubjectPK:  policy.SubjectPK,
 		Expression: expression,
-		ExpiredAt:  queryPolicy.ExpiredAt,
+		ExpiredAt:  policy.ExpiredAt,
 	}
 
-	return policy, nil
+	return openPolicy, nil
 }
 
 func (m *openPolicyManager) List(
@@ -97,7 +96,7 @@ func (m *openPolicyManager) List(
 	count, err = m.policyService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 	if err != nil {
 		return 0, nil, fmt.Errorf(
-			"getCountByAction actionPK=`%d`, expiredAt=`%d` fail. err=%w",
+			"svc.GetCountByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d` fail. err=%w",
 			actionPK,
 			expiredAt,
 			err,
@@ -112,7 +111,7 @@ func (m *openPolicyManager) List(
 	queryPolicies, err = m.policyService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
 	if err != nil {
 		err = fmt.Errorf(
-			"listPoliciesByAction actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
+			"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
 			actionPK,
 			expiredAt,
 			offset,
@@ -163,18 +162,6 @@ func (m *openPolicyManager) ListSubjects(
 			continue
 		}
 
-		// subj, err1 := cacheimpls.GetSubjectByPK(policy.SubjectPK)
-		// // if get subject fail, continue
-		// if err1 != nil {
-		// 	log.Infof(
-		// 		"policy_list.PoliciesSubjects GetSubjectByPK subject_pk=`%d` fail. err=%w",
-		// 		policy.SubjectPK,
-		// 		err1,
-		// 	)
-
-		// 	continue
-		// }
-
 		data[policy.PK] = policy.SubjectPK
 	}
 
@@ -185,8 +172,6 @@ func (m *openPolicyManager) ListSubjects(
 func translateExpressions(
 	expressionPKs []int64,
 ) (expressionMap map[int64]map[string]interface{}, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.translateExpressions")
-
 	// when the pk is -1, will translate to any
 	pkExpressionStrMap := map[int64]string{
 		-1: "",
@@ -197,7 +182,7 @@ func translateExpressions(
 		var exprs []svctypes.AuthExpression
 		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
 		if err != nil {
-			err = errorWrapf(err, "policyManager.GetExpressionsFromCache pks=`%+v` fail", expressionPKs)
+			err = fmt.Errorf("policyManager.GetExpressionsFromCache pks=`%+v` fail. err=%w", expressionPKs, err)
 			return
 		}
 
@@ -214,7 +199,7 @@ func translateExpressions(
 		// e.Signature
 		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
 		if err1 != nil {
-			err = errorWrapf(err1, "translate fail", "")
+			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", expr, err1)
 			return
 		}
 		expressionMap[pk] = translatedExpr
@@ -225,7 +210,6 @@ func translateExpressions(
 func convertQueryPoliciesToOpenPolicies(
 	policies []svctypes.QueryPolicy,
 ) (openPolicies []OpenPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.convertQueryPoliciesToThinPolicies")
 	if len(policies) == 0 {
 		return
 	}
@@ -241,17 +225,19 @@ func convertQueryPoliciesToOpenPolicies(
 	// 2. query expression from cache
 	pkExpressionMap, err := translateExpressions(expressionPKs)
 	if err != nil {
-		err = errorWrapf(err, "translateExpressions expressionPKs=`%+v` fail", expressionPKs)
+		err = fmt.Errorf("translateExpressions expressionPKs=`%+v` fail. err=%w", expressionPKs, err)
 		return
 	}
 
-	// loop policies to build thinPolicies
+	// loop policies to build openPolicies
 	for _, p := range policies {
 		// if missing the expression, continue
 		expression, ok := pkExpressionMap[p.ExpressionPK]
 		if !ok {
-			log.Errorf("policy_list.convertQueryPoliciesToThinPolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
-				p.ExpressionPK)
+			log.Errorf(
+				"convertQueryPoliciesToOpenPolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
+				p.ExpressionPK,
+			)
 			continue
 		}
 
