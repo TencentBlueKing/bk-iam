@@ -11,12 +11,12 @@
 package service
 
 import (
-	"iam/pkg/database/dao"
-	"iam/pkg/service/types"
-
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
+
+	"iam/pkg/database/dao"
+	"iam/pkg/service/types"
 )
 
 // SubjectActionAlterMessageSVC ...

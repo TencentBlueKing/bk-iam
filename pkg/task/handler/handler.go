@@ -170,13 +170,10 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 
 		if found && len(resourceMap) != 0 {
 			// 更新group resource
-			obj.GroupResource[groupPK] = types.ResourceExpiredAt{
-				ExpiredAt: expiredAt,
-				Resources: resourceMap,
-			}
+			obj.UpdateGroupResource(groupPK, resourceMap, expiredAt)
 		} else {
 			// 关系不存在，移除用户组
-			delete(obj.GroupResource, groupPK)
+			obj.DeleteGroupResource(groupPK)
 		}
 	}
 
