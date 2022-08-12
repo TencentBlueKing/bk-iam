@@ -65,6 +65,7 @@ func StartTransfer() {
 	initSentry()
 	initMetrics()
 	initDatabase()
+	initRedis()
 	// NOTE: should be after initRedis
 	initRmqCleaner()
 	initWorker()
