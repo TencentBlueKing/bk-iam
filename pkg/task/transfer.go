@@ -27,7 +27,11 @@ import (
 	"iam/pkg/util"
 )
 
-const eventLimit int64 = 1000
+const (
+	transferLayer = "Transfer"
+
+	eventLimit int64 = 1000
+)
 
 // type Transfer ...
 type Transfer struct {
@@ -116,6 +120,14 @@ func (t *GroupAlterEventTransfer) Run() {
 		if err != nil {
 			t.stats.failCount += 1
 			logger.WithError(err).Error("transform fail")
+
+			// report to sentry
+			util.ReportToSentry("GroupAlterEventTransfer.transform fail",
+				map[string]interface{}{
+					"layer": transferLayer,
+					"error": err.Error(),
+				},
+			)
 		} else {
 			t.stats.successCount += 1
 		}
@@ -129,7 +141,7 @@ func (t *GroupAlterEventTransfer) Run() {
 }
 
 func (t *GroupAlterEventTransfer) transform() error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Transer", "transform")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(transferLayer, "transform")
 
 	createdAt := time.Now().Add(-30 * time.Second).Unix()
 	events, err := t.service.ListBeforeCreateAt(createdAt, eventLimit)
