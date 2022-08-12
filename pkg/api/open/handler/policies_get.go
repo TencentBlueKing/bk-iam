@@ -36,17 +36,15 @@ import (
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/policies/{policy_id} [get]
 func PolicyGet(c *gin.Context) {
-	var pathParams policyGetSerializer
-	if err := c.ShouldBindUri(&pathParams); err != nil {
+	var query policyGetSerializer
+	if err := c.ShouldBindUri(&query); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
-
-	systemID := c.Param("system_id")
-	_type := "abac"
+	query.initDefault()
 
 	manager := prp.NewOpenPolicyManager()
-	policy, err := manager.Get(_type, systemID, pathParams.PolicyID)
+	policy, err := manager.Get(query.Type, query.PolicyID)
 	if err != nil {
 		if errors.Is(err, prp.ErrPolicyNotFound) {
 			util.NotFoundJSONResponse(c, err.Error())
@@ -63,6 +61,7 @@ func PolicyGet(c *gin.Context) {
 		return
 	}
 
+	systemID := c.Param("system_id")
 	if systemID != data.System {
 		util.ForbiddenJSONResponse(c, fmt.Sprintf("system(%s) can't access system(%s)'s policy", systemID, data.System))
 		return

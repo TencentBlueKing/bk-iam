@@ -36,7 +36,7 @@ type OpenPolicy struct {
 
 // OpenPolicyManager for /api/v1/open/systems/:system_id/policies api
 type OpenPolicyManager interface {
-	Get(_type string, systemID string, pk int64) (OpenPolicy, error)
+	Get(_type string, pk int64) (OpenPolicy, error)
 	List(_type string, actionPK int64, expiredAt int64, offset, limit int64) (int64, []OpenPolicy, error)
 	ListSubjects(_type string, systemID string, pks []int64) (map[int64]int64, error)
 }
@@ -53,7 +53,9 @@ func NewOpenPolicyManager() OpenPolicyManager {
 
 var ErrPolicyNotFound = errors.New("policy not found")
 
-func (m *openPolicyManager) Get(_type string, systemID string, pk int64) (openPolicy OpenPolicy, err error) {
+func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, err error) {
+	// FIXME: add _type=rbac
+
 	// 1. query policy
 	policy, err := m.policyService.Get(pk)
 	if err != nil {
@@ -92,6 +94,8 @@ func (m *openPolicyManager) List(
 	expiredAt int64,
 	offset, limit int64,
 ) (count int64, policies []OpenPolicy, err error) {
+	// FIXME: add _type=rbac
+
 	// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
 	count, err = m.policyService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 	if err != nil {
@@ -137,12 +141,13 @@ func (m *openPolicyManager) ListSubjects(
 	systemID string,
 	pks []int64,
 ) (map[int64]int64, error) {
+	// FIXME: add _type=rbac
+
 	// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
 	// 1. query policy
 	policies, err := m.policyService.ListQueryByPKs(pks)
 	if err != nil {
-		return nil, fmt.Errorf("svc.ListQueryByPKs system=`%s`, policy_ids=`%+v` fail. err=%w",
-			systemID, pks, err)
+		return nil, fmt.Errorf("svc.ListQueryByPKs pks=`%+v` fail. err=%w", pks, err)
 	}
 
 	if len(policies) == 0 {

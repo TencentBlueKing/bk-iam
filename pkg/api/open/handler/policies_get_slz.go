@@ -10,8 +10,20 @@
 
 package handler
 
+import (
+	"iam/pkg/abac/prp"
+)
+
 type policyGetSerializer struct {
 	PolicyID int64 `uri:"policy_id"`
+
+	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
+}
+
+func (s *policyGetSerializer) initDefault() {
+	if s.Type == "" {
+		s.Type = prp.EngineListPolicyTypeAbac
+	}
 }
 
 type policyGetResponse struct {

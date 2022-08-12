@@ -71,12 +71,11 @@ func PolicyList(c *gin.Context) {
 		return
 	}
 
-	_type := "abac"
 	offset := (query.Page - 1) * query.PageSize
 	limit := query.PageSize
 
 	manager := prp.NewOpenPolicyManager()
-	count, policies, err := manager.List(_type, actionPK, query.Timestamp, offset, limit)
+	count, policies, err := manager.List(query.Type, actionPK, query.Timestamp, offset, limit)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

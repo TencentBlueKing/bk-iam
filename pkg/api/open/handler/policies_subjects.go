@@ -46,6 +46,7 @@ func PoliciesSubjects(c *gin.Context) {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
+	query.initDefault()
 
 	pks, err := util.StringToInt64Slice(query.IDs, ",")
 	if err != nil {
@@ -53,14 +54,12 @@ func PoliciesSubjects(c *gin.Context) {
 		return
 	}
 
-	_type := "abac"
-
 	manager := prp.NewOpenPolicyManager()
-	policySubjects, err := manager.ListSubjects(_type, systemID, pks)
+	policySubjects, err := manager.ListSubjects(query.Type, systemID, pks)
 	if err != nil {
 		err = fmt.Errorf(
 			"manager.ListSubjects _type=`%s`, systemID=`%+s`, pks=`%+v` fail. err=%w",
-			_type,
+			query.Type,
 			systemID,
 			pks,
 			err,
