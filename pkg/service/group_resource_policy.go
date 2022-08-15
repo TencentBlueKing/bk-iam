@@ -185,7 +185,7 @@ func (s *groupResourcePolicyService) Alter(
 		}
 
 		// 3.1 找不到，则需要新增记录
-		if !found {
+		if !found && actionPKs != "" {
 			createdPolicies = append(createdPolicies, dao.GroupResourcePolicy{
 				Signature:                   signature,
 				GroupPK:                     groupPK,
@@ -201,7 +201,9 @@ func (s *groupResourcePolicyService) Alter(
 
 		// 3.2 若变更后的ActionPKs为空，则删除整条策略
 		if actionPKs == "" {
-			deletedPolicyPKs = append(deletedPolicyPKs, policy.PK)
+			if found {
+				deletedPolicyPKs = append(deletedPolicyPKs, policy.PK)
+			}
 			continue
 		}
 
