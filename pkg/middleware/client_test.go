@@ -11,7 +11,7 @@
 package middleware
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -41,7 +41,7 @@ func TestClientAuthMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901401"))
 
@@ -68,7 +68,7 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(string(body), "1901401"))
 
@@ -83,7 +83,7 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err = ioutil.ReadAll(w.Body)
+	body, err = io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901401"))
 }
