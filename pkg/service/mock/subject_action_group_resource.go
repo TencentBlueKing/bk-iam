@@ -50,18 +50,17 @@ func (mr *MockSubjectActionGroupResourceServiceMockRecorder) BulkDeleteBySubject
 }
 
 // CreateOrUpdateWithTx mocks base method.
-func (m *MockSubjectActionGroupResourceService) CreateOrUpdateWithTx(tx *sqlx.Tx, subjectPK, actionPK, groupPK, expiredAt int64, resources map[int64][]string) (types.SubjectActionGroupResource, error) {
+func (m *MockSubjectActionGroupResourceService) CreateOrUpdateWithTx(tx *sqlx.Tx, obj types.SubjectActionGroupResource) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrUpdateWithTx", tx, subjectPK, actionPK, groupPK, expiredAt, resources)
-	ret0, _ := ret[0].(types.SubjectActionGroupResource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "CreateOrUpdateWithTx", tx, obj)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CreateOrUpdateWithTx indicates an expected call of CreateOrUpdateWithTx.
-func (mr *MockSubjectActionGroupResourceServiceMockRecorder) CreateOrUpdateWithTx(tx, subjectPK, actionPK, groupPK, expiredAt, resources interface{}) *gomock.Call {
+func (mr *MockSubjectActionGroupResourceServiceMockRecorder) CreateOrUpdateWithTx(tx, obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).CreateOrUpdateWithTx), tx, subjectPK, actionPK, groupPK, expiredAt, resources)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).CreateOrUpdateWithTx), tx, obj)
 }
 
 // DeleteByActionPKWithTx mocks base method.
@@ -78,19 +77,18 @@ func (mr *MockSubjectActionGroupResourceServiceMockRecorder) DeleteByActionPKWit
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).DeleteByActionPKWithTx), tx, actionPK)
 }
 
-// DeleteGroupResourceWithTx mocks base method.
-func (m *MockSubjectActionGroupResourceService) DeleteGroupResourceWithTx(tx *sqlx.Tx, subjectPK, actionPK, groupPK int64) (types.SubjectActionGroupResource, error) {
+// DeleteBySubjectActionWithTx mocks base method.
+func (m *MockSubjectActionGroupResourceService) DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteGroupResourceWithTx", tx, subjectPK, actionPK, groupPK)
-	ret0, _ := ret[0].(types.SubjectActionGroupResource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "DeleteBySubjectActionWithTx", tx, subjectPK, actionPK)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// DeleteGroupResourceWithTx indicates an expected call of DeleteGroupResourceWithTx.
-func (mr *MockSubjectActionGroupResourceServiceMockRecorder) DeleteGroupResourceWithTx(tx, subjectPK, actionPK, groupPK interface{}) *gomock.Call {
+// DeleteBySubjectActionWithTx indicates an expected call of DeleteBySubjectActionWithTx.
+func (mr *MockSubjectActionGroupResourceServiceMockRecorder) DeleteBySubjectActionWithTx(tx, subjectPK, actionPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroupResourceWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).DeleteGroupResourceWithTx), tx, subjectPK, actionPK, groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySubjectActionWithTx", reflect.TypeOf((*MockSubjectActionGroupResourceService)(nil).DeleteBySubjectActionWithTx), tx, subjectPK, actionPK)
 }
 
 // Get mocks base method.

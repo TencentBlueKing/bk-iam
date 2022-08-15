@@ -11,7 +11,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/golang/mock/gomock"
@@ -36,6 +35,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			obj, err := convertToSvcSubjectActionGroupResource(daoObj)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
+				PK:        1,
 				SubjectPK: 2,
 				ActionPK:  3,
 				GroupResource: map[int64]types.ResourceExpiredAt{
@@ -63,7 +63,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				},
 			}
 
-			daoObj, err := convertToDaoSubjectActionGroupResource(0, obj)
+			daoObj, err := convertToDaoSubjectActionGroupResource(obj)
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), dao.SubjectActionGroupResource{
 				PK:            0,
@@ -82,26 +82,9 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 		AfterEach(func() {
 			ctl.Finish()
 		})
-		It("manager.GetBySubjectAction fail", func() {
-			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().
-				GetBySubjectAction(int64(1), int64(2)).
-				Return(dao.SubjectActionGroupResource{}, errors.New("error"))
-
-			svc := &subjectActionGroupResourceService{
-				manager: mockManager,
-			}
-
-			_, err := svc.CreateOrUpdateWithTx(nil, int64(1), int64(2), int64(3), int64(10), nil)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "GetBySubjectAction")
-		})
 
 		It("createWithTx fail", func() {
 			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().
-				GetBySubjectAction(int64(1), int64(2)).
-				Return(dao.SubjectActionGroupResource{}, sql.ErrNoRows)
 			mockManager.EXPECT().CreateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            0,
 				SubjectPK:     1,
@@ -113,18 +96,24 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.CreateOrUpdateWithTx(nil, int64(1), int64(2), int64(3), int64(10), map[int64][]string{
-				5: {"6"},
+			err := svc.CreateOrUpdateWithTx(nil, types.SubjectActionGroupResource{
+				SubjectPK: 1,
+				ActionPK:  2,
+				GroupResource: map[int64]types.ResourceExpiredAt{
+					3: {
+						ExpiredAt: 10,
+						Resources: map[int64][]string{
+							5: {"6"},
+						},
+					},
+				},
 			})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "createWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "CreateWithTx")
 		})
 
 		It("create ok", func() {
 			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().
-				GetBySubjectAction(int64(1), int64(2)).
-				Return(dao.SubjectActionGroupResource{}, sql.ErrNoRows)
 			mockManager.EXPECT().CreateWithTx(gomock.Any(), dao.SubjectActionGroupResource{
 				PK:            0,
 				SubjectPK:     1,
@@ -136,11 +125,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			obj, err := svc.CreateOrUpdateWithTx(nil, int64(1), int64(2), int64(3), int64(10), map[int64][]string{
-				5: {"6"},
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
+			err := svc.CreateOrUpdateWithTx(nil, types.SubjectActionGroupResource{
 				SubjectPK: 1,
 				ActionPK:  2,
 				GroupResource: map[int64]types.ResourceExpiredAt{
@@ -151,17 +136,12 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 						},
 					},
 				},
-			}, obj)
+			})
+			assert.NoError(GinkgoT(), err)
 		})
 
 		It("updateWithTx fail", func() {
 			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().GetBySubjectAction(int64(1), int64(2)).Return(dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{}`,
-			}, nil)
 			mockManager.EXPECT().
 				UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{"3":{"resources":{"5":["6"]},"expired_at":10}}`).
 				Return(errors.New("error"))
@@ -170,34 +150,8 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 				manager: mockManager,
 			}
 
-			_, err := svc.CreateOrUpdateWithTx(nil, int64(1), int64(2), int64(3), int64(10), map[int64][]string{
-				5: {"6"},
-			})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "updateWithTx")
-		})
-
-		It("update ok", func() {
-			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().GetBySubjectAction(int64(1), int64(2)).Return(dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{}`,
-			}, nil)
-			mockManager.EXPECT().
-				UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{"3":{"resources":{"5":["6"]},"expired_at":10}}`).
-				Return(nil)
-
-			svc := &subjectActionGroupResourceService{
-				manager: mockManager,
-			}
-
-			obj, err := svc.CreateOrUpdateWithTx(nil, int64(1), int64(2), int64(3), int64(10), map[int64][]string{
-				5: {"6"},
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
+			err := svc.CreateOrUpdateWithTx(nil, types.SubjectActionGroupResource{
+				PK:        1,
 				SubjectPK: 1,
 				ActionPK:  2,
 				GroupResource: map[int64]types.ResourceExpiredAt{
@@ -208,73 +162,35 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 						},
 					},
 				},
-			}, obj)
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "UpdateGroupResourceWithTx")
 		})
-	})
 
-	Describe("DeleteGroupWithTx", func() {
-		var ctl *gomock.Controller
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-		AfterEach(func() {
-			ctl.Finish()
-		})
-		It("manager.GetBySubjectAction fail", func() {
+		It("update ok", func() {
 			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
 			mockManager.EXPECT().
-				GetBySubjectAction(int64(1), int64(2)).
-				Return(dao.SubjectActionGroupResource{}, errors.New("error"))
+				UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{"3":{"resources":{"5":["6"]},"expired_at":10}}`).
+				Return(nil)
 
 			svc := &subjectActionGroupResourceService{
 				manager: mockManager,
 			}
 
-			_, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "GetBySubjectAction")
-		})
-
-		It("update fail", func() {
-			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().GetBySubjectAction(int64(1), int64(2)).Return(dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
-			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{}`).Return(errors.New("error"))
-
-			svc := &subjectActionGroupResourceService{
-				manager: mockManager,
-			}
-
-			_, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "UpdateWithTx")
-		})
-
-		It("ok", func() {
-			mockManager := mock.NewMockSubjectActionGroupResourceManager(ctl)
-			mockManager.EXPECT().GetBySubjectAction(int64(1), int64(2)).Return(dao.SubjectActionGroupResource{
-				PK:            1,
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: `{"3":{"expired_at":10,"resources":{"5":["6"]}}}`,
-			}, nil)
-			mockManager.EXPECT().UpdateGroupResourceWithTx(gomock.Any(), int64(1), `{}`).Return(nil)
-
-			svc := &subjectActionGroupResourceService{
-				manager: mockManager,
-			}
-
-			obj, err := svc.DeleteGroupResourceWithTx(nil, int64(1), int64(2), int64(3))
+			err := svc.CreateOrUpdateWithTx(nil, types.SubjectActionGroupResource{
+				PK:        1,
+				SubjectPK: 1,
+				ActionPK:  2,
+				GroupResource: map[int64]types.ResourceExpiredAt{
+					3: {
+						ExpiredAt: 10,
+						Resources: map[int64][]string{
+							5: {"6"},
+						},
+					},
+				},
+			})
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
-				SubjectPK:     1,
-				ActionPK:      2,
-				GroupResource: map[int64]types.ResourceExpiredAt{},
-			}, obj)
 		})
 	})
 
@@ -317,6 +233,7 @@ var _ = Describe("SubjectActionGroupResourceService", func() {
 			obj, err := svc.Get(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), types.SubjectActionGroupResource{
+				PK:        1,
 				SubjectPK: 1,
 				ActionPK:  2,
 				GroupResource: map[int64]types.ResourceExpiredAt{

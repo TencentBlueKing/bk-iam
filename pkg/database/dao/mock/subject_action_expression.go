@@ -78,6 +78,20 @@ func (mr *MockSubjectActionExpressionManagerMockRecorder) DeleteByActionPKWithTx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByActionPKWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).DeleteByActionPKWithTx), tx, actionPK, limit)
 }
 
+// DeleteBySubjectActionWithTx mocks base method.
+func (m *MockSubjectActionExpressionManager) DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBySubjectActionWithTx", tx, subjectPK, actionPK)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBySubjectActionWithTx indicates an expected call of DeleteBySubjectActionWithTx.
+func (mr *MockSubjectActionExpressionManagerMockRecorder) DeleteBySubjectActionWithTx(tx, subjectPK, actionPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBySubjectActionWithTx", reflect.TypeOf((*MockSubjectActionExpressionManager)(nil).DeleteBySubjectActionWithTx), tx, subjectPK, actionPK)
+}
+
 // GetBySubjectAction mocks base method.
 func (m *MockSubjectActionExpressionManager) GetBySubjectAction(subjectPK, actionPK int64) (dao.SubjectActionExpression, error) {
 	m.ctrl.T.Helper()

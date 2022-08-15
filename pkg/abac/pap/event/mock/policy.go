@@ -5,7 +5,6 @@
 package mock
 
 import (
-	types "iam/pkg/service/types"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -56,16 +55,4 @@ func (m *MockPolicyEventProducer) PublishRBACDeletePolicyEvent(deletedPolicyPKs 
 func (mr *MockPolicyEventProducerMockRecorder) PublishRBACDeletePolicyEvent(deletedPolicyPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishRBACDeletePolicyEvent", reflect.TypeOf((*MockPolicyEventProducer)(nil).PublishRBACDeletePolicyEvent), deletedPolicyPKs)
-}
-
-// PublishRBACGroupAlterEvent mocks base method.
-func (m *MockPolicyEventProducer) PublishRBACGroupAlterEvent(groupPK int64, resourceChangedContents []types.ResourceChangedContent) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PublishRBACGroupAlterEvent", groupPK, resourceChangedContents)
-}
-
-// PublishRBACGroupAlterEvent indicates an expected call of PublishRBACGroupAlterEvent.
-func (mr *MockPolicyEventProducerMockRecorder) PublishRBACGroupAlterEvent(groupPK, resourceChangedContents interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishRBACGroupAlterEvent", reflect.TypeOf((*MockPolicyEventProducer)(nil).PublishRBACGroupAlterEvent), groupPK, resourceChangedContents)
 }

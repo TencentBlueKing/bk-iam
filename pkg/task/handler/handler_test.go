@@ -62,17 +62,37 @@ var _ = Describe("Handler", func() {
 			}
 		})
 
+		It("subjectActionGroupResourceService.Get error", func() {
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, errors.New("error"))
+
+			handler := &groupAlterMessageHandler{
+				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
+				locker:                            locker.NewDistributedSubjectActionLocker(),
+			}
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "Get")
+		})
+
 		It("groupService.GetExpiredAtBySubjectGroup error", func() {
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(0), errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
-				groupService: mockGroupService,
-				locker:       locker.NewDistributedSubjectActionLocker(),
+				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
+				groupService:                      mockGroupService,
+				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
 		})
@@ -85,46 +105,24 @@ var _ = Describe("Handler", func() {
 				},
 			)
 
-			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), service.ErrGroupMemberNotFound)
-
-			handler := &groupAlterMessageHandler{
-				groupService: mockGroupService,
-				locker:       locker.NewDistributedSubjectActionLocker(),
-			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "GetGroupActionAuthorizedResource")
-		})
-
-		It("subjectActionGroupResourceService.DeleteGroupWithTx error", func() {
-			patches.ApplyFunc(
-				cacheimpls.GetGroupActionAuthorizedResource,
-				func(_, _ int64) (map[int64][]string, error) {
-					return nil, nil
-				},
-			)
-
-			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
-				Return(int64(0), service.ErrGroupMemberNotFound)
-
 			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
-				DeleteGroupResourceWithTx(gomock.Any(), int64(1), int64(3), int64(2)).
-				Return(types.SubjectActionGroupResource{}, errors.New("error"))
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
+
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(int64(0), service.ErrGroupMemberNotFound)
 
 			handler := &groupAlterMessageHandler{
-				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
+				groupService:                      mockGroupService,
 				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "DeleteGroupWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "GetGroupActionAuthorizedResource")
 		})
 
 		It("subjectActionGroupResourceService.CreateOrUpdateWithTx error", func() {
@@ -137,24 +135,37 @@ var _ = Describe("Handler", func() {
 				},
 			)
 
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
+
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
-			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
-				CreateOrUpdateWithTx(gomock.Any(), int64(1), int64(3), int64(2), int64(10), map[int64][]string{
-					1: {"1", "2"},
+				CreateOrUpdateWithTx(gomock.Any(), types.SubjectActionGroupResource{
+					SubjectPK: 1,
+					ActionPK:  3,
+					GroupResource: map[int64]types.ResourceExpiredAt{
+						2: {
+							ExpiredAt: int64(10),
+							Resources: map[int64][]string{
+								1: {"1", "2"},
+							},
+						},
+					},
 				}).
-				Return(types.SubjectActionGroupResource{}, errors.New("error"))
+				Return(errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
 				groupService:                      mockGroupService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "CreateOrUpdateWithTx")
 		})
@@ -175,17 +186,30 @@ var _ = Describe("Handler", func() {
 				},
 			)
 
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
+
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
-			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
-				CreateOrUpdateWithTx(gomock.Any(), int64(1), int64(3), int64(2), int64(10), map[int64][]string{
-					1: {"1", "2"},
+				CreateOrUpdateWithTx(gomock.Any(), types.SubjectActionGroupResource{
+					SubjectPK: 1,
+					ActionPK:  3,
+					GroupResource: map[int64]types.ResourceExpiredAt{
+						2: {
+							ExpiredAt: int64(10),
+							Resources: map[int64][]string{
+								1: {"1", "2"},
+							},
+						},
+					},
 				}).
-				Return(types.SubjectActionGroupResource{}, nil)
+				Return(nil)
 
 			mockSubjectActionExpressionService := mock.NewMockSubjectActionExpressionService(ctl)
 			mockSubjectActionExpressionService.EXPECT().
@@ -198,7 +222,7 @@ var _ = Describe("Handler", func() {
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "subjectActionExpressionService")
 		})
@@ -222,17 +246,30 @@ var _ = Describe("Handler", func() {
 				return nil
 			})
 
+			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
+			mockSubjectActionGroupResourceService.EXPECT().
+				Get(int64(1), int64(3)).
+				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
+
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
-			mockSubjectActionGroupResourceService := mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockSubjectActionGroupResourceService.EXPECT().
-				CreateOrUpdateWithTx(gomock.Any(), int64(1), int64(3), int64(2), int64(10), map[int64][]string{
-					1: {"1", "2"},
+				CreateOrUpdateWithTx(gomock.Any(), types.SubjectActionGroupResource{
+					SubjectPK: 1,
+					ActionPK:  3,
+					GroupResource: map[int64]types.ResourceExpiredAt{
+						2: {
+							ExpiredAt: int64(10),
+							Resources: map[int64][]string{
+								1: {"1", "2"},
+							},
+						},
+					},
 				}).
-				Return(types.SubjectActionGroupResource{}, nil)
+				Return(nil)
 
 			mockSubjectActionExpressionService := mock.NewMockSubjectActionExpressionService(ctl)
 			mockSubjectActionExpressionService.EXPECT().
@@ -245,7 +282,7 @@ var _ = Describe("Handler", func() {
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				locker:                            locker.NewDistributedSubjectActionLocker(),
 			}
-			err := handler.alterSubjectActionGroupResource(1, 3, 2)
+			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.NoError(GinkgoT(), err)
 		})
 	})

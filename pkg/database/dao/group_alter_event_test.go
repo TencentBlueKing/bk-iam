@@ -20,84 +20,47 @@ import (
 	"iam/pkg/database"
 )
 
-func Test_groupAlterEventManagerManager_Get(t *testing.T) {
+func Test_groupAlterEventManagerManager_ListBeforeCreateAt(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk, task_id, group_pk, action_pks, subject_pks, check_count FROM rbac_group_alter_event WHERE pk=(.*)`
-		mockRows := sqlmock.NewRows([]string{"pk", "task_id", "group_pk", "action_pks", "subject_pks", "check_count"}).
-			AddRow(
-				int64(1), "", int64(1), "[1,2]", "[3,4]", int64(0))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
+		mockQuery := `^SELECT uuid, group_pk, action_pks, subject_pks FROM rbac_group_alter_event WHERE created_at<FROM_UNIXTIME(.*) LIMIT (.*)`
+		mockRows := sqlmock.NewRows([]string{"uuid"}).AddRow("uuid")
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), sqlmock.AnyArg()).WillReturnRows(mockRows)
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		evnet, err := manager.Get(int64(1))
+		events, err := manager.ListBeforeCreateAt(1, 2)
 
 		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, GroupAlterEvent{
-			PK: int64(1), GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckCount: int64(0),
-		}, evnet)
+		assert.Len(t, events, 1)
 	})
 }
 
-func Test_groupAlterEventManagerManager_ListByGroupCheckCount(t *testing.T) {
+func Test_groupAlterEventManagerManager_Create(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk FROM rbac_group_alter_event WHERE check_count<(.*)`
-		mockRows := sqlmock.NewRows([]string{"pk"}).
-			AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
+		mock.ExpectExec(`INSERT INTO rbac_group_alter_event`).WithArgs(
+			"uuid", int64(1), "[1,2]", "[3,4]",
+		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		manager := &groupAlterEventManagerManager{DB: db}
-		pks, err := manager.ListPKLessThanCheckCountBeforeCreateAt(0, 0)
+		err := manager.Create(GroupAlterEvent{
+			UUID: "uuid", GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]",
+		})
 
 		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, []int64{1}, pks)
 	})
 }
 
-func Test_groupAlterEventManagerManager_BulkCreateWithTx(t *testing.T) {
+func Test_groupAlterEventManagerManager_BulkDeleteWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectPrepare(`^INSERT INTO rbac_group_alter_event`).ExpectExec().WithArgs(
-			"", int64(1), "[1,2]", "[3,4]", int64(0),
-		).WillReturnResult(sqlmock.NewResult(1, 1))
-		mock.ExpectExec(`INSERT INTO rbac_group_alter_event`).WithArgs(
-			"", int64(1), "[1,2]", "[3,4]", int64(0),
+		mock.ExpectExec(`^DELETE FROM rbac_group_alter_event WHERE uuid IN`).WithArgs(
+			"uuid1", "uuid2",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
-
 		manager := &groupAlterEventManagerManager{DB: db}
-		ids, err := manager.BulkCreateWithTx(tx, []GroupAlterEvent{
-			{GroupPK: int64(1), ActionPKs: "[1,2]", SubjectPKs: "[3,4]", CheckCount: int64(0)},
-		})
-
-		assert.NoError(t, err, "query from db fail.")
-		assert.Equal(t, []int64{1}, ids)
-	})
-}
-
-func Test_groupAlterEventManagerManager_Delete(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`^DELETE FROM rbac_group_alter_event WHERE pk=`).WithArgs(
-			int64(1),
-		).WillReturnResult(sqlmock.NewResult(1, 1))
-
-		manager := &groupAlterEventManagerManager{DB: db}
-		err := manager.Delete(1)
-
-		assert.NoError(t, err, "query from db fail.")
-	})
-}
-
-func Test_groupAlterEventManagerManager_IncrCheckCount(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`^UPDATE rbac_group_alter_event SET check_count=`).WithArgs(
-			int64(1),
-		).WillReturnResult(sqlmock.NewResult(1, 1))
-
-		manager := &groupAlterEventManagerManager{DB: db}
-		err := manager.IncrCheckCount(1)
+		err = manager.BulkDeleteWithTx(tx, []string{"uuid1", "uuid2"})
 
 		assert.NoError(t, err, "query from db fail.")
 	})

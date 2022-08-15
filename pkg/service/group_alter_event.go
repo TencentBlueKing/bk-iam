@@ -13,14 +13,11 @@ package service
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 
-	"iam/pkg/config"
-	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -31,15 +28,13 @@ const GroupAlterEventSVC = "GroupAlterEventSVC"
 
 // GroupAlterEventService ...
 type GroupAlterEventService interface {
-	Get(pk int64) (event types.GroupAlterEvent, err error)
-	ListPKLessThanCheckCountBeforeCreateAt(CheckCount int64, createdAt int64) ([]int64, error)
+	ListBeforeCreateAt(createdAt int64, limit int64) ([]types.GroupAlterEvent, error)
 
-	IncrCheckCount(pk int64) (err error)
-	CreateByGroupAction(groupPK int64, actionPKs []int64) ([]int64, error)
-	CreateByGroupSubject(groupPK int64, subjectPKs []int64) ([]int64, error)
-	CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error)
+	CreateByGroupAction(groupPK int64, actionPKs []int64) error
+	CreateByGroupSubject(groupPK int64, subjectPKs []int64) error
+	CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) error
 
-	Delete(pk int64) (err error)
+	BulkDeleteWithTx(tx *sqlx.Tx, uuids []string) (err error)
 }
 
 type groupAlterEventService struct {
@@ -57,20 +52,26 @@ func NewGroupAlterEventService() GroupAlterEventService {
 	}
 }
 
-// Get ...
-func (s *groupAlterEventService) Get(pk int64) (event types.GroupAlterEvent, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupAlterEventSVC, "Get")
+// ListBeforeCreateAt ...
+func (s *groupAlterEventService) ListBeforeCreateAt(
+	createdAt int64,
+	limit int64,
+) (events []types.GroupAlterEvent, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupAlterEventSVC, "ListBeforeCreateAt")
 
-	daoEvent, err := s.manager.Get(pk)
+	daoEvents, err := s.manager.ListBeforeCreateAt(createdAt, limit)
 	if err != nil {
-		err = errorWrapf(err, "manager.Get pk=`%d` fail", pk)
+		err = errorWrapf(err, "manager.ListBeforeCreateAt createdAt=`%d` limit=`%d` fail", createdAt, limit)
 		return
 	}
 
-	event, err = convertToSvcGroupAlterEvent(daoEvent)
-	if err != nil {
-		err = errorWrapf(err, "convertToSvcGroupAlterEvent fail event=`%+v`", daoEvent)
-		return event, err
+	events = make([]types.GroupAlterEvent, 0, len(daoEvents))
+	for _, daoEvent := range daoEvents {
+		event, err := convertToSvcGroupAlterEvent(daoEvent)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, event)
 	}
 
 	return
@@ -78,9 +79,8 @@ func (s *groupAlterEventService) Get(pk int64) (event types.GroupAlterEvent, err
 
 func convertToSvcGroupAlterEvent(daoEvent dao.GroupAlterEvent) (types.GroupAlterEvent, error) {
 	event := types.GroupAlterEvent{
-		PK:         daoEvent.PK,
-		GroupPK:    daoEvent.GroupPK,
-		CheckCount: daoEvent.CheckCount,
+		UUID:    daoEvent.UUID,
+		GroupPK: daoEvent.GroupPK,
 	}
 
 	err := jsoniter.UnmarshalFromString(daoEvent.ActionPKs, &event.ActionPKs)
@@ -95,25 +95,15 @@ func convertToSvcGroupAlterEvent(daoEvent dao.GroupAlterEvent) (types.GroupAlter
 	return event, nil
 }
 
-// Delete ...
-func (s *groupAlterEventService) Delete(pk int64) (err error) {
-	return s.manager.Delete(pk)
-}
-
-// IncrCheckCount ...
-func (s *groupAlterEventService) IncrCheckCount(pk int64) (err error) {
-	return s.manager.IncrCheckCount(pk)
-}
-
 // CreateByGroupAction ...
 func (s *groupAlterEventService) CreateByGroupAction(
 	groupPK int64,
 	actionPKs []int64,
-) (pks []int64, err error) {
+) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupAction")
 
 	if len(actionPKs) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	subjectRelations, err := s.subjectGroupManager.ListGroupMember(groupPK)
@@ -123,7 +113,7 @@ func (s *groupAlterEventService) CreateByGroupAction(
 	}
 
 	if len(subjectRelations) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	subjectPKs := make([]int64, 0, len(subjectRelations))
@@ -131,24 +121,24 @@ func (s *groupAlterEventService) CreateByGroupAction(
 		subjectPKs = append(subjectPKs, r.SubjectPK)
 	}
 
-	pks, err = s.bulkCreate(groupPK, actionPKs, subjectPKs)
+	err = s.create(groupPK, actionPKs, subjectPKs)
 	if err != nil {
-		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`", actionPKs, subjectPKs)
-		return nil, err
+		err = errorWrapf(err, "create fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`", actionPKs, subjectPKs)
+		return
 	}
 
-	return pks, nil
+	return nil
 }
 
 // CreateByGroupSubject ...
 func (s *groupAlterEventService) CreateByGroupSubject(
 	groupPK int64,
 	subjectPKs []int64,
-) (pks []int64, err error) {
+) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateByGroupSubject")
 
 	if len(subjectPKs) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	actionPKsList, err := s.groupResourcePolicyManager.ListActionPKsByGroup(groupPK)
@@ -169,110 +159,56 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	}
 
 	if actionPKSet.Size() == 0 {
-		return nil, nil
+		return nil
 	}
 
-	pks, err = s.bulkCreate(groupPK, actionPKSet.ToSlice(), subjectPKs)
+	err = s.create(groupPK, actionPKSet.ToSlice(), subjectPKs)
 	if err != nil {
 		err = errorWrapf(
 			err,
-			"bulkCreate fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`",
+			"create fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`",
 			actionPKSet.ToSlice(),
 			subjectPKs,
 		)
-		return nil, err
+		return err
 	}
 
-	return pks, nil
+	return nil
 }
 
-/*
-举例: 5 个操作, 20 个用户, 总共会产生 100 个消息
-
-maxMessageGenerationCountPerEvent 是 200, chunkSize=200/5=40; 20个用户被切分成 1 段, 生成 1 个event
-maxMessageGenerationCountPerEvent 是 100, chunkSize=100/5=20, 20个用户被切分成 1 段, 生成 1 个event
-maxMessageGenerationCountPerEvent 是 50, chunkSize=50/5=10, 那么20个用户被切分成 2 段, 生成 2 个event, 每段产生 50 个消息
-*/
-func (s *groupAlterEventService) bulkCreate(groupPK int64, actionPKs, subjectPKs []int64) (pks []int64, err error) {
+func (s *groupAlterEventService) create(groupPK int64, actionPKs, subjectPKs []int64) error {
 	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// 每个event最多能生成message的数量
-	maxMessageGeneratedCountPerEvent := config.MaxMessageGeneratedCountPreGroupAlterEvent
-
-	// 生成用户subjectPKs分片大小, 每个event的actionPKs都是相同, actionPKs不会被分片, 只分片subjectPKs
-	// 一般actionPKs的数量不会太多, subjectPKs的数量可能会很多, 所以需要使用subjectPKs分片
-	chunkSize := maxMessageGeneratedCountPerEvent / len(actionPKs)
-	if chunkSize < 1 {
-		chunkSize = 1
-	}
-
-	taskID := util.GenUUID4()
-	events := make([]dao.GroupAlterEvent, 0, len(subjectPKs)/chunkSize+1)
-
-	// 使用subjectPKs分片, 每个event能生成的消息数量为 len(actionPKs) * chunkSize
-	for _, part := range chunks(len(subjectPKs), chunkSize) {
-		subjectPKStr, err := jsoniter.MarshalToString(subjectPKs[part[0]:part[1]])
-		if err != nil {
-			return nil, err
-		}
-
-		events = append(events, dao.GroupAlterEvent{
-			TaskID:     taskID,
-			GroupPK:    groupPK,
-			ActionPKs:  actionPKStr,
-			SubjectPKs: subjectPKStr,
-		})
-	}
-
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
+	subjectPKStr, err := jsoniter.MarshalToString(subjectPKs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	pks, err = s.manager.BulkCreateWithTx(tx, events)
-	if err != nil {
-		return nil, err
+	event := dao.GroupAlterEvent{
+		UUID:       util.GenUUID4(),
+		GroupPK:    groupPK,
+		ActionPKs:  actionPKStr,
+		SubjectPKs: subjectPKStr,
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return pks, nil
+	return s.manager.Create(event)
 }
 
-// ListPKLessThanCheckCountBeforeCreateAt ...
-func (s *groupAlterEventService) ListPKLessThanCheckCountBeforeCreateAt(
-	checkCount int64,
-	createdAt int64,
-) ([]int64, error) {
-	return s.manager.ListPKLessThanCheckCountBeforeCreateAt(checkCount, createdAt)
-}
-
-func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) (pk int64, err error) {
+func (s *groupAlterEventService) CreateBySubjectActionGroup(subjectPK, actionPK, groupPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "CreateBySubjectActionGroup")
-	pks, err := s.bulkCreate(groupPK, []int64{actionPK}, []int64{subjectPK})
+	err := s.create(groupPK, []int64{actionPK}, []int64{subjectPK})
 	if err != nil {
-		err = errorWrapf(err, "bulkCreate fail groupPK=`%d` actionPK=`%d` subjectPK=`%d`", groupPK, actionPK, subjectPK)
-		return 0, err
+		err = errorWrapf(err, "create fail groupPK=`%d` actionPK=`%d` subjectPK=`%d`", groupPK, actionPK, subjectPK)
+		return err
 	}
 
-	if len(pks) != 1 {
-		err = errors.New("bulkCreate return pks length not equal 1")
-		return 0, errorWrapf(
-			err,
-			"groupPK=`%d` actionPK=`%d` subjectPK=`%d` pks=`%+v`",
-			groupPK,
-			actionPK,
-			subjectPK,
-			pks,
-		)
-	}
+	return nil
+}
 
-	return pks[0], nil
+// Delete ...
+func (s *groupAlterEventService) BulkDeleteWithTx(tx *sqlx.Tx, uuids []string) (err error) {
+	return s.manager.BulkDeleteWithTx(tx, uuids)
 }
