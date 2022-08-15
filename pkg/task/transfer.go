@@ -140,7 +140,7 @@ func (t *GroupAlterEventTransfer) Run() {
 
 		if t.stats.totalCount%1000 == 0 || time.Since(t.stats.lastShowProcessTime) > 30*time.Second {
 			t.stats.lastShowProcessTime = time.Now()
-			logger.Infof("consumer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
+			logger.Infof("transfer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
 				t.stats.totalCount, t.stats.successCount, t.stats.failCount, time.Since(t.stats.startTime))
 		}
 	}
