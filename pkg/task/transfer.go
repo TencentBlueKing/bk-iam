@@ -199,21 +199,28 @@ func (t *GroupAlterEventTransfer) transform() (count int, err error) {
 		messageUUIDs = append(messageUUIDs, message.UUID)
 	}
 
+	logger := logging.GetWorkerLogger()
 	// 发送消息
 	err = t.producer.Publish(messageUUIDs...)
 	if err != nil {
-		return 0, errorWrapf(err, "producer.Publish fail messageUUIDs=`%v`", messageUUIDs)
+		// NOTE: 发送消息失败, 由checker定时检查, 这里整个转换逻辑实际已经完成, 所以不再返回错误
+		err = errorWrapf(err, "producer.Publish fail messageUUIDs=`%v`", messageUUIDs)
+		logger.WithError(err).Warn("Publish fail")
+		return count, nil
 	}
 
 	// 变更消息状态为已推送
 	err = t.subjectActionAlterEventService.BulkUpdateStatus(messageUUIDs, types.SubjectActionAlterEventStatusPushed)
 	if err != nil {
-		return 0, errorWrapf(
+		// NOTE: 同上, 设置状态失败,
+		err = errorWrapf(
 			err,
 			"subjectActionAlterEventService.BulkUpdateStatus fail messageUUIDs=`%v`, status=`%d`",
 			messageUUIDs,
 			types.SubjectActionAlterEventStatusPushed,
 		)
+		logger.WithError(err).Warn("BulkUpdateStatus fail")
+		return count, nil
 	}
 
 	return count, nil
