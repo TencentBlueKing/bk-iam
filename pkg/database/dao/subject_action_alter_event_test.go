@@ -13,11 +13,11 @@ package dao
 import (
 	"testing"
 
-	"iam/pkg/database"
-
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/database"
 )
 
 func Test_subjectActionAlterEventManager_Get(t *testing.T) {

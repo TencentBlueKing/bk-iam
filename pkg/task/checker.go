@@ -14,6 +14,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/adjust/rmq/v4"
+	log "github.com/sirupsen/logrus"
+
 	"iam/pkg/cache/redis"
 	"iam/pkg/config"
 	"iam/pkg/logging"
@@ -21,11 +26,6 @@ import (
 	"iam/pkg/service/types"
 	"iam/pkg/task/producer"
 	"iam/pkg/util"
-
-	"github.com/TencentBlueKing/gopkg/collection/set"
-	"github.com/TencentBlueKing/gopkg/errorx"
-	"github.com/adjust/rmq/v4"
-	log "github.com/sirupsen/logrus"
 )
 
 const checkerLayer = "Checker"
