@@ -28,42 +28,13 @@ var errQuota = errors.New("quota error")
 func checkSubjectGroupsQuota(_type, id string, subjects []pap.GroupMember) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "checkSubjectGroupsQuota")
 
-	// 查询groupPK
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	// 1. 查询groupPK
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s`", _type, id)
+		return errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`", _type, id)
 	}
 
 	service := service.NewGroupService()
-	// 1. 查询用户组所有的成员, 并移除已存在的成员
-	members, err := service.ListGroupMember(groupPK)
-	if err != nil {
-		return errorWrapf(err, "service.ListGroupMember groupPK=`%d`", groupPK)
-	}
-
-	existsSubjectPKs := set.NewFixedLengthInt64Set(len(members))
-	for _, member := range members {
-		existsSubjectPKs.Add(member.SubjectPK)
-	}
-
-	// 待检查的subjects
-	subjectMap := make(map[int64]pap.GroupMember, len(subjects))
-	for _, subject := range subjects {
-		subjectPK, err := cacheimpls.GetSubjectPK(subject.Type, subject.ID)
-		if err != nil {
-			return errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s`", subject.Type, subject.ID)
-		}
-
-		if existsSubjectPKs.Has(subjectPK) {
-			continue
-		}
-
-		subjectMap[subjectPK] = subject
-	}
-
-	if len(subjectMap) == 0 {
-		return nil
-	}
 
 	// 2. 查询group所授权的所有system
 	systems, err := service.ListGroupAuthSystemIDs(groupPK)
@@ -79,9 +50,13 @@ func checkSubjectGroupsQuota(_type, id string, subjects []pap.GroupMember) error
 	for _, system := range systems {
 		limit := common.GetMaxSubjectGroupsLimit(system)
 
-		for subjectPK, subject := range subjectMap {
+		for _, subject := range subjects {
+			subjectPK, err := cacheimpls.GetLocalSubjectPK(subject.Type, subject.ID)
+			if err != nil {
+				return errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`", subject.Type, subject.ID)
+			}
+
 			// 查询subject 系统下 已授权的用户组数量
-			// NOTE: 这里系统授权的用户组数量不是绝对准确, 可能有已过期的用户组不在这个数组中
 			subjectGroups, err := cacheimpls.ListSystemSubjectEffectGroups(system, []int64{subjectPK})
 			if err != nil {
 				return errorWrapf(
@@ -90,6 +65,16 @@ func checkSubjectGroupsQuota(_type, id string, subjects []pap.GroupMember) error
 					system,
 					subject,
 				)
+			}
+
+			groupPKSet := set.NewFixedLengthInt64Set(len(subjectGroups))
+			for _, group := range subjectGroups {
+				groupPKSet.Add(group.GroupPK)
+			}
+
+			// 已授权的用户组, 只更新过期时间, 数量不会增加, 不需要检查
+			if groupPKSet.Has(groupPK) {
+				continue
 			}
 
 			// 校验数量是否超限

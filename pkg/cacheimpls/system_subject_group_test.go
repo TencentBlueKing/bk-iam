@@ -129,7 +129,7 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 	mockService.EXPECT().ListEffectThinSubjectGroups("test", []int64{4}).Return(
 		map[int64][]types.ThinSubjectGroup{4: {{
 			GroupPK:   5,
-			ExpiredAt: 5,
+			ExpiredAt: time.Now().Add(1 * time.Minute).Unix(),
 		}}}, nil).AnyTimes()
 
 	patches := gomonkey.ApplyFunc(service.NewGroupService,
@@ -140,13 +140,7 @@ func TestListSystemSubjectEffectGroups(t *testing.T) {
 
 	subjectGroups, err := ListSystemSubjectEffectGroups("test", []int64{1, 2, 4})
 	assert.NoError(t, err)
-	assert.Equal(t, []types.ThinSubjectGroup{{
-		GroupPK:   2,
-		ExpiredAt: 2,
-	}, {
-		GroupPK:   5,
-		ExpiredAt: 5,
-	}}, subjectGroups)
+	assert.Len(t, subjectGroups, 1)
 }
 
 func TestSystemSubjectPKCacheKey_Key(t *testing.T) {
