@@ -91,3 +91,47 @@ func (mr *MockSubjectActionAlterEventManagerMockRecorder) Get(uuid interface{}) 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).Get), uuid)
 }
+
+// IncrCheckCount mocks base method.
+func (m *MockSubjectActionAlterEventManager) IncrCheckCount(uuid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IncrCheckCount", uuid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IncrCheckCount indicates an expected call of IncrCheckCount.
+func (mr *MockSubjectActionAlterEventManagerMockRecorder) IncrCheckCount(uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckCount", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).IncrCheckCount), uuid)
+}
+
+// ListUUIDByStatusBeforeUpdatedAt mocks base method.
+func (m *MockSubjectActionAlterEventManager) ListUUIDByStatusBeforeUpdatedAt(status, updateAt int64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUUIDByStatusBeforeUpdatedAt", status, updateAt)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUUIDByStatusBeforeUpdatedAt indicates an expected call of ListUUIDByStatusBeforeUpdatedAt.
+func (mr *MockSubjectActionAlterEventManagerMockRecorder) ListUUIDByStatusBeforeUpdatedAt(status, updateAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUUIDByStatusBeforeUpdatedAt", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).ListUUIDByStatusBeforeUpdatedAt), status, updateAt)
+}
+
+// ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt mocks base method.
+func (m *MockSubjectActionAlterEventManager) ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(status, checkCount, updateAt int64) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt", status, checkCount, updateAt)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt indicates an expected call of ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt.
+func (mr *MockSubjectActionAlterEventManagerMockRecorder) ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(status, checkCount, updateAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt), status, checkCount, updateAt)
+}

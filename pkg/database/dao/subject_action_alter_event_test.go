@@ -89,3 +89,53 @@ func Test_subjectActionAlterEventManager_Delete(t *testing.T) {
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
+
+func Test_subjectActionAlterEventManager_ListUUIDByStatusBeforeUpdatedAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		uuid
+		FROM rbac_subject_action_alter_event
+		WHERE status = (.*)
+		AND updated_at < FROM_UNIXTIME(.*)`
+		mockRows := sqlmock.NewRows([]string{"uuid"}).AddRow("uuid")
+		mock.ExpectQuery(mockQuery).WithArgs(int64(0), sqlmock.AnyArg()).WillReturnRows(mockRows)
+
+		manager := &subjectActionAlterEventManager{DB: db}
+		uuids, err := manager.ListUUIDByStatusBeforeUpdatedAt(0, 10)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, []string{"uuid"}, uuids)
+	})
+}
+
+func Test_subjectActionAlterEventManager_ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		uuid
+		FROM rbac_subject_action_alter_event
+		WHERE status > (.*)
+		AND check_count < (.*)
+		AND updated_at < FROM_UNIXTIME(.*)`
+		mockRows := sqlmock.NewRows([]string{"uuid"}).AddRow("uuid")
+		mock.ExpectQuery(mockQuery).WithArgs(int64(0), int64(3), sqlmock.AnyArg()).WillReturnRows(mockRows)
+
+		manager := &subjectActionAlterEventManager{DB: db}
+		uuids, err := manager.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(0, 3, 10)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, []string{"uuid"}, uuids)
+	})
+}
+
+func Test_subjectActionAlterEventManager_BulkIncrCheckCount(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mock.ExpectExec(`^UPDATE rbac_subject_action_alter_event`).WithArgs(
+			"uuid",
+		).WillReturnResult(sqlmock.NewResult(1, 1))
+
+		manager := &subjectActionAlterEventManager{DB: db}
+		err := manager.BulkIncrCheckCount([]string{"uuid"})
+
+		assert.NoError(t, err, "query from db fail.")
+	})
+}

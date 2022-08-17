@@ -40,6 +40,5 @@ CREATE TABLE `bkiam`.`rbac_subject_action_alter_event` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`uuid`),
-  KEY `idx_created_at_status` (`created_at`,`status`),
-  KEY `idx_updated_at_status` (`updated_at`,`status`)
+  KEY `idx_updated_at_status_check_count` (`updated_at`,`status`,`check_count`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
