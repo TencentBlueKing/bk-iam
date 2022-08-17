@@ -120,7 +120,7 @@ func NewSubjectActionAlterEventChecker(producer producer.Producer) *SubjectActio
 }
 
 func (c *SubjectActionAlterEventChecker) Run() {
-	logger := logging.GetWorkerLogger()
+	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
 
 	for range time.Tick(5 * time.Minute) {
 		c.stats.totalCount += 1
