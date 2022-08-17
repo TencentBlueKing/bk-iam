@@ -43,7 +43,7 @@ func queryPolicies(
 	subject types.Subject,
 	action types.Action,
 	effectGroupPKs []int64,
-	withoutRbacPolicies bool,
+	withRbacPolicies bool,
 	withoutCache bool,
 	entry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -56,7 +56,7 @@ func queryPolicies(
 		subject,
 		action,
 		effectGroupPKs,
-		withoutRbacPolicies,
+		withRbacPolicies,
 		withoutCache,
 		entry,
 	)
@@ -156,7 +156,7 @@ func queryAndPartialEvalConditions(
 
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
-	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, false, withoutCache, entry)
+	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, true, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return nil, nil

@@ -193,7 +193,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
-				withoutRbacPolicies bool,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -229,7 +229,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
-				withoutRbacPolicies bool,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -271,7 +271,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
-				withoutRbacPolicies bool,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -312,7 +312,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
-				withoutRbacPolicies bool,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {

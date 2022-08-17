@@ -100,7 +100,7 @@ func reportTooLargeReturnedPolicies(count int, system, actionID, subjectType, su
 // PolicyManager ...
 type PolicyManager interface {
 	ListBySubjectAction(system string, subject types.Subject, action types.Action, effectGroupPKs []int64,
-		withoutRbacPolicies bool, withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) // 需要对service查询来的policy去重
+		withRbacPolicies bool, withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) // 需要对service查询来的policy去重
 
 	GetExpressionsFromCache(actionPK int64, expressionPKs []int64) ([]svctypes.AuthExpression, error)
 }
@@ -127,7 +127,7 @@ func (m *policyManager) ListBySubjectAction(
 	subject types.Subject,
 	action types.Action,
 	effectGroupPKs []int64,
-	withoutRbacPolicies bool,
+	withRbacPolicies bool,
 	withoutCache bool,
 	parentEntry *debug.Entry,
 ) (effectPolicies []types.AuthPolicy, err error) {
@@ -187,7 +187,7 @@ func (m *policyManager) ListBySubjectAction(
 	}
 
 	// 3. 查询RBAC表达式
-	if !withoutRbacPolicies {
+	if withRbacPolicies {
 		debug.AddStep(entry, "query rbac policy")
 		rbacPolicies, err := m.listRbacBySubjectAction(
 			system, subject, action, withoutCache, entry,
