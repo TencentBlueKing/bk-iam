@@ -76,7 +76,7 @@ func (c *Checker) Wait() {
 }
 
 func StartClean() {
-	logger := logging.GetWorkerLogger()
+	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
 
 	cleaner := rmq.NewCleaner(connection)
 
