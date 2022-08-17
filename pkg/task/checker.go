@@ -197,7 +197,7 @@ func (c *SubjectActionAlterEventChecker) check() error {
 	updatedAt = time.Now().Add(-10 * time.Minute).Unix()
 	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
 	uuids, err = c.service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
-		types.SubjectActionAlterEventStatusPushed,
+		types.SubjectActionAlterEventStatusCreated,
 		maxCheckCount,
 		updatedAt,
 	)
@@ -206,7 +206,7 @@ func (c *SubjectActionAlterEventChecker) check() error {
 			err,
 			"service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt fail,"+
 				" status=`%d`, checkCount=`%d`, updatedAt=`%d`",
-			types.SubjectActionAlterEventStatusPushed,
+			types.SubjectActionAlterEventStatusCreated,
 			maxCheckCount,
 			updatedAt,
 		)
