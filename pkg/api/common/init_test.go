@@ -83,4 +83,38 @@ var _ = Describe("Init", func() {
 			assert.True(GinkgoT(), GetSwitchDisableCreateSystemClientValidation())
 		})
 	})
+
+	Describe("web quotas", func() {
+		It("all default", func() {
+			InitQuota(config.Quota{}, map[string]config.Quota{})
+
+			assert.Equal(GinkgoT(), DefaultMaxSubjectGroupsLimit, GetMaxSubjectGroupsLimit("abc"))
+		})
+
+		It("hit config file default", func() {
+			InitQuota(config.Quota{
+				Web: map[string]int{
+					maxSubjectGroupsLimitKey: 123,
+				},
+			}, map[string]config.Quota{})
+
+			assert.Equal(GinkgoT(), 123, GetMaxSubjectGroupsLimit("abc"))
+		})
+
+		It("hit custom quotas", func() {
+			InitQuota(config.Quota{
+				Web: map[string]int{
+					maxSubjectGroupsLimitKey: 123,
+				},
+			}, map[string]config.Quota{
+				"abc": {
+					Web: map[string]int{
+						maxSubjectGroupsLimitKey: 111,
+					},
+				},
+			})
+
+			assert.Equal(GinkgoT(), 111, GetMaxSubjectGroupsLimit("abc"))
+		})
+	})
 })

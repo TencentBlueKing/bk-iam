@@ -103,6 +103,9 @@ type Quota struct {
 
 	// NOTE: only used for rate limit middleware, will remove in the future
 	API map[string]int
+
+	// NOTE: for web api logic
+	Web map[string]int
 }
 
 // SystemQuota store the settings for specific system
