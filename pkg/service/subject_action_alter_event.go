@@ -36,7 +36,7 @@ type SubjectActionAlterEventService interface {
 	ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
 		status, checkCount, updateAt int64,
 	) ([]string, error)
-	IncrCheckCount(uuid string) error
+	BulkIncrCheckCount(uuids []string) error
 }
 
 type subjectActionAlterEventService struct {
@@ -140,7 +140,7 @@ func (s *subjectActionAlterEventService) ListUUIDGreaterThanStatusLessThanCheckC
 	return s.manager.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(status, checkCount, updateAt)
 }
 
-// IncrCheckCount ...
-func (s *subjectActionAlterEventService) IncrCheckCount(uuid string) error {
-	return s.manager.IncrCheckCount(uuid)
+// BulkIncrCheckCount ...
+func (s *subjectActionAlterEventService) BulkIncrCheckCount(uuids []string) error {
+	return s.manager.BulkIncrCheckCount(uuids)
 }

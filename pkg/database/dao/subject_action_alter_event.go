@@ -39,7 +39,7 @@ type SubjectActionAlterEventManager interface {
 	ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
 		status, checkCount, updateAt int64,
 	) (uuids []string, err error)
-	IncrCheckCount(uuid string) error
+	BulkIncrCheckCount(uuids []string) error
 }
 
 type subjectActionAlterEventManager struct {
@@ -131,9 +131,9 @@ func (m *subjectActionAlterEventManager) ListUUIDGreaterThanStatusLessThanCheckC
 	return uuids, err
 }
 
-// IncrCheckCount ...
-func (m *subjectActionAlterEventManager) IncrCheckCount(uuid string) error {
-	sql := `UPDATE rbac_subject_action_alter_event SET check_count=check_count+1 WHERE uuid=?`
-	err := database.SqlxExec(m.DB, sql, uuid)
+// BulkIncrCheckCount ...
+func (m *subjectActionAlterEventManager) BulkIncrCheckCount(uuids []string) error {
+	sql := `UPDATE rbac_subject_action_alter_event SET check_count=check_count+1 WHERE uuid IN (?)`
+	err := database.SqlxExec(m.DB, sql, uuids)
 	return err
 }

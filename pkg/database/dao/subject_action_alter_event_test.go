@@ -127,14 +127,14 @@ func Test_subjectActionAlterEventManager_ListUUIDGreaterThanStatusLessThanCheckC
 	})
 }
 
-func Test_subjectActionAlterEventManager_IncrCheckCount(t *testing.T) {
+func Test_subjectActionAlterEventManager_BulkIncrCheckCount(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectExec(`^UPDATE rbac_subject_action_alter_event`).WithArgs(
 			"uuid",
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		manager := &subjectActionAlterEventManager{DB: db}
-		err := manager.IncrCheckCount("uuid")
+		err := manager.BulkIncrCheckCount([]string{"uuid"})
 
 		assert.NoError(t, err, "query from db fail.")
 	})

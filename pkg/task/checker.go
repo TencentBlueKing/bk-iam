@@ -94,12 +94,10 @@ func StartClean() {
 	}
 }
 
-const queueKey = "rmq::queue::[grp_sub_act]::ready"
-
 func listReadyMessage() ([]string, error) {
 	cli := redis.GetDefaultMQRedisClient()
 
-	return cli.LRange(context.Background(), queueKey, 0, -1).Result()
+	return cli.LRange(context.Background(), rbacEventQueueKey, 0, -1).Result()
 }
 
 type SubjectActionAlterEventChecker struct {
@@ -144,7 +142,7 @@ func (c *SubjectActionAlterEventChecker) Run() {
 		}
 
 		c.stats.lastShowProcessTime = time.Now()
-		logger.Infof("transfer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
+		logger.Infof("checker processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
 			c.stats.totalCount, c.stats.successCount, c.stats.failCount, time.Since(c.stats.startTime))
 	}
 }
@@ -172,22 +170,29 @@ func (c *SubjectActionAlterEventChecker) check() error {
 		)
 	}
 
+	missUUIDs := make([]string, 0, len(uuids))
 	for _, uuid := range uuids {
 		if !readyMessageSet.Has(uuid) {
-			// 判断uuid是否在readyMessageSet中, 如果不在, 则发送消息
-			err = c.producer.Publish(uuid)
-			if err != nil {
-				return errorWrapf(err, "producer.Publish fail, uuid=`%s`", uuid)
-			}
+			missUUIDs = append(missUUIDs, uuid)
 		}
+	}
 
+	// 发送不在readyMessageSet中的消息
+	if len(missUUIDs) > 0 {
+		err = c.producer.Publish(missUUIDs...)
+		if err != nil {
+			return errorWrapf(err, "producer.Publish fail, uuids=`%s`", missUUIDs)
+		}
+	}
+
+	if len(uuids) > 0 {
 		// 更新状态为1
-		err = c.service.BulkUpdateStatus([]string{uuid}, types.SubjectActionAlterEventStatusPushed)
+		err = c.service.BulkUpdateStatus(uuids, types.SubjectActionAlterEventStatusPushed)
 		if err != nil {
 			return errorWrapf(
 				err,
 				"service.BulkUpdateStatus fail, uuid=`%s`, status=`%d`",
-				uuid,
+				uuids,
 				types.SubjectActionAlterEventStatusPushed,
 			)
 		}
@@ -212,22 +217,24 @@ func (c *SubjectActionAlterEventChecker) check() error {
 		)
 	}
 
+	missUUIDs = make([]string, 0, len(uuids))
 	for _, uuid := range uuids {
-		if readyMessageSet.Has(uuid) {
-			// 判断uuid是否在readyMessageSet中, 如果在, continue
-			continue
+		if !readyMessageSet.Has(uuid) {
+			missUUIDs = append(missUUIDs, uuid)
 		}
+	}
 
+	if len(missUUIDs) > 0 {
 		// 发送消息
-		err = c.producer.Publish(uuid)
+		err = c.producer.Publish(missUUIDs...)
 		if err != nil {
-			return errorWrapf(err, "producer.Publish fail, uuid=`%s`", uuid)
+			return errorWrapf(err, "producer.Publish fail, uuid=`%s`", missUUIDs)
 		}
 
 		// 更新check_count=check_count+1
-		err = c.service.IncrCheckCount(uuid)
+		err = c.service.BulkIncrCheckCount(missUUIDs)
 		if err != nil {
-			return errorWrapf(err, "service.IncrCheckCount fail, uuid=`%s`", uuid)
+			return errorWrapf(err, "service.BulkIncrCheckCount fail, uuids=`%s`", missUUIDs)
 		}
 	}
 
