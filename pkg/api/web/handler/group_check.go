@@ -48,7 +48,7 @@ func checkSubjectGroupsQuota(_type, id string, subjects []pap.GroupMember) error
 
 	// 3. 遍历system, 查询subject已加入的group数量
 	for _, system := range systems {
-		limit := common.GetMaxSubjectGroupsLimit(system)
+		limit := common.GetSubjectMaxGroupsLimit(system)
 
 		for _, subject := range subjects {
 			subjectPK, err := cacheimpls.GetLocalSubjectPK(subject.Type, subject.ID)

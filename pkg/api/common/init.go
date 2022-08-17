@@ -27,9 +27,10 @@ const (
 	DefaultMaxInstanceSelectionsLimit = 50
 
 	// web quota
-	maxSubjectGroupsLimitKey = "max_subject_groups_limit"
+	// 一个人单个系统加入的最大组数量
+	subjectMaxGroupsLimitKey = "subject_max_groups_limit"
 
-	DefaultMaxSubjectGroupsLimit = 100
+	DefaultSubjectMaxGroupsLimit = 100
 
 	// triggers
 	triggerDisableCreateSystemClientValidationKey = "disable_create_system_client_validation"
@@ -102,7 +103,7 @@ var (
 	)
 
 	// Web
-	GetMaxSubjectGroupsLimit = makeGetWebLimitFunc(maxSubjectGroupsLimitKey, DefaultMaxSubjectGroupsLimit)
+	GetSubjectMaxGroupsLimit = makeGetWebLimitFunc(subjectMaxGroupsLimitKey, DefaultSubjectMaxGroupsLimit)
 )
 
 func makeGetSwitchFunc(key string, defaultValue bool) func() bool {
