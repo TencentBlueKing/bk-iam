@@ -14,11 +14,21 @@ import (
 	"context"
 	"time"
 
+	"iam/pkg/cache/redis"
+	"iam/pkg/config"
 	"iam/pkg/logging"
+	"iam/pkg/service"
+	"iam/pkg/service/types"
+	"iam/pkg/task/producer"
+	"iam/pkg/util"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/adjust/rmq/v4"
 	log "github.com/sirupsen/logrus"
 )
+
+const checkerLayer = "Checker"
 
 // type Checker ...
 type Checker struct {
@@ -40,6 +50,11 @@ func (c *Checker) Run(ctx context.Context) {
 		log.Info("Stopping worker gracefully")
 		c.Stop()
 	}()
+
+	// Start subject action alter event checker
+	go NewSubjectActionAlterEventChecker(
+		producer.NewRedisProducer(rbacEventQueue),
+	).Run()
 
 	// Start rmq cleaner
 	go StartClean()
@@ -77,4 +92,144 @@ func StartClean() {
 		logger.Infof("rmq cleaned %d", returned)
 		logger.Info("Clean rmq end")
 	}
+}
+
+const queueKey = "rmq::queue::[grp_sub_act]::ready"
+
+func listReadyMessage() ([]string, error) {
+	cli := redis.GetDefaultMQRedisClient()
+
+	return cli.LRange(context.Background(), queueKey, 0, -1).Result()
+}
+
+type SubjectActionAlterEventChecker struct {
+	service  service.SubjectActionAlterEventService
+	producer producer.Producer
+
+	stats stats
+}
+
+func NewSubjectActionAlterEventChecker(producer producer.Producer) *SubjectActionAlterEventChecker {
+	return &SubjectActionAlterEventChecker{
+		service:  service.NewSubjectActionAlterEventService(),
+		producer: producer,
+
+		stats: stats{
+			startTime:           time.Now(),
+			lastShowProcessTime: time.Now(),
+		},
+	}
+}
+
+func (c *SubjectActionAlterEventChecker) Run() {
+	logger := logging.GetWorkerLogger()
+
+	for range time.Tick(5 * time.Minute) {
+		c.stats.totalCount += 1
+
+		err := c.check()
+		if err != nil {
+			c.stats.failCount += 1
+			logger.WithError(err).Error("check fail")
+
+			// report to sentry
+			util.ReportToSentry("SubjectActionAlterEventChecker.check fail",
+				map[string]interface{}{
+					"layer": checkerLayer,
+					"error": err.Error(),
+				},
+			)
+		} else {
+			c.stats.successCount += 1
+		}
+
+		c.stats.lastShowProcessTime = time.Now()
+		logger.Infof("transfer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
+			c.stats.totalCount, c.stats.successCount, c.stats.failCount, time.Since(c.stats.startTime))
+	}
+}
+
+func (c *SubjectActionAlterEventChecker) check() error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(checkerLayer, "check")
+
+	readyMessages, err := listReadyMessage()
+	if err != nil {
+		return errorWrapf(err, "listReadyMessage error")
+	}
+
+	// 用于避免重复发送消息
+	readyMessageSet := set.NewStringSetWithValues(readyMessages)
+
+	// 1. 查询更新时间超过30秒, status=0的记录
+	updatedAt := time.Now().Add(-30 * time.Second).Unix()
+	uuids, err := c.service.ListUUIDByStatusBeforeUpdatedAt(types.SubjectActionAlterEventStatusCreated, updatedAt)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.ListUUIDByStatusBeforeUpdatedAt fail, status=`%d`, updatedAt=`%d`",
+			types.SubjectActionAlterEventStatusCreated,
+			updatedAt,
+		)
+	}
+
+	for _, uuid := range uuids {
+		if !readyMessageSet.Has(uuid) {
+			// 判断uuid是否在readyMessageSet中, 如果不在, 则发送消息
+			err = c.producer.Publish(uuid)
+			if err != nil {
+				return errorWrapf(err, "producer.Publish fail, uuid=`%s`", uuid)
+			}
+		}
+
+		// 更新状态为1
+		err = c.service.BulkUpdateStatus([]string{uuid}, types.SubjectActionAlterEventStatusPushed)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"service.BulkUpdateStatus fail, uuid=`%s`, status=`%d`",
+				uuid,
+				types.SubjectActionAlterEventStatusPushed,
+			)
+		}
+	}
+
+	// 2. 查询更新时间超过10分钟, status>0, check_count<3的记录
+	updatedAt = time.Now().Add(-10 * time.Minute).Unix()
+	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
+	uuids, err = c.service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+		types.SubjectActionAlterEventStatusPushed,
+		maxCheckCount,
+		updatedAt,
+	)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt fail,"+
+				" status=`%d`, checkCount=`%d`, updatedAt=`%d`",
+			types.SubjectActionAlterEventStatusPushed,
+			maxCheckCount,
+			updatedAt,
+		)
+	}
+
+	for _, uuid := range uuids {
+		if readyMessageSet.Has(uuid) {
+			// 判断uuid是否在readyMessageSet中, 如果在, continue
+			continue
+		}
+
+		// 发送消息
+		err = c.producer.Publish(uuid)
+		if err != nil {
+			return errorWrapf(err, "producer.Publish fail, uuid=`%s`", uuid)
+		}
+
+		// 更新check_count=check_count+1
+		err = c.service.IncrCheckCount(uuid)
+		if err != nil {
+			return errorWrapf(err, "service.IncrCheckCount fail, uuid=`%s`", uuid)
+		}
+	}
+
+	return nil
 }

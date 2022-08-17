@@ -33,6 +33,13 @@ type SubjectActionAlterEventManager interface {
 	BulkCreateWithTx(tx *sqlx.Tx, messages []SubjectActionAlterEvent) error
 	BulkUpdateStatus(uuids []string, status int64) error
 	Delete(uuid string) error
+
+	// for task checker
+	ListUUIDByStatusBeforeUpdatedAt(status, updateAt int64) (uuids []string, err error)
+	ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+		status, checkCount, updateAt int64,
+	) (uuids []string, err error)
+	IncrCheckCount(uuid string) error
 }
 
 type subjectActionAlterEventManager struct {
@@ -95,4 +102,38 @@ func (m *subjectActionAlterEventManager) Delete(uuid string) error {
 	sql := `DELETE FROM rbac_subject_action_alter_event
 		WHERE uuid = ?`
 	return database.SqlxExec(m.DB, sql, uuid)
+}
+
+// ListUUIDByStatusBeforeUpdatedAt ...
+func (m *subjectActionAlterEventManager) ListUUIDByStatusBeforeUpdatedAt(
+	status, updateAt int64,
+) (uuids []string, err error) {
+	sql := `SELECT
+		uuid
+		FROM rbac_subject_action_alter_event
+		WHERE status = ?
+		AND updated_at < FROM_UNIXTIME(?)`
+	err = database.SqlxSelect(m.DB, &uuids, sql, status, updateAt)
+	return uuids, err
+}
+
+// ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt ...
+func (m *subjectActionAlterEventManager) ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+	status, checkCount, updateAt int64,
+) (uuids []string, err error) {
+	sql := `SELECT
+		uuid
+		FROM rbac_subject_action_alter_event
+		WHERE status > ?
+		AND check_count < ?
+		AND updated_at < FROM_UNIXTIME(?)`
+	err = database.SqlxSelect(m.DB, &uuids, sql, status, checkCount, updateAt)
+	return uuids, err
+}
+
+// IncrCheckCount ...
+func (m *subjectActionAlterEventManager) IncrCheckCount(uuid string) error {
+	sql := `UPDATE rbac_subject_action_alter_event SET check_count=check_count+1 WHERE uuid=?`
+	err := database.SqlxExec(m.DB, sql, uuid)
+	return err
 }

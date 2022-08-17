@@ -30,6 +30,13 @@ type SubjectActionAlterEventService interface {
 	BulkCreateWithTx(tx *sqlx.Tx, events []types.SubjectActionAlterEvent) error
 	BulkUpdateStatus(uuids []string, status int64) error
 	Delete(uuid string) error
+
+	// for task checker
+	ListUUIDByStatusBeforeUpdatedAt(status, updateAt int64) ([]string, error)
+	ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+		status, checkCount, updateAt int64,
+	) ([]string, error)
+	IncrCheckCount(uuid string) error
 }
 
 type subjectActionAlterEventService struct {
@@ -119,4 +126,21 @@ func (s *subjectActionAlterEventService) BulkCreateWithTx(
 	}
 
 	return nil
+}
+
+// ListUUIDByStatusBeforeUpdatedAt ...
+func (s *subjectActionAlterEventService) ListUUIDByStatusBeforeUpdatedAt(status, updateAt int64) ([]string, error) {
+	return s.manager.ListUUIDByStatusBeforeUpdatedAt(status, updateAt)
+}
+
+// ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt ...
+func (s *subjectActionAlterEventService) ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+	status, checkCount, updateAt int64,
+) ([]string, error) {
+	return s.manager.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(status, checkCount, updateAt)
+}
+
+// IncrCheckCount ...
+func (s *subjectActionAlterEventService) IncrCheckCount(uuid string) error {
+	return s.manager.IncrCheckCount(uuid)
 }
