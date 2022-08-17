@@ -43,6 +43,7 @@ func queryPolicies(
 	subject types.Subject,
 	action types.Action,
 	effectGroupPKs []int64,
+	withoutRbacPolicies bool,
 	withoutCache bool,
 	entry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -50,7 +51,15 @@ func queryPolicies(
 
 	manager := prp.NewPolicyManager()
 
-	policies, err = manager.ListBySubjectAction(system, subject, action, effectGroupPKs, withoutCache, entry)
+	policies, err = manager.ListBySubjectAction(
+		system,
+		subject,
+		action,
+		effectGroupPKs,
+		withoutRbacPolicies,
+		withoutCache,
+		entry,
+	)
 	if err != nil {
 		err = errorWrapf(err,
 			"ListBySubjectAction system=`%s`, subject=`%s`, action=`%s`, withoutCache=`%t` fail",
@@ -64,7 +73,7 @@ func queryPolicies(
 		return
 	}
 
-	return
+	return policies, nil
 }
 
 // queryAndPartialEvalConditions 查询请求相关的Policy
@@ -147,7 +156,7 @@ func queryAndPartialEvalConditions(
 
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
-	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withoutCache, entry)
+	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, false, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return nil, nil
