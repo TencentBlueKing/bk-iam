@@ -111,8 +111,9 @@ func NewGroupAlterEventTransfer(producer producer.Producer) *GroupAlterEventTran
 func (t *GroupAlterEventTransfer) Run() {
 	logger := logging.GetWorkerLogger().WithField("layer", transferLayer)
 
+	logger.Info("Start transfer group alter event to subject action alter event")
+
 	for {
-		logger.Info("Start transfer group alter event to subject action alter event")
 		t.stats.totalCount += 1
 
 		count, err := t.transform()
@@ -194,12 +195,18 @@ func (t *GroupAlterEventTransfer) transform() (count int, err error) {
 		return 0, errorWrapf(err, "tx.Commit fail", "")
 	}
 
+	logger := logging.GetWorkerLogger().WithField("layer", transferLayer)
+	logger.Infof(
+		"transform group alter event [count: %d] to subject action alter event [count: %d] success ",
+		count,
+		len(subjectActionAlterEvents),
+	)
+
 	messageUUIDs := make([]string, 0, len(subjectActionAlterEvents))
 	for _, message := range subjectActionAlterEvents {
 		messageUUIDs = append(messageUUIDs, message.UUID)
 	}
 
-	logger := logging.GetWorkerLogger()
 	// 发送消息
 	err = t.producer.Publish(messageUUIDs...)
 	if err != nil {
