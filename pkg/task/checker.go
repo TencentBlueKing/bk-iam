@@ -199,7 +199,12 @@ func (c *SubjectActionAlterEventChecker) check() error {
 	}
 
 	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
-	logger.Infof("event status=0, query total uuids: %d, missing uuids: %d, published uuids: %d", len(uuids), len(missUUIDs), len(missUUIDs))
+	logger.Infof(
+		"event status=0, query total uuids: %d, missing uuids: %d, published uuids: %d",
+		len(uuids),
+		len(missUUIDs),
+		len(missUUIDs),
+	)
 
 	// 2. 查询更新时间超过10分钟, status>0, check_count<3的记录
 	updatedAt = time.Now().Add(-10 * time.Minute).Unix()
@@ -241,7 +246,12 @@ func (c *SubjectActionAlterEventChecker) check() error {
 		}
 	}
 
-	logger.Infof("event status=[1, 2], query total uuids: %d, missing uuids: %d, published uuids: %d", len(uuids), len(missUUIDs), len(missUUIDs))
+	logger.Infof(
+		"event status=[1, 2], query total uuids: %d, missing uuids: %d, published uuids: %d",
+		len(uuids),
+		len(missUUIDs),
+		len(missUUIDs),
+	)
 
 	return nil
 }
