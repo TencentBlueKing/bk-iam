@@ -49,6 +49,20 @@ func (mr *MockSubjectActionAlterEventManagerMockRecorder) BulkCreateWithTx(tx, m
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).BulkCreateWithTx), tx, messages)
 }
 
+// BulkIncrCheckCount mocks base method.
+func (m *MockSubjectActionAlterEventManager) BulkIncrCheckCount(uuids []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkIncrCheckCount", uuids)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkIncrCheckCount indicates an expected call of BulkIncrCheckCount.
+func (mr *MockSubjectActionAlterEventManagerMockRecorder) BulkIncrCheckCount(uuids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkIncrCheckCount", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).BulkIncrCheckCount), uuids)
+}
+
 // BulkUpdateStatus mocks base method.
 func (m *MockSubjectActionAlterEventManager) BulkUpdateStatus(uuids []string, status int64) error {
 	m.ctrl.T.Helper()
@@ -90,20 +104,6 @@ func (m *MockSubjectActionAlterEventManager) Get(uuid string) (dao.SubjectAction
 func (mr *MockSubjectActionAlterEventManagerMockRecorder) Get(uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).Get), uuid)
-}
-
-// IncrCheckCount mocks base method.
-func (m *MockSubjectActionAlterEventManager) IncrCheckCount(uuid string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrCheckCount", uuid)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IncrCheckCount indicates an expected call of IncrCheckCount.
-func (mr *MockSubjectActionAlterEventManagerMockRecorder) IncrCheckCount(uuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckCount", reflect.TypeOf((*MockSubjectActionAlterEventManager)(nil).IncrCheckCount), uuid)
 }
 
 // ListUUIDByStatusBeforeUpdatedAt mocks base method.

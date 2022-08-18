@@ -109,7 +109,7 @@ func NewGroupAlterEventTransfer(producer producer.Producer) *GroupAlterEventTran
 }
 
 func (t *GroupAlterEventTransfer) Run() {
-	logger := logging.GetWorkerLogger()
+	logger := logging.GetWorkerLogger().WithField("layer", transferLayer)
 
 	for {
 		logger.Info("Start transfer group alter event to subject action alter event")

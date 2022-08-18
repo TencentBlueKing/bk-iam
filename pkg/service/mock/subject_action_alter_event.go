@@ -49,6 +49,20 @@ func (mr *MockSubjectActionAlterEventServiceMockRecorder) BulkCreateWithTx(tx, e
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockSubjectActionAlterEventService)(nil).BulkCreateWithTx), tx, events)
 }
 
+// BulkIncrCheckCount mocks base method.
+func (m *MockSubjectActionAlterEventService) BulkIncrCheckCount(uuids []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkIncrCheckCount", uuids)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkIncrCheckCount indicates an expected call of BulkIncrCheckCount.
+func (mr *MockSubjectActionAlterEventServiceMockRecorder) BulkIncrCheckCount(uuids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkIncrCheckCount", reflect.TypeOf((*MockSubjectActionAlterEventService)(nil).BulkIncrCheckCount), uuids)
+}
+
 // BulkUpdateStatus mocks base method.
 func (m *MockSubjectActionAlterEventService) BulkUpdateStatus(uuids []string, status int64) error {
 	m.ctrl.T.Helper()
@@ -90,20 +104,6 @@ func (m *MockSubjectActionAlterEventService) Get(uuid string) (types.SubjectActi
 func (mr *MockSubjectActionAlterEventServiceMockRecorder) Get(uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSubjectActionAlterEventService)(nil).Get), uuid)
-}
-
-// IncrCheckCount mocks base method.
-func (m *MockSubjectActionAlterEventService) IncrCheckCount(uuid string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrCheckCount", uuid)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IncrCheckCount indicates an expected call of IncrCheckCount.
-func (mr *MockSubjectActionAlterEventServiceMockRecorder) IncrCheckCount(uuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckCount", reflect.TypeOf((*MockSubjectActionAlterEventService)(nil).IncrCheckCount), uuid)
 }
 
 // ListUUIDByStatusBeforeUpdatedAt mocks base method.
