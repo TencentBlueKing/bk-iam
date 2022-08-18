@@ -71,6 +71,7 @@ func TestBatchAddGroupMembers(t *testing.T) {
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {
 			return mockCtl
 		})
+		patches.ApplyFunc(checkSubjectGroupsQuota, func(_, _ string, _ []pap.GroupMember) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).
@@ -100,6 +101,7 @@ func TestBatchAddGroupMembers(t *testing.T) {
 		patches = gomonkey.ApplyFunc(pap.NewGroupController, func() pap.GroupController {
 			return mockCtl
 		})
+		patches.ApplyFunc(checkSubjectGroupsQuota, func(_, _ string, _ []pap.GroupMember) error { return nil })
 		defer restMock()
 
 		newRequestFunc(t).

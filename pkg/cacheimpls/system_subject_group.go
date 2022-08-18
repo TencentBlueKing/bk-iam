@@ -12,6 +12,7 @@ package cacheimpls
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -67,7 +68,17 @@ func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSu
 		subjectGroups = append(subjectGroups, sgs...)
 	}
 
-	return subjectGroups, nil
+	// 4. filter the expired subject groups
+	effectGroups := make([]types.ThinSubjectGroup, 0, len(subjectGroups))
+
+	nowTs := time.Now().Unix()
+	for _, sg := range subjectGroups {
+		if sg.ExpiredAt > nowTs {
+			effectGroups = append(effectGroups, sg)
+		}
+	}
+
+	return effectGroups, nil
 }
 
 func batchGetSystemSubjectGroups(
