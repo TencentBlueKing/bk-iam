@@ -42,12 +42,12 @@ type OpenPolicyManager interface {
 }
 
 type openPolicyManager struct {
-	policyService service.PolicyService
+	abacService service.OpenAbacPolicyService
 }
 
 func NewOpenPolicyManager() OpenPolicyManager {
 	return &openPolicyManager{
-		policyService: service.NewPolicyService(),
+		abacService: service.NewOpenAbacPolicyService(),
 	}
 }
 
@@ -57,7 +57,7 @@ func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, 
 	// FIXME: add _type=rbac
 
 	// 1. query policy
-	policy, err := m.policyService.Get(pk)
+	policy, err := m.abacService.Get(pk)
 	if err != nil {
 		// 不存在的情况, 404
 		if errors.Is(err, sql.ErrNoRows) {
@@ -97,7 +97,7 @@ func (m *openPolicyManager) List(
 	// FIXME: add _type=rbac
 
 	// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
-	count, err = m.policyService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
+	count, err = m.abacService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 	if err != nil {
 		return 0, nil, fmt.Errorf(
 			"svc.GetCountByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d` fail. err=%w",
@@ -112,7 +112,7 @@ func (m *openPolicyManager) List(
 	}
 
 	var queryPolicies []svctypes.QueryPolicy
-	queryPolicies, err = m.policyService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
+	queryPolicies, err = m.abacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
 	if err != nil {
 		err = fmt.Errorf(
 			"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
@@ -145,7 +145,7 @@ func (m *openPolicyManager) ListSubjects(
 
 	// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
 	// 1. query policy
-	policies, err := m.policyService.ListQueryByPKs(pks)
+	policies, err := m.abacService.ListQueryByPKs(pks)
 	if err != nil {
 		return nil, fmt.Errorf("svc.ListQueryByPKs pks=`%+v` fail. err=%w", pks, err)
 	}
