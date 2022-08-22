@@ -8,25 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package prp
 
-import "iam/pkg/abac/prp"
+// PolicyID Rule:
+// abac, table `policy` auto increment ID, 0 - 500000000
+// rbac, table `rbac_group_resource_policy` auto increment ID, but scope = 500000000 - 1000000000
 
-type subjectsSerializer struct {
-	IDs string `form:"ids" binding:"required" example:"1,2,3"`
+const rbacIDBegin = 500000000
 
-	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
-}
-
-func (s *subjectsSerializer) initDefault() {
-	if s.Type == "" {
-		s.Type = prp.PolicyTypeAbac
-	}
-}
-
-type policyIDSubject struct {
-	PolicyID int64                 `json:"id" example:"100"`
-	Subject  policyResponseSubject `json:"subject"`
-}
-
-type policySubjectsResponse []policyIDSubject
+const (
+	PolicyTypeAbac = "abac"
+	PolicyTypeRbac = "rbac"
+)

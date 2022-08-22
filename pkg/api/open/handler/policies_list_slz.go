@@ -58,7 +58,7 @@ func (s *listQuerySerializer) initDefault() {
 	}
 
 	if s.Type == "" {
-		s.Type = prp.EngineListPolicyTypeAbac
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 

@@ -35,10 +35,10 @@ func (m *MockOpenAbacPolicyService) EXPECT() *MockOpenAbacPolicyServiceMockRecor
 }
 
 // Get mocks base method.
-func (m *MockOpenAbacPolicyService) Get(pk int64) (types.QueryPolicy, error) {
+func (m *MockOpenAbacPolicyService) Get(pk int64) (types.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", pk)
-	ret0, _ := ret[0].(types.QueryPolicy)
+	ret0, _ := ret[0].(types.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockOpenAbacPolicyServiceMockRecorder) GetCountByActionBeforeExpiredAt
 }
 
 // ListPagingQueryByActionBeforeExpiredAt mocks base method.
-func (m *MockOpenAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.QueryPolicy, error) {
+func (m *MockOpenAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingQueryByActionBeforeExpiredAt", actionPK, expiredAt, offset, limit)
-	ret0, _ := ret[0].([]types.QueryPolicy)
+	ret0, _ := ret[0].([]types.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,10 +80,10 @@ func (mr *MockOpenAbacPolicyServiceMockRecorder) ListPagingQueryByActionBeforeEx
 }
 
 // ListQueryByPKs mocks base method.
-func (m *MockOpenAbacPolicyService) ListQueryByPKs(pks []int64) ([]types.QueryPolicy, error) {
+func (m *MockOpenAbacPolicyService) ListQueryByPKs(pks []int64) ([]types.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListQueryByPKs", pks)
-	ret0, _ := ret[0].([]types.QueryPolicy)
+	ret0, _ := ret[0].([]types.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

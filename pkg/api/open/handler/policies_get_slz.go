@@ -22,7 +22,7 @@ type policyGetSerializer struct {
 
 func (s *policyGetSerializer) initDefault() {
 	if s.Type == "" {
-		s.Type = prp.EngineListPolicyTypeAbac
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 

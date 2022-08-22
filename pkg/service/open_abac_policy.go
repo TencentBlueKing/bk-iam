@@ -21,12 +21,12 @@ import (
 
 // OpenAbacPolicyService ...
 type OpenAbacPolicyService interface {
-	Get(pk int64) (types.QueryPolicy, error)
+	Get(pk int64) (types.OpenAbacPolicy, error)
 	ListPagingQueryByActionBeforeExpiredAt(
-		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.QueryPolicy, error)
+		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.OpenAbacPolicy, error)
 	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
 
-	ListQueryByPKs(pks []int64) ([]types.QueryPolicy, error)
+	ListQueryByPKs(pks []int64) ([]types.OpenAbacPolicy, error)
 }
 
 type openAbacPolicyService struct {
@@ -41,7 +41,7 @@ func NewOpenAbacPolicyService() OpenAbacPolicyService {
 }
 
 // Get ...
-func (s *openAbacPolicyService) Get(pk int64) (daoPolicy types.QueryPolicy, err error) {
+func (s *openAbacPolicyService) Get(pk int64) (daoPolicy types.OpenAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
 	policy, err1 := s.manager.Get(pk)
 	if err1 != nil {
@@ -49,7 +49,7 @@ func (s *openAbacPolicyService) Get(pk int64) (daoPolicy types.QueryPolicy, err 
 		return
 	}
 
-	daoPolicy = types.QueryPolicy{
+	daoPolicy = types.OpenAbacPolicy{
 		PK:           policy.PK,
 		SubjectPK:    policy.SubjectPK,
 		ActionPK:     policy.ActionPK,
@@ -70,7 +70,7 @@ func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 	expiredAt int64,
 	offset int64,
 	limit int64,
-) (queryPolicies []types.QueryPolicy, err error) {
+) (queryPolicies []types.OpenAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
 
 	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
@@ -86,7 +86,7 @@ func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 }
 
 // ListQueryByPKs ...
-func (s *openAbacPolicyService) ListQueryByPKs(pks []int64) (queryPolicies []types.QueryPolicy, err error) {
+func (s *openAbacPolicyService) ListQueryByPKs(pks []int64) (queryPolicies []types.OpenAbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
@@ -100,10 +100,10 @@ func (s *openAbacPolicyService) ListQueryByPKs(pks []int64) (queryPolicies []typ
 	return
 }
 
-func convertPoliciesToQueryPolicies(policies []dao.Policy) []types.QueryPolicy {
-	queryPolicies := make([]types.QueryPolicy, 0, len(policies))
+func convertPoliciesToQueryPolicies(policies []dao.Policy) []types.OpenAbacPolicy {
+	queryPolicies := make([]types.OpenAbacPolicy, 0, len(policies))
 	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.QueryPolicy{
+		queryPolicies = append(queryPolicies, types.OpenAbacPolicy{
 			PK:           p.PK,
 			SubjectPK:    p.SubjectPK,
 			ActionPK:     p.ActionPK,

@@ -111,8 +111,8 @@ func (m *openPolicyManager) List(
 		return 0, []OpenPolicy{}, nil
 	}
 
-	var queryPolicies []svctypes.QueryPolicy
-	queryPolicies, err = m.abacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
+	var abacPolicies []svctypes.OpenAbacPolicy
+	abacPolicies, err = m.abacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
 	if err != nil {
 		err = fmt.Errorf(
 			"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
@@ -125,11 +125,11 @@ func (m *openPolicyManager) List(
 		return 0, nil, err
 	}
 
-	policies, err = convertQueryPoliciesToOpenPolicies(queryPolicies)
+	policies, err = convertAbacPoliciesToOpenPolicies(abacPolicies)
 	if err != nil {
 		err = fmt.Errorf(
 			"convertQueryPoliciesToOpenPolicies queryPolicies=`%+v` fail. err=%w",
-			queryPolicies, err)
+			abacPolicies, err)
 		return 0, nil, err
 	}
 
@@ -212,8 +212,8 @@ func translateExpressions(
 	return expressionMap, nil
 }
 
-func convertQueryPoliciesToOpenPolicies(
-	policies []svctypes.QueryPolicy,
+func convertAbacPoliciesToOpenPolicies(
+	policies []svctypes.OpenAbacPolicy,
 ) (openPolicies []OpenPolicy, err error) {
 	if len(policies) == 0 {
 		return

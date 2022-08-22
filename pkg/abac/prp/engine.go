@@ -28,17 +28,6 @@ import (
 
 // policy for engine will put here
 
-// PolicyID Rule:
-// abac, table `policy` auto increment ID, 0 - 500000000
-// rbac, table `rbac_group_resource_policy` auto increment ID, but scope = 500000000 - 1000000000
-
-const rbacIDBegin = 500000000
-
-const (
-	EngineListPolicyTypeAbac = "abac"
-	EngineListPolicyTypeRbac = "rbac"
-)
-
 var ErrEngineListPolicyUnsupportedType = errors.New("unsupported type")
 
 type EnginePolicy struct {
@@ -78,7 +67,7 @@ func NewEnginePolicyManager() EnginePolicyManager {
 
 func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(_type string, updatedAt int64) (int64, error) {
 	switch _type {
-	case EngineListPolicyTypeAbac:
+	case PolicyTypeAbac:
 		return m.abacService.GetMaxPKBeforeUpdatedAt(updatedAt)
 	case "rbac":
 		maxPK, err := m.rbacService.GetMaxPKBeforeUpdatedAt(updatedAt)
@@ -96,9 +85,9 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(
 	beginUpdatedAt, endUpdatedAt int64,
 ) ([]int64, error) {
 	switch _type {
-	case EngineListPolicyTypeAbac:
+	case PolicyTypeAbac:
 		return m.abacService.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
-	case EngineListPolicyTypeRbac:
+	case PolicyTypeRbac:
 		pks, err := m.rbacService.ListPKBetweenUpdatedAt(beginUpdatedAt, endUpdatedAt)
 		if err != nil {
 			return nil, err
@@ -118,20 +107,20 @@ func (m *enginePolicyManager) ListBetweenPK(
 	expiredAt, minPK, maxPK int64,
 ) (policies []EnginePolicy, err error) {
 	switch _type {
-	case EngineListPolicyTypeAbac:
+	case PolicyTypeAbac:
 		abacPolicies, err := m.abacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
 		}
-		return convertAbacPolicies(abacPolicies)
-	case EngineListPolicyTypeRbac:
+		return convertAbacPoliciesToEnginePolicies(abacPolicies)
+	case PolicyTypeRbac:
 		minPK -= rbacIDBegin
 		maxPK -= rbacIDBegin
 		rbacPolicies, err := m.rbacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
 		}
-		return convertRbacPolicies(rbacPolicies)
+		return convertRbacPoliciesToEnginePolicies(rbacPolicies)
 	default:
 		return nil, ErrEngineListPolicyUnsupportedType
 	}
@@ -139,13 +128,13 @@ func (m *enginePolicyManager) ListBetweenPK(
 
 func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []EnginePolicy, err error) {
 	switch _type {
-	case EngineListPolicyTypeAbac:
+	case PolicyTypeAbac:
 		abacPolicies, err := m.abacService.ListByPKs(pks)
 		if err != nil {
 			return nil, err
 		}
-		return convertAbacPolicies(abacPolicies)
-	case EngineListPolicyTypeRbac:
+		return convertAbacPoliciesToEnginePolicies(abacPolicies)
+	case PolicyTypeRbac:
 		realPKs := make([]int64, 0, len(pks))
 		for _, pk := range pks {
 			realPKs = append(realPKs, pk-rbacIDBegin)
@@ -155,13 +144,13 @@ func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []E
 		if err != nil {
 			return nil, err
 		}
-		return convertRbacPolicies(rbacPolicies)
+		return convertRbacPoliciesToEnginePolicies(rbacPolicies)
 	default:
 		return nil, ErrEngineListPolicyUnsupportedType
 	}
 }
 
-func convertAbacPolicies(
+func convertAbacPoliciesToEnginePolicies(
 	policies []types.EngineAbacPolicy,
 ) (enginePolicies []EnginePolicy, err error) {
 	if len(policies) == 0 {
@@ -240,7 +229,7 @@ func queryPoliciesExpression(policies []types.EngineAbacPolicy) (map[int64]strin
 	return pkExpressionStrMap, nil
 }
 
-func convertRbacPolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
+func convertRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
 	queryPolicies := make([]EnginePolicy, 0, len(policies))
 	for _, p := range policies {
 		expr, err := constructRbacPolicyExpr(p)

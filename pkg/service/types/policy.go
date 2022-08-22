@@ -36,8 +36,8 @@ func (a AuthExpression) IsEmpty() bool {
 
 // ======== FOR OTHERS ========
 
-// QueryPolicy ...
-type QueryPolicy struct {
+// OpenAbacPolicy ...
+type OpenAbacPolicy struct {
 	PK           int64
 	SubjectPK    int64
 	ActionPK     int64

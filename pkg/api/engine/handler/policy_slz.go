@@ -84,7 +84,7 @@ func (s *listPolicySerializer) initDefault() {
 	}
 
 	if s.Type == "" {
-		s.Type = prp.EngineListPolicyTypeAbac
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 
@@ -137,7 +137,7 @@ func (s *listPolicyIDsSerializer) validate() (bool, string) {
 
 func (s *listPolicyIDsSerializer) initDefault() {
 	if s.Type == "" {
-		s.Type = prp.EngineListPolicyTypeAbac
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 
@@ -154,7 +154,7 @@ type getMaxPolicyIDSerializer struct {
 
 func (s *getMaxPolicyIDSerializer) initDefault() {
 	if s.Type == "" {
-		s.Type = prp.EngineListPolicyTypeAbac
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 
