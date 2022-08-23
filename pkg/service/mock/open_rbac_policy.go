@@ -79,17 +79,17 @@ func (mr *MockOpenRbacPolicyServiceMockRecorder) ListByPKs(pks interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockOpenRbacPolicyService)(nil).ListByPKs), pks)
 }
 
-// ListPagingQueryByActionBeforeExpiredAt mocks base method.
-func (m *MockOpenRbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.OpenRbacPolicy, error) {
+// ListPagingByActionBeforeExpiredAt mocks base method.
+func (m *MockOpenRbacPolicyService) ListPagingByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.OpenRbacPolicy, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingQueryByActionBeforeExpiredAt", actionPK, expiredAt, offset, limit)
+	ret := m.ctrl.Call(m, "ListPagingByActionBeforeExpiredAt", actionPK, expiredAt, offset, limit)
 	ret0, _ := ret[0].([]types.OpenRbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPagingQueryByActionBeforeExpiredAt indicates an expected call of ListPagingQueryByActionBeforeExpiredAt.
-func (mr *MockOpenRbacPolicyServiceMockRecorder) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit interface{}) *gomock.Call {
+// ListPagingByActionBeforeExpiredAt indicates an expected call of ListPagingByActionBeforeExpiredAt.
+func (mr *MockOpenRbacPolicyServiceMockRecorder) ListPagingByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingQueryByActionBeforeExpiredAt", reflect.TypeOf((*MockOpenRbacPolicyService)(nil).ListPagingQueryByActionBeforeExpiredAt), actionPK, expiredAt, offset, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingByActionBeforeExpiredAt", reflect.TypeOf((*MockOpenRbacPolicyService)(nil).ListPagingByActionBeforeExpiredAt), actionPK, expiredAt, offset, limit)
 }

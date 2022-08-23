@@ -11,57 +11,70 @@
 package service
 
 import (
+	"errors"
+
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/database/dao"
+	"iam/pkg/database/dao/mock"
 )
 
-var _ = Describe("OpenAbacPolicyService", func() {
-	// Describe("ListQueryByPKs cases", func() {
-	// 	var ctl *gomock.Controller
+var _ = Describe("OpenRbacPolicyService", func() {
+	Describe("ListByPKs cases", func() {
+		var ctl *gomock.Controller
 
-	// 	BeforeEach(func() {
-	// 		ctl = gomock.NewController(GinkgoT())
-	// 	})
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
 
-	// 	AfterEach(func() {
-	// 		ctl.Finish()
-	// 	})
+		AfterEach(func() {
+			ctl.Finish()
+		})
 
-	// 	It("ok", func() {
-	// 		returned := []dao.Policy{
-	// 			{
-	// 				PK:           1,
-	// 				ExpressionPK: 1,
-	// 				TemplateID:   0,
-	// 			},
-	// 			{
-	// 				PK:           2,
-	// 				ExpressionPK: 2,
-	// 				TemplateID:   1,
-	// 			},
-	// 		}
-	// 		mockPolicyManager := mock.NewMockOpenRbacPolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
+		It("ok", func() {
+			returned := []dao.OpenRbacPolicy{
+				{
+					SubjectActionExpression: dao.SubjectActionExpression{
+						PK:         1,
+						SubjectPK:  2,
+						Expression: "",
+						ExpiredAt:  3,
+					},
+				},
+				{
+					SubjectActionExpression: dao.SubjectActionExpression{
+						PK:         2,
+						SubjectPK:  3,
+						Expression: "",
+						ExpiredAt:  4,
+					},
+				},
+			}
+			mockPolicyManager := mock.NewMockOpenRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
 
-	// 		svc := openRbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			svc := openRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 		policies, err := svc.ListByPKs([]int64{1, 2})
-	// 		assert.NoError(GinkgoT(), err)
-	// 		assert.Len(GinkgoT(), policies, 2)
-	// 	})
+			policies, err := svc.ListByPKs([]int64{1, 2})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), policies, 2)
+		})
 
-	// 	It("fail", func() {
-	// 		mockPolicyManager := mock.NewMockOpenRbacPolicyManager(ctl)
-	// 		mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("list fail"))
+		It("fail", func() {
+			mockPolicyManager := mock.NewMockOpenRbacPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("list fail"))
 
-	// 		svc := openRbacPolicyService{
-	// 			manager: mockPolicyManager,
-	// 		}
+			svc := openRbacPolicyService{
+				manager: mockPolicyManager,
+			}
 
-	// 		_, err := svc.ListByPKs([]int64{1, 2})
-	// 		assert.Error(GinkgoT(), err)
-	// 		assert.Contains(GinkgoT(), err.Error(), "manager.ListByPKs")
-	// 	})
-	// })
+			_, err := svc.ListByPKs([]int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "manager.ListByPKs")
+		})
+	})
 })
