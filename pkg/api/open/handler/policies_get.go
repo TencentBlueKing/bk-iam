@@ -34,17 +34,23 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/policies/{policy_id} [get]
+// @Router /api/v1/systems/{system_id}/policies/{policy_id}/ [get]
 func PolicyGet(c *gin.Context) {
-	var query policyGetSerializer
-	if err := c.ShouldBindUri(&query); err != nil {
+	var param policyGetUriSerializer
+	if err := c.ShouldBindUri(&param); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	var query policyGetQuerySerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
 	query.initDefault()
 
 	manager := prp.NewOpenPolicyManager()
-	policy, err := manager.Get(query.Type, query.PolicyID)
+	policy, err := manager.Get(query.Type, param.PolicyID)
 	if err != nil {
 		if errors.Is(err, prp.ErrPolicyNotFound) {
 			util.NotFoundJSONResponse(c, err.Error())

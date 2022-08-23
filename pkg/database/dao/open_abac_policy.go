@@ -72,7 +72,7 @@ func (m *openAbacPolicyManager) GetCountByActionBeforeExpiredAt(
 	FROM policy
 	WHERE action_pk = ?
 	AND expired_at > ?`
-	err = database.SqlxGet(m.DB, count, query, actionPK, expiredAt)
+	err = database.SqlxGet(m.DB, &count, query, actionPK, expiredAt)
 	return
 }
 

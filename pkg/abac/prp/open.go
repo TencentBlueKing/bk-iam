@@ -92,6 +92,10 @@ func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, 
 		pk = inputRbacPolicyPKToRealPK(pk)
 		policy, err := m.rbacService.Get(pk)
 		if err != nil {
+			// 不存在的情况, 404
+			if errors.Is(err, sql.ErrNoRows) {
+				return openPolicy, ErrPolicyNotFound
+			}
 			return openPolicy, err
 		}
 
@@ -103,7 +107,7 @@ func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, 
 
 		return OpenPolicy{
 			Version:    service.PolicyVersion,
-			ID:         policy.PK,
+			ID:         realPKToOutputRbacPolicyPK(policy.PK),
 			ActionPK:   policy.ActionPK,
 			SubjectPK:  policy.SubjectPK,
 			Expression: translatedExpr,

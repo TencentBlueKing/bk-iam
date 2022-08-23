@@ -73,7 +73,7 @@ func (m *openRbacPolicyManager) GetCountByActionBeforeExpiredAt(
 	FROM rbac_subject_action_expression
 	WHERE action_pk = ?
 	AND expired_at > ?`
-	err = database.SqlxGet(m.DB, count, query, actionPK, expiredAt)
+	err = database.SqlxGet(m.DB, &count, query, actionPK, expiredAt)
 	return
 }
 

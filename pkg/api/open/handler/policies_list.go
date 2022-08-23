@@ -15,7 +15,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
@@ -37,7 +36,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/policies [get]
+// @Router /api/v1/systems/{system_id}/policies/ [get]
 func PolicyList(c *gin.Context) {
 	// TODO: 翻页接口是否有性能问题 / 限制调用并发, 用drl
 	var query listQuerySerializer
@@ -91,6 +90,7 @@ func PolicyList(c *gin.Context) {
 			Count:   count,
 			Results: nil,
 		})
+		return
 	}
 
 	var results []thinPolicyResponse
@@ -118,7 +118,6 @@ func PolicyList(c *gin.Context) {
 func convertOpenPoliciesToThinPolicies(
 	policies []prp.OpenPolicy,
 ) (responses []thinPolicyResponse, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.convertQueryPoliciesToThinPolicies")
 	if len(policies) == 0 {
 		return
 	}
@@ -128,9 +127,8 @@ func convertOpenPoliciesToThinPolicies(
 		subj, err1 := cacheimpls.GetSubjectByPK(p.SubjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
-			log.Info(errorWrapf(err1,
-				"policy_list.convertQueryPoliciesToThinPolicies get subject subject_pk=`%d` fail",
-				p.SubjectPK))
+			log.WithError(err1).
+				Errorf("policy_list.convertQueryPoliciesToThinPolicies get subject subject_pk=`%d` fail", p.SubjectPK)
 
 			continue
 		}

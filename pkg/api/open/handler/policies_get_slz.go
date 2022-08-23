@@ -14,13 +14,15 @@ import (
 	"iam/pkg/abac/prp"
 )
 
-type policyGetSerializer struct {
+type policyGetUriSerializer struct {
 	PolicyID int64 `uri:"policy_id"`
+}
 
+type policyGetQuerySerializer struct {
 	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
-func (s *policyGetSerializer) initDefault() {
+func (s *policyGetQuerySerializer) initDefault() {
 	if s.Type == "" {
 		s.Type = prp.PolicyTypeAbac
 	}
