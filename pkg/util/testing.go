@@ -14,7 +14,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -132,7 +132,7 @@ type JSONAssertFunc func(map[string]interface{}) error
 // NewJSONAssertFunc ...
 func NewJSONAssertFunc(t *testing.T, assertFunc JSONAssertFunc) func(res *http.Response, req *http.Request) error {
 	return func(res *http.Response, req *http.Request) error {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		assert.NoError(t, err, "read body from response fail")
 
 		defer res.Body.Close()
@@ -156,7 +156,7 @@ func NewResponseAssertFunc(
 	responseFunc ResponseAssertFunc,
 ) func(res *http.Response, req *http.Request) error {
 	return func(res *http.Response, req *http.Request) error {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		assert.NoError(t, err, "read body from response fail")
 
 		defer res.Body.Close()

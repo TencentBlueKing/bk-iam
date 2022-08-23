@@ -70,6 +70,7 @@ type policyController struct {
 	// RBAC
 	groupResourcePolicyService        service.GroupResourcePolicyService
 	groupService                      service.GroupService
+	groupAlterEventService            service.GroupAlterEventService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -87,6 +88,7 @@ func NewPolicyController() PolicyController {
 
 		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
 		groupService:                      service.NewGroupService(),
+		groupAlterEventService:            service.NewGroupAlterEventService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 

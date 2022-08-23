@@ -14,7 +14,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/TencentBlueKing/gopkg/conv"
@@ -30,8 +30,8 @@ func ReadRequestBody(r *http.Request) ([]byte, error) {
 		return nil, ErrNilRequestBody
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewReader(body))
+	body, err := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
 	return body, err
 }
 

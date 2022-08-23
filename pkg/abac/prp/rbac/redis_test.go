@@ -40,13 +40,11 @@ var _ = Describe("RbacPolicy", func() {
 			mockSubjectActionExpressionService = mock.NewMockSubjectActionExpressionService(ctl)
 			mockSubjectActionGroupResourceService = mock.NewMockSubjectActionGroupResourceService(ctl)
 			mockGroupAlterEventService = mock.NewMockGroupAlterEventService(ctl)
-			mockProducer = producermock.NewMockProducer(ctl)
 
 			r = &PolicyRedisRetriever{
 				subjectActionExpressionService:    mockSubjectActionExpressionService,
 				subjectActionGroupResourceService: mockSubjectActionGroupResourceService,
 				groupAlterEventService:            mockGroupAlterEventService,
-				alterEventProducer:                mockProducer,
 			}
 			cacheimpls.SubjectActionExpressionCache = redis.NewMockCache("test", 5*time.Minute)
 		})

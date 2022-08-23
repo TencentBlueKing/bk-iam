@@ -12,7 +12,6 @@ package prp
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -53,7 +52,6 @@ func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) 
 	subjectPKs = append(subjectPKs, deptPKs...)
 
 	// 用户继承组织加入的用户组 => 多个部门属于同一个组, 所以需要去重
-	now := time.Now().Unix()
 	groupPKSet := set.NewInt64Set()
 	subjectGroups, err := cacheimpls.ListSystemSubjectEffectGroups(systemID, subjectPKs)
 	if err != nil {
@@ -61,9 +59,7 @@ func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) 
 		return nil, err
 	}
 	for _, sg := range subjectGroups {
-		if sg.ExpiredAt > now {
-			groupPKSet.Add(sg.GroupPK)
-		}
+		groupPKSet.Add(sg.GroupPK)
 	}
 
 	return groupPKSet.ToSlice(), nil

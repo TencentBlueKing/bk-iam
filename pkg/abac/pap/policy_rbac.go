@@ -14,6 +14,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac/prp/expression"
 	"iam/pkg/abac/prp/group"
@@ -22,6 +23,7 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	svctypes "iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 func (c *policyController) AlterGroupPolicies(
@@ -91,8 +93,8 @@ func (c *policyController) AlterGroupPolicies(
 		return
 	}
 
-	// 4. 创建RBAC变更消息
-	c.eventProducer.PublishRBACGroupAlterEvent(subjectPK, resourceChangedContents)
+	// 4. 创建RBAC变更事件
+	c.createRBACGroupAlterEvent(subjectPK, resourceChangedContents)
 
 	// 5. 清理缓存
 	// 5.1 ABAC相关缓存
@@ -119,6 +121,40 @@ func (c *policyController) AlterGroupPolicies(
 	}
 
 	return err
+}
+
+// createRBACGroupAlterEvent 创建用户组变更事件
+func (c *policyController) createRBACGroupAlterEvent(
+	groupPK int64,
+	resourceChangedContents []svctypes.ResourceChangedContent,
+) {
+	actionPKSet := set.NewInt64Set()
+	for _, rcc := range resourceChangedContents {
+		actionPKSet.Append(rcc.CreatedActionPKs...)
+		actionPKSet.Append(rcc.DeletedActionPKs...)
+	}
+
+	actionPKs := actionPKSet.ToSlice()
+
+	// 清group action resource 缓存
+	cacheimpls.BatchDeleteGroupActionAuthorizedResourceCache(groupPK, actionPKs)
+
+	// 创建 group_alter_event
+	err := c.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
+	if err != nil {
+		log.WithError(err).
+			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
+
+		// report to sentry
+		util.ReportToSentry("createRBACGroupAlterEvent groupAlterEventService.CreateByGroupAction fail",
+			map[string]interface{}{
+				"layer":     PolicyCTL,
+				"groupPK":   groupPK,
+				"actionPKs": actionPKs,
+				"error":     err.Error(),
+			},
+		)
+	}
 }
 
 func (c *policyController) alterABACPolicies(

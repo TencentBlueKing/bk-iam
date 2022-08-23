@@ -12,24 +12,30 @@ package task
 
 import (
 	"context"
-	"strconv"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/adjust/rmq/v4"
+	log "github.com/sirupsen/logrus"
+
+	"iam/pkg/cache/redis"
 	"iam/pkg/config"
 	"iam/pkg/logging"
 	"iam/pkg/service"
+	"iam/pkg/service/types"
 	"iam/pkg/task/producer"
-
-	"github.com/adjust/rmq/v4"
-	log "github.com/sirupsen/logrus"
+	"iam/pkg/util"
 )
 
-// type Checker struct { ...
+const checkerLayer = "Checker"
+
+// type Checker ...
 type Checker struct {
 	stopChan chan struct{}
 }
 
-// NewWorker ...
+// NewChecker ...
 func NewChecker() *Checker {
 	return &Checker{
 		stopChan: make(chan struct{}, 1),
@@ -45,13 +51,13 @@ func (c *Checker) Run(ctx context.Context) {
 		c.Stop()
 	}()
 
-	// Start rmq cleaner
-	go StartClean()
-
-	// Start group event checker
-	go NewGroupAlterEventChecker(
+	// Start subject action alter event checker
+	go NewSubjectActionAlterEventChecker(
 		producer.NewRedisProducer(rbacEventQueue),
 	).Run()
+
+	// Start rmq cleaner
+	go StartClean()
 
 	c.Wait()
 	log.Info("Shutting down")
@@ -70,7 +76,7 @@ func (c *Checker) Wait() {
 }
 
 func StartClean() {
-	logger := logging.GetWorkerLogger()
+	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
 
 	cleaner := rmq.NewCleaner(connection)
 
@@ -88,61 +94,164 @@ func StartClean() {
 	}
 }
 
-type GroupAlterEventChecker struct {
-	service  service.GroupAlterEventService
+func listReadyMessage() ([]string, error) {
+	cli := redis.GetDefaultMQRedisClient()
+
+	return cli.LRange(context.Background(), rbacEventQueueKey, 0, -1).Result()
+}
+
+type SubjectActionAlterEventChecker struct {
+	service  service.SubjectActionAlterEventService
 	producer producer.Producer
+
+	stats stats
 }
 
-func NewGroupAlterEventChecker(producer producer.Producer) *GroupAlterEventChecker {
-	return &GroupAlterEventChecker{
-		service:  service.NewGroupAlterEventService(),
+func NewSubjectActionAlterEventChecker(producer producer.Producer) *SubjectActionAlterEventChecker {
+	return &SubjectActionAlterEventChecker{
+		service:  service.NewSubjectActionAlterEventService(),
 		producer: producer,
+
+		stats: stats{
+			startTime:           time.Now(),
+			lastShowProcessTime: time.Now(),
+		},
 	}
 }
 
-func (c *GroupAlterEventChecker) Run() {
-	logger := logging.GetWorkerLogger()
+func (c *SubjectActionAlterEventChecker) Run() {
+	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
 
-	maxCheckCount := int64(config.MaxGroupAlterEventCheckCount)
-	// run every 5 minutes
 	for range time.Tick(5 * time.Minute) {
-		logger.Info("Check group alter event begin")
+		c.stats.totalCount += 1
 
-		createdAt := time.Now().Add(-10 * time.Minute).Unix()
-		pks, err := c.service.ListPKLessThanCheckCountBeforeCreateAt(maxCheckCount, createdAt)
+		err := c.check()
 		if err != nil {
-			logger.WithError(err).
-				Errorf("failed to list pk by check times before create at, CheckCount=`%d`, createdAt=`%d`",
-					maxCheckCount, createdAt)
-			continue
+			c.stats.failCount += 1
+			logger.WithError(err).Error("check fail")
+
+			// report to sentry
+			util.ReportToSentry("SubjectActionAlterEventChecker.check fail",
+				map[string]interface{}{
+					"layer": checkerLayer,
+					"error": err.Error(),
+				},
+			)
+		} else {
+			c.stats.successCount += 1
 		}
 
-		logger.Debugf("query group alter event, pks=`%+v`", pks)
-
-		for _, pk := range pks {
-			logger.Debugf("do publish group alter event, pk=`%d`", pk)
-
-			err := c.producer.Publish(strconv.FormatInt(pk, 10))
-			if err != nil {
-				logger.WithError(err).Errorf(
-					"failed to publish pk, pk=`%d`", pk)
-				continue
-			}
-
-			logger.Debugf("publish group alter event, pk=`%d` done", pk)
-
-			logger.Debugf("do incr the checkCount of event pk=`%d` done", pk)
-
-			err = c.service.IncrCheckCount(pk)
-			if err != nil {
-				logger.WithError(err).Errorf(
-					"failed to incr the checkCount of event pk=`%d`", pk)
-				continue
-			}
-
-			logger.Debugf("incr the checkCount of event pk=`%d` done", pk)
-		}
-
-		logger.Infof("Check group alter event end with pks=`%+v`", pks)
+		c.stats.lastShowProcessTime = time.Now()
+		logger.Infof("checker processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
+			c.stats.totalCount, c.stats.successCount, c.stats.failCount, time.Since(c.stats.startTime))
 	}
+}
+
+func (c *SubjectActionAlterEventChecker) check() error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(checkerLayer, "check")
+
+	readyMessages, err := listReadyMessage()
+	if err != nil {
+		return errorWrapf(err, "listReadyMessage error")
+	}
+
+	// 用于避免重复发送消息
+	readyMessageSet := set.NewStringSetWithValues(readyMessages)
+
+	// 1. 查询更新时间超过30秒, status=0的记录
+	updatedAt := time.Now().Add(-30 * time.Second).Unix()
+	uuids, err := c.service.ListUUIDByStatusBeforeUpdatedAt(types.SubjectActionAlterEventStatusCreated, updatedAt)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.ListUUIDByStatusBeforeUpdatedAt fail, status=`%d`, updatedAt=`%d`",
+			types.SubjectActionAlterEventStatusCreated,
+			updatedAt,
+		)
+	}
+
+	missUUIDs := make([]string, 0, len(uuids))
+	for _, uuid := range uuids {
+		if !readyMessageSet.Has(uuid) {
+			missUUIDs = append(missUUIDs, uuid)
+		}
+	}
+
+	// 发送不在readyMessageSet中的消息
+	if len(missUUIDs) > 0 {
+		err = c.producer.Publish(missUUIDs...)
+		if err != nil {
+			return errorWrapf(err, "producer.Publish fail, uuids=`%s`", missUUIDs)
+		}
+	}
+
+	if len(uuids) > 0 {
+		// 更新状态为1
+		err = c.service.BulkUpdateStatus(uuids, types.SubjectActionAlterEventStatusPushed)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"service.BulkUpdateStatus fail, uuid=`%s`, status=`%d`",
+				uuids,
+				types.SubjectActionAlterEventStatusPushed,
+			)
+		}
+	}
+
+	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
+	logger.Infof(
+		"event status=0, query total uuids: %d, missing uuids: %d, published uuids: %d",
+		len(uuids),
+		len(missUUIDs),
+		len(missUUIDs),
+	)
+
+	// 2. 查询更新时间超过10分钟, status>0, check_count<3的记录
+	updatedAt = time.Now().Add(-10 * time.Minute).Unix()
+	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
+	uuids, err = c.service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt(
+		types.SubjectActionAlterEventStatusCreated,
+		maxCheckCount,
+		updatedAt,
+	)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.ListUUIDGreaterThanStatusLessThanCheckCountBeforeUpdatedAt fail,"+
+				" status=`%d`, checkCount=`%d`, updatedAt=`%d`",
+			types.SubjectActionAlterEventStatusCreated,
+			maxCheckCount,
+			updatedAt,
+		)
+	}
+
+	missUUIDs = make([]string, 0, len(uuids))
+	for _, uuid := range uuids {
+		if !readyMessageSet.Has(uuid) {
+			missUUIDs = append(missUUIDs, uuid)
+		}
+	}
+
+	if len(missUUIDs) > 0 {
+		// 发送消息
+		err = c.producer.Publish(missUUIDs...)
+		if err != nil {
+			return errorWrapf(err, "producer.Publish fail, uuid=`%s`", missUUIDs)
+		}
+
+		// 更新check_count=check_count+1
+		err = c.service.BulkIncrCheckCount(missUUIDs)
+		if err != nil {
+			return errorWrapf(err, "service.BulkIncrCheckCount fail, uuids=`%s`", missUUIDs)
+		}
+	}
+
+	logger.Infof(
+		"event status=[1, 2], query total uuids: %d, missing uuids: %d, published uuids: %d",
+		len(uuids),
+		len(missUUIDs),
+		len(missUUIDs),
+	)
+
+	return nil
 }

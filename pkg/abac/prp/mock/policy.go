@@ -52,16 +52,16 @@ func (mr *MockPolicyManagerMockRecorder) GetExpressionsFromCache(actionPK, expre
 }
 
 // ListBySubjectAction mocks base method.
-func (m *MockPolicyManager) ListBySubjectAction(system string, subject types.Subject, action types.Action, effectGroupPKs []int64, withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) {
+func (m *MockPolicyManager) ListBySubjectAction(system string, subject types.Subject, action types.Action, effectGroupPKs []int64, withRbacPolicies, withoutCache bool, entry *debug.Entry) ([]types.AuthPolicy, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBySubjectAction", system, subject, action, effectGroupPKs, withoutCache, entry)
+	ret := m.ctrl.Call(m, "ListBySubjectAction", system, subject, action, effectGroupPKs, withRbacPolicies, withoutCache, entry)
 	ret0, _ := ret[0].([]types.AuthPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListBySubjectAction indicates an expected call of ListBySubjectAction.
-func (mr *MockPolicyManagerMockRecorder) ListBySubjectAction(system, subject, action, effectGroupPKs, withoutCache, entry interface{}) *gomock.Call {
+func (mr *MockPolicyManagerMockRecorder) ListBySubjectAction(system, subject, action, effectGroupPKs, withRbacPolicies, withoutCache, entry interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySubjectAction", reflect.TypeOf((*MockPolicyManager)(nil).ListBySubjectAction), system, subject, action, effectGroupPKs, withoutCache, entry)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBySubjectAction", reflect.TypeOf((*MockPolicyManager)(nil).ListBySubjectAction), system, subject, action, effectGroupPKs, withRbacPolicies, withoutCache, entry)
 }

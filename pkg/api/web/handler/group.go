@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -224,6 +225,18 @@ func BatchAddGroupMembers(c *gin.Context) {
 			ID:        m.ID,
 			ExpiredAt: body.PolicyExpiredAt,
 		})
+	}
+
+	// 检查subject group 数量是否超过限制
+	err := checkSubjectGroupsQuota(body.Type, body.ID, papSubjects)
+	if err != nil {
+		if errors.Is(err, errQuota) {
+			util.ConflictJSONResponse(c, err.Error())
+			return
+		}
+
+		util.SystemErrorJSONResponse(c, err)
+		return
 	}
 
 	ctl := pap.NewGroupController()

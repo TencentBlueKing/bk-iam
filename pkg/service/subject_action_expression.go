@@ -33,6 +33,7 @@ type SubjectActionExpressionService interface {
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 
 	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
+	DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error
 }
 
 type subjectActionExpressionService struct {
@@ -159,4 +160,9 @@ func (s *subjectActionExpressionService) DeleteByActionPKWithTx(tx *sqlx.Tx, act
 	}
 
 	return nil
+}
+
+// DeleteBySubjectActionWithTx ...
+func (s *subjectActionExpressionService) DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error {
+	return s.manager.DeleteBySubjectActionWithTx(tx, subjectPK, actionPK)
 }

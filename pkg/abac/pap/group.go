@@ -22,8 +22,6 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/task"
-	"iam/pkg/task/producer"
 	"iam/pkg/util"
 )
 
@@ -55,8 +53,6 @@ type groupController struct {
 
 	subjectService         service.SubjectService
 	groupAlterEventService service.GroupAlterEventService
-
-	alterEventProducer producer.Producer
 }
 
 func NewGroupController() GroupController {
@@ -64,7 +60,6 @@ func NewGroupController() GroupController {
 		service:                service.NewGroupService(),
 		subjectService:         service.NewSubjectService(),
 		groupAlterEventService: service.NewGroupAlterEventService(),
-		alterEventProducer:     producer.NewRedisProducer(task.GetRbacEventQueue()),
 	}
 }
 
@@ -502,7 +497,7 @@ func (c *groupController) DeleteGroupMembers(
 }
 
 func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int64) {
-	pks, err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
+	err := c.groupAlterEventService.CreateByGroupSubject(groupPK, subjectPKs)
 	if err != nil {
 		log.WithError(err).
 			Errorf("groupAlterEventService.CreateByGroupSubject groupPK=%d subjectPKs=%v fail", groupPK, subjectPKs)
@@ -516,16 +511,7 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 				"error":      err.Error(),
 			},
 		)
-		return
 	}
-
-	// 发送消息
-	if len(pks) == 0 {
-		return
-	}
-
-	messages := util.Int64SliceToStringSlice(pks)
-	go c.alterEventProducer.Publish(messages...)
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
