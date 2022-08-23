@@ -35,10 +35,10 @@ func (m *MockOpenAbacPolicyManager) EXPECT() *MockOpenAbacPolicyManagerMockRecor
 }
 
 // Get mocks base method.
-func (m *MockOpenAbacPolicyManager) Get(pk int64) (dao.Policy, error) {
+func (m *MockOpenAbacPolicyManager) Get(pk int64) (dao.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", pk)
-	ret0, _ := ret[0].(dao.Policy)
+	ret0, _ := ret[0].(dao.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockOpenAbacPolicyManagerMockRecorder) GetCountByActionBeforeExpiredAt
 }
 
 // ListByPKs mocks base method.
-func (m *MockOpenAbacPolicyManager) ListByPKs(pks []int64) ([]dao.Policy, error) {
+func (m *MockOpenAbacPolicyManager) ListByPKs(pks []int64) ([]dao.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]dao.Policy)
+	ret0, _ := ret[0].([]dao.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,10 +80,10 @@ func (mr *MockOpenAbacPolicyManagerMockRecorder) ListByPKs(pks interface{}) *gom
 }
 
 // ListPagingByActionPKBeforeExpiredAt mocks base method.
-func (m *MockOpenAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]dao.Policy, error) {
+func (m *MockOpenAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]dao.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingByActionPKBeforeExpiredAt", actionPK, expiredAt, offset, limit)
-	ret0, _ := ret[0].([]dao.Policy)
+	ret0, _ := ret[0].([]dao.OpenAbacPolicy)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

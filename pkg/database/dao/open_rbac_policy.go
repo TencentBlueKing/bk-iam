@@ -21,41 +21,42 @@ import (
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
-type OpenAbacPolicy struct {
-	Policy
+type OpenRbacPolicy struct {
+	SubjectActionExpression
 }
-type OpenAbacPolicyManager interface {
-	Get(pk int64) (OpenAbacPolicy, error)
+
+type OpenRbacPolicyManager interface {
+	Get(pk int64) (OpenRbacPolicy, error)
 	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
 	ListPagingByActionPKBeforeExpiredAt(
 		actionPK int64,
 		expiredAt int64,
 		offset int64,
 		limit int64,
-	) ([]OpenAbacPolicy, error)
-	ListByPKs(pks []int64) ([]OpenAbacPolicy, error)
+	) ([]OpenRbacPolicy, error)
+	ListByPKs(pks []int64) ([]OpenRbacPolicy, error)
 }
 
-type openAbacPolicyManager struct {
+type openRbacPolicyManager struct {
 	DB *sqlx.DB
 }
 
 // NewPolicyManager ...
-func NewOpenAbacPolicyManager() OpenAbacPolicyManager {
-	return &openAbacPolicyManager{
+func NewOpenRbacPolicyManager() OpenRbacPolicyManager {
+	return &openRbacPolicyManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
 }
 
-func (m *openAbacPolicyManager) Get(pk int64) (policy OpenAbacPolicy, err error) {
+func (m *openRbacPolicyManager) Get(pk int64) (policy OpenRbacPolicy, err error) {
 	query := `SELECT
 			pk,
 			subject_pk,
 			action_pk,
-			expression_pk,
-			expired_at,
-			template_id
-			FROM policy
+			expression,
+			signature,
+			expired_at
+			FROM rbac_subject_action_expression
 			WHERE pk = ?
 			LIMIT 1`
 	err = database.SqlxGet(m.DB, &policy, query, pk)
@@ -63,13 +64,13 @@ func (m *openAbacPolicyManager) Get(pk int64) (policy OpenAbacPolicy, err error)
 }
 
 // GetCountByActionBeforeExpiredAt ...
-func (m *openAbacPolicyManager) GetCountByActionBeforeExpiredAt(
+func (m *openRbacPolicyManager) GetCountByActionBeforeExpiredAt(
 	actionPK int64,
 	expiredAt int64,
 ) (count int64, err error) {
 	query := `SELECT
 	count(*)
-	FROM policy
+	FROM rbac_subject_action_expression
 	WHERE action_pk = ?
 	AND expired_at > ?`
 	err = database.SqlxGet(m.DB, count, query, actionPK, expiredAt)
@@ -77,20 +78,20 @@ func (m *openAbacPolicyManager) GetCountByActionBeforeExpiredAt(
 }
 
 // ListPagingByActionPKBeforeExpiredAt ...
-func (m *openAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
+func (m *openRbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 	actionPK int64,
 	expiredAt int64,
 	offset int64,
 	limit int64,
-) (policies []OpenAbacPolicy, err error) {
+) (policies []OpenRbacPolicy, err error) {
 	query := `SELECT
 	pk,
 	subject_pk,
 	action_pk,
-	expression_pk,
-	expired_at,
-	template_id
-	FROM policy
+	expression,
+	signature,
+	expired_at
+	FROM rbac_subject_action_expression
 	WHERE action_pk = ?
 	AND expired_at > ?
 	ORDER BY pk asc
@@ -102,14 +103,14 @@ func (m *openAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 		t.pk,
 		t.subject_pk,
 		t.action_pk,
-		t.expression_pk,
-		t.expired_at,
-		t.template_id
-		FROM policy t
+		t.expression,
+		t.signature,
+		t.expired_at
+		FROM rbac_subject_action_expression t
 		INNER JOIN
 		(
 			SELECT pk
-			FROM policy
+			FROM rbac_subject_action_expression
 			WHERE action_pk = ?
 			AND expired_at > ?
 			ORDER BY pk asc
@@ -125,15 +126,15 @@ func (m *openAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 }
 
 // ListByPKs ...
-func (m *openAbacPolicyManager) ListByPKs(pks []int64) (policies []OpenAbacPolicy, err error) {
+func (m *openRbacPolicyManager) ListByPKs(pks []int64) (policies []OpenRbacPolicy, err error) {
 	query := `SELECT
 		pk,
 		subject_pk,
 		action_pk,
-		expression_pk,
-		expired_at,
-		template_id
-		FROM policy
+		expression,
+		signature,
+		expired_at
+		FROM rbac_subject_action_expression
 		WHERE pk in (?)`
 	err = database.SqlxSelect(m.DB, &policies, query, pks)
 

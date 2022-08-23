@@ -19,29 +19,29 @@ import (
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
-// OpenAbacPolicyService ...
-type OpenAbacPolicyService interface {
-	Get(pk int64) (types.OpenAbacPolicy, error)
+// OpenRbacPolicyService ...
+type OpenRbacPolicyService interface {
+	Get(pk int64) (types.OpenRbacPolicy, error)
 	ListPagingQueryByActionBeforeExpiredAt(
-		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.OpenAbacPolicy, error)
+		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.OpenRbacPolicy, error)
 	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
 
-	ListByPKs(pks []int64) ([]types.OpenAbacPolicy, error)
+	ListByPKs(pks []int64) ([]types.OpenRbacPolicy, error)
 }
 
-type openAbacPolicyService struct {
-	manager dao.OpenAbacPolicyManager
+type openRbacPolicyService struct {
+	manager dao.OpenRbacPolicyManager
 }
 
 // NewPolicyService ...
-func NewOpenAbacPolicyService() OpenAbacPolicyService {
-	return &openAbacPolicyService{
-		manager: dao.NewOpenAbacPolicyManager(),
+func NewOpenRbacPolicyService() OpenRbacPolicyService {
+	return &openRbacPolicyService{
+		manager: dao.NewOpenRbacPolicyManager(),
 	}
 }
 
 // Get ...
-func (s *openAbacPolicyService) Get(pk int64) (daoPolicy types.OpenAbacPolicy, err error) {
+func (s *openRbacPolicyService) Get(pk int64) (daoPolicy types.OpenRbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
 	policy, err1 := s.manager.Get(pk)
 	if err1 != nil {
@@ -49,28 +49,28 @@ func (s *openAbacPolicyService) Get(pk int64) (daoPolicy types.OpenAbacPolicy, e
 		return
 	}
 
-	daoPolicy = types.OpenAbacPolicy{
-		PK:           policy.PK,
-		SubjectPK:    policy.SubjectPK,
-		ActionPK:     policy.ActionPK,
-		ExpressionPK: policy.ExpressionPK,
-		ExpiredAt:    policy.ExpiredAt,
+	daoPolicy = types.OpenRbacPolicy{
+		PK:         policy.PK,
+		SubjectPK:  policy.SubjectPK,
+		ActionPK:   policy.ActionPK,
+		Expression: policy.Expression,
+		ExpiredAt:  policy.ExpiredAt,
 	}
 	return
 }
 
 // GetCountByActionBeforeExpiredAt ...
-func (s *openAbacPolicyService) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error) {
+func (s *openRbacPolicyService) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error) {
 	return s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 }
 
 // ListPagingQueryByActionBeforeExpiredAt ...
-func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
+func (s *openRbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 	actionPK int64,
 	expiredAt int64,
 	offset int64,
 	limit int64,
-) (queryPolicies []types.OpenAbacPolicy, err error) {
+) (queryPolicies []types.OpenRbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
 
 	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
@@ -81,12 +81,12 @@ func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 		return nil, err
 	}
 
-	queryPolicies = convertPoliciesToOpenAbacPolicies(policies)
+	queryPolicies = convertPoliciesToOpenRbacPolicies(policies)
 	return
 }
 
 // ListByPKs ...
-func (s *openAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.OpenAbacPolicy, err error) {
+func (s *openRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.OpenRbacPolicy, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
@@ -96,19 +96,19 @@ func (s *openAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.Op
 		return nil, err
 	}
 
-	queryPolicies = convertPoliciesToOpenAbacPolicies(policies)
+	queryPolicies = convertPoliciesToOpenRbacPolicies(policies)
 	return
 }
 
-func convertPoliciesToOpenAbacPolicies(policies []dao.OpenAbacPolicy) []types.OpenAbacPolicy {
-	queryPolicies := make([]types.OpenAbacPolicy, 0, len(policies))
+func convertPoliciesToOpenRbacPolicies(policies []dao.OpenRbacPolicy) []types.OpenRbacPolicy {
+	queryPolicies := make([]types.OpenRbacPolicy, 0, len(policies))
 	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.OpenAbacPolicy{
-			PK:           p.PK,
-			SubjectPK:    p.SubjectPK,
-			ActionPK:     p.ActionPK,
-			ExpressionPK: p.ExpressionPK,
-			ExpiredAt:    p.ExpiredAt,
+		queryPolicies = append(queryPolicies, types.OpenRbacPolicy{
+			PK:         p.PK,
+			SubjectPK:  p.SubjectPK,
+			ActionPK:   p.ActionPK,
+			Expression: p.Expression,
+			ExpiredAt:  p.ExpiredAt,
 		})
 	}
 	return queryPolicies

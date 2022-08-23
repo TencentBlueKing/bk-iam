@@ -11,13 +11,16 @@
 package prp
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
+	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
+	svctypes "iam/pkg/service/types"
 )
 
 /*
@@ -64,4 +67,44 @@ func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) 
 	}
 
 	return groupPKSet.ToSlice(), nil
+}
+
+// translateExpressions translate expression to json format
+func translateExpressions(
+	expressionPKs []int64,
+) (expressionMap map[int64]map[string]interface{}, err error) {
+	// when the pk is -1, will translate to any
+	pkExpressionStrMap := map[int64]string{
+		// NOTE: -1 for the `any`
+		-1: "",
+	}
+	if len(expressionPKs) > 0 {
+		manager := NewPolicyManager()
+
+		var exprs []svctypes.AuthExpression
+		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
+		if err != nil {
+			err = fmt.Errorf("policyManager.GetExpressionsFromCache pks=`%+v` fail. err=%w", expressionPKs, err)
+			return
+		}
+
+		for _, e := range exprs {
+			pkExpressionStrMap[e.PK] = e.Expression
+		}
+	}
+
+	// translate one by one
+	expressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
+	for pk, expr := range pkExpressionStrMap {
+		// TODO: 如何优化这里的性能?
+		// TODO: 理论上, signature一样的只需要转一次
+		// e.Signature
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
+		if err1 != nil {
+			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", expr, err1)
+			return
+		}
+		expressionMap[pk] = translatedExpr
+	}
+	return expressionMap, nil
 }

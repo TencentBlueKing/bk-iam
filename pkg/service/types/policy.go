@@ -45,6 +45,14 @@ type OpenAbacPolicy struct {
 	ExpiredAt    int64
 }
 
+type OpenRbacPolicy struct {
+	PK         int64
+	SubjectPK  int64
+	ActionPK   int64
+	Expression string
+	ExpiredAt  int64
+}
+
 type EngineAbacPolicy struct {
 	PK int64
 

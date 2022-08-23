@@ -43,49 +43,76 @@ type OpenPolicyManager interface {
 
 type openPolicyManager struct {
 	abacService service.OpenAbacPolicyService
+	rbacService service.OpenRbacPolicyService
 }
 
 func NewOpenPolicyManager() OpenPolicyManager {
 	return &openPolicyManager{
 		abacService: service.NewOpenAbacPolicyService(),
+		rbacService: service.NewOpenRbacPolicyService(),
 	}
 }
 
 var ErrPolicyNotFound = errors.New("policy not found")
 
 func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, err error) {
-	// FIXME: add _type=rbac
-
-	// 1. query policy
-	policy, err := m.abacService.Get(pk)
-	if err != nil {
-		// 不存在的情况, 404
-		if errors.Is(err, sql.ErrNoRows) {
-			return openPolicy, ErrPolicyNotFound
+	switch _type {
+	case PolicyTypeAbac:
+		// 1. query policy
+		policy, err := m.abacService.Get(pk)
+		if err != nil {
+			// 不存在的情况, 404
+			if errors.Is(err, sql.ErrNoRows) {
+				return openPolicy, ErrPolicyNotFound
+			}
+			return openPolicy, err
 		}
-		return openPolicy, err
-	}
 
-	// 2. get expression
-	pkExpressionMap, err := translateExpressions([]int64{policy.ExpressionPK})
-	if err != nil {
-		return openPolicy, err
-	}
-	expression, ok := pkExpressionMap[policy.ExpressionPK]
-	if !ok {
-		return openPolicy, fmt.Errorf("expression pk=`%d` missing", policy.ExpressionPK)
-	}
+		// 2. get expression
+		pkExpressionMap, err := translateExpressions([]int64{policy.ExpressionPK})
+		if err != nil {
+			return openPolicy, err
+		}
+		expression, ok := pkExpressionMap[policy.ExpressionPK]
+		if !ok {
+			return openPolicy, fmt.Errorf("expression pk=`%d` missing", policy.ExpressionPK)
+		}
 
-	openPolicy = OpenPolicy{
-		Version:    service.PolicyVersion,
-		ID:         policy.PK,
-		ActionPK:   policy.ActionPK,
-		SubjectPK:  policy.SubjectPK,
-		Expression: expression,
-		ExpiredAt:  policy.ExpiredAt,
-	}
+		openPolicy = OpenPolicy{
+			Version:    service.PolicyVersion,
+			ID:         policy.PK,
+			ActionPK:   policy.ActionPK,
+			SubjectPK:  policy.SubjectPK,
+			Expression: expression,
+			ExpiredAt:  policy.ExpiredAt,
+		}
 
-	return openPolicy, nil
+		return openPolicy, nil
+	case PolicyTypeRbac:
+		pk = inputRbacPolicyPKToRealPK(pk)
+		policy, err := m.rbacService.Get(pk)
+		if err != nil {
+			return openPolicy, err
+		}
+
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(policy.Expression)
+		if err1 != nil {
+			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", policy.Expression, err1)
+			return openPolicy, err
+		}
+
+		return OpenPolicy{
+			Version:    service.PolicyVersion,
+			ID:         policy.PK,
+			ActionPK:   policy.ActionPK,
+			SubjectPK:  policy.SubjectPK,
+			Expression: translatedExpr,
+			ExpiredAt:  policy.ExpiredAt,
+		}, nil
+
+	default:
+		return openPolicy, ErrUnsupportedPolicyType
+	}
 }
 
 func (m *openPolicyManager) List(
@@ -94,46 +121,88 @@ func (m *openPolicyManager) List(
 	expiredAt int64,
 	offset, limit int64,
 ) (count int64, policies []OpenPolicy, err error) {
-	// FIXME: add _type=rbac
+	switch _type {
+	case PolicyTypeAbac:
+		// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
+		count, err = m.abacService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
+		if err != nil {
+			return 0, nil, fmt.Errorf(
+				"svc.GetCountByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d` fail. err=%w",
+				actionPK,
+				expiredAt,
+				err,
+			)
+		}
 
-	// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
-	count, err = m.abacService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
-	if err != nil {
-		return 0, nil, fmt.Errorf(
-			"svc.GetCountByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d` fail. err=%w",
-			actionPK,
-			expiredAt,
-			err,
-		)
+		if count == 0 {
+			return 0, []OpenPolicy{}, nil
+		}
+
+		var abacPolicies []svctypes.OpenAbacPolicy
+		abacPolicies, err = m.abacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
+		if err != nil {
+			err = fmt.Errorf(
+				"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
+				actionPK,
+				expiredAt,
+				offset,
+				limit,
+				err,
+			)
+			return 0, nil, err
+		}
+
+		policies, err = convertAbacPoliciesToOpenPolicies(abacPolicies)
+		if err != nil {
+			err = fmt.Errorf(
+				"convertQueryPoliciesToOpenPolicies queryPolicies=`%+v` fail. err=%w",
+				abacPolicies, err)
+			return 0, nil, err
+		}
+
+		return count, policies, nil
+	case PolicyTypeRbac:
+		// 3. do query: 查询某个系统, 某个action的所有policy列表  带分页
+		count, err = m.rbacService.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
+		if err != nil {
+			return 0, nil, fmt.Errorf(
+				"rbacSvc.GetCountByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d` fail. err=%w",
+				actionPK,
+				expiredAt,
+				err,
+			)
+		}
+
+		if count == 0 {
+			return 0, []OpenPolicy{}, nil
+		}
+
+		var rbacPolicies []svctypes.OpenRbacPolicy
+		rbacPolicies, err = m.rbacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
+		if err != nil {
+			err = fmt.Errorf(
+				"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
+				actionPK,
+				expiredAt,
+				offset,
+				limit,
+				err,
+			)
+			return 0, nil, err
+		}
+
+		policies, err = convertRbacPoliciesToOpenPolicies(rbacPolicies)
+		if err != nil {
+			err = fmt.Errorf(
+				"convertQueryPoliciesToOpenPolicies queryPolicies=`%+v` fail. err=%w",
+				rbacPolicies, err)
+			return 0, nil, err
+		}
+
+		return count, policies, nil
+	default:
+		return 0, nil, ErrUnsupportedPolicyType
 	}
-
-	if count == 0 {
-		return 0, []OpenPolicy{}, nil
-	}
-
-	var abacPolicies []svctypes.OpenAbacPolicy
-	abacPolicies, err = m.abacService.ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit)
-	if err != nil {
-		err = fmt.Errorf(
-			"svc.ListPagingQueryByActionBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail. err=%w",
-			actionPK,
-			expiredAt,
-			offset,
-			limit,
-			err,
-		)
-		return 0, nil, err
-	}
-
-	policies, err = convertAbacPoliciesToOpenPolicies(abacPolicies)
-	if err != nil {
-		err = fmt.Errorf(
-			"convertQueryPoliciesToOpenPolicies queryPolicies=`%+v` fail. err=%w",
-			abacPolicies, err)
-		return 0, nil, err
-	}
-
-	return count, policies, nil
 }
 
 func (m *openPolicyManager) ListSubjects(
@@ -141,75 +210,68 @@ func (m *openPolicyManager) ListSubjects(
 	systemID string,
 	pks []int64,
 ) (map[int64]int64, error) {
-	// FIXME: add _type=rbac
-
-	// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
-	// 1. query policy
-	policies, err := m.abacService.ListQueryByPKs(pks)
-	if err != nil {
-		return nil, fmt.Errorf("svc.ListQueryByPKs pks=`%+v` fail. err=%w", pks, err)
-	}
-
-	if len(policies) == 0 {
-		return nil, nil
-	}
-
-	data := make(map[int64]int64, len(policies))
-	for _, policy := range policies {
-		sa, err := cacheimpls.GetAction(policy.ActionPK)
+	switch _type {
+	case PolicyTypeAbac:
+		// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
+		policies, err := m.abacService.ListByPKs(pks)
 		if err != nil {
-			log.Infof("cacheimpls.GetAction action_pk=`%d` fail. err=%s", policy.ActionPK, err.Error())
-
-			continue
-		}
-		// 不是本系统的策略, 过滤掉. not my system policy, continue
-		if systemID != sa.System {
-			continue
+			return nil, fmt.Errorf("svc.ListQueryByPKs pks=`%+v` fail. err=%w", pks, err)
 		}
 
-		data[policy.PK] = policy.SubjectPK
-	}
+		if len(policies) == 0 {
+			return nil, nil
+		}
 
-	return data, nil
-}
+		data := make(map[int64]int64, len(policies))
+		for _, policy := range policies {
+			sa, err := cacheimpls.GetAction(policy.ActionPK)
+			if err != nil {
+				log.Infof("cacheimpls.GetAction action_pk=`%d` fail. err=%s", policy.ActionPK, err.Error())
 
-// translateExpressions translate expression to json format
-func translateExpressions(
-	expressionPKs []int64,
-) (expressionMap map[int64]map[string]interface{}, err error) {
-	// when the pk is -1, will translate to any
-	pkExpressionStrMap := map[int64]string{
-		-1: "",
-	}
-	if len(expressionPKs) > 0 {
-		manager := NewPolicyManager()
+				continue
+			}
+			// 不是本系统的策略, 过滤掉. not my system policy, continue
+			if systemID != sa.System {
+				continue
+			}
 
-		var exprs []svctypes.AuthExpression
-		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
+			data[policy.PK] = policy.SubjectPK
+		}
+
+		return data, nil
+	case PolicyTypeRbac:
+		// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
+		realPKs := inputRbacPolicyPKsToRealPKs(pks)
+
+		policies, err := m.rbacService.ListByPKs(realPKs)
 		if err != nil {
-			err = fmt.Errorf("policyManager.GetExpressionsFromCache pks=`%+v` fail. err=%w", expressionPKs, err)
-			return
+			return nil, fmt.Errorf("svc.ListQueryByPKs pks=`%+v` fail. err=%w", pks, err)
 		}
 
-		for _, e := range exprs {
-			pkExpressionStrMap[e.PK] = e.Expression
+		if len(policies) == 0 {
+			return nil, nil
 		}
-	}
 
-	// translate one by one
-	expressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
-	for pk, expr := range pkExpressionStrMap {
-		// TODO: 如何优化这里的性能?
-		// TODO: 理论上, signature一样的只需要转一次
-		// e.Signature
-		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
-		if err1 != nil {
-			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", expr, err1)
-			return
+		data := make(map[int64]int64, len(policies))
+		for _, policy := range policies {
+			sa, err := cacheimpls.GetAction(policy.ActionPK)
+			if err != nil {
+				log.Infof("cacheimpls.GetAction action_pk=`%d` fail. err=%s", policy.ActionPK, err.Error())
+
+				continue
+			}
+			// 不是本系统的策略, 过滤掉. not my system policy, continue
+			if systemID != sa.System {
+				continue
+			}
+
+			data[realPKToOutputRbacPolicyPK(policy.PK)] = policy.SubjectPK
 		}
-		expressionMap[pk] = translatedExpr
+
+		return data, nil
+	default:
+		return nil, ErrUnsupportedPolicyType
 	}
-	return expressionMap, nil
 }
 
 func convertAbacPoliciesToOpenPolicies(
@@ -252,6 +314,33 @@ func convertAbacPoliciesToOpenPolicies(
 			ActionPK:   p.ActionPK,
 			SubjectPK:  p.SubjectPK,
 			Expression: expression,
+			ExpiredAt:  p.ExpiredAt,
+		})
+	}
+	return openPolicies, nil
+}
+
+func convertRbacPoliciesToOpenPolicies(
+	policies []svctypes.OpenRbacPolicy,
+) (openPolicies []OpenPolicy, err error) {
+	if len(policies) == 0 {
+		return
+	}
+
+	// loop policies to build openPolicies
+	for _, p := range policies {
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(p.Expression)
+		if err1 != nil {
+			log.WithError(err1).Errorf("translate.PolicyExpressionTranslate expr=`%s` fail", p.Expression)
+			continue
+		}
+
+		openPolicies = append(openPolicies, OpenPolicy{
+			Version:    service.PolicyVersion,
+			ID:         realPKToOutputRbacPolicyPK(p.PK),
+			ActionPK:   p.ActionPK,
+			SubjectPK:  p.SubjectPK,
+			Expression: translatedExpr,
 			ExpiredAt:  p.ExpiredAt,
 		})
 	}

@@ -34,16 +34,20 @@ var _ = Describe("OpenAbacPolicyService", func() {
 		})
 
 		It("ok", func() {
-			returned := []dao.Policy{
+			returned := []dao.OpenAbacPolicy{
 				{
-					PK:           1,
-					ExpressionPK: 1,
-					TemplateID:   0,
+					Policy: dao.Policy{
+						PK:           1,
+						ExpressionPK: 1,
+						TemplateID:   0,
+					},
 				},
 				{
-					PK:           2,
-					ExpressionPK: 2,
-					TemplateID:   1,
+					Policy: dao.Policy{
+						PK:           2,
+						ExpressionPK: 2,
+						TemplateID:   1,
+					},
 				},
 			}
 			mockPolicyManager := mock.NewMockOpenAbacPolicyManager(ctl)
@@ -53,7 +57,7 @@ var _ = Describe("OpenAbacPolicyService", func() {
 				manager: mockPolicyManager,
 			}
 
-			policies, err := svc.ListQueryByPKs([]int64{1, 2})
+			policies, err := svc.ListByPKs([]int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), policies, 2)
 		})
@@ -66,7 +70,7 @@ var _ = Describe("OpenAbacPolicyService", func() {
 				manager: mockPolicyManager,
 			}
 
-			_, err := svc.ListQueryByPKs([]int64{1, 2})
+			_, err := svc.ListByPKs([]int64{1, 2})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "manager.ListByPKs")
 		})

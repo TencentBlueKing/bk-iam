@@ -28,7 +28,7 @@ import (
 
 // policy for engine will put here
 
-var ErrEngineListPolicyUnsupportedType = errors.New("unsupported type")
+var ErrUnsupportedPolicyType = errors.New("unsupported type")
 
 type EnginePolicy struct {
 	Version string
@@ -74,9 +74,9 @@ func (m *enginePolicyManager) GetMaxPKBeforeUpdatedAt(_type string, updatedAt in
 		if err != nil {
 			return 0, err
 		}
-		return maxPK + rbacIDBegin, nil
+		return realPKToOutputRbacPolicyPK(maxPK), nil
 	default:
-		return 0, ErrEngineListPolicyUnsupportedType
+		return 0, ErrUnsupportedPolicyType
 	}
 }
 
@@ -94,11 +94,11 @@ func (m *enginePolicyManager) ListPKBetweenUpdatedAt(
 		}
 		rbacPKs := make([]int64, 0, len(pks))
 		for _, pk := range pks {
-			rbacPKs = append(rbacPKs, pk+rbacIDBegin)
+			rbacPKs = append(rbacPKs, realPKToOutputRbacPolicyPK(pk))
 		}
 		return rbacPKs, nil
 	default:
-		return nil, ErrEngineListPolicyUnsupportedType
+		return nil, ErrUnsupportedPolicyType
 	}
 }
 
@@ -114,15 +114,15 @@ func (m *enginePolicyManager) ListBetweenPK(
 		}
 		return convertAbacPoliciesToEnginePolicies(abacPolicies)
 	case PolicyTypeRbac:
-		minPK -= rbacIDBegin
-		maxPK -= rbacIDBegin
+		minPK = inputRbacPolicyPKToRealPK(minPK)
+		maxPK = inputRbacPolicyPKToRealPK(maxPK)
 		rbacPolicies, err := m.rbacService.ListBetweenPK(expiredAt, minPK, maxPK)
 		if err != nil {
 			return nil, err
 		}
 		return convertRbacPoliciesToEnginePolicies(rbacPolicies)
 	default:
-		return nil, ErrEngineListPolicyUnsupportedType
+		return nil, ErrUnsupportedPolicyType
 	}
 }
 
@@ -135,10 +135,7 @@ func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []E
 		}
 		return convertAbacPoliciesToEnginePolicies(abacPolicies)
 	case PolicyTypeRbac:
-		realPKs := make([]int64, 0, len(pks))
-		for _, pk := range pks {
-			realPKs = append(realPKs, pk-rbacIDBegin)
-		}
+		realPKs := inputRbacPolicyPKsToRealPKs(pks)
 
 		rbacPolicies, err := m.rbacService.ListByPKs(realPKs)
 		if err != nil {
@@ -146,7 +143,7 @@ func (m *enginePolicyManager) ListByPKs(_type string, pks []int64) (policies []E
 		}
 		return convertRbacPoliciesToEnginePolicies(rbacPolicies)
 	default:
-		return nil, ErrEngineListPolicyUnsupportedType
+		return nil, ErrUnsupportedPolicyType
 	}
 }
 
@@ -156,32 +153,32 @@ func convertAbacPoliciesToEnginePolicies(
 	if len(policies) == 0 {
 		return
 	}
+
 	// query all expression
-	pkExpressionStrMap, err := queryPoliciesExpression(policies)
+	expressionPKs := make([]int64, 0, len(policies))
+	for _, p := range policies {
+		if p.ExpressionPK != AnyExpressionPK {
+			expressionPKs = append(expressionPKs, p.ExpressionPK)
+		}
+	}
+	pkExpressionMap, err := translateExpressions(expressionPKs)
 	if err != nil {
-		// err = errorWrapf(err, "queryPolicyExpression policies length=`%d` fail", len(enginePolicies))
+		err = fmt.Errorf("translateExpressions expressionPKs=`%+v` fail. err=%w", expressionPKs, err)
 		return
 	}
 
 	// loop policies to build enginePolicies
 	for _, p := range policies {
-		expr, ok := pkExpressionStrMap[p.ExpressionPK]
+		expression, ok := pkExpressionMap[p.ExpressionPK]
 		if !ok {
 			log.Errorf(
-				"policy.convertEngineQueryPoliciesToEnginePolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
+				"convertQueryPoliciesToOpenPolicies p.ExpressionPK=`%d` missing in pkExpressionMap",
 				p.ExpressionPK,
 			)
-
 			continue
 		}
 
-		expression, err1 := translate.PolicyExpressionTranslate(expr)
-		if err1 != nil {
-			// err = errorWrapf(err2, "translate.PolicyExpressionTranslate policy=`%+v`, expr=`%s` fail", p, p.Expression)
-			return nil, err
-		}
-
-		ep := EnginePolicy{
+		enginePolicies = append(enginePolicies, EnginePolicy{
 			Version:    service.PolicyVersion,
 			ID:         p.PK,
 			ActionPKs:  []int64{p.ActionPK},
@@ -190,43 +187,9 @@ func convertAbacPoliciesToEnginePolicies(
 			TemplateID: p.TemplateID,
 			ExpiredAt:  p.ExpiredAt,
 			UpdatedAt:  p.UpdatedAt.Unix(),
-		}
-
-		enginePolicies = append(enginePolicies, ep)
+		})
 	}
 	return enginePolicies, nil
-}
-
-// AnyExpressionPK is the pk for expression=any
-const AnyExpressionPK = -1
-
-func queryPoliciesExpression(policies []types.EngineAbacPolicy) (map[int64]string, error) {
-	expressionPKs := make([]int64, 0, len(policies))
-	for _, p := range policies {
-		if p.ExpressionPK != AnyExpressionPK {
-			expressionPKs = append(expressionPKs, p.ExpressionPK)
-		}
-	}
-
-	pkExpressionStrMap := map[int64]string{
-		// NOTE: -1 for the `any`
-		AnyExpressionPK: "",
-	}
-	if len(expressionPKs) > 0 {
-		manager := NewPolicyManager()
-
-		var exprs []types.AuthExpression
-		var err error
-		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, e := range exprs {
-			pkExpressionStrMap[e.PK] = e.Expression
-		}
-	}
-	return pkExpressionStrMap, nil
 }
 
 func convertRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy) ([]EnginePolicy, error) {
@@ -240,7 +203,7 @@ func convertRbacPoliciesToEnginePolicies(policies []types.EngineRbacPolicy) ([]E
 
 		queryPolicies = append(queryPolicies, EnginePolicy{
 			Version:    service.PolicyVersion,
-			ID:         p.PK + rbacIDBegin,
+			ID:         realPKToOutputRbacPolicyPK(p.PK),
 			ActionPKs:  p.ActionPKs,
 			SubjectPK:  p.GroupPK,
 			Expression: expr,

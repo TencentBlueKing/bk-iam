@@ -64,6 +64,21 @@ func (mr *MockOpenAbacPolicyServiceMockRecorder) GetCountByActionBeforeExpiredAt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountByActionBeforeExpiredAt", reflect.TypeOf((*MockOpenAbacPolicyService)(nil).GetCountByActionBeforeExpiredAt), actionPK, expiredAt)
 }
 
+// ListByPKs mocks base method.
+func (m *MockOpenAbacPolicyService) ListByPKs(pks []int64) ([]types.OpenAbacPolicy, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByPKs", pks)
+	ret0, _ := ret[0].([]types.OpenAbacPolicy)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByPKs indicates an expected call of ListByPKs.
+func (mr *MockOpenAbacPolicyServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockOpenAbacPolicyService)(nil).ListByPKs), pks)
+}
+
 // ListPagingQueryByActionBeforeExpiredAt mocks base method.
 func (m *MockOpenAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.OpenAbacPolicy, error) {
 	m.ctrl.T.Helper()
@@ -77,19 +92,4 @@ func (m *MockOpenAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(actio
 func (mr *MockOpenAbacPolicyServiceMockRecorder) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingQueryByActionBeforeExpiredAt", reflect.TypeOf((*MockOpenAbacPolicyService)(nil).ListPagingQueryByActionBeforeExpiredAt), actionPK, expiredAt, offset, limit)
-}
-
-// ListQueryByPKs mocks base method.
-func (m *MockOpenAbacPolicyService) ListQueryByPKs(pks []int64) ([]types.OpenAbacPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListQueryByPKs", pks)
-	ret0, _ := ret[0].([]types.OpenAbacPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListQueryByPKs indicates an expected call of ListQueryByPKs.
-func (mr *MockOpenAbacPolicyServiceMockRecorder) ListQueryByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListQueryByPKs", reflect.TypeOf((*MockOpenAbacPolicyService)(nil).ListQueryByPKs), pks)
 }
