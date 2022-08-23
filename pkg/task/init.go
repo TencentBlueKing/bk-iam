@@ -38,6 +38,12 @@ var (
 	engineDeletionEventQueueInitOnce sync.Once
 )
 
+var (
+	rbacEventQueueName = "sub_act"
+	// redis list key
+	rbacEventQueueKey = "rmq::queue::[" + rbacEventQueueName + "]::ready"
+)
+
 // InitRmqQueue 初始化rmq队列
 func InitRmqQueue(debugMode bool, _type string) {
 	errChan := make(chan error, 10)
@@ -58,7 +64,7 @@ func InitRmqQueue(debugMode bool, _type string) {
 
 	if rbacEventQueue == nil {
 		rbacEventQueueInitOnce.Do(func() {
-			rbacEventQueue, err = connection.OpenQueue("grp_sub_act") // group_subject_action
+			rbacEventQueue, err = connection.OpenQueue(rbacEventQueueName) // subject_action
 			if err != nil {
 				log.WithError(err).Error("new rmq queue fail")
 				if !debugMode {

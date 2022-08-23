@@ -28,8 +28,6 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/task"
-	"iam/pkg/task/producer"
 )
 
 const rbacRedisLayer = "rbacPolicyRedisLayer"
@@ -55,8 +53,6 @@ type PolicyRedisRetriever struct {
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	groupAlterEventService            service.GroupAlterEventService
 
-	alterEventProducer producer.Producer
-
 	G singleflight.Group
 }
 
@@ -68,7 +64,6 @@ func NewPolicyRedisRetriever() PolicyRetriever {
 				subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 				subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 				groupAlterEventService:            service.NewGroupAlterEventService(),
-				alterEventProducer:                producer.NewRedisProducer(task.GetRbacEventQueue()),
 			}
 		})
 	}
@@ -302,16 +297,9 @@ func (*PolicyRedisRetriever) setSubjectActionExpressionCache(expression types.Su
 }
 
 func (r *PolicyRedisRetriever) sendSubjectActionRefreshMessage(subjectPK, actionPK int64) {
-	pk, err := r.groupAlterEventService.CreateBySubjectActionGroup(subjectPK, actionPK, 0)
+	err := r.groupAlterEventService.CreateBySubjectActionGroup(subjectPK, actionPK, 0)
 	if err != nil {
 		log.WithError(err).Errorf("create group alter event fail, subjectPK=`%d`, actionPK=`%d`",
 			subjectPK, actionPK)
-		return
-	}
-
-	// send rmq message
-	err = r.alterEventProducer.Publish(strconv.FormatInt(pk, 10))
-	if err != nil {
-		log.WithError(err).Errorf("publish alter event message fail, pk=`%d`", pk)
 	}
 }

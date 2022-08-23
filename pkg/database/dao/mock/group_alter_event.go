@@ -35,75 +35,45 @@ func (m *MockGroupAlterEventManager) EXPECT() *MockGroupAlterEventManagerMockRec
 	return m.recorder
 }
 
-// BulkCreateWithTx mocks base method.
-func (m *MockGroupAlterEventManager) BulkCreateWithTx(tx *sqlx.Tx, groupAlterEvents []dao.GroupAlterEvent) ([]int64, error) {
+// BulkDeleteWithTx mocks base method.
+func (m *MockGroupAlterEventManager) BulkDeleteWithTx(tx *sqlx.Tx, uuids []string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateWithTx", tx, groupAlterEvents)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkCreateWithTx indicates an expected call of BulkCreateWithTx.
-func (mr *MockGroupAlterEventManagerMockRecorder) BulkCreateWithTx(tx, groupAlterEvents interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockGroupAlterEventManager)(nil).BulkCreateWithTx), tx, groupAlterEvents)
-}
-
-// Delete mocks base method.
-func (m *MockGroupAlterEventManager) Delete(pk int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", pk)
+	ret := m.ctrl.Call(m, "BulkDeleteWithTx", tx, uuids)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Delete indicates an expected call of Delete.
-func (mr *MockGroupAlterEventManagerMockRecorder) Delete(pk interface{}) *gomock.Call {
+// BulkDeleteWithTx indicates an expected call of BulkDeleteWithTx.
+func (mr *MockGroupAlterEventManagerMockRecorder) BulkDeleteWithTx(tx, uuids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Delete), pk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockGroupAlterEventManager)(nil).BulkDeleteWithTx), tx, uuids)
 }
 
-// Get mocks base method.
-func (m *MockGroupAlterEventManager) Get(pk int64) (dao.GroupAlterEvent, error) {
+// Create mocks base method.
+func (m *MockGroupAlterEventManager) Create(event dao.GroupAlterEvent) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", pk)
-	ret0, _ := ret[0].(dao.GroupAlterEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockGroupAlterEventManagerMockRecorder) Get(pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Get), pk)
-}
-
-// IncrCheckCount mocks base method.
-func (m *MockGroupAlterEventManager) IncrCheckCount(pk int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncrCheckCount", pk)
+	ret := m.ctrl.Call(m, "Create", event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// IncrCheckCount indicates an expected call of IncrCheckCount.
-func (mr *MockGroupAlterEventManagerMockRecorder) IncrCheckCount(pk interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockGroupAlterEventManagerMockRecorder) Create(event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrCheckCount", reflect.TypeOf((*MockGroupAlterEventManager)(nil).IncrCheckCount), pk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupAlterEventManager)(nil).Create), event)
 }
 
-// ListPKLessThanCheckCountBeforeCreateAt mocks base method.
-func (m *MockGroupAlterEventManager) ListPKLessThanCheckCountBeforeCreateAt(CheckCount, createdAt int64) ([]int64, error) {
+// ListBeforeCreateAt mocks base method.
+func (m *MockGroupAlterEventManager) ListBeforeCreateAt(createdAt, limit int64) ([]dao.GroupAlterEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPKLessThanCheckCountBeforeCreateAt", CheckCount, createdAt)
-	ret0, _ := ret[0].([]int64)
+	ret := m.ctrl.Call(m, "ListBeforeCreateAt", createdAt, limit)
+	ret0, _ := ret[0].([]dao.GroupAlterEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPKLessThanCheckCountBeforeCreateAt indicates an expected call of ListPKLessThanCheckCountBeforeCreateAt.
-func (mr *MockGroupAlterEventManagerMockRecorder) ListPKLessThanCheckCountBeforeCreateAt(CheckCount, createdAt interface{}) *gomock.Call {
+// ListBeforeCreateAt indicates an expected call of ListBeforeCreateAt.
+func (mr *MockGroupAlterEventManagerMockRecorder) ListBeforeCreateAt(createdAt, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPKLessThanCheckCountBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListPKLessThanCheckCountBeforeCreateAt), CheckCount, createdAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBeforeCreateAt", reflect.TypeOf((*MockGroupAlterEventManager)(nil).ListBeforeCreateAt), createdAt, limit)
 }

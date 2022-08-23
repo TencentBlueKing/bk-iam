@@ -14,7 +14,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -33,7 +32,7 @@ const handlerLayer = "handler"
 
 type groupAlterMessageHandler struct {
 	groupService                      service.GroupService
-	groupAlterEventService            service.GroupAlterEventService
+	subjectActionAlterEventService    service.SubjectActionAlterEventService
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	subjectActionExpressionService    service.SubjectActionExpressionService
 
@@ -44,7 +43,7 @@ type groupAlterMessageHandler struct {
 func NewGroupAlterMessageHandler() MessageHandler {
 	return &groupAlterMessageHandler{
 		groupService:                      service.NewGroupService(),
-		groupAlterEventService:            service.NewGroupAlterEventService(),
+		subjectActionAlterEventService:    service.NewSubjectActionAlterEventService(),
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		subjectActionExpressionService:    service.NewSubjectActionExpressionService(),
 		locker:                            locker.NewDistributedSubjectActionLocker(),
@@ -52,43 +51,54 @@ func NewGroupAlterMessageHandler() MessageHandler {
 }
 
 // Handle ...
-func (h *groupAlterMessageHandler) Handle(message string) (err error) {
+func (h *groupAlterMessageHandler) Handle(uuid string) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
 
-	pk, err := strconv.ParseInt(message, 10, 64)
+	event, err := h.subjectActionAlterEventService.Get(uuid)
 	if err != nil {
-		err = errorWrapf(err, "parse message to pk fail, message=`%s`", message)
-		return err
-	}
-
-	event, err := h.groupAlterEventService.Get(pk)
-	if err != nil {
-		err = errorWrapf(err, "groupAlterEventService.Get event fail, pk=`%d`", pk)
+		err = errorWrapf(err, "subjectActionAlterEventService.Get event fail, uuid=`%s`", uuid)
 		return err
 	}
 
 	// 判断event check times超限，不再处理
-	maxCheckCount := int64(config.MaxGroupAlterEventCheckCount)
+	maxCheckCount := int64(config.MaxSubjectActionAlterEventCheckCount)
 	if event.CheckCount > maxCheckCount {
 		logger := logging.GetWorkerLogger()
-		logger.Errorf("group event pk=`%d` check times exceed limit, check times=`%d`", pk, event.CheckCount)
+		logger.Errorf(
+			"subject action alter event uuid=`%s` check times exceed limit, check times=`%d`",
+			uuid,
+			event.CheckCount,
+		)
 		return nil
 	}
 
+	// update message status to processing
+	err = h.subjectActionAlterEventService.BulkUpdateStatus(
+		[]string{uuid},
+		types.SubjectActionAlterEventStatusProcessing,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"subjectActionAlterEventService.BulkUpdateStatus event fail, uuid=`%s`, status=`%d`",
+			uuid,
+			types.SubjectActionAlterEventStatusProcessing,
+		)
+		return err
+	}
+
 	// 循环处理所有事件
-	groupPK := event.GroupPK
-	for _, actionPK := range event.ActionPKs {
-		for _, subjectPK := range event.SubjectPKs {
-			err = h.alterSubjectActionGroupResource(subjectPK, actionPK, groupPK)
-			if err != nil {
-				return err
-			}
+	for _, m := range event.Messages {
+		err = h.alterSubjectActionGroupResource(m.SubjectPK, m.ActionPK, m.GroupPKs)
+		if err != nil {
+			err = errorWrapf(err, "alterSubjectActionGroupResource fail, message=`%v`", m)
+			return err
 		}
 	}
 
-	err = h.groupAlterEventService.Delete(pk)
+	err = h.subjectActionAlterEventService.Delete(uuid)
 	if err != nil {
-		err = errorWrapf(err, "groupAlterEventService.Delete event fail, pk=`%d`", pk)
+		err = errorWrapf(err, "subjectActionAlterEventService.Delete event fail, uuid=`%d`", uuid)
 		return err
 	}
 
@@ -96,10 +106,8 @@ func (h *groupAlterMessageHandler) Handle(message string) (err error) {
 }
 
 // alterSubjectActionGroupResource 处理独立的事件
-func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, actionPK, groupPK int64) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "handleEvent")
-
-	logger := logging.GetWorkerLogger()
+func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, actionPK int64, groupPKs []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(handlerLayer, "alterSubjectActionGroupResource")
 
 	// 分布式锁, subject_pk, action_pk
 	// 请求锁最多3分钟
@@ -118,8 +126,26 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 	}
 	defer database.RollBackWithLog(tx)
 
-	var obj types.SubjectActionGroupResource
-	if groupPK != 0 {
+	obj, err := h.subjectActionGroupResourceService.Get(subjectPK, actionPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		obj.SubjectPK = subjectPK
+		obj.ActionPK = actionPK
+		obj.GroupResource = map[int64]types.ResourceExpiredAt{}
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return errorWrapf(err,
+			"subjectActionGroupResourceService.Get fail, subjectPK=`%d`, actionPK=`%d`",
+			subjectPK, actionPK,
+		)
+	}
+
+	// 遍历更新group resource
+	for _, groupPK := range groupPKs {
+		// groupPK == 0, 只更新expression
+		if groupPK == 0 {
+			continue
+		}
+
 		// 查询subject group关系过期时间
 		expiredAt, err := h.groupService.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
 		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
@@ -143,69 +169,59 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		}
 
 		if found && len(resourceMap) != 0 {
-			obj, err = h.subjectActionGroupResourceService.CreateOrUpdateWithTx(
-				tx,
+			// 更新group resource
+			obj.UpdateGroupResource(groupPK, resourceMap, expiredAt)
+		} else {
+			// 关系不存在，移除用户组
+			obj.DeleteGroupResource(groupPK)
+		}
+	}
+
+	if len(obj.GroupResource) == 0 {
+		// 表达式为空，删除subject action group resource/subject action expression
+		err := h.subjectActionGroupResourceService.DeleteBySubjectActionWithTx(tx, subjectPK, actionPK)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"subjectActionGroupResourceService.DeleteBySubjectActionWithTx fail, subjectPK=`%d`, actionPK=`%d`",
 				subjectPK,
 				actionPK,
-				groupPK,
-				expiredAt,
-				resourceMap,
 			)
-			if err != nil {
-				return errorWrapf(err,
-					"subjectActionGroupResourceService.CreateOrUpdateWithTx fail, subjectPK=`%d`, actionPK=`%d`, "+
-						"groupPK=`%d`, expiredAt=`%d`, resourceMap=`%+v`",
-					subjectPK, actionPK, groupPK, expiredAt, resourceMap,
-				)
-			}
-		} else {
-			// 关系不存在, 或者group授权的资源实例为空, 从subject action group resource中删除对应的groupPK
-			obj, err = h.subjectActionGroupResourceService.DeleteGroupResourceWithTx(tx, subjectPK, actionPK, groupPK)
-			if errors.Is(err, sql.ErrNoRows) {
-				logger.Warnf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
-				return nil
-			}
+		}
 
-			if err != nil {
-				return errorWrapf(err,
-					"subjectActionGroupResourceService.DeleteGroupWithTx fail, subjectPK=`%d`, actionPK=`%d`, "+
-						"groupPK=`%d`",
-					subjectPK, actionPK, groupPK,
-				)
-			}
+		err = h.subjectActionExpressionService.DeleteBySubjectActionWithTx(tx, subjectPK, actionPK)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"subjectActionExpressionService.DeleteBySubjectActionWithTx fail, subjectPK=`%d`, actionPK=`%d`",
+				subjectPK,
+				actionPK,
+			)
 		}
 	} else {
-		// groupPK == 0, 只更新表达式
-		obj, err = h.subjectActionGroupResourceService.Get(subjectPK, actionPK)
-		if errors.Is(err, sql.ErrNoRows) {
-			logger.Warnf("subject action group resource not found, subjectPK=`%d`, actionPK=`%d`", subjectPK, actionPK)
-			return nil
+		// 创建或更新subject action group resource
+		err := h.subjectActionGroupResourceService.CreateOrUpdateWithTx(tx, obj)
+		if err != nil {
+			return errorWrapf(err, "subjectActionGroupResourceService.CreateOrUpdateWithTx fail, obj=`%+v`", obj)
 		}
 
+		// subject action resource group -> subject action expression
+		expression, err := convert.SubjectActionGroupResourceToExpression(obj)
 		if err != nil {
 			return errorWrapf(err,
-				"subjectActionGroupResourceService.Get fail, subjectPK=`%d`, groupPK=`%d`",
-				subjectPK, groupPK,
+				"convertToSubjectActionExpression fail, subjectActionResourceGroup=`%+v`",
+				obj,
 			)
 		}
-	}
 
-	// subject action resource group -> subject action expression
-	expression, err := convert.SubjectActionGroupResourceToExpression(obj)
-	if err != nil {
-		return errorWrapf(err,
-			"convertToSubjectActionExpression fail, subjectActionResourceGroup=`%+v`",
-			obj,
-		)
-	}
-
-	// 更新subject action expression
-	err = h.subjectActionExpressionService.CreateOrUpdateWithTx(tx, expression)
-	if err != nil {
-		return errorWrapf(err,
-			"subjectActionExpressionService.CreateOrUpdateWithTx fail, subjectActionExpression=`%+v`",
-			expression,
-		)
+		// 更新subject action expression
+		err = h.subjectActionExpressionService.CreateOrUpdateWithTx(tx, expression)
+		if err != nil {
+			return errorWrapf(err,
+				"subjectActionExpressionService.CreateOrUpdateWithTx fail, subjectActionExpression=`%+v`",
+				expression,
+			)
+		}
 	}
 
 	err = tx.Commit()

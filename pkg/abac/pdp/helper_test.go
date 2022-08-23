@@ -51,19 +51,23 @@ var _ = Describe("Helper", func() {
 
 		It("error", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
-				nil, errors.New("err"))
+				gomock.Any(),
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(
+					nil, errors.New("err"))
 
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, true, false, nil)
 			assert.Empty(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 		})
 
 		It("empty", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
-				[]types.AuthPolicy{}, nil)
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
+				gomock.Any(),
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(
+					[]types.AuthPolicy{}, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, true, false, nil)
 			assert.Empty(GinkgoT(), policies)
 			assert.Error(GinkgoT(), err)
 			assert.True(GinkgoT(), errors.Is(err, ErrNoPolicies))
@@ -71,17 +75,19 @@ var _ = Describe("Helper", func() {
 
 		It("ok", func() {
 			mgr.EXPECT().ListBySubjectAction(
-				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(
-				[]types.AuthPolicy{
-					{
-						Version:    "1",
-						ID:         0,
-						Expression: "",
-						ExpiredAt:  0,
-					},
-				}, nil)
+				gomock.Any(),
+				gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(
+					[]types.AuthPolicy{
+						{
+							Version:    "1",
+							ID:         0,
+							Expression: "",
+							ExpiredAt:  0,
+						},
+					}, nil)
 
-			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, false, nil)
+			policies, err := queryPolicies("test", types.Subject{}, types.Action{}, []int64{}, true, false, nil)
 			assert.Len(GinkgoT(), policies, 1)
 			assert.NoError(GinkgoT(), err)
 		})
@@ -187,6 +193,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -222,6 +229,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -263,6 +271,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -303,6 +312,7 @@ var _ = Describe("Helper", func() {
 				subject types.Subject,
 				action types.Action,
 				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {

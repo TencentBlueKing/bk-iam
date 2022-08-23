@@ -20,9 +20,6 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/service"
 	"iam/pkg/service/types"
-	"iam/pkg/task"
-	"iam/pkg/task/producer"
-	"iam/pkg/util"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -49,7 +46,6 @@ type subjectController struct {
 	subjectActionGroupResourceService service.SubjectActionGroupResourceService
 	groupResourcePolicyService        service.GroupResourcePolicyService
 	groupAlterEventService            service.GroupAlterEventService
-	alterEventProducer                producer.Producer
 
 	subjectEventProducer event.SubjectEventProducer
 }
@@ -66,7 +62,6 @@ func NewSubjectController() SubjectController {
 		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
 		groupResourcePolicyService:        service.NewGroupResourcePolicyService(),
 		groupAlterEventService:            service.NewGroupAlterEventService(),
-		alterEventProducer:                producer.NewRedisProducer(task.GetRbacEventQueue()),
 		subjectEventProducer:              event.NewSubjectEventProducer(),
 	}
 }
@@ -124,7 +119,6 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 	}
 
 	// 2. 删除subject relation
-	eventMessages := make([]string, 0, len(pks)*2)
 	for _, pk := range pks { // only group
 		// 2.1 删除subject system group/group system auth type
 		// TODO: 同步删除, 数据量大的情况下, 会很慢, 需要优化
@@ -156,7 +150,7 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 		}
 
 		// 生成变更信息
-		eventPKs, err := c.groupAlterEventService.CreateByGroupSubject(pk, memberPKs)
+		err = c.groupAlterEventService.CreateByGroupSubject(pk, memberPKs)
 		if err != nil {
 			return errorWrapf(
 				err,
@@ -165,12 +159,6 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 				memberPKs,
 			)
 		}
-
-		if len(eventPKs) == 0 {
-			continue
-		}
-
-		eventMessages = append(eventMessages, util.Int64SliceToStringSlice(eventPKs)...)
 	}
 
 	// 2.3 删除subject relation
@@ -195,11 +183,6 @@ func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 	err = tx.Commit()
 	if err != nil {
 		return errorWrapf(err, "tx commit error")
-	}
-
-	// 发送group 变更事件
-	if len(eventMessages) != 0 {
-		go c.alterEventProducer.Publish(eventMessages...)
 	}
 
 	// 发送事件

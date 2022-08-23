@@ -184,7 +184,11 @@ func sqlxBulkUpdateFunc(db *sqlx.DB, query string, args interface{}) error {
 }
 
 func sqlxExecFunc(db *sqlx.DB, query string, args ...interface{}) error {
-	_, err := db.Exec(query, args...)
+	query, args, err := sqlx.In(query, args...)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(query, args...)
 	return err
 }
 

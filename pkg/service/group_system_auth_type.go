@@ -21,6 +21,7 @@ import (
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util"
 )
 
 // ErrConcurrencyConflict ...
@@ -194,8 +195,8 @@ func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs [
 
 	groupAuthTypes := make([]types.GroupAuthType, 0, len(groupPKs))
 	// 分段查询, 避免SQL参数过多
-	for _, part := range chunks(len(groupPKs), 1000) {
-		daoGroupAuthTypes, err := s.authTypeManger.ListAuthTypeBySystemGroups(systemID, groupPKs[part[0]:part[1]])
+	for _, index := range util.Chunks(len(groupPKs), 1000) {
+		daoGroupAuthTypes, err := s.authTypeManger.ListAuthTypeBySystemGroups(systemID, groupPKs[index.Begin:index.End])
 		if err != nil {
 			err = errorWrapf(
 				err, "authTypeManger.ListAuthTypeBySystemGroups systemID=`%s` groupPKs=`%+v` fail",
@@ -213,19 +214,4 @@ func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs [
 	}
 
 	return groupAuthTypes, nil
-}
-
-func chunks(total int, step int) [][]int {
-	chunks := make([][]int, 0, (total/step)+1)
-
-	for i := 0; i < total; i += step {
-		end := i + step
-		if end > total {
-			end = total
-		}
-
-		chunks = append(chunks, []int{i, end})
-	}
-
-	return chunks
 }

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// quota
+	// model quota
 	maxActionsLimitKey            = "max_actions_limit"
 	maxResourceTypesLimitKey      = "max_resource_types_limit"
 	maxInstanceSelectionsLimitKey = "max_instance_selections_limit"
@@ -25,6 +25,12 @@ const (
 	DefaultMaxActionsLimit            = 100
 	DefaultMaxResourceTypesLimit      = 50
 	DefaultMaxInstanceSelectionsLimit = 50
+
+	// web quota
+	// 一个人单个系统加入的最大组数量
+	subjectMaxGroupsLimitKey = "subject_max_groups_limit"
+
+	DefaultSubjectMaxGroupsLimit = 100
 
 	// triggers
 	triggerDisableCreateSystemClientValidationKey = "disable_create_system_client_validation"
@@ -70,13 +76,34 @@ func makeGetModelLimitFunc(key string, defaultLimit int) func(string) int {
 	}
 }
 
+func makeGetWebLimitFunc(key string, defaultLimit int) func(string) int {
+	return func(systemID string) int {
+		// custom
+		if cq, ok := customQuotas[systemID]; ok {
+			if limit, ok := cq.Web[key]; ok && limit > 0 {
+				return limit
+			}
+		}
+		// config file default
+		if limit, ok := quota.Web[key]; ok && limit > 0 {
+			return limit
+		}
+		// default
+		return defaultLimit
+	}
+}
+
 var (
+	// Model
 	GetMaxActionsLimit            = makeGetModelLimitFunc(maxActionsLimitKey, DefaultMaxActionsLimit)
 	GetMaxResourceTypesLimit      = makeGetModelLimitFunc(maxResourceTypesLimitKey, DefaultMaxResourceTypesLimit)
 	GetMaxInstanceSelectionsLimit = makeGetModelLimitFunc(
 		maxInstanceSelectionsLimitKey,
 		DefaultMaxInstanceSelectionsLimit,
 	)
+
+	// Web
+	GetSubjectMaxGroupsLimit = makeGetWebLimitFunc(subjectMaxGroupsLimitKey, DefaultSubjectMaxGroupsLimit)
 )
 
 func makeGetSwitchFunc(key string, defaultValue bool) func() bool {

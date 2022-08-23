@@ -103,6 +103,9 @@ type Quota struct {
 
 	// NOTE: only used for rate limit middleware, will remove in the future
 	API map[string]int
+
+	// NOTE: for web api logic
+	Web map[string]int
 }
 
 // SystemQuota store the settings for specific system
@@ -123,8 +126,8 @@ type Crypto struct {
 }
 
 type Worker struct {
-	MaxGroupAlterEventCheckCount               int // max count for group alter event check
-	MaxMessageGeneratedCountPerGroupAlterEvent int // max count for group alter event generation message
+	MaxSubjectActionAlterEventCheckCount               int // max count for subject action alter event check
+	MaxMessageGeneratedCountPerSubjectActionAlterEvent int // max count for subject action alter event generation message
 }
 
 // Config ...

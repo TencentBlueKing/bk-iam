@@ -14,84 +14,28 @@ package event
 import (
 	"time"
 
-	"github.com/TencentBlueKing/gopkg/collection/set"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
-	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
-	svctypes "iam/pkg/service/types"
 	"iam/pkg/task"
 	"iam/pkg/task/producer"
-	"iam/pkg/util"
 )
 
 const PapEvent = "PapEvent"
 
 type PolicyEventProducer interface {
-	PublishRBACGroupAlterEvent(groupPK int64, resourceChangedContents []svctypes.ResourceChangedContent)
-
 	PublishRBACDeletePolicyEvent(deletedPolicyPKs []int64)
 	PublishABACDeletePolicyEvent(deletePolicyIDs []int64)
 }
 
 type policyEventProducer struct {
-	groupAlterEventService service.GroupAlterEventService
-
-	alterEventProducer        producer.Producer
 	deletePolicyEventProducer producer.Producer
 }
 
 func NewPolicyEventProducer() PolicyEventProducer {
 	return &policyEventProducer{
-		groupAlterEventService: service.NewGroupAlterEventService(),
-
-		alterEventProducer:        producer.NewRedisProducer(task.GetRbacEventQueue()),
 		deletePolicyEventProducer: producer.NewRedisProducer(task.GetEngineDeletionEventQueue()),
 	}
-}
-
-// publishRBACGroupAlterEvent 创建用户组变更事件
-func (p *policyEventProducer) PublishRBACGroupAlterEvent(
-	groupPK int64,
-	resourceChangedContents []svctypes.ResourceChangedContent,
-) {
-	actionPKSet := set.NewInt64Set()
-	for _, rcc := range resourceChangedContents {
-		actionPKSet.Append(rcc.CreatedActionPKs...)
-		actionPKSet.Append(rcc.DeletedActionPKs...)
-	}
-
-	actionPKs := actionPKSet.ToSlice()
-
-	// 清group action resource 缓存
-	cacheimpls.BatchDeleteGroupActionAuthorizedResourceCache(groupPK, actionPKs)
-
-	// 创建 group_alter_event
-	pks, err := p.groupAlterEventService.CreateByGroupAction(groupPK, actionPKs)
-	if err != nil {
-		log.WithError(err).
-			Errorf("groupAlterEventService.CreateByGroupAction groupPK=%d actionPKs=%v fail", groupPK, actionPKs)
-
-		// report to sentry
-		util.ReportToSentry("createRBACGroupAlterEvent groupAlterEventService.CreateByGroupAction fail",
-			map[string]interface{}{
-				"layer":     PapEvent,
-				"groupPK":   groupPK,
-				"actionPKs": actionPKs,
-				"error":     err.Error(),
-			},
-		)
-		return
-	}
-
-	// 发送event 消息
-	if len(pks) == 0 {
-		return
-	}
-
-	messages := util.Int64SliceToStringSlice(pks)
-	go p.alterEventProducer.Publish(messages...)
 }
 
 // FIXME: duplicated with prp/engine.go

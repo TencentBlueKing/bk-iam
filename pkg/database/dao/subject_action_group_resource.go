@@ -35,6 +35,7 @@ type SubjectActionGroupResourceManager interface {
 	CreateWithTx(tx *sqlx.Tx, subjectActionResourceGroup SubjectActionGroupResource) error
 	UpdateGroupResourceWithTx(tx *sqlx.Tx, pk int64, groupResource string) error
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+	DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error
 
 	HasAnyByActionPK(actionPK int64) (exist bool, err error)
 	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error)
@@ -129,4 +130,10 @@ func (m *subjectActionGroupResourceManager) HasAnyByActionPK(actionPK int64) (ex
 func (m *subjectActionGroupResourceManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
 	sql := `DELETE FROM rbac_subject_action_group_resource WHERE action_pk = ? LIMIT ?`
 	return database.SqlxDeleteReturnRowsWithTx(tx, sql, actionPK, limit)
+}
+
+// DeleteBySubjectActionWithTx ...
+func (m *subjectActionGroupResourceManager) DeleteBySubjectActionWithTx(tx *sqlx.Tx, subjectPK, actionPK int64) error {
+	sql := `DELETE FROM rbac_subject_action_group_resource WHERE subject_pk = ? AND action_pk = ?`
+	return database.SqlxDeleteWithTx(tx, sql, subjectPK, actionPK)
 }
