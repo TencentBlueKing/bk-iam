@@ -22,7 +22,7 @@ import (
 // OpenRbacPolicyService ...
 type OpenRbacPolicyService interface {
 	Get(pk int64) (types.OpenRbacPolicy, error)
-	ListPagingQueryByActionBeforeExpiredAt(
+	ListPagingByActionBeforeExpiredAt(
 		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.OpenRbacPolicy, error)
 	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
 
@@ -64,19 +64,19 @@ func (s *openRbacPolicyService) GetCountByActionBeforeExpiredAt(actionPK int64, 
 	return s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 }
 
-// ListPagingQueryByActionBeforeExpiredAt ...
-func (s *openRbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
+// ListPagingByActionBeforeExpiredAt ...
+func (s *openRbacPolicyService) ListPagingByActionBeforeExpiredAt(
 	actionPK int64,
 	expiredAt int64,
 	offset int64,
 	limit int64,
 ) (queryPolicies []types.OpenRbacPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListPagingByActionBeforeExpiredAt")
 
 	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
 	if err != nil {
 		err = errorWrapf(err,
-			"manager.ListByActionPK actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail",
+			"manager.ListPagingByActionPKBeforeExpiredAt actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail",
 			actionPK, expiredAt, offset, limit)
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *openRbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 
 // ListByPKs ...
 func (s *openRbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.OpenRbacPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
 	if err != nil {

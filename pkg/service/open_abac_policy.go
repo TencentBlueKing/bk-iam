@@ -22,7 +22,7 @@ import (
 // OpenAbacPolicyService ...
 type OpenAbacPolicyService interface {
 	Get(pk int64) (types.OpenAbacPolicy, error)
-	ListPagingQueryByActionBeforeExpiredAt(
+	ListPagingByActionBeforeExpiredAt(
 		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.OpenAbacPolicy, error)
 	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
 
@@ -64,14 +64,14 @@ func (s *openAbacPolicyService) GetCountByActionBeforeExpiredAt(actionPK int64, 
 	return s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
 }
 
-// ListPagingQueryByActionBeforeExpiredAt ...
-func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
+// ListPagingByActionBeforeExpiredAt ...
+func (s *openAbacPolicyService) ListPagingByActionBeforeExpiredAt(
 	actionPK int64,
 	expiredAt int64,
 	offset int64,
 	limit int64,
 ) (queryPolicies []types.OpenAbacPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListPagingByActionBeforeExpiredAt")
 
 	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
 	if err != nil {
@@ -87,7 +87,7 @@ func (s *openAbacPolicyService) ListPagingQueryByActionBeforeExpiredAt(
 
 // ListByPKs ...
 func (s *openAbacPolicyService) ListByPKs(pks []int64) (queryPolicies []types.OpenAbacPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListByPKs")
 
 	policies, err := s.manager.ListByPKs(pks)
 	if err != nil {
