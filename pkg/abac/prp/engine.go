@@ -161,7 +161,7 @@ func convertAbacPoliciesToEnginePolicies(
 			expressionPKs = append(expressionPKs, p.ExpressionPK)
 		}
 	}
-	pkExpressionMap, err := translateExpressions(expressionPKs)
+	pkExpressionMap, err := queryAndTranslateExpressions(expressionPKs)
 	if err != nil {
 		err = fmt.Errorf("translateExpressions expressionPKs=`%+v` fail. err=%w", expressionPKs, err)
 		return

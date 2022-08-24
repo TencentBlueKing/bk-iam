@@ -69,7 +69,7 @@ func (m *openPolicyManager) Get(_type string, pk int64) (openPolicy OpenPolicy, 
 		}
 
 		// 2. get expression
-		pkExpressionMap, err := translateExpressions([]int64{policy.ExpressionPK})
+		pkExpressionMap, err := queryAndTranslateExpressions([]int64{policy.ExpressionPK})
 		if err != nil {
 			return openPolicy, err
 		}
@@ -296,7 +296,7 @@ func convertAbacPoliciesToOpenPolicies(
 	}
 
 	// 2. query expression from cache
-	pkExpressionMap, err := translateExpressions(expressionPKs)
+	pkExpressionMap, err := queryAndTranslateExpressions(expressionPKs)
 	if err != nil {
 		err = fmt.Errorf("translateExpressions expressionPKs=`%+v` fail. err=%w", expressionPKs, err)
 		return

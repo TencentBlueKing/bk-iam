@@ -65,10 +65,10 @@ func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) 
 	return groupPKSet.ToSlice(), nil
 }
 
-// translateExpressions translate expression to json format
-func translateExpressions(
+// queryAndTranslateExpressions translate expression to json format
+func queryAndTranslateExpressions(
 	expressionPKs []int64,
-) (expressionMap map[int64]map[string]interface{}, err error) {
+) (pkExpressionMap map[int64]map[string]interface{}, err error) {
 	// when the pk is -1, will translate to any
 	pkExpressionStrMap := map[int64]string{
 		// NOTE: -1 for the `any`
@@ -90,7 +90,7 @@ func translateExpressions(
 	}
 
 	// translate one by one
-	expressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
+	pkExpressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
 	for pk, expr := range pkExpressionStrMap {
 		// TODO: 如何优化这里的性能?
 		// TODO: 理论上, signature一样的只需要转一次
@@ -100,7 +100,7 @@ func translateExpressions(
 			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", expr, err1)
 			return
 		}
-		expressionMap[pk] = translatedExpr
+		pkExpressionMap[pk] = translatedExpr
 	}
-	return expressionMap, nil
+	return pkExpressionMap, nil
 }
