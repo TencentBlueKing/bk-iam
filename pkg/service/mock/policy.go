@@ -136,36 +136,6 @@ func (mr *MockPolicyServiceMockRecorder) DeleteUnreferencedExpressions() *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnreferencedExpressions", reflect.TypeOf((*MockPolicyService)(nil).DeleteUnreferencedExpressions))
 }
 
-// Get mocks base method.
-func (m *MockPolicyService) Get(pk int64) (types.QueryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", pk)
-	ret0, _ := ret[0].(types.QueryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockPolicyServiceMockRecorder) Get(pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPolicyService)(nil).Get), pk)
-}
-
-// GetCountByActionBeforeExpiredAt mocks base method.
-func (m *MockPolicyService) GetCountByActionBeforeExpiredAt(actionPK, expiredAt int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCountByActionBeforeExpiredAt", actionPK, expiredAt)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCountByActionBeforeExpiredAt indicates an expected call of GetCountByActionBeforeExpiredAt.
-func (mr *MockPolicyServiceMockRecorder) GetCountByActionBeforeExpiredAt(actionPK, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCountByActionBeforeExpiredAt", reflect.TypeOf((*MockPolicyService)(nil).GetCountByActionBeforeExpiredAt), actionPK, expiredAt)
-}
-
 // HasAnyByActionPK mocks base method.
 func (m *MockPolicyService) HasAnyByActionPK(actionPK int64) (bool, error) {
 	m.ctrl.T.Helper()
@@ -209,36 +179,6 @@ func (m *MockPolicyService) ListExpressionByPKs(pks []int64) ([]types.AuthExpres
 func (mr *MockPolicyServiceMockRecorder) ListExpressionByPKs(pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExpressionByPKs", reflect.TypeOf((*MockPolicyService)(nil).ListExpressionByPKs), pks)
-}
-
-// ListPagingQueryByActionBeforeExpiredAt mocks base method.
-func (m *MockPolicyService) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit int64) ([]types.QueryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingQueryByActionBeforeExpiredAt", actionPK, expiredAt, offset, limit)
-	ret0, _ := ret[0].([]types.QueryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPagingQueryByActionBeforeExpiredAt indicates an expected call of ListPagingQueryByActionBeforeExpiredAt.
-func (mr *MockPolicyServiceMockRecorder) ListPagingQueryByActionBeforeExpiredAt(actionPK, expiredAt, offset, limit interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingQueryByActionBeforeExpiredAt", reflect.TypeOf((*MockPolicyService)(nil).ListPagingQueryByActionBeforeExpiredAt), actionPK, expiredAt, offset, limit)
-}
-
-// ListQueryByPKs mocks base method.
-func (m *MockPolicyService) ListQueryByPKs(pks []int64) ([]types.QueryPolicy, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListQueryByPKs", pks)
-	ret0, _ := ret[0].([]types.QueryPolicy)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListQueryByPKs indicates an expected call of ListQueryByPKs.
-func (mr *MockPolicyServiceMockRecorder) ListQueryByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListQueryByPKs", reflect.TypeOf((*MockPolicyService)(nil).ListQueryByPKs), pks)
 }
 
 // ListThinBySubjectActionTemplate mocks base method.

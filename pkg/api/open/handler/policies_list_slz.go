@@ -13,6 +13,7 @@ package handler
 import (
 	"fmt"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/util"
 )
 
@@ -26,6 +27,8 @@ type listQuerySerializer struct {
 	PageSize  int64  `form:"page_size" binding:"omitempty,min=10,max=500" example:"100"`
 	Page      int64  `form:"page" binding:"omitempty,min=1" example:"1"`
 	Timestamp int64  `form:"timestamp" binding:"omitempty,min=1" example:"1592899208"`
+
+	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 func (s *listQuerySerializer) validate() (bool, string) {
@@ -52,6 +55,10 @@ func (s *listQuerySerializer) initDefault() {
 	if s.Timestamp == 0 {
 		// default: today 00:00:00
 		s.Timestamp = util.TodayStartTimestamp()
+	}
+
+	if s.Type == "" {
+		s.Type = prp.PolicyTypeAbac
 	}
 }
 

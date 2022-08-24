@@ -442,56 +442,6 @@ var _ = Describe("PolicyService", func() {
 		})
 	})
 
-	Describe("ListQueryByPKs cases", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("ok", func() {
-			returned := []dao.Policy{
-				{
-					PK:           1,
-					ExpressionPK: 1,
-					TemplateID:   0,
-				},
-				{
-					PK:           2,
-					ExpressionPK: 2,
-					TemplateID:   1,
-				},
-			}
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			policies, err := svc.ListQueryByPKs([]int64{1, 2})
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), policies, 2)
-		})
-
-		It("fail", func() {
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("list fail"))
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			_, err := svc.ListQueryByPKs([]int64{1, 2})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "manager.ListByPKs")
-		})
-	})
-
 	Describe("BulkDeleteBySubjectPKsWithTx cases", func() {
 		var ctl *gomock.Controller
 

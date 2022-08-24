@@ -63,13 +63,6 @@ type PolicyManager interface {
 	// for model update
 
 	HasAnyByActionPK(actionPK int64) (bool, error)
-
-	// for query
-
-	Get(pk int64) (Policy, error)
-	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
-	ListPagingByActionPKBeforeExpiredAt(actionPK int64, expiredAt int64, offset int64, limit int64) ([]Policy, error)
-	ListByPKs(pks []int64) ([]Policy, error)
 }
 
 type policyManager struct {
@@ -194,41 +187,6 @@ func (m *policyManager) HasAnyByActionPK(actionPK int64) (exist bool, err error)
 	return true, nil
 }
 
-// Get ...
-func (m *policyManager) Get(pk int64) (policy Policy, err error) {
-	err = m.selectByPK(&policy, pk)
-	return
-}
-
-// GetCountByActionBeforeExpiredAt ...
-func (m *policyManager) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (count int64, err error) {
-	err = m.selectCountByActionBeforeExpiredAt(&count, actionPK, expiredAt)
-	return
-}
-
-// ListPagingByActionPKBeforeExpiredAt ...
-func (m *policyManager) ListPagingByActionPKBeforeExpiredAt(
-	actionPK int64,
-	expiredAt int64,
-	offset int64,
-	limit int64,
-) (policies []Policy, err error) {
-	err = m.selectByActionPKOrderByPKAsc(&policies, actionPK, expiredAt, offset, limit)
-	if errors.Is(err, sql.ErrNoRows) {
-		return policies, nil
-	}
-	return
-}
-
-// ListByPKs ...
-func (m *policyManager) ListByPKs(pks []int64) (policies []Policy, err error) {
-	err = m.selectByPKs(&policies, pks)
-	if errors.Is(err, sql.ErrNoRows) {
-		return policies, nil
-	}
-	return
-}
-
 // BulkUpdateExpiredAtWithTx ...
 func (m *policyManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy) error {
 	return m.updateExpiredAtWithTx(tx, policies)
@@ -237,90 +195,6 @@ func (m *policyManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, policies []Policy
 // DeleteByActionPKWithTx ...
 func (m *policyManager) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK, limit int64) (int64, error) {
 	return m.deleteByActionPKWithTx(tx, actionPK, limit)
-}
-
-func (m *policyManager) selectByPK(
-	policy *Policy, pk int64,
-) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		action_pk,
-		expression_pk,
-		expired_at,
-		template_id
-		FROM policy
-		WHERE pk = ?
-		LIMIT 1`
-	return database.SqlxGet(m.DB, policy, query, pk)
-}
-
-func (m *policyManager) selectByPKs(
-	policy *[]Policy, pks []int64,
-) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		action_pk,
-		expression_pk,
-		expired_at,
-		template_id
-		FROM policy
-		WHERE pk in (?)`
-	return database.SqlxSelect(m.DB, policy, query, pks)
-}
-
-func (m *policyManager) selectCountByActionBeforeExpiredAt(count *int64, actionPK int64, expiredAt int64) error {
-	query := `SELECT
-		count(*)
-		FROM policy
-		WHERE action_pk = ?
-		AND expired_at > ?`
-	return database.SqlxGet(m.DB, count, query, actionPK, expiredAt)
-}
-
-func (m *policyManager) selectByActionPKOrderByPKAsc(
-	policies *[]Policy,
-	actionPK int64,
-	expiredAt int64,
-	offset int64,
-	limit int64,
-) error {
-	query := `SELECT
-		pk,
-		subject_pk,
-		action_pk,
-		expression_pk,
-		expired_at,
-		template_id
-		FROM policy
-		WHERE action_pk = ?
-		AND expired_at > ?
-		ORDER BY pk asc
-		LIMIT ?, ?`
-
-	// TODO: check when the performance is affect if the offset is greater than?
-	if offset > 10000 {
-		query = `SELECT
-			t.pk,
-			t.subject_pk,
-			t.action_pk,
-			t.expression_pk,
-			t.expired_at,
-			t.template_id
-			FROM policy t
-			INNER JOIN
-			(
-				SELECT pk
-				FROM policy
-				WHERE action_pk = ?
-				AND expired_at > ?
-				ORDER BY pk asc
-				LIMIT ?, ?
-			) p ON t.pk = p.pk`
-	}
-
-	return database.SqlxSelect(m.DB, policies, query, actionPK, expiredAt, offset, limit)
 }
 
 func (m *policyManager) selectBySubjectPKAndPKs(

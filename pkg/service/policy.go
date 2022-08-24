@@ -89,15 +89,6 @@ type PolicyService interface {
 	// for pap
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 
-	// for query
-
-	Get(pk int64) (types.QueryPolicy, error)
-	ListPagingQueryByActionBeforeExpiredAt(
-		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.QueryPolicy, error)
-	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
-
-	ListQueryByPKs(pks []int64) ([]types.QueryPolicy, error)
-
 	// for model update
 
 	HasAnyByActionPK(actionPK int64) (bool, error)
@@ -416,80 +407,6 @@ func (s *policyService) DeleteByPKs(subjectPK int64, pks []int64) error {
 		return errorWrapf(err, "tx.Commit fail")
 	}
 	return err
-}
-
-// Get ...
-func (s *policyService) Get(pk int64) (daoPolicy types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
-	policy, err1 := s.manager.Get(pk)
-	if err1 != nil {
-		err = errorWrapf(err1, "manager.Get pk=`%d` fail", pk)
-		return
-	}
-
-	daoPolicy = types.QueryPolicy{
-		PK:           policy.PK,
-		SubjectPK:    policy.SubjectPK,
-		ActionPK:     policy.ActionPK,
-		ExpressionPK: policy.ExpressionPK,
-		ExpiredAt:    policy.ExpiredAt,
-	}
-	return
-}
-
-// GetCountByActionBeforeExpiredAt ...
-func (s *policyService) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error) {
-	return s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
-}
-
-// ListPagingQueryByActionBeforeExpiredAt ...
-func (s *policyService) ListPagingQueryByActionBeforeExpiredAt(
-	actionPK int64,
-	expiredAt int64,
-	offset int64,
-	limit int64,
-) (queryPolicies []types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
-
-	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
-	if err != nil {
-		err = errorWrapf(err,
-			"manager.ListByActionPK actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail",
-			actionPK, expiredAt, offset, limit)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToQueryPolicies(policies)
-	return
-}
-
-// ListQueryByPKs ...
-func (s *policyService) ListQueryByPKs(pks []int64) (queryPolicies []types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
-
-	policies, err := s.manager.ListByPKs(pks)
-	if err != nil {
-		err = errorWrapf(err,
-			"manager.ListByPKs pks=`%+v` fail", pks)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToQueryPolicies(policies)
-	return
-}
-
-func convertPoliciesToQueryPolicies(policies []dao.Policy) []types.QueryPolicy {
-	queryPolicies := make([]types.QueryPolicy, 0, len(policies))
-	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.QueryPolicy{
-			PK:           p.PK,
-			SubjectPK:    p.SubjectPK,
-			ActionPK:     p.ActionPK,
-			ExpressionPK: p.ExpressionPK,
-			ExpiredAt:    p.ExpiredAt,
-		})
-	}
-	return queryPolicies
 }
 
 // HasAnyByActionPK ...
