@@ -1,3 +1,7 @@
+# 1.12.1
+
+- add: transfer worker checker rbac command
+
 # 1.12.0
 
 - add: rbac action support
