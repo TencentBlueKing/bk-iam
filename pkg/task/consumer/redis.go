@@ -12,6 +12,7 @@ package consumer
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/adjust/rmq/v4"
@@ -65,10 +66,13 @@ func (c *redisConsumer) Run(ctx context.Context) {
 		panic(err)
 	}
 
-	// consume messages
-	if _, err := c.queue.AddConsumer(consumerLayer, c); err != nil {
-		log.WithError(err).Error("rmq queue add consumer fail")
-		panic(err)
+	// create 3 consumer per process
+	for i := 0; i < 3; i++ {
+		// consume messages
+		if _, err := c.queue.AddConsumer(consumerLayer, c); err != nil {
+			log.WithError(err).Error("rmq queue add consumer fail")
+			panic(err)
+		}
 	}
 
 	<-ctx.Done()                      // wait for signal
@@ -78,7 +82,7 @@ func (c *redisConsumer) Run(ctx context.Context) {
 // Consume ...
 func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 	logger := logging.GetWorkerLogger()
-	c.stats.totalCount += 1
+	atomic.AddInt64(&c.stats.totalCount, 1)
 
 	// parse message
 	payload := delivery.Payload()
@@ -88,7 +92,7 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 	// handle message
 	err := c.handler.Handle(payload)
 	if err != nil {
-		c.stats.failCount += 1
+		atomic.AddInt64(&c.stats.failCount, 1)
 		logger.WithError(err).Errorf("handle message `%+v` fail", payload)
 
 		// report to sentry
@@ -100,7 +104,7 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 			},
 		)
 	} else {
-		c.stats.successCount += 1
+		atomic.AddInt64(&c.stats.successCount, 1)
 	}
 
 	logger.Debugf("handle message `%+v` done", payload)
