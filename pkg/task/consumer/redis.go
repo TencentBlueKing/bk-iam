@@ -18,6 +18,7 @@ import (
 	"github.com/adjust/rmq/v4"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/config"
 	"iam/pkg/logging"
 	"iam/pkg/task/handler"
 	"iam/pkg/util"
@@ -67,7 +68,7 @@ func (c *redisConsumer) Run(ctx context.Context) {
 	}
 
 	// create 3 consumer per process
-	for i := 0; i < 3; i++ {
+	for i := 0; i < config.MaxConsumerCountPerWorker; i++ {
 		// consume messages
 		if _, err := c.queue.AddConsumer(consumerLayer, c); err != nil {
 			log.WithError(err).Error("rmq queue add consumer fail")
