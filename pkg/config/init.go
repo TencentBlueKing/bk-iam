@@ -27,6 +27,8 @@ var (
 var (
 	MaxSubjectActionAlterEventCheckCount               int = 3
 	MaxMessageGeneratedCountPreSubjectActionAlterEvent int = 100
+
+	MaxConsumerCountPerWorker int = 3
 )
 
 // InitSuperAppCode ...
@@ -78,9 +80,16 @@ func InitWorker(w Worker) {
 		MaxMessageGeneratedCountPreSubjectActionAlterEvent = w.MaxMessageGeneratedCountPerSubjectActionAlterEvent
 	}
 
+	if w.MaxConsumerCountPerWorker != 0 {
+		MaxConsumerCountPerWorker = w.MaxConsumerCountPerWorker
+	}
+
 	log.Infof(
-		"init worker success, MaxMessageGeneratedCountPreSubjectActionAlterEvent=%d, MaxSubjectActionAlterEventCheckCount=%d",
+		"init worker success, MaxMessageGeneratedCountPreSubjectActionAlterEvent=%d, "+
+			"MaxSubjectActionAlterEventCheckCount=%d, "+
+			"MaxConsumerCountPerWorker=%d",
 		MaxMessageGeneratedCountPreSubjectActionAlterEvent,
 		MaxSubjectActionAlterEventCheckCount,
+		MaxConsumerCountPerWorker,
 	)
 }

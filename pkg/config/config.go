@@ -128,6 +128,8 @@ type Crypto struct {
 type Worker struct {
 	MaxSubjectActionAlterEventCheckCount               int // max count for subject action alter event check
 	MaxMessageGeneratedCountPerSubjectActionAlterEvent int // max count for subject action alter event generation message
+
+	MaxConsumerCountPerWorker int
 }
 
 // Config ...
