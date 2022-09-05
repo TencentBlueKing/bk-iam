@@ -138,6 +138,9 @@ func Register(r *gin.RouterGroup) {
 
 		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5&inherit=true
 		r.GET("/subjects-groups/belong", handler.CheckSubjectGroupsBelong)
+
+		// subject-groups?type=user&id=tome&groups=1,2,3,4,5
+		r.GET("/subjects-groups/quota", handler.CheckSubjectGroupsQuota)
 	}
 
 	// Resource: role-subjects
