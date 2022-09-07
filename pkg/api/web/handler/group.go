@@ -20,6 +20,7 @@ import (
 
 	"iam/pkg/abac/pap"
 	"iam/pkg/api/common"
+	"iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -109,6 +110,7 @@ func ListSubjectGroups(c *gin.Context) {
 	})
 }
 
+// CheckSubjectGroupsBelong ...
 func CheckSubjectGroupsBelong(c *gin.Context) {
 	var query checkSubjectGroupsBelongSerializer
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -327,4 +329,31 @@ func ListExistGroupsHasMemberBeforeExpiredAt(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", existGroups)
+}
+
+// CheckSubjectGroupsQuota ...
+func CheckSubjectGroupsQuota(c *gin.Context) {
+	var query checkSubjectGroupsQuotaSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	// input: subject.type= & subject.id= & group_ids=1,2,3,4
+	groupIDs := strings.Split(query.GroupIDs, ",")
+
+	subjects := []pap.GroupMember{{Type: query.Type, ID: query.ID}}
+	for _, groupID := range groupIDs {
+		err := checkSubjectGroupsQuota(types.GroupType, groupID, subjects)
+		if err != nil {
+			if errors.Is(err, errQuota) {
+				util.ConflictJSONResponse(c, err.Error())
+				return
+			}
+
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
+	}
+
+	util.SuccessJSONResponse(c, "ok", nil)
 }
