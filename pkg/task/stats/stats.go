@@ -46,15 +46,15 @@ func (s *Stats) Log(logger logrus.FieldLogger) {
 	}
 
 	// set metrics
-	metric.TaskTotalCount.With(prometheus.Labels{
+	metric.TaskStatsTotalCount.With(prometheus.Labels{
 		"process": s.Label,
 	}).Set(float64(s.TotalCount))
 
-	metric.TaskSuccessCount.With(prometheus.Labels{
+	metric.TaskStatsSuccessCount.With(prometheus.Labels{
 		"process": s.Label,
 	}).Set(float64(s.SuccessCount))
 
-	metric.TaskFailCount.With(prometheus.Labels{
+	metric.TaskStatsFailCount.With(prometheus.Labels{
 		"process": s.Label,
 	}).Set(float64(s.FailCount))
 }

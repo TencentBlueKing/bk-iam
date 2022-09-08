@@ -50,30 +50,30 @@ var (
 		[]string{"method", "path", "status", "component"},
 	)
 
-	// TaskTotalCount 任务执行数量
-	TaskTotalCount = prometheus.NewGaugeVec(
+	// TaskStatsTotalCount 任务执行数量
+	TaskStatsTotalCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:        "bkiam_task_total",
+			Name:        "bkiam_task_stats_total",
 			Help:        "How many task processed.",
 			ConstLabels: prometheus.Labels{"service": serviceName},
 		},
 		[]string{"process"},
 	)
 
-	// TaskSuccessCount 任务执行成功数量
-	TaskSuccessCount = prometheus.NewGaugeVec(
+	// TaskStatsSuccessCount 任务执行成功数量
+	TaskStatsSuccessCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:        "bkiam_task_success",
+			Name:        "bkiam_task_stats_success",
 			Help:        "How many task processed success.",
 			ConstLabels: prometheus.Labels{"service": serviceName},
 		},
 		[]string{"process"},
 	)
 
-	// TaskFailCount 任务执行失败数量
-	TaskFailCount = prometheus.NewGaugeVec(
+	// TaskStatsFailCount 任务执行失败数量
+	TaskStatsFailCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:        "bkiam_task_fail",
+			Name:        "bkiam_task_stats_fail",
 			Help:        "How many task processed fail.",
 			ConstLabels: prometheus.Labels{"service": serviceName},
 		},
@@ -87,7 +87,7 @@ func InitMetrics() {
 	prometheus.MustRegister(RequestCount)
 	prometheus.MustRegister(RequestDuration)
 	prometheus.MustRegister(ComponentRequestDuration)
-	prometheus.MustRegister(TaskTotalCount)
-	prometheus.MustRegister(TaskSuccessCount)
-	prometheus.MustRegister(TaskFailCount)
+	prometheus.MustRegister(TaskStatsTotalCount)
+	prometheus.MustRegister(TaskStatsSuccessCount)
+	prometheus.MustRegister(TaskStatsFailCount)
 }
