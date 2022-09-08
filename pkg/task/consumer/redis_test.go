@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/task/handler"
+	"iam/pkg/task/stats"
 )
 
 type h struct{}
@@ -33,7 +34,7 @@ var _ = Describe("Consumer", func() {
 
 		It("Consume", func() {
 			delivery := rmq.NewTestDeliveryString(`{"subject_pk":1,"group_pk":2,"action_pk":3}`)
-			consumer := &redisConsumer{handler: mockHandler}
+			consumer := &redisConsumer{handler: mockHandler, stats: stats.NewStats(consumerLayer)}
 			consumer.Consume(delivery)
 			assert.Equal(GinkgoT(), rmq.Acked, delivery.State)
 		})

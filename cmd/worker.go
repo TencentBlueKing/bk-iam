@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"iam/pkg/server"
 	"iam/pkg/task"
 )
 
@@ -77,7 +78,13 @@ func StartWorker() {
 		interrupt(cancelFunc)
 	}()
 
-	// 3. start sync worker
+	if globalConfig.Worker.EnableMetrics {
+		// 3. start the server
+		httpServer := server.NewServer(globalConfig, server.NewBasicRouter)
+		go httpServer.Run(ctx)
+	}
+
+	// 4. start sync worker
 	worker := task.NewWorker()
 	worker.Run(ctx)
 }

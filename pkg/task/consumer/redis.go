@@ -21,6 +21,7 @@ import (
 	"iam/pkg/config"
 	"iam/pkg/logging"
 	"iam/pkg/task/handler"
+	"iam/pkg/task/stats"
 	"iam/pkg/util"
 )
 
@@ -31,20 +32,12 @@ const (
 	pollDuration  = 100 * time.Millisecond
 )
 
-type stats struct {
-	totalCount          int64
-	successCount        int64
-	failCount           int64
-	startTime           time.Time
-	lastShowProcessTime time.Time
-}
-
 type redisConsumer struct {
 	connection rmq.Connection
 	queue      rmq.Queue
 
 	handler handler.MessageHandler
-	stats   stats
+	stats   *stats.Stats
 }
 
 func NewRedisConsumer(connection rmq.Connection, queue rmq.Queue, handler handler.MessageHandler) Consumer {
@@ -52,10 +45,7 @@ func NewRedisConsumer(connection rmq.Connection, queue rmq.Queue, handler handle
 		connection: connection,
 		queue:      queue,
 		handler:    handler,
-		stats: stats{
-			startTime:           time.Now(),
-			lastShowProcessTime: time.Now(),
-		},
+		stats:      stats.NewStats(consumerLayer),
 	}
 }
 
@@ -83,7 +73,7 @@ func (c *redisConsumer) Run(ctx context.Context) {
 // Consume ...
 func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 	logger := logging.GetWorkerLogger()
-	atomic.AddInt64(&c.stats.totalCount, 1)
+	atomic.AddInt64(&c.stats.TotalCount, 1)
 
 	// parse message
 	payload := delivery.Payload()
@@ -93,7 +83,7 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 	// handle message
 	err := c.handler.Handle(payload)
 	if err != nil {
-		atomic.AddInt64(&c.stats.failCount, 1)
+		atomic.AddInt64(&c.stats.FailCount, 1)
 		logger.WithError(err).Errorf("handle message `%+v` fail", payload)
 
 		// report to sentry
@@ -105,7 +95,7 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 			},
 		)
 	} else {
-		atomic.AddInt64(&c.stats.successCount, 1)
+		atomic.AddInt64(&c.stats.SuccessCount, 1)
 	}
 
 	logger.Debugf("handle message `%+v` done", payload)
@@ -115,9 +105,5 @@ func (c *redisConsumer) Consume(delivery rmq.Delivery) {
 		logger.WithError(err).Errorf("rmq ack payload `%s` fail", payload)
 	}
 
-	if c.stats.totalCount%1000 == 0 || time.Since(c.stats.lastShowProcessTime) > 30*time.Second {
-		c.stats.lastShowProcessTime = time.Now()
-		logger.Infof("consumer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
-			c.stats.totalCount, c.stats.successCount, c.stats.failCount, time.Since(c.stats.startTime))
-	}
+	c.stats.Log(logger)
 }
