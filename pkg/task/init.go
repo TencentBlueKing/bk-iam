@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/cache/redis"
+	"iam/pkg/metric"
 )
 
 const (
@@ -59,6 +60,9 @@ func InitRmqQueue(debugMode bool, _type string) {
 					panic(err)
 				}
 			}
+
+			// register metrics
+			metric.RecordRmqMetrics(connection)
 		})
 	}
 

@@ -25,6 +25,7 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/task/producer"
+	"iam/pkg/task/stats"
 	"iam/pkg/util"
 )
 
@@ -104,7 +105,7 @@ type SubjectActionAlterEventChecker struct {
 	service  service.SubjectActionAlterEventService
 	producer producer.Producer
 
-	stats stats
+	stats *stats.Stats
 }
 
 func NewSubjectActionAlterEventChecker(producer producer.Producer) *SubjectActionAlterEventChecker {
@@ -112,10 +113,7 @@ func NewSubjectActionAlterEventChecker(producer producer.Producer) *SubjectActio
 		service:  service.NewSubjectActionAlterEventService(),
 		producer: producer,
 
-		stats: stats{
-			startTime:           time.Now(),
-			lastShowProcessTime: time.Now(),
-		},
+		stats: stats.NewStats(checkerLayer),
 	}
 }
 
@@ -123,11 +121,11 @@ func (c *SubjectActionAlterEventChecker) Run() {
 	logger := logging.GetWorkerLogger().WithField("layer", checkerLayer)
 
 	for range time.Tick(5 * time.Minute) {
-		c.stats.totalCount += 1
+		c.stats.TotalCount += 1
 
 		err := c.check()
 		if err != nil {
-			c.stats.failCount += 1
+			c.stats.FailCount += 1
 			logger.WithError(err).Error("check fail")
 
 			// report to sentry
@@ -138,12 +136,10 @@ func (c *SubjectActionAlterEventChecker) Run() {
 				},
 			)
 		} else {
-			c.stats.successCount += 1
+			c.stats.SuccessCount += 1
 		}
 
-		c.stats.lastShowProcessTime = time.Now()
-		logger.Infof("checker processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
-			c.stats.totalCount, c.stats.successCount, c.stats.failCount, time.Since(c.stats.startTime))
+		c.stats.Log(logger)
 	}
 }
 

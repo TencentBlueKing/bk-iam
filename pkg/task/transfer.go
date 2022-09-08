@@ -24,6 +24,7 @@ import (
 	"iam/pkg/service"
 	"iam/pkg/service/types"
 	"iam/pkg/task/producer"
+	"iam/pkg/task/stats"
 	"iam/pkg/util"
 )
 
@@ -80,20 +81,12 @@ type subjectAction struct {
 	ActionPK  int64
 }
 
-type stats struct {
-	totalCount          int64
-	successCount        int64
-	failCount           int64
-	startTime           time.Time
-	lastShowProcessTime time.Time
-}
-
 type GroupAlterEventTransfer struct {
 	service                        service.GroupAlterEventService
 	subjectActionAlterEventService service.SubjectActionAlterEventService
 	producer                       producer.Producer
 
-	stats stats
+	stats *stats.Stats
 }
 
 func NewGroupAlterEventTransfer(producer producer.Producer) *GroupAlterEventTransfer {
@@ -101,10 +94,7 @@ func NewGroupAlterEventTransfer(producer producer.Producer) *GroupAlterEventTran
 		service:                        service.NewGroupAlterEventService(),
 		subjectActionAlterEventService: service.NewSubjectActionAlterEventService(),
 		producer:                       producer,
-		stats: stats{
-			startTime:           time.Now(),
-			lastShowProcessTime: time.Now(),
-		},
+		stats:                          stats.NewStats(transferLayer),
 	}
 }
 
@@ -114,11 +104,11 @@ func (t *GroupAlterEventTransfer) Run() {
 	logger.Info("Start transfer group alter event to subject action alter event")
 
 	for {
-		t.stats.totalCount += 1
+		t.stats.TotalCount += 1
 
 		count, err := t.transform()
 		if err != nil {
-			t.stats.failCount += 1
+			t.stats.FailCount += 1
 			logger.WithError(err).Error("transform fail")
 
 			// report to sentry
@@ -131,7 +121,7 @@ func (t *GroupAlterEventTransfer) Run() {
 
 			time.Sleep(30 * time.Second)
 		} else {
-			t.stats.successCount += 1
+			t.stats.SuccessCount += 1
 
 			// 时间段内的消息处理完成后, 休眠30秒
 			if count < int(eventLimit) {
@@ -139,11 +129,7 @@ func (t *GroupAlterEventTransfer) Run() {
 			}
 		}
 
-		if t.stats.totalCount%1000 == 0 || time.Since(t.stats.lastShowProcessTime) > 30*time.Second {
-			t.stats.lastShowProcessTime = time.Now()
-			logger.Infof("transfer processed total count: %d, success count: %d, fail count: %d, elapsed: %s",
-				t.stats.totalCount, t.stats.successCount, t.stats.failCount, time.Since(t.stats.startTime))
-		}
+		t.stats.Log(logger)
 	}
 }
 

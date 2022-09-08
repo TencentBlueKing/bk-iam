@@ -130,6 +130,8 @@ type Worker struct {
 	MaxMessageGeneratedCountPerSubjectActionAlterEvent int // max count for subject action alter event generation message
 
 	MaxConsumerCountPerWorker int
+
+	EnableMetrics bool
 }
 
 // Config ...

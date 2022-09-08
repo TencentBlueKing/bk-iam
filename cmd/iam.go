@@ -111,7 +111,7 @@ func Start() {
 	}()
 
 	// 3. start the server
-	httpServer := server.NewServer(globalConfig)
+	httpServer := server.NewServer(globalConfig, server.NewRouter)
 	httpServer.Run(ctx)
 }
 

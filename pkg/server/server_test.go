@@ -32,6 +32,6 @@ func TestNewServer(t *testing.T) {
 		},
 	}
 
-	server := NewServer(cfg)
+	server := NewServer(cfg, NewRouter)
 	assert.NotNil(t, server)
 }

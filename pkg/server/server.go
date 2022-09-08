@@ -39,7 +39,7 @@ type Server struct {
 }
 
 // NewServer ...
-func NewServer(cfg *config.Config) *Server {
+func NewServer(cfg *config.Config, newRouter NewRouterFunc) *Server {
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 
 	log.Infof("the server addr: %s", addr)
@@ -61,7 +61,7 @@ func NewServer(cfg *config.Config) *Server {
 	log.Infof("the server timeout settings: read_timeout=%s, write_timeout=%s, idle_timeout=%s",
 		readTimeout, writeTimeout, idleTimeout)
 
-	router := NewRouter(cfg)
+	router := newRouter(cfg)
 	server := &http.Server{
 		Addr:         addr,
 		Handler:      router,

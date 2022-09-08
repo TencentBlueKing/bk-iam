@@ -24,8 +24,11 @@ import (
 	"iam/pkg/middleware"
 )
 
-// NewRouter ...
-func NewRouter(cfg *config.Config) *gin.Engine {
+// NewRouterFunc ...
+type NewRouterFunc func(cfg *config.Config) *gin.Engine
+
+// NewBasicRouter ...
+func NewBasicRouter(cfg *config.Config) *gin.Engine {
 	if !cfg.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -43,6 +46,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 
 	// basic apis
 	basic.Register(cfg, router)
+
+	return router
+}
+
+// NewRouter ...
+func NewRouter(cfg *config.Config) *gin.Engine {
+	router := NewBasicRouter(cfg)
 
 	// web apis for SaaS
 	webRouter := router.Group("/api/v1/web")

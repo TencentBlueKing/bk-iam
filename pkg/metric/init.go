@@ -49,6 +49,36 @@ var (
 	},
 		[]string{"method", "path", "status", "component"},
 	)
+
+	// TaskTotalCount 任务执行数量
+	TaskTotalCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name:        "bkiam_task_total",
+			Help:        "How many task processed.",
+			ConstLabels: prometheus.Labels{"service": serviceName},
+		},
+		[]string{"process"},
+	)
+
+	// TaskSuccessCount 任务执行成功数量
+	TaskSuccessCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name:        "bkiam_task_success",
+			Help:        "How many task processed success.",
+			ConstLabels: prometheus.Labels{"service": serviceName},
+		},
+		[]string{"process"},
+	)
+
+	// TaskFailCount 任务执行失败数量
+	TaskFailCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name:        "bkiam_task_fail",
+			Help:        "How many task processed fail.",
+			ConstLabels: prometheus.Labels{"service": serviceName},
+		},
+		[]string{"process"},
+	)
 )
 
 // InitMetrics ...
@@ -57,4 +87,7 @@ func InitMetrics() {
 	prometheus.MustRegister(RequestCount)
 	prometheus.MustRegister(RequestDuration)
 	prometheus.MustRegister(ComponentRequestDuration)
+	prometheus.MustRegister(TaskTotalCount)
+	prometheus.MustRegister(TaskSuccessCount)
+	prometheus.MustRegister(TaskFailCount)
 }
