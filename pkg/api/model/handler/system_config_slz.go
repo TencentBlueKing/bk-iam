@@ -189,7 +189,7 @@ type actionIDSerializer struct {
 type commonActionSerializer struct {
 	Name    string               `json:"name" binding:"required" example:"admin"`
 	NameEn  string               `json:"name_en" binding:"required" example:"admin"`
-	Actions []actionIDSerializer `json:"actions" binding:"required,gt=1"`
+	Actions []actionIDSerializer `json:"actions" binding:"required,gte=1"`
 }
 
 func getAllFromCommonActions(commonActions []commonActionSerializer) []string {
