@@ -1,3 +1,8 @@
+# 1.12.2
+
+- add: subject group quota check api
+- add: task stats metrics
+
 # 1.12.1
 
 - add: transfer worker checker rbac command
@@ -5,6 +10,10 @@
 # 1.12.0
 
 - add: rbac action support
+
+# 1.11.8
+
+- bugfix: common actions length gte 1
 
 # 1.11.7
 

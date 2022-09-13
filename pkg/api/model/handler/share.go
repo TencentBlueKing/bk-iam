@@ -13,42 +13,8 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
-
-// ListSystem godoc
-// @Summary list system
-// @Description get the list of systems
-// @ID api-model-share-systems-list
-// @Tags model_share
-// @Accept json
-// @Produce json
-// @Success 200 {object} util.Response{data=systemClientsResponse}
-// @Header 200 {string} X-Request-Id "the request id"
-// @Security AppCode
-// @Security AppSecret
-// @Router /api/v1/model/share/systems [get]
-func ShareListSystem(c *gin.Context) {
-	// NOTE: 1) only id/name/name_en 2) no pagination
-	svc := service.NewSystemService()
-	allSystems, err := svc.ListAll()
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	systems := make([]systemListResponse, 0, len(allSystems))
-	for _, sys := range allSystems {
-		systems = append(systems, systemListResponse{
-			ID:     sys.ID,
-			Name:   sys.Name,
-			NameEn: sys.NameEn,
-		})
-	}
-
-	util.SuccessJSONResponse(c, "ok", systems)
-}
 
 // ShareSystemInfoQuery godoc
 // @Summary system info query
