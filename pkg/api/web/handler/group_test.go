@@ -38,13 +38,13 @@ func TestBatchAddGroupMembers(t *testing.T) {
 			}).BadRequest("bad request:Type is required")
 	})
 
-	t.Run("bad request policy_expired_at", func(t *testing.T) {
+	t.Run("bad request expired_at", func(t *testing.T) {
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
-				"type":              "group",
-				"id":                "1",
-				"policy_expired_at": 0,
-				"members":           []map[string]interface{}{{"type": "user", "id": "admin"}},
+				"type":       "group",
+				"id":         "1",
+				"expired_at": 0,
+				"members":    []map[string]interface{}{{"type": "user", "id": "admin"}},
 			}).BadRequest("bad request:policy expires time required when add group member")
 	})
 
@@ -76,9 +76,9 @@ func TestBatchAddGroupMembers(t *testing.T) {
 
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
-				"type":              "group",
-				"id":                "1",
-				"policy_expired_at": 10,
+				"type":       "group",
+				"id":         "1",
+				"expired_at": 10,
 				"members": []map[string]interface{}{
 					{
 						"type": "user",
@@ -106,9 +106,9 @@ func TestBatchAddGroupMembers(t *testing.T) {
 
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
-				"type":              "group",
-				"id":                "1",
-				"policy_expired_at": 10,
+				"type":       "group",
+				"id":         "1",
+				"expired_at": 10,
 				"members": []map[string]interface{}{
 					{
 						"type": "user",
@@ -225,12 +225,12 @@ func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 			}).BadRequest("bad request:Type is required")
 	})
 
-	t.Run("bad request policy_expired_at", func(t *testing.T) {
+	t.Run("bad request expired_at", func(t *testing.T) {
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
 				"type":    "group",
 				"id":      "1",
-				"members": []map[string]interface{}{{"type": "user", "policy_expired_at": 10}},
+				"members": []map[string]interface{}{{"type": "user", "expired_at": 10}},
 			}).BadRequest("bad request:data in array[0], ID is required")
 	})
 
@@ -265,9 +265,9 @@ func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 				"id":   "1",
 				"members": []map[string]interface{}{
 					{
-						"type":              "user",
-						"id":                "admin",
-						"policy_expired_at": 10,
+						"type":       "user",
+						"id":         "admin",
+						"expired_at": 10,
 					},
 				},
 			}).SystemError()
@@ -294,9 +294,9 @@ func TestUpdateGroupMembersExpiredAt(t *testing.T) {
 				"id":   "1",
 				"members": []map[string]interface{}{
 					{
-						"type":              "user",
-						"id":                "admin",
-						"policy_expired_at": 10,
+						"type":       "user",
+						"id":         "admin",
+						"expired_at": 10,
 					},
 				},
 			}).OK()
