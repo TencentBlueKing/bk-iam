@@ -90,19 +90,6 @@ func Register(r *gin.RouterGroup) {
 
 	// group-members
 	{
-		// Deprecated: use the NEW instead
-		// 查询subject的成员列表
-		r.GET("/subject-members", handler.ListGroupMember)
-		// 批量添加subject成员
-		r.POST("/subject-members", handler.BatchAddGroupMembers)
-		// 批量删除subject成员
-		r.DELETE("/subject-members", handler.BatchDeleteGroupMembers)
-		// 批量subject成员过期时间
-		r.PUT("/subject-members/expired_at", handler.BatchUpdateGroupMembersExpiredAt)
-		// 查询小于指定过期时间的成员列表, 批量用户组查询
-		r.GET("/subject-members/query", handler.ListGroupMemberBeforeExpiredAt)
-
-		// NEW:
 		// 查询subject的成员列表
 		r.GET("/group-members", handler.ListGroupMember)
 		// 批量添加subject成员
@@ -129,10 +116,6 @@ func Register(r *gin.RouterGroup) {
 
 	// subject-groups
 	{
-		// Deprecated: use the NEW instead
-		// 查询subject所在的用户组/部门
-		r.GET("/subject-relations", handler.ListSubjectGroups)
-
 		// 带分页 https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
 		r.GET("/subject-groups", handler.ListSubjectGroups)
 
@@ -145,13 +128,6 @@ func Register(r *gin.RouterGroup) {
 
 	// Resource: role-subjects
 	{
-		// Deprecated: use the NEW instead
-		// 批量添加subject role
-		r.POST("/subject-roles", handler.BatchAddRoleSubject)
-		// 批量删除subject role
-		r.DELETE("/subject-roles", handler.BatchDeleteRoleSubject)
-
-		// NEW:
 		// 批量添加role subjects
 		r.POST("/role-subjects", handler.BatchAddRoleSubject)
 		// 批量删除role subject
