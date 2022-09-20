@@ -27,6 +27,7 @@ const (
 	SystemResourceCreatorActions = "resource-creator-actions"
 	SystemCommonActions          = "common-actions"
 	SystemFeatureShieldRules     = "feature-shield-rules"
+	SystemMangers                = "system-managers"
 )
 
 // GetSystemSettings ...
@@ -44,6 +45,9 @@ func GetSystemSettings(c *gin.Context) {
 		return
 	case SystemFeatureShieldRules:
 		GetFeatureShieldRule(c)
+		return
+	case SystemMangers:
+		GetSystemManger(c)
 		return
 	default:
 		util.BadRequestErrorJSONResponse(c, fmt.Sprintf("unsupported settings name %s", name))
@@ -120,4 +124,22 @@ func GetFeatureShieldRule(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", fsrs)
+}
+
+// GetSystemManger ...
+func GetSystemManger(c *gin.Context) {
+	systemID := c.Param("system_id")
+
+	svc := service.NewSystemConfigService()
+	sm, err := svc.GetSystemManagers(systemID)
+	if errors.Is(err, sql.ErrNoRows) {
+		util.SuccessJSONResponse(c, "ok", []interface{}{})
+		return
+	}
+	if err != nil {
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", sm)
 }
