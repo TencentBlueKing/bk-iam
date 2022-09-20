@@ -29,16 +29,16 @@ type SubjectRelation struct {
 	// NOTE: map parent_pk to GroupPK in dao
 	GroupPK int64 `db:"parent_pk"`
 	// 策略有效期，unix time，单位秒(s)
-	// NOTE: map policy_expired_at to ExpiredAt in dao
-	ExpiredAt int64     `db:"policy_expired_at"`
+	// NOTE: map expired_at to ExpiredAt in dao
+	ExpiredAt int64     `db:"expired_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
 // SubjectRelationForUpdateExpiredAt keep the PrimaryKey and expired_at
 type SubjectRelationForUpdateExpiredAt struct {
 	PK int64 `db:"pk"`
-	// NOTE: map policy_expired_at to ExpiredAt in dao
-	ExpiredAt int64 `db:"policy_expired_at"`
+	// NOTE: map expired_at to ExpiredAt in dao
+	ExpiredAt int64 `db:"expired_at"`
 }
 
 // ThinSubjectRelation with the minimum fields of the relationship: subject-group-expired_at
@@ -46,8 +46,8 @@ type ThinSubjectRelation struct {
 	SubjectPK int64 `db:"subject_pk"`
 	// NOTE: map parent_pk to GroupPK in dao
 	GroupPK int64 `db:"parent_pk"`
-	// NOTE: map policy_expired_at to ExpiredAt in dao
-	ExpiredAt int64 `db:"policy_expired_at"`
+	// NOTE: map expired_at to ExpiredAt in dao
+	ExpiredAt int64 `db:"expired_at"`
 }
 
 // SubjectGroupManager ...
@@ -110,7 +110,7 @@ func (m *subjectGroupManager) ListPagingSubjectGroups(
 		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
+		 expired_at,
 		 created_at
 		 FROM subject_relation
 		 WHERE subject_pk = ?
@@ -131,7 +131,7 @@ func (m *subjectGroupManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK int6
 		 COUNT(*)
 		 FROM subject_relation
 		 WHERE subject_pk = ?
-		 AND policy_expired_at < ?`
+		 AND expired_at < ?`
 	err := database.SqlxGet(m.DB, &count, query, subjectPK, expiredAt)
 
 	return count, err
@@ -145,12 +145,12 @@ func (m *subjectGroupManager) ListPagingSubjectGroupBeforeExpiredAt(
 		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
+		 expired_at,
 		 created_at
 		 FROM subject_relation
 		 WHERE subject_pk = ?
-		 AND policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC, pk DESC
+		 AND expired_at < ?
+		 ORDER BY expired_at DESC, pk DESC
 		 LIMIT ? OFFSET ?`
 	err = database.SqlxSelect(m.DB, &relations, query, subjectPK, expiredAt, limit, offset)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
@@ -171,10 +171,10 @@ func (m *subjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(subject
 	query := `SELECT
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at
+		 expired_at
 		 FROM subject_relation
 		 WHERE subject_pk in (?)
-		 AND policy_expired_at > ?`
+		 AND expired_at > ?`
 	err = database.SqlxSelect(m.DB, &relations, query, subjectPKs, expiredAt)
 	// 吞掉记录不存在的错误, subject本身是可以不加入任何用户组和组织的
 	if errors.Is(err, sql.ErrNoRows) {
@@ -200,7 +200,7 @@ func (m *subjectGroupManager) ListGroupMember(groupPK int64) (members []SubjectR
 		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
+		 expired_at,
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?`
@@ -215,7 +215,7 @@ func (m *subjectGroupManager) ListGroupMember(groupPK int64) (members []SubjectR
 func (m *subjectGroupManager) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
 	var expiredAt int64
 	query := `SELECT
-		 policy_expired_at
+		 expired_at
 		 FROM subject_relation
 		 WHERE subject_pk = ?
 		 AND parent_pk = ?`
@@ -270,7 +270,7 @@ func (m *subjectGroupManager) UpdateExpiredAtWithTx(
 	tx *sqlx.Tx,
 	relations []SubjectRelationForUpdateExpiredAt,
 ) error {
-	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
+	sql := `UPDATE subject_relation SET expired_at = :expired_at WHERE pk = :pk`
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
@@ -305,7 +305,7 @@ func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
 		 DISTINCT parent_pk
 		 FROM subject_relation
 		 WHERE parent_pk IN (?)
-		 AND policy_expired_at < ?`
+		 AND expired_at < ?`
 	err := database.SqlxSelect(m.DB, &expiredGroupPKs, query, groupPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return expiredGroupPKs, nil
@@ -325,7 +325,7 @@ func (m *subjectGroupManager) FilterSubjectPKsExistGroupPKsAfterExpiredAt(
 		 FROM subject_relation
 		 WHERE subject_pk in (?)
 		 AND parent_pk in (?)
-		 AND policy_expired_at > ?`
+		 AND expired_at > ?`
 
 	err := database.SqlxSelect(m.DB, &existGroupPKs, query, subjectPKs, groupPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -342,7 +342,7 @@ func (m *subjectGroupManager) selectPagingMembers(
 		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
+		 expired_at,
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?
@@ -358,12 +358,12 @@ func (m *subjectGroupManager) selectPagingMembersBeforeExpiredAt(
 		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
+		 expired_at,
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?
-		 AND policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC, pk DESC
+		 AND expired_at < ?
+		 ORDER BY expired_at DESC, pk DESC
 		 LIMIT ? OFFSET ?`
 	return database.SqlxSelect(m.DB, members, query, groupPK, expiredAt, limit, offset)
 }
@@ -383,7 +383,7 @@ func (m *subjectGroupManager) getMemberCountBeforeExpiredAt(
 		 COUNT(*)
 		 FROM subject_relation
 		 WHERE parent_pk = ?
-		 AND policy_expired_at < ?`
+		 AND expired_at < ?`
 	return database.SqlxGet(m.DB, count, query, groupPK, expiredAt)
 }
 
@@ -398,10 +398,10 @@ func (m *subjectGroupManager) bulkInsertWithTx(tx *sqlx.Tx, relations []SubjectR
 	sql := `INSERT INTO subject_relation (
 		subject_pk,
 		parent_pk,
-		policy_expired_at
+		expired_at
 	) VALUES (:subject_pk,
 		:parent_pk,
-		:policy_expired_at)`
+		:expired_at)`
 	return database.SqlxBulkInsertWithTx(tx, sql, relations)
 }
 

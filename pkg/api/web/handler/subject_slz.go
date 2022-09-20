@@ -78,16 +78,16 @@ type deleteGroupMemberSerializer struct {
 }
 
 type addGroupMembersSerializer struct {
-	Type            string `json:"type" binding:"required,oneof=group"`
-	ID              string `json:"id" binding:"required"`
-	PolicyExpiredAt int64  `json:"policy_expired_at" binding:"omitempty,min=1,max=4102444800"`
+	Type      string `json:"type" binding:"required,oneof=group"`
+	ID        string `json:"id" binding:"required"`
+	ExpiredAt int64  `json:"expired_at" binding:"omitempty,min=1,max=4102444800"`
 	// 防御，避免出现一次性添加太多成员，影响性能
 	Members []memberSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
 func (s *addGroupMembersSerializer) validate() (bool, string) {
 	// type为group时必须有过期时间
-	if s.Type == types.GroupType && s.PolicyExpiredAt < 1 {
+	if s.Type == types.GroupType && s.ExpiredAt < 1 {
 		return false, "policy expires time required when add group member"
 	}
 
@@ -147,7 +147,7 @@ func (s *roleSubjectSerializer) validate() (bool, string) {
 
 type memberExpiredAtSerializer struct {
 	memberSerializer
-	PolicyExpiredAt int64 `json:"policy_expired_at" binding:"omitempty,min=1,max=4102444800"`
+	ExpiredAt int64 `json:"expired_at" binding:"omitempty,min=1,max=4102444800"`
 }
 
 type groupMemberExpiredAtSerializer struct {
