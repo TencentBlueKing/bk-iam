@@ -48,6 +48,6 @@ type GroupSubject struct {
 	PK        int64 `json:"pk"`
 	Subject   Subject
 	Group     Subject
-	ExpiredAt int64     `json:"policy_expired_at"`
+	ExpiredAt int64     `json:"expired_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
