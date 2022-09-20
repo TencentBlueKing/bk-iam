@@ -357,3 +357,49 @@ func CheckSubjectGroupsQuota(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", nil)
 }
+
+// ListGroupSubjectBeforeExpiredAt 获取已过期的关系
+func ListGroupSubjectBeforeExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListGroupSubjectBeforeExpiredAt")
+
+	var query listGroupSubjectSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	query.Default()
+
+	ctl := pap.NewGroupController()
+
+	count, err := ctl.GetGroupSubjectCountBeforeExpiredAt(query.BeforeExpiredAt)
+	if err != nil {
+		err = errorWrapf(err, "expiredAt=`%d`", query.BeforeExpiredAt)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	groupSubjects, err := ctl.ListPagingGroupSubjectBeforeExpiredAt(
+		query.BeforeExpiredAt,
+		query.Limit,
+		query.Offset,
+	)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListPagingGroupSubjectBeforeExpiredAt",
+			"expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			query.BeforeExpiredAt,
+			query.Limit,
+			query.Offset,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{
+		"count":   count,
+		"results": groupSubjects,
+	})
+}

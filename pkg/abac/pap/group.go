@@ -42,6 +42,8 @@ type GroupController interface {
 	ListPagingGroupMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
 	) ([]GroupMember, error)
+	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
+	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]GroupSubject, error)
 
 	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
@@ -85,6 +87,11 @@ func (c *groupController) GetSubjectGroupCountBeforeExpiredAt(
 	}
 
 	return count, nil
+}
+
+// GetGroupSubjectCountBeforeExpiredAt ...
+func (c *groupController) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error) {
+	return c.service.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
 }
 
 func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
@@ -245,6 +252,7 @@ func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
 	return count, nil
 }
 
+// ListPagingGroupMember ...
 func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMember")
 	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
@@ -261,6 +269,29 @@ func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset 
 	}
 
 	members, err := convertToGroupMembers(svcMembers)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
+	}
+
+	return members, nil
+}
+
+// ListPagingGroupSubjectBeforeExpiredAt ...
+func (c *groupController) ListPagingGroupSubjectBeforeExpiredAt(
+	expiredAt int64,
+	limit, offset int64,
+) ([]GroupSubject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupSubjectBeforeExpiredAt")
+
+	svcMembers, err := c.service.ListPagingGroupSubjectBeforeExpiredAt(expiredAt, limit, offset)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.ListPagingGroupSubjectBeforeExpiredAt expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			expiredAt, limit, offset,
+		)
+	}
+
+	members, err := convertToGroupSubjects(svcMembers)
 	if err != nil {
 		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
 	}
@@ -560,4 +591,45 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 	}
 
 	return members, nil
+}
+
+func convertToGroupSubjects(svcGroupSubjects []types.GroupSubject) ([]GroupSubject, error) {
+	groupSubjects := make([]GroupSubject, 0, len(svcGroupSubjects))
+	for _, m := range svcGroupSubjects {
+		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+
+			return nil, err
+		}
+
+		group, err := cacheimpls.GetSubjectByPK(m.GroupPK)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+
+			return nil, err
+		}
+
+		groupSubjects = append(groupSubjects, GroupSubject{
+			PK: m.PK,
+			Subject: Subject{
+				Type: subject.Type,
+				ID:   subject.ID,
+				Name: subject.Name,
+			},
+			Group: Subject{
+				Type: group.Type,
+				ID:   group.ID,
+				Name: group.Name,
+			},
+			ExpiredAt: m.ExpiredAt,
+			CreatedAt: m.CreatedAt,
+		})
+	}
+
+	return groupSubjects, nil
 }

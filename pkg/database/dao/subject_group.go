@@ -59,6 +59,9 @@ type SubjectGroupManager interface {
 	ListPagingSubjectGroups(subjectPK, limit, offset int64) ([]SubjectRelation, error)
 	ListPagingSubjectGroupBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
 
+	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (int64, error)
+	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) (members []SubjectRelation, err error)
+
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
 
@@ -133,6 +136,18 @@ func (m *subjectGroupManager) GetSubjectGroupCountBeforeExpiredAt(subjectPK int6
 		 WHERE subject_pk = ?
 		 AND policy_expired_at < ?`
 	err := database.SqlxGet(m.DB, &count, query, subjectPK, expiredAt)
+
+	return count, err
+}
+
+// GetGroupSubjectCountBeforeExpiredAt ...
+func (m *subjectGroupManager) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_relation
+		 WHERE policy_expired_at < ?`
+	err := database.SqlxGet(m.DB, &count, query, expiredAt)
 
 	return count, err
 }
@@ -294,6 +309,17 @@ func (m *subjectGroupManager) ListPagingGroupMemberBeforeExpiredAt(
 	return
 }
 
+// ListPagingGroupSubjectBeforeExpiredAt ...
+func (m *subjectGroupManager) ListPagingGroupSubjectBeforeExpiredAt(
+	expiredAt int64, limit, offset int64,
+) (members []SubjectRelation, err error) {
+	err = m.selectPagingGroupSubjectBeforeExpiredAt(&members, expiredAt, limit, offset)
+	if errors.Is(err, sql.ErrNoRows) {
+		return members, nil
+	}
+	return
+}
+
 // FilterGroupPKsHasMemberBeforeExpiredAt get the group pks before timestamp(expiredAt)
 func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
 	groupPKs []int64,
@@ -366,6 +392,22 @@ func (m *subjectGroupManager) selectPagingMembersBeforeExpiredAt(
 		 ORDER BY policy_expired_at DESC, pk DESC
 		 LIMIT ? OFFSET ?`
 	return database.SqlxSelect(m.DB, members, query, groupPK, expiredAt, limit, offset)
+}
+
+func (m *subjectGroupManager) selectPagingGroupSubjectBeforeExpiredAt(
+	members *[]SubjectRelation, expiredAt int64, limit, offset int64,
+) error {
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE policy_expired_at < ?
+		 ORDER BY policy_expired_at DESC, pk DESC
+		 LIMIT ? OFFSET ?`
+	return database.SqlxSelect(m.DB, members, query, expiredAt, limit, offset)
 }
 
 func (m *subjectGroupManager) getMemberCount(count *int64, groupPK int64) error {

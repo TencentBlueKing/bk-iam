@@ -196,3 +196,8 @@ type checkSubjectGroupsQuotaSerializer struct {
 	ID       string `form:"id" binding:"required"`
 	GroupIDs string `form:"group_ids" binding:"required"`
 }
+
+type listGroupSubjectSerializer struct {
+	BeforeExpiredAt int64 `form:"before_expired_at" binding:"omitempty,min=0"`
+	pageSerializer
+}
