@@ -89,6 +89,20 @@ func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateResourceCreatorActi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateResourceCreatorActions", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateResourceCreatorActions), system, resourceCreatorAction)
 }
 
+// CreateOrUpdateSystemManagers mocks base method.
+func (m *MockSystemConfigService) CreateOrUpdateSystemManagers(system string, systemManagers []interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateSystemManagers", system, systemManagers)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateSystemManagers indicates an expected call of CreateOrUpdateSystemManagers.
+func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateSystemManagers(system, systemManagers interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateSystemManagers", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateSystemManagers), system, systemManagers)
+}
+
 // GetActionGroups mocks base method.
 func (m *MockSystemConfigService) GetActionGroups(system string) ([]interface{}, error) {
 	m.ctrl.T.Helper()
@@ -147,6 +161,21 @@ func (m *MockSystemConfigService) GetResourceCreatorActions(system string) (map[
 func (mr *MockSystemConfigServiceMockRecorder) GetResourceCreatorActions(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceCreatorActions", reflect.TypeOf((*MockSystemConfigService)(nil).GetResourceCreatorActions), system)
+}
+
+// GetSystemManagers mocks base method.
+func (m *MockSystemConfigService) GetSystemManagers(system string) ([]interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSystemManagers", system)
+	ret0, _ := ret[0].([]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSystemManagers indicates an expected call of GetSystemManagers.
+func (mr *MockSystemConfigServiceMockRecorder) GetSystemManagers(system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSystemManagers", reflect.TypeOf((*MockSystemConfigService)(nil).GetSystemManagers), system)
 }
 
 // get mocks base method.
