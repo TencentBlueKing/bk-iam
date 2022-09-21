@@ -406,7 +406,7 @@ func (m *subjectGroupManager) selectPagingGroupSubjectBeforeExpiredAt(
 		 expired_at
 		 FROM subject_relation
 		 WHERE expired_at < ?
-		 ORDER BY pk
+		 ORDER BY expired_at, subject_pk, parent_pk
 		 LIMIT ? OFFSET ?`
 	return database.SqlxSelect(m.DB, members, query, expiredAt, limit, offset)
 }
