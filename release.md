@@ -11,6 +11,10 @@
 
 - add: rbac action support
 
+# 1.11.9
+
+- add: system manager config api
+
 # 1.11.8
 
 - bugfix: common actions length gte 1
