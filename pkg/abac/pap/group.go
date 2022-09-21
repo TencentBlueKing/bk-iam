@@ -283,7 +283,7 @@ func (c *groupController) ListPagingGroupSubjectBeforeExpiredAt(
 ) ([]GroupSubject, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupSubjectBeforeExpiredAt")
 
-	svcMembers, err := c.service.ListPagingGroupSubjectBeforeExpiredAt(expiredAt, limit, offset)
+	svcRelations, err := c.service.ListPagingGroupSubjectBeforeExpiredAt(expiredAt, limit, offset)
 	if err != nil {
 		return nil, errorWrapf(
 			err, "service.ListPagingGroupSubjectBeforeExpiredAt expiredAt=`%d`, limit=`%d`, offset=`%d` fail",
@@ -291,12 +291,12 @@ func (c *groupController) ListPagingGroupSubjectBeforeExpiredAt(
 		)
 	}
 
-	members, err := convertToGroupSubjects(svcMembers)
+	relations, err := convertToGroupSubjects(svcRelations)
 	if err != nil {
-		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
+		return nil, errorWrapf(err, "convertToGroupSubjects svcRelations=`%+v` fail", svcRelations)
 	}
 
-	return members, nil
+	return relations, nil
 }
 
 // GetGroupMemberCountBeforeExpiredAt ...
