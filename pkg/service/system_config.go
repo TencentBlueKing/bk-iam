@@ -35,6 +35,7 @@ const (
 	ConfigKeyResourceCreatorActions = "resource_creator_actions"
 	ConfigKeyCommonActions          = "common_actions"
 	ConfigKeyFeatureShieldRules     = "feature_shield_rules"
+	ConfigKeySystemManagers         = "system_managers"
 
 	ConfigTypeJSON = "json"
 )
@@ -61,6 +62,11 @@ type SystemConfigService interface {
 
 	GetFeatureShieldRules(system string) ([]interface{}, error)
 	CreateOrUpdateFeatureShieldRules(system string, featureShieldRules []interface{}) error
+
+	// systemMangers
+
+	GetSystemManagers(system string) (sm []interface{}, err error)
+	CreateOrUpdateSystemManagers(system string, systemManagers []interface{}) (err error)
 }
 
 type systemConfigService struct {
@@ -241,4 +247,14 @@ func (s *systemConfigService) CreateOrUpdateFeatureShieldRules(
 	featureShieldRules []interface{},
 ) (err error) {
 	return s.createOrUpdate(system, ConfigKeyFeatureShieldRules, ConfigTypeJSON, featureShieldRules)
+}
+
+// GetSystemManagers ...
+func (s *systemConfigService) GetSystemManagers(system string) (sm []interface{}, err error) {
+	return s.getSliceConfig(system, ConfigKeySystemManagers)
+}
+
+// CreateOrUpdateSystemManagers ...
+func (s *systemConfigService) CreateOrUpdateSystemManagers(system string, systemManagers []interface{}) (err error) {
+	return s.createOrUpdate(system, ConfigKeySystemManagers, ConfigTypeJSON, systemManagers)
 }

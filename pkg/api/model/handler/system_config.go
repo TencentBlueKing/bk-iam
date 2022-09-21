@@ -28,8 +28,9 @@ const (
 
 	ConfigNameActionGroups           = "action_groups"
 	ConfigNameResourceCreatorActions = "resource_creator_actions"
-	ConfigCommonActions              = "common_actions"
+	ConfigNameCommonActions          = "common_actions"
 	ConfigNameFeatureShieldRules     = "feature_shield_rules"
+	ConfigNameSystemManagers         = "system_managers"
 )
 
 // CreateOrUpdateConfigDispatch godoc
@@ -65,11 +66,14 @@ func CreateOrUpdateConfigDispatch(c *gin.Context) {
 	case ConfigNameResourceCreatorActions:
 		resourceCreatorActionHandler(systemID, c)
 		return
-	case ConfigCommonActions:
+	case ConfigNameCommonActions:
 		commonActionHandler(systemID, c)
 		return
 	case ConfigNameFeatureShieldRules:
 		featureShieldRuleHandler(systemID, c)
+		return
+	case ConfigNameSystemManagers:
+		systemMangerHandler(systemID, c)
 		return
 	default:
 		util.SystemErrorJSONResponse(c, errors.New("should not be here"))
@@ -217,6 +221,34 @@ func featureShieldRuleHandler(systemID string, c *gin.Context) {
 	err := svc.CreateOrUpdateFeatureShieldRules(systemID, fsrs)
 	if err != nil {
 		err = errorWrapf(err, "svc.CreateOrUpdateFeatureShieldRules systemID=`%s` fail", systemID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", nil)
+}
+
+func systemMangerHandler(systemID string, c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "systemMangerHandler")
+	var body []string
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	if len(body) == 0 {
+		util.BadRequestErrorJSONResponse(c, "the array should contain at least 1 item")
+		return
+	}
+
+	// do create
+	sms := make([]interface{}, 0, len(body))
+	for _, sm := range body {
+		sms = append(sms, sm)
+	}
+	svc := service.NewSystemConfigService()
+	err := svc.CreateOrUpdateSystemManagers(systemID, sms)
+	if err != nil {
+		err = errorWrapf(err, "svc.CreateOrUpdateSystemManagers systemID=`%s` fail", systemID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}

@@ -1,3 +1,7 @@
+# 1.12.3
+
+- merge develop 1.11.9
+
 # 1.12.2
 
 - add: subject group quota check api
@@ -10,6 +14,10 @@
 # 1.12.0
 
 - add: rbac action support
+
+# 1.11.9
+
+- add: system manager config api
 
 # 1.11.8
 
