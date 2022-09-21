@@ -615,7 +615,6 @@ func convertToGroupSubjects(svcGroupSubjects []types.GroupSubject) ([]GroupSubje
 		}
 
 		groupSubjects = append(groupSubjects, GroupSubject{
-			PK: m.PK,
 			Subject: Subject{
 				Type: subject.Type,
 				ID:   subject.ID,
@@ -627,7 +626,6 @@ func convertToGroupSubjects(svcGroupSubjects []types.GroupSubject) ([]GroupSubje
 				Name: group.Name,
 			},
 			ExpiredAt: m.ExpiredAt,
-			CreatedAt: m.CreatedAt,
 		})
 	}
 

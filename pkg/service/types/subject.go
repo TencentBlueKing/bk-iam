@@ -43,11 +43,9 @@ type SubjectGroup struct {
 
 // GroupSubject 关系数据
 type GroupSubject struct {
-	PK        int64     `json:"pk"`
-	SubjectPK int64     `json:"subject_pk"`
-	GroupPK   int64     `json:"group_pk"`
-	ExpiredAt int64     `json:"expired_at"`
-	CreatedAt time.Time `json:"created_at"`
+	SubjectPK int64 `json:"subject_pk"`
+	GroupPK   int64 `json:"group_pk"`
+	ExpiredAt int64 `json:"expired_at"`
 }
 
 // ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at

@@ -60,7 +60,10 @@ type SubjectGroupManager interface {
 	ListPagingSubjectGroupBeforeExpiredAt(subjectPK, expiredAt, limit, offset int64) ([]SubjectRelation, error)
 
 	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (int64, error)
-	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) (members []SubjectRelation, err error)
+	ListPagingGroupSubjectBeforeExpiredAt(
+		expiredAt int64,
+		limit, offset int64,
+	) (members []ThinSubjectRelation, err error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
@@ -146,7 +149,7 @@ func (m *subjectGroupManager) GetGroupSubjectCountBeforeExpiredAt(expiredAt int6
 	query := `SELECT
 		 COUNT(*)
 		 FROM subject_relation
-		 WHERE policy_expired_at < ?`
+		 WHERE expired_at < ?`
 	err := database.SqlxGet(m.DB, &count, query, expiredAt)
 
 	return count, err
@@ -312,7 +315,7 @@ func (m *subjectGroupManager) ListPagingGroupMemberBeforeExpiredAt(
 // ListPagingGroupSubjectBeforeExpiredAt ...
 func (m *subjectGroupManager) ListPagingGroupSubjectBeforeExpiredAt(
 	expiredAt int64, limit, offset int64,
-) (members []SubjectRelation, err error) {
+) (members []ThinSubjectRelation, err error) {
 	err = m.selectPagingGroupSubjectBeforeExpiredAt(&members, expiredAt, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
@@ -395,17 +398,15 @@ func (m *subjectGroupManager) selectPagingMembersBeforeExpiredAt(
 }
 
 func (m *subjectGroupManager) selectPagingGroupSubjectBeforeExpiredAt(
-	members *[]SubjectRelation, expiredAt int64, limit, offset int64,
+	members *[]ThinSubjectRelation, expiredAt int64, limit, offset int64,
 ) error {
 	query := `SELECT
-		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at,
-		 created_at
+		 expired_at
 		 FROM subject_relation
-		 WHERE policy_expired_at < ?
-		 ORDER BY policy_expired_at DESC, pk DESC
+		 WHERE expired_at < ?
+		 ORDER BY pk
 		 LIMIT ? OFFSET ?`
 	return database.SqlxSelect(m.DB, members, query, expiredAt, limit, offset)
 }

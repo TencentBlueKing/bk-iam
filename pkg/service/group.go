@@ -459,15 +459,13 @@ func (l *groupService) ListPagingGroupSubjectBeforeExpiredAt(
 	return convertToGroupSubjects(daoRelations), nil
 }
 
-func convertToGroupSubjects(daoRelations []dao.SubjectRelation) []types.GroupSubject {
+func convertToGroupSubjects(daoRelations []dao.ThinSubjectRelation) []types.GroupSubject {
 	relations := make([]types.GroupSubject, 0, len(daoRelations))
 	for _, r := range daoRelations {
 		relations = append(relations, types.GroupSubject{
-			PK:        r.PK,
 			SubjectPK: r.SubjectPK,
 			GroupPK:   r.GroupPK,
 			ExpiredAt: r.ExpiredAt,
-			CreatedAt: r.CreatedAt,
 		})
 	}
 	return relations

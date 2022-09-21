@@ -258,10 +258,10 @@ func (mr *MockSubjectGroupManagerMockRecorder) ListPagingGroupMemberBeforeExpire
 }
 
 // ListPagingGroupSubjectBeforeExpiredAt mocks base method.
-func (m *MockSubjectGroupManager) ListPagingGroupSubjectBeforeExpiredAt(expiredAt, limit, offset int64) ([]dao.SubjectRelation, error) {
+func (m *MockSubjectGroupManager) ListPagingGroupSubjectBeforeExpiredAt(expiredAt, limit, offset int64) ([]dao.ThinSubjectRelation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPagingGroupSubjectBeforeExpiredAt", expiredAt, limit, offset)
-	ret0, _ := ret[0].([]dao.SubjectRelation)
+	ret0, _ := ret[0].([]dao.ThinSubjectRelation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
