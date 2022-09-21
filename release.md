@@ -1,3 +1,11 @@
+# 1.11.9
+
+- add: system manager config api
+
+# 1.11.8
+
+- bugfix: common actions length gte 1
+
 # 1.11.7
 
 - add api for subject freeze/unfreeze
