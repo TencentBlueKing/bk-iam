@@ -24,7 +24,7 @@ import (
 
 // AllowConfigNames ...
 const (
-	AllowConfigNames = "action_groups,resource_creator_actions,common_actions,feature_shield_rules"
+	AllowConfigNames = "action_groups,resource_creator_actions,common_actions,feature_shield_rules,system_managers"
 
 	ConfigNameActionGroups           = "action_groups"
 	ConfigNameResourceCreatorActions = "resource_creator_actions"
