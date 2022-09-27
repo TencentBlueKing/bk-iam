@@ -1,3 +1,8 @@
+# 1.11.10
+
+- bugfix: fix mysql session time zone
+- bugfix: fix system_managers system config api
+
 # 1.11.9
 
 - add: system manager config api
