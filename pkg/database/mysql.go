@@ -69,6 +69,11 @@ func (db *DBClient) Connect() error {
 	db.DB.SetMaxIdleConns(db.maxIdleConns)
 	db.DB.SetConnMaxLifetime(db.connMaxLifetime)
 
+	_, err = db.DB.Exec(`SET time_zone = "+00:00";`) // set session time zon to utc
+	if err != nil {
+		return err
+	}
+
 	log.Infof("connect to database: %s[maxOpenConns=%d, maxIdleConns=%d, connMaxLifetime=%s]",
 		db.name, db.maxOpenConns, db.maxIdleConns, db.connMaxLifetime)
 

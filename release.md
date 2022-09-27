@@ -1,3 +1,7 @@
+# 1.12.4
+
+- merge develop 1.11.10
+
 # 1.12.3
 
 - merge develop 1.11.9
@@ -14,6 +18,11 @@
 # 1.12.0
 
 - add: rbac action support
+
+# 1.11.10
+
+- bugfix: fix mysql session time zone
+- bugfix: fix system_managers system config api
 
 # 1.11.9
 
