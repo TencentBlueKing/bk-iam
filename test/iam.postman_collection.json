@@ -8314,7 +8314,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": \"group\",\n\t\"id\": \"group001\",\n\t\"members\": [\n\t\t{\n\t\t\t\"type\": \"user\",\n\t\t\t\"id\": \"user001\"\n\t\t},\n\t\t{\n\t\t\t\"type\": \"user\",\n\t\t\t\"id\": \"user002\"\n\t\t}\t\t\n\t],\n\t\"policy_expired_at\": 4102444800\n}",
+							"raw": "{\n\t\"type\": \"group\",\n\t\"id\": \"group001\",\n\t\"members\": [\n\t\t{\n\t\t\t\"type\": \"user\",\n\t\t\t\"id\": \"user001\"\n\t\t},\n\t\t{\n\t\t\t\"type\": \"user\",\n\t\t\t\"id\": \"user002\"\n\t\t}\t\t\n\t],\n\t\"expired_at\": 4102444800\n}",
 							"options": {
 								"raw": {
 									"language": "json"

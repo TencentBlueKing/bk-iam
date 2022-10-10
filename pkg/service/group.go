@@ -53,6 +53,8 @@ type GroupService interface {
 		groupPK int64, expiredAt int64, limit, offset int64,
 	) ([]types.GroupMember, error)
 	ListGroupMember(groupPK int64) ([]types.GroupMember, error)
+	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
+	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]types.GroupSubject, error)
 
 	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error
 	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
@@ -146,6 +148,11 @@ func (l *groupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expi
 		)
 	}
 	return count, nil
+}
+
+// GetGroupSubjectCountBeforeExpiredAt ...
+func (l *groupService) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error) {
+	return l.manager.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
 }
 
 // ListPagingSubjectGroups ...
@@ -434,6 +441,34 @@ func (l *groupService) ListPagingGroupMemberBeforeExpiredAt(
 	}
 
 	return convertToGroupMembers(daoRelations), nil
+}
+
+// ListPagingGroupSubjectBeforeExpiredAt ...
+func (l *groupService) ListPagingGroupSubjectBeforeExpiredAt(
+	expiredAt int64, limit, offset int64,
+) ([]types.GroupSubject, error) {
+	daoRelations, err := l.manager.ListPagingGroupSubjectBeforeExpiredAt(
+		expiredAt, limit, offset,
+	)
+	if err != nil {
+		return nil, errorx.Wrapf(err, GroupSVC,
+			"ListPagingGroupSubjectBeforeExpiredAt", "expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			expiredAt, limit, offset)
+	}
+
+	return convertToGroupSubjects(daoRelations), nil
+}
+
+func convertToGroupSubjects(daoRelations []dao.ThinSubjectRelation) []types.GroupSubject {
+	relations := make([]types.GroupSubject, 0, len(daoRelations))
+	for _, r := range daoRelations {
+		relations = append(relations, types.GroupSubject{
+			SubjectPK: r.SubjectPK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
+		})
+	}
+	return relations
 }
 
 // BulkDeleteByGroupPKsWithTx ...

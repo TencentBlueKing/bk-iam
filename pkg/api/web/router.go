@@ -126,6 +126,9 @@ func Register(r *gin.RouterGroup) {
 		r.GET("/subjects-groups/quota", handler.CheckSubjectGroupsQuota)
 	}
 
+	// group-subject
+	r.GET("/group-subject/before_expired_at", handler.ListGroupSubjectBeforeExpiredAt)
+
 	// Resource: role-subjects
 	{
 		// 批量添加role subjects

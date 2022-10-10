@@ -117,7 +117,7 @@ INSERT INTO `subject_department` (`subject_pk`, `department_pks`, `created_at`, 
 
 
 /* subject-groups: user-group  department-group */
-INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `policy_expired_at`) VALUES
+INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `expired_at`) VALUES
 (100, 2100, 4102444800),
 (101, 2101, 4102444800),
 (102, 2102, 4102444800),
