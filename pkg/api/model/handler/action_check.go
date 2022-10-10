@@ -241,21 +241,21 @@ func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, e
 	return true, nil
 }
 
-func (c *actionHasAnyPolicyChecker) FilterActionCanAlter(
+func (c *actionHasAnyPolicyChecker) FilterActionWithPolicy(
 	systemID string,
 	actionIDs []string,
-) (actionIDsWithoutAnyPolicy []string, err error) {
-	actionIDsWithoutAnyPolicy = make([]string, 0, len(actionIDs))
+) (actionIDsWithAnyPolicy []string, err error) {
+	actionIDsWithAnyPolicy = make([]string, 0, len(actionIDs))
 	for _, id := range actionIDs {
 		canAlter, err := c.CanAlter(systemID, id)
 		if err != nil {
 			return nil, err
 		}
-		if canAlter {
-			actionIDsWithoutAnyPolicy = append(actionIDsWithoutAnyPolicy, id)
+		if !canAlter {
+			actionIDsWithAnyPolicy = append(actionIDsWithAnyPolicy, id)
 		}
 	}
-	return actionIDsWithoutAnyPolicy, nil
+	return actionIDsWithAnyPolicy, nil
 }
 
 func checkUpdateActionRelatedResourceTypeNotChanged(
