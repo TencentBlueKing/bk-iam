@@ -1,3 +1,7 @@
+# 1.12.5
+
+- restore subject_relation table field policy_expired_at
+
 # 1.12.4
 
 - merge develop 1.11.10
