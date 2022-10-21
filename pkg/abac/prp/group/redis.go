@@ -69,7 +69,11 @@ func (r *groupAuthTypeRedisRetriever) Retrieve(
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(RedisLayer, "Retrieve")
 	groupAuthTypes, missPKs, err := r.batchGetGroupAuthType(groupPKs)
 	if err != nil {
-		return nil, errorWrapf(err, "batchGetGroupAuthType fail groupPKs=`%+v`", groupPKs)
+		// 注意, 不能返回err, 失败就失败了, 不影响正常返回
+		// return nil, errorWrapf(err, "batchGetGroupAuthType fail groupPKs=`%+v`", groupPKs)
+		log.WithError(err).
+			Errorf("[%s] batchGetGroupAuthType fail, groupPKs=`%+v`, fallback to database", RedisLayer, groupPKs)
+		missPKs = groupPKs
 	}
 
 	if len(missPKs) > 0 {
@@ -81,7 +85,10 @@ func (r *groupAuthTypeRedisRetriever) Retrieve(
 
 		err = r.batchSetGroupAuthTypeCache(missGroupAuthTypes)
 		if err != nil {
-			return nil, errorWrapf(err, "batchSetGroupAuthTypeCache fail missGroupAuthTypes=`%+v`", missGroupAuthTypes)
+			// 注意, 不能返回err, 失败就失败了, 不影响正常返回
+			// return nil, errorWrapf(err, "batchSetGroupAuthTypeCache fail missGroupAuthTypes=`%+v`", missGroupAuthTypes)
+			log.WithError(err).
+				Errorf("[%s] batchSetGroupAuthTypeCache fail, missGroupAuthTypes=`%+v`", RedisLayer, missGroupAuthTypes)
 		}
 
 		// merge the missGroupAuthTypes to groupAuthTypes

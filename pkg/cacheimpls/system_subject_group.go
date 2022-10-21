@@ -45,8 +45,16 @@ func ListSystemSubjectEffectGroups(systemID string, pks []int64) ([]types.ThinSu
 
 	cachedSubjectGroups, notExistCachePKs, err := batchGetSystemSubjectGroups(systemID, pks)
 	if err != nil {
-		err = errorWrapf(err, "batchGetSystemSubjectGroups systemID=`%s`, pks=`%+v` fail", systemID, pks)
-		return subjectGroups, err
+		// err = errorWrapf(err, "batchGetSystemSubjectGroups systemID=`%s`, pks=`%+v` fail", systemID, pks)
+		log.WithError(err).Errorf(
+			"batchGetSystemSubjectGroups systemID=`%s`, pks=`%+v` fail, get from cache fail, fallback to database",
+			systemID, pks,
+		)
+
+		// 注意, 不能返回err, 失败就失败了, 不影响正常返回
+		// return subjectGroups, err
+		cachedSubjectGroups = []types.ThinSubjectGroup{}
+		notExistCachePKs = pks
 	}
 	subjectGroups = append(subjectGroups, cachedSubjectGroups...)
 

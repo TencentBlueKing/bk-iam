@@ -78,7 +78,10 @@ func retrieveResourceActionAuthorizedGroupPKs(key SystemResourceCacheKey, action
 	groupPKs := actionGroupPKs[actionPK]
 	err = setActionGroupPKs(key, actionPK, groupPKs)
 	if err != nil {
-		return nil, err
+		// 注意, 不能返回err, 失败就失败了, 不影响正常返回
+		// return nil, err
+		log.WithError(err).
+			Errorf("setActionGroupPKs error, key=%s, actionPK=%d, groupPKs=%v", key.Key(), actionPK, groupPKs)
 	}
 
 	return actionGroupPKs[actionPK], nil
