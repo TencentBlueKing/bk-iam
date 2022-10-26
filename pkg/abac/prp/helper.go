@@ -11,13 +11,15 @@
 package prp
 
 import (
-	"time"
+	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 
+	"iam/pkg/abac/pdp/translate"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
+	svctypes "iam/pkg/service/types"
 )
 
 /*
@@ -29,7 +31,7 @@ TODO:
 
 */
 
-func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
+func GetEffectGroupPKs(systemID string, subject types.Subject) ([]int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PRP, "getEffectSubjectPKs")
 
 	subjectPK, err := subject.Attribute.GetPK()
@@ -38,12 +40,6 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 		return nil, err
 	}
 
-	// 通过subject对象获取group pks，只获取有效的
-	groupPKs, err := subject.GetEffectGroupPKs()
-	if err != nil {
-		err = errorWrapf(err, "subject.GetEffectGroupPKs subject=`%+v` fail", subject)
-		return nil, err
-	}
 	// 通过subject对象获取dept pks
 	deptPKs, err := subject.GetDepartmentPKs()
 	if err != nil {
@@ -51,38 +47,60 @@ func getEffectSubjectPKs(subject types.Subject) ([]int64, error) {
 		return nil, err
 	}
 
+	subjectPKs := make([]int64, 0, len(deptPKs)+1)
+	subjectPKs = append(subjectPKs, subjectPK)
+	subjectPKs = append(subjectPKs, deptPKs...)
+
 	// 用户继承组织加入的用户组 => 多个部门属于同一个组, 所以需要去重
-	now := time.Now().Unix()
-	inheritGroupPKSet := set.NewInt64Set()
-	if len(deptPKs) > 0 {
-		subjectGroups, newErr := cacheimpls.ListSubjectEffectGroups(deptPKs)
-		if newErr != nil {
-			newErr = errorWrapf(newErr, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
-			return nil, newErr
+	groupPKSet := set.NewInt64Set()
+	subjectGroups, err := cacheimpls.ListSystemSubjectEffectGroups(systemID, subjectPKs)
+	if err != nil {
+		err = errorWrapf(err, "ListSubjectEffectGroups deptPKs=`%+v` fail", deptPKs)
+		return nil, err
+	}
+	for _, sg := range subjectGroups {
+		groupPKSet.Add(sg.GroupPK)
+	}
+
+	return groupPKSet.ToSlice(), nil
+}
+
+// queryAndTranslateExpressions translate expression to json format
+func queryAndTranslateExpressions(
+	expressionPKs []int64,
+) (pkExpressionMap map[int64]map[string]interface{}, err error) {
+	// when the pk is -1, will translate to any
+	pkExpressionStrMap := map[int64]string{
+		// NOTE: -1 for the `any`
+		-1: "",
+	}
+	if len(expressionPKs) > 0 {
+		manager := NewPolicyManager()
+
+		var exprs []svctypes.AuthExpression
+		exprs, err = manager.GetExpressionsFromCache(-1, expressionPKs)
+		if err != nil {
+			err = fmt.Errorf("policyManager.GetExpressionsFromCache pks=`%+v` fail. err=%w", expressionPKs, err)
+			return
 		}
-		for _, sg := range subjectGroups {
-			if sg.PolicyExpiredAt > now {
-				inheritGroupPKSet.Add(sg.PK)
-			}
+
+		for _, e := range exprs {
+			pkExpressionStrMap[e.PK] = e.Expression
 		}
 	}
 
-	inheritGroupPKs := inheritGroupPKSet.ToSlice()
-
-	// 1. merge `user-groupPKs` and `user-dept-groupPKs`
-	groupPKMaxLen := len(groupPKs) + len(inheritGroupPKs)
-	groupPKSet := set.NewFixedLengthInt64Set(groupPKMaxLen)
-	// 用户加入的用户组
-	groupPKSet.Append(groupPKs...)
-	// 用户继承组织加入的用户组
-	groupPKSet.Append(inheritGroupPKs...)
-
-	// 2. collect all pks
-	effectSubjectPKs := make([]int64, 0, 1+groupPKSet.Size())
-	// 将用户自身添加进去
-	effectSubjectPKs = append(effectSubjectPKs, subjectPK)
-	// 用户加入的用户组 + 用户继承组织加入的用户组
-	effectSubjectPKs = append(effectSubjectPKs, groupPKSet.ToSlice()...)
-
-	return effectSubjectPKs, nil
+	// translate one by one
+	pkExpressionMap = make(map[int64]map[string]interface{}, len(pkExpressionStrMap))
+	for pk, expr := range pkExpressionStrMap {
+		// TODO: 如何优化这里的性能?
+		// TODO: 理论上, signature一样的只需要转一次
+		// e.Signature
+		translatedExpr, err1 := translate.PolicyExpressionTranslate(expr)
+		if err1 != nil {
+			err = fmt.Errorf("translate.PolicyExpressionTranslate expr=`%s` fail. err=%w", expr, err1)
+			return
+		}
+		pkExpressionMap[pk] = translatedExpr
+	}
+	return pkExpressionMap, nil
 }

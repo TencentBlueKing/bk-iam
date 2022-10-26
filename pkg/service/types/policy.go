@@ -10,6 +10,8 @@
 
 package types
 
+import "time"
+
 // ======== FOR AUTH ========
 
 // AuthPolicy for auth
@@ -20,21 +22,11 @@ type AuthPolicy struct {
 	ExpiredAt    int64 `msgpack:"e2"`
 }
 
-// GetPK return the Primary key of auth policy
-func (a *AuthPolicy) GetPK() int64 {
-	return a.PK
-}
-
 // AuthExpression for auth
 type AuthExpression struct {
 	PK         int64  `msgpack:"p"`
 	Expression string `msgpack:"ea"`
 	Signature  string `msgpack:"s"`
-}
-
-// GetPK return the Primary key of auth expression
-func (a *AuthExpression) GetPK() int64 {
-	return a.PK
 }
 
 // IsEmpty ...
@@ -44,8 +36,8 @@ func (a AuthExpression) IsEmpty() bool {
 
 // ======== FOR OTHERS ========
 
-// QueryPolicy ...
-type QueryPolicy struct {
+// OpenAbacPolicy ...
+type OpenAbacPolicy struct {
 	PK           int64
 	SubjectPK    int64
 	ActionPK     int64
@@ -53,11 +45,42 @@ type QueryPolicy struct {
 	ExpiredAt    int64
 }
 
-// EngineQueryPolicy query policy for iam engine
-type EngineQueryPolicy struct {
-	QueryPolicy
+type OpenRbacPolicy struct {
+	PK         int64
+	SubjectPK  int64
+	ActionPK   int64
+	Expression string
+	ExpiredAt  int64
+}
+
+type EngineAbacPolicy struct {
+	PK int64
+
+	SubjectPK    int64
+	ActionPK     int64
+	ExpressionPK int64
+
+	ExpiredAt  int64
 	TemplateID int64
-	UpdatedAt  int64
+
+	UpdatedAt time.Time
+}
+
+type EngineRbacPolicy struct {
+	PK int64
+
+	GroupPK    int64
+	TemplateID int64
+	SystemID   string
+
+	ActionPKs                   []int64
+	ActionRelatedResourceTypePK int64
+
+	// 授权的资源实例
+	ResourceTypePK int64
+	ResourceID     string
+
+	UpdatedAt time.Time
 }
 
 // Policy ...

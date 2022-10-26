@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("Validation", func() {
-
 	// Describe("ValidationFieldError", func() {
 	//	DescribeTable("ValidationFieldError cases", func(expected string, err util.ValidationFieldError) {
 	//		assert.True(GinkgoT(), strings.Contains(err.String(), expected))
@@ -35,7 +34,6 @@ var _ = Describe("Validation", func() {
 	// })
 
 	Describe("ValidationErrorMessage", func() {
-
 		It("io.EOF", func() {
 			s := util.ValidationErrorMessage(io.EOF)
 			assert.Equal(GinkgoT(), "EOF, json decode fail", s)
@@ -117,7 +115,6 @@ var _ = Describe("Validation", func() {
 				msg := util.ValidationErrorMessage(e)
 				assert.Equal(GinkgoT(), "X must be 5 characters long", msg)
 			})
-
 		})
 
 		Context("fieldError: int", func() {
@@ -172,7 +169,6 @@ var _ = Describe("Validation", func() {
 				msg := util.ValidationErrorMessage(e)
 				assert.Equal(GinkgoT(), "X must less or equals to 18", msg)
 			})
-
 		})
 		//
 		Context("fieldError: oneof", func() {
@@ -190,9 +186,7 @@ var _ = Describe("Validation", func() {
 
 				msg := util.ValidationErrorMessage(e)
 				assert.Equal(GinkgoT(), "X must be one of 'a b c'", msg)
-
 			})
-
 		})
 
 		Context("fieldError not include", func() {
@@ -210,11 +204,7 @@ var _ = Describe("Validation", func() {
 
 				msg := util.ValidationErrorMessage(e)
 				assert.Equal(GinkgoT(), "X is not valid, condition: ipv4", msg)
-
 			})
-
 		})
-
 	})
-
 })

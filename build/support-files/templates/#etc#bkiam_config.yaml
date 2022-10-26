@@ -37,11 +37,25 @@ databases:
     name: "open_paas"
 
 redis:
-  - id: "__BK_IAM_REDIS_MODE__"
+  - id: "cache"
+    type: "__BK_IAM_REDIS_MODE__"
     addr: "__BK_IAM_REDIS_ADDR__"
     password: "__BK_IAM_REDIS_PASSWORD__"
     db: 0
     poolSize: 160
+    dialTimeout: 3
+    readTimeout: 1
+    writeTimeout: 1
+    # use comma ”,“ separated when multiple addr
+    sentinelAddr: "__BK_IAM_REDIS_SENTINEL_ADDR__"
+    masterName: "__BK_IAM_REDIS_SENTINEL_MASTER_NAME__"
+    sentinelPassword: "__BK_IAM_REDIS_SENTINEL_PASSWORD__"
+  - id: "mq"
+    type: "__BK_IAM_REDIS_MODE__"
+    addr: "__BK_IAM_REDIS_ADDR__"
+    password: "__BK_IAM_REDIS_PASSWORD__"
+    db: 0
+    poolSize: 10
     dialTimeout: 3
     readTimeout: 1
     writeTimeout: 1
@@ -81,6 +95,10 @@ logger:
     level: info
     writer: file
     settings: {name: iam_web.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
+  worker:
+    level: info
+    writer: file
+    settings: {name: iam_worker.log, size: 100, backups: 10, age: 7, path: __BK_HOME__/logs/bkiam/}
   component:
     level: error
     writer: file

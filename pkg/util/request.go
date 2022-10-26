@@ -14,17 +14,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/TencentBlueKing/gopkg/conv"
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	// ErrNilRequestBody ...
-	ErrNilRequestBody = errors.New("request Body is nil")
-)
+// ErrNilRequestBody ...
+var ErrNilRequestBody = errors.New("request Body is nil")
 
 // ReadRequestBody will return the body in []byte, without change the origin body
 func ReadRequestBody(r *http.Request) ([]byte, error) {
@@ -32,8 +30,8 @@ func ReadRequestBody(r *http.Request) ([]byte, error) {
 		return nil, ErrNilRequestBody
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewReader(body))
+	body, err := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
 	return body, err
 }
 

@@ -41,6 +41,7 @@ func (c *StringEqualsCondition) Eval(ctx types.EvalContextor) bool {
 		return a == b
 	})
 }
+
 func (c *StringEqualsCondition) Translate(withSystem bool) (map[string]interface{}, error) {
 	key := c.Key
 	if !withSystem {

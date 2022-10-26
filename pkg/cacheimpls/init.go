@@ -36,35 +36,48 @@ var (
 	LocalSystemClientsCache         memory.Cache
 	LocalRemoteResourceListCache    memory.Cache
 	LocalSubjectPKCache             memory.Cache
+	LocalSubjectDepartmentCache     memory.Cache
 	LocalAPIGatewayJWTClientIDCache memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
+	LocalGroupSystemAuthTypeCache   *gocache.Cache
+	LocalActionDetailCache          memory.Cache
 	LocalSubjectBlackListCache      memory.Cache
+	LocalResourceTypePKCache        memory.Cache
+	LocalThinResourceTypeCache      memory.Cache
 
-	RemoteResourceCache *redis.Cache
-	ResourceTypeCache   *redis.Cache
-	SubjectGroupCache   *redis.Cache
-	SubjectDetailCache  *redis.Cache
-	SubjectPKCache      *redis.Cache
+	RemoteResourceCache     *redis.Cache
+	ResourceTypeCache       *redis.Cache
+	SubjectDepartmentCache  *redis.Cache
+	SubjectPKCache          *redis.Cache
+	SubjectSystemGroupCache *redis.Cache
+	SubjectAllGroupPKsCache *redis.Cache
+
 	SystemCache         *redis.Cache
 	ActionPKCache       *redis.Cache
 	ActionDetailCache   *redis.Cache
 	ActionListCache     *redis.Cache
+	ResourceTypePKCache *redis.Cache
 
-	PolicyCache          *redis.Cache
-	ExpressionCache      *redis.Cache
-	TemporaryPolicyCache *redis.Cache
+	PolicyCache                  *redis.Cache
+	GroupResourcePolicyCache     *redis.Cache
+	ExpressionCache              *redis.Cache
+	TemporaryPolicyCache         *redis.Cache
+	GroupSystemAuthTypeCache     *redis.Cache
+	GroupActionResourceCache     *redis.Cache
+	SubjectActionExpressionCache *redis.Cache
 
-	LocalPolicyCache         *gocache.Cache
-	LocalExpressionCache     *gocache.Cache
-	LocalTemporayPolicyCache *gocache.Cache
-	ChangeListCache          *redis.Cache
+	LocalPolicyCache          *gocache.Cache
+	LocalExpressionCache      *gocache.Cache
+	LocalTemporaryPolicyCache *gocache.Cache
+	ChangeListCache           *redis.Cache
 
-	ActionCacheCleaner       *cleaner.CacheCleaner
-	ActionListCacheCleaner   *cleaner.CacheCleaner
-	ResourceTypeCacheCleaner *cleaner.CacheCleaner
-	SubjectCacheCleaner      *cleaner.CacheCleaner
-	SystemCacheCleaner       *cleaner.CacheCleaner
+	ActionCacheCleaner            *cleaner.CacheCleaner
+	ActionListCacheCleaner        *cleaner.CacheCleaner
+	ResourceTypeCacheCleaner      *cleaner.CacheCleaner
+	SubjectDepartmentCacheCleaner *cleaner.CacheCleaner
+	SubjectGroupCacheCleaner      *cleaner.CacheCleaner
+	SystemCacheCleaner            *cleaner.CacheCleaner
 )
 
 // ErrNotExceptedTypeFromCache ...
@@ -110,7 +123,17 @@ func InitCaches(disabled bool) {
 		"local_subject_pk",
 		disabled,
 		retrieveSubjectPKFromRedis,
-		1*time.Minute,
+		30*time.Minute,
+		nil,
+	)
+
+	// 影响: 每次鉴权
+
+	LocalSubjectDepartmentCache = memory.NewCache(
+		"local_subject_department",
+		disabled,
+		retrieveSubjectDepartmentFromRedis,
+		10*time.Minute,
 		nil,
 	)
 
@@ -158,13 +181,44 @@ func InitCaches(disabled bool) {
 
 	LocalUnmarshaledExpressionCache = gocache.New(30*time.Minute, 5*time.Minute)
 
+	// 影响: 每次鉴权
+
+	LocalGroupSystemAuthTypeCache = gocache.New(10*time.Minute, 5*time.Minute)
+
+	LocalActionDetailCache = memory.NewCache(
+		"local_act_dtl",
+		disabled,
+		retrieveActionDetailFromRedis,
+		10*time.Minute,
+		newRandomDuration(30),
+	)
+
 	// 影响: 所有鉴权接口
+
 	LocalSubjectBlackListCache = memory.NewCache(
 		"local_subject_black_list",
 		disabled,
 		retrieveSubjectBlackList,
 		60*time.Second,
 		newRandomDuration(10),
+	)
+
+	// 影响: 每次鉴权
+
+	LocalResourceTypePKCache = memory.NewCache(
+		"local_resource_type_pk",
+		disabled,
+		retrieveResourceTypePKFromRedis,
+		30*time.Minute,
+		nil,
+	)
+
+	LocalThinResourceTypeCache = memory.NewCache(
+		"local_resource_type",
+		disabled,
+		retrieveThinResourceType,
+		30*time.Minute,
+		newRandomDuration(30),
 	)
 
 	//  ==========================
@@ -188,6 +242,11 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
+	SubjectSystemGroupCache = redis.NewCache(
+		"sys_sub_grp",
+		30*time.Minute,
+	)
+
 	ResourceTypeCache = redis.NewCache(
 		"res_typ",
 		30*time.Minute,
@@ -204,12 +263,7 @@ func InitCaches(disabled bool) {
 	)
 
 	ActionDetailCache = redis.NewCache(
-		"act_dtl",
-		30*time.Minute,
-	)
-
-	SubjectGroupCache = redis.NewCache(
-		"sub_grp",
+		"act_dtl:2",
 		30*time.Minute,
 	)
 
@@ -218,22 +272,38 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
-	SubjectDetailCache = redis.NewCache(
-		"sub_dtl",
+	SubjectDepartmentCache = redis.NewCache(
+		"sub_dep",
 		30*time.Minute,
 	)
+
+	SubjectAllGroupPKsCache = redis.NewCache(
+		"sub_grp_pks",
+		30*time.Minute,
+	)
+
 	ActionListCache = redis.NewCache(
-		"all_act",
+		"all_act:2",
+		30*time.Minute,
+	)
+
+	ResourceTypePKCache = redis.NewCache(
+		"res_typ_pk",
 		30*time.Minute,
 	)
 
 	LocalPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	LocalExpressionCache = gocache.New(5*time.Minute, 5*time.Minute)
-	LocalTemporayPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
+	LocalTemporaryPolicyCache = gocache.New(5*time.Minute, 5*time.Minute)
 	ChangeListCache = redis.NewCache("cl", 5*time.Minute)
 
 	PolicyCache = redis.NewCache(
 		"pl",
+		30*time.Minute,
+	)
+
+	GroupResourcePolicyCache = redis.NewCache(
+		"grp_res_pl",
 		30*time.Minute,
 	)
 
@@ -247,6 +317,23 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
+	GroupSystemAuthTypeCache = redis.NewCache(
+		"gat",
+		30*time.Minute,
+	)
+
+	GroupActionResourceCache = redis.NewCache(
+		"gar",
+		30*time.Minute,
+	)
+
+	// 影响: RBAC操作每次鉴权
+
+	SubjectActionExpressionCache = redis.NewCache(
+		"sub_act_ex",
+		30*time.Minute,
+	)
+
 	ActionCacheCleaner = cleaner.NewCacheCleaner("ActionCacheCleaner", actionCacheDeleter{})
 	go ActionCacheCleaner.Run()
 
@@ -256,8 +343,14 @@ func InitCaches(disabled bool) {
 	ResourceTypeCacheCleaner = cleaner.NewCacheCleaner("ResourceTypeCacheCleaner", resourceTypeCacheDeleter{})
 	go ResourceTypeCacheCleaner.Run()
 
-	SubjectCacheCleaner = cleaner.NewCacheCleaner("SubjectCacheCleaner", subjectCacheDeleter{})
-	go SubjectCacheCleaner.Run()
+	SubjectDepartmentCacheCleaner = cleaner.NewCacheCleaner(
+		"SubjectDepartmentCacheCleaner",
+		subjectDepartmentCacheDeleter{},
+	)
+	go SubjectDepartmentCacheCleaner.Run()
+
+	SubjectGroupCacheCleaner = cleaner.NewCacheCleaner("SubjectGroupCacheCleaner", subjectGroupCacheDeleter{})
+	go SubjectGroupCacheCleaner.Run()
 
 	SystemCacheCleaner = cleaner.NewCacheCleaner("SystemCacheCleaner", systemCacheDeleter{})
 	go SystemCacheCleaner.Run()
@@ -268,6 +361,12 @@ var PolicyCacheDisabled = false
 
 // PolicyCacheExpiration 策略缓存默认保留7天
 var PolicyCacheExpiration = 7 * 24 * time.Hour
+
+// GroupResourcePolicyCacheExpiration 策略缓存默认保留7天
+var GroupResourcePolicyCacheExpiration = 7 * 24 * time.Hour
+
+// GroupSystemAuthTypeCacheExpiration 策略缓存默认保留7天
+var GroupSystemAuthTypeCacheExpiration = 7 * 24 * time.Hour
 
 // InitPolicyCacheSettings ...
 func InitPolicyCacheSettings(disabled bool, expirationDays int64) {

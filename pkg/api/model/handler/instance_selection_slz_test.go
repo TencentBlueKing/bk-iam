@@ -16,7 +16,6 @@ import (
 )
 
 var _ = Describe("InstanceSelectionSlz", func() {
-
 	Describe("InstanceSelectionUpdateSerializer Validate", func() {
 		var slz instanceSelectionUpdateSerializer
 		BeforeEach(func() {
@@ -35,7 +34,6 @@ var _ = Describe("InstanceSelectionSlz", func() {
 			}
 			valid, _ := slz.validate(b)
 			assert.False(GinkgoT(), valid)
-
 		})
 		It("resource type chain empty", func() {
 			c := map[string]interface{}{
@@ -46,7 +44,5 @@ var _ = Describe("InstanceSelectionSlz", func() {
 		})
 		// TODO: validate not an array
 		// It("", func() {})
-
 	})
-
 })

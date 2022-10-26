@@ -16,7 +16,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/abac/prp"
+	"iam/pkg/abac/pap"
 	"iam/pkg/abac/types"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -62,8 +62,8 @@ func CreateTemporaryPolicies(c *gin.Context) {
 			convertToInternalTypesPolicy(systemID, subject, 0, service.PolicyTemplateIDCustom, p))
 	}
 
-	manager := prp.NewPolicyManager()
-	pks, err := manager.CreateTemporaryPolicies(
+	ctl := pap.NewPolicyController()
+	pks, err := ctl.CreateTemporaryPolicies(
 		systemID, body.Subject.Type, body.Subject.ID, policies)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "CreateTemporaryPolicies",
@@ -96,8 +96,8 @@ func BatchDeleteTemporaryPolicies(c *gin.Context) {
 		return
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.DeleteTemporaryByIDs(body.SystemID, body.SubjectType, body.SubjectID, body.IDs)
+	ctl := pap.NewPolicyController()
+	err := ctl.DeleteTemporaryByIDs(body.SystemID, body.SubjectType, body.SubjectID, body.IDs)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "DeleteTemporaryByIDs",
 			"subjectType=`%s`, subjectID=`%s`, IDs=`%+v`", body.SubjectType, body.SubjectID, body.IDs)
@@ -133,8 +133,8 @@ func DeleteTemporaryBeforeExpiredAt(c *gin.Context) {
 		return
 	}
 
-	manager := prp.NewPolicyManager()
-	err = manager.DeleteTemporaryBeforeExpiredAt(expiredAt)
+	ctl := pap.NewPolicyController()
+	err = ctl.DeleteTemporaryBeforeExpiredAt(expiredAt)
 	if err != nil {
 		err = errorWrapf(err, "expiredAt=`%d`", expiredAt)
 		util.SystemErrorJSONResponse(c, err)

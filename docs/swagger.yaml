@@ -54,6 +54,12 @@ definitions:
     type: object
   handler.actionSerializer:
     properties:
+      auth_type:
+        enum:
+        - rbac
+        - abac
+        example: abac
+        type: string
       description:
         example: biz_create is
         type: string
@@ -110,6 +116,12 @@ definitions:
     type: object
   handler.actionUpdateSerializer:
     properties:
+      auth_type:
+        enum:
+        - rbac
+        - abac
+        example: abac
+        type: string
       description:
         example: biz_create is
         type: string
@@ -245,30 +257,6 @@ definitions:
         example: false
         type: boolean
     type: object
-  handler.createAndDeleteTemplatePolicySerializer:
-    properties:
-      create_policies:
-        items:
-          $ref: '#/definitions/handler.policy'
-        type: array
-      delete_policy_ids:
-        items:
-          type: integer
-        type: array
-      subject:
-        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
-      system_id:
-        type: string
-      template_id:
-        minimum: 1
-        type: integer
-    required:
-    - create_policies
-    - delete_policy_ids
-    - subject
-    - system_id
-    - template_id
-    type: object
   handler.credentialsVerifyResponseSerializer:
     properties:
       valid:
@@ -294,8 +282,10 @@ definitions:
     type: object
   handler.enginePolicyResponse:
     properties:
-      action:
-        $ref: '#/definitions/iam_pkg_api_engine_handler.policyResponseAction'
+      actions:
+        items:
+          $ref: '#/definitions/iam_pkg_api_engine_handler.policyResponseAction'
+        type: array
       expired_at:
         example: 4102444800
         type: integer
@@ -340,18 +330,6 @@ definitions:
     properties:
       id:
         type: integer
-    type: object
-  handler.idExpiredAtSerializer:
-    properties:
-      expired_at:
-        maximum: 4102444800
-        minimum: 0
-        type: integer
-      id:
-        type: integer
-    required:
-    - expired_at
-    - id
     type: object
   handler.instanceSelectionSerializer:
     properties:
@@ -423,6 +401,12 @@ definitions:
         example: 1592899208
         minimum: 1
         type: integer
+      type:
+        enum:
+        - abac
+        - rbac
+        example: abac
+        type: string
     type: object
   handler.policiesAlterSerializer:
     properties:
@@ -446,6 +430,43 @@ definitions:
     - subject
     - update_policies
     type: object
+  handler.policiesAlterSerializerV2:
+    properties:
+      create_policies:
+        items:
+          $ref: '#/definitions/handler.policy'
+        type: array
+      delete_policy_ids:
+        items:
+          type: integer
+        type: array
+      group_auth_type:
+        enum:
+        - all
+        - rbac
+        - abac
+        - none
+        type: string
+      resource_actions:
+        items:
+          $ref: '#/definitions/handler.resourceAction'
+        type: array
+      subject:
+        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
+      template_id:
+        type: integer
+      update_policies:
+        items:
+          $ref: '#/definitions/handler.updatePolicy'
+        type: array
+    required:
+    - create_policies
+    - delete_policy_ids
+    - group_auth_type
+    - resource_actions
+    - subject
+    - update_policies
+    type: object
   handler.policiesDeleteSerializer:
     properties:
       ids:
@@ -465,21 +486,6 @@ definitions:
     - subject_id
     - subject_type
     - system_id
-    type: object
-  handler.policiesUpdateExpiredAtSerializer:
-    properties:
-      policies:
-        items:
-          $ref: '#/definitions/handler.idExpiredAtSerializer'
-        type: array
-      subject_id:
-        type: string
-      subject_type:
-        type: string
-    required:
-    - policies
-    - subject_id
-    - subject_type
     type: object
   handler.policy:
     properties:
@@ -701,6 +707,23 @@ definitions:
     - system
     - type
     type: object
+  handler.resourceAction:
+    properties:
+      created_action_ids:
+        items:
+          type: string
+        type: array
+      deleted_action_ids:
+        items:
+          type: string
+        type: array
+      resource:
+        $ref: '#/definitions/handler.resourceSerializer'
+    required:
+    - created_action_ids
+    - deleted_action_ids
+    - resource
+    type: object
   handler.resourceProviderConfig:
     properties:
       path:
@@ -709,6 +732,19 @@ definitions:
         type: string
     required:
     - path
+    type: object
+  handler.resourceSerializer:
+    properties:
+      id:
+        type: string
+      system_id:
+        type: string
+      type:
+        type: string
+    required:
+    - id
+    - system_id
+    - type
     type: object
   handler.resourceTypeSerializer:
     properties:
@@ -793,23 +829,6 @@ definitions:
       type:
         example: user
         type: string
-    type: object
-  handler.subjectTemplateSerializer:
-    properties:
-      subject_id:
-        type: string
-      subject_type:
-        type: string
-      system_id:
-        type: string
-      template_id:
-        minimum: 1
-        type: integer
-    required:
-    - subject_id
-    - subject_type
-    - system_id
-    - template_id
     type: object
   handler.systemClientsResponse:
     properties:
@@ -989,25 +1008,6 @@ definitions:
     - expired_at
     - id
     - resource_expression
-    type: object
-  handler.updateTemplatePolicySerializer:
-    properties:
-      subject:
-        $ref: '#/definitions/iam_pkg_api_web_handler.subject'
-      system_id:
-        type: string
-      template_id:
-        minimum: 1
-        type: integer
-      update_policies:
-        items:
-          $ref: '#/definitions/handler.updatePolicy'
-        type: array
-    required:
-    - subject
-    - system_id
-    - template_id
-    - update_policies
     type: object
   iam_pkg_api_engine_handler.policyListResponse:
     properties:
@@ -1194,6 +1194,13 @@ paths:
         minimum: 1
         name: timestamp
         type: integer
+      - enum:
+        - abac
+        - rbac
+        example: abac
+        in: query
+        name: type
+        type: string
       produces:
       - application/json
       responses:
@@ -1233,6 +1240,13 @@ paths:
         minimum: 1
         name: end_updated_at
         type: integer
+      - enum:
+        - abac
+        - rbac
+        example: abac
+        in: query
+        name: type
+        type: string
       produces:
       - application/json
       responses:
@@ -1262,6 +1276,13 @@ paths:
       description: get max policy id by condition
       operationId: api-engine-policy-id-max
       parameters:
+      - enum:
+        - abac
+        - rbac
+        example: abac
+        in: query
+        name: type
+        type: string
       - example: 1592899208
         in: query
         minimum: 1
@@ -2488,138 +2509,6 @@ paths:
       summary: token get
       tags:
       - model
-  /api/v1/web/custom-policy:
-    get:
-      consumes:
-      - application/json
-      description: get custom policy
-      operationId: api-web-get-custom-policy
-      parameters:
-      - description: system id
-        in: path
-        name: system_id
-        required: true
-        type: string
-      - description: subject type
-        in: query
-        name: subject_type
-        required: true
-        type: string
-      - description: subject id
-        in: query
-        name: subject_id
-        required: true
-        type: string
-      - description: action id
-        in: query
-        name: action_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: GetCustomPolicy/获取自定义策略
-      tags:
-      - web
-  /api/v1/web/perm-templates/policies:
-    delete:
-      consumes:
-      - application/json
-      description: delete template policy
-      operationId: api-web-delete-template-policies
-      parameters:
-      - description: delete templates policies
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.subjectTemplateSerializer'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: delete template policy/删除模板授权的策略
-      tags:
-      - web
-    post:
-      consumes:
-      - application/json
-      description: Create and delete template policy
-      operationId: api-web-create-delete-template-policies
-      parameters:
-      - description: create and delete templates policies
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.createAndDeleteTemplatePolicySerializer'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: Create and delete template policy/创建删除模板授权的策略
-      tags:
-      - web
-    put:
-      consumes:
-      - application/json
-      description: update template policy
-      operationId: api-web-update-template-policies
-      parameters:
-      - description: update templates policies
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.updateTemplatePolicySerializer'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: update template policy/更新模板授权的策略
-      tags:
-      - web
   /api/v1/web/policies:
     delete:
       consumes:
@@ -2696,36 +2585,6 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: List policy/获取策略列表
-      tags:
-      - web
-  /api/v1/web/policies/expired_at:
-    put:
-      consumes:
-      - application/json
-      description: renew policies
-      operationId: api-web-renew-policies
-      parameters:
-      - description: renew policies
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.policiesUpdateExpiredAtSerializer'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: Renew policies/权限续期
       tags:
       - web
   /api/v1/web/systems/{system_id}/policies:
@@ -2903,6 +2762,112 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: Batch delete temporary policies before expired_at/删除指定过期时间之前临时权限策略
+      tags:
+      - web
+  /api/v2/policy/systems/{system_id}/auth:
+    post:
+      consumes:
+      - application/json
+      description: 'eval all the policies queried by conditions: system/subject/action
+        and resources[required]'
+      operationId: api-v2-policy-auth
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/handler.authResponse'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy auth/鉴权
+      tags:
+      - policy
+  /api/v2/policy/systems/{system_id}/query:
+    post:
+      consumes:
+      - application/json
+      description: 'query the policy by conditions: system/subject/action and resources[optional]'
+      operationId: api-v2-policy-query
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: the policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.queryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: policy query/策略查询
+      tags:
+      - policy
+  /api/v2/web/systems/{system_id}/policies:
+    post:
+      consumes:
+      - application/json
+      description: alter policies v2
+      operationId: v2-api-web-alter-policies
+      parameters:
+      - description: system id
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: create and update policies
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.policiesAlterSerializerV2'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: Alter policies v2/变更用户自定义申请策略
       tags:
       - web
   /healthz:

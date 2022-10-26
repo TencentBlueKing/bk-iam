@@ -25,6 +25,7 @@ import (
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
 	"iam/pkg/logging/debug"
+	svctypes "iam/pkg/service/types"
 )
 
 // PDPHelper ...
@@ -41,6 +42,8 @@ func queryPolicies(
 	system string,
 	subject types.Subject,
 	action types.Action,
+	effectGroupPKs []int64,
+	withRbacPolicies bool,
 	withoutCache bool,
 	entry *debug.Entry,
 ) (policies []types.AuthPolicy, err error) {
@@ -48,7 +51,15 @@ func queryPolicies(
 
 	manager := prp.NewPolicyManager()
 
-	policies, err = manager.ListBySubjectAction(system, subject, action, withoutCache, entry)
+	policies, err = manager.ListBySubjectAction(
+		system,
+		subject,
+		action,
+		effectGroupPKs,
+		withRbacPolicies,
+		withoutCache,
+		entry,
+	)
 	if err != nil {
 		err = errorWrapf(err,
 			"ListBySubjectAction system=`%s`, subject=`%s`, action=`%s`, withoutCache=`%t` fail",
@@ -62,7 +73,7 @@ func queryPolicies(
 		return
 	}
 
-	return
+	return policies, nil
 }
 
 // queryAndPartialEvalConditions 查询请求相关的Policy
@@ -113,7 +124,7 @@ func queryAndPartialEvalConditions(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
@@ -127,9 +138,25 @@ func queryAndPartialEvalConditions(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
+	// 3. 查询关联的group pks
+	debug.AddStep(entry, "Get Effect AuthType Group PKs")
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+v`, action=`%+v` fail",
+			r.System,
+			r.Subject,
+			r.Action,
+		)
+		return nil, err
+	}
+	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
+	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
 	// 4. PRP查询subject-action相关的policies
 	debug.AddStep(entry, "Query Policies")
-	policies, err := queryPolicies(r.System, r.Subject, r.Action, withoutCache, entry)
+	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, true, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return nil, nil
@@ -170,8 +197,8 @@ func queryAndPartialEvalConditions(
 	return conditions, err
 }
 
-// fillSubjectDetail ...
-func fillSubjectDetail(r *request.Request) error {
+// fillSubjectDepartments ...
+func fillSubjectDepartments(r *request.Request) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Request", "fillSubjectDetail")
 
 	_type := r.Subject.Type
@@ -183,13 +210,13 @@ func fillSubjectDetail(r *request.Request) error {
 		return err
 	}
 
-	departments, groups, err := pip.GetSubjectDetail(pk)
+	departments, err := pip.GetSubjectDepartmentPKs(pk)
 	if err != nil {
 		err = errorWrapf(err, "GetSubjectDetail pk=`%d` fail", pk)
 		return err
 	}
 
-	r.Subject.FillAttributes(pk, groups, departments)
+	r.Subject.FillAttributes(pk, departments)
 	return nil
 }
 
@@ -200,12 +227,41 @@ func fillActionDetail(r *request.Request) error {
 	id := r.Action.ID
 
 	// TODO: to local cache? but, how to notify the changes in /api/query? do nothing currently!
-	pk, actionResourceTypes, err := pip.GetActionDetail(system, id)
+	pk, authType, actionResourceTypes, err := pip.GetActionDetail(system, id)
 	if err != nil {
 		err = errorWrapf(err, "GetActionDetail system=`%s`, id=`%s` fail", system, id)
 		return err
 	}
 
-	r.Action.FillAttributes(pk, actionResourceTypes)
+	r.Action.FillAttributes(pk, authType, actionResourceTypes)
 	return nil
+}
+
+// getEffectAuthTypeGroupPKs 获取authType分组的group pks
+func getEffectAuthTypeGroupPKs(
+	systemID string,
+	subject types.Subject,
+	action types.Action,
+) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+	groupPKs, err := prp.GetEffectGroupPKs(systemID, subject)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	actionAuthType, err := action.Attribute.GetAuthType()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// NOTE: 当前只有action的auth type是RBAC时才需要分离出 abac/rbac group pks
+	if actionAuthType == svctypes.AuthTypeRBAC {
+		abacGroupPKs, rbacGroupPKs, err = prp.SplitGroupPKsByAuthType(systemID, groupPKs)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return abacGroupPKs, rbacGroupPKs, nil
+	}
+
+	return groupPKs, nil, nil
 }

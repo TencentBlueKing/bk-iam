@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockSubjectService is a mock of SubjectService interface.
@@ -48,105 +49,18 @@ func (mr *MockSubjectServiceMockRecorder) BulkCreate(subjects interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreate", reflect.TypeOf((*MockSubjectService)(nil).BulkCreate), subjects)
 }
 
-// BulkCreateSubjectDepartments mocks base method.
-func (m *MockSubjectService) BulkCreateSubjectDepartments(subjectDepartments []types.SubjectDepartment) error {
+// BulkDeleteByPKsWithTx mocks base method.
+func (m *MockSubjectService) BulkDeleteByPKsWithTx(tx *sqlx.Tx, pks []int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectDepartments", subjectDepartments)
+	ret := m.ctrl.Call(m, "BulkDeleteByPKsWithTx", tx, pks)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkCreateSubjectDepartments indicates an expected call of BulkCreateSubjectDepartments.
-func (mr *MockSubjectServiceMockRecorder) BulkCreateSubjectDepartments(subjectDepartments interface{}) *gomock.Call {
+// BulkDeleteByPKsWithTx indicates an expected call of BulkDeleteByPKsWithTx.
+func (mr *MockSubjectServiceMockRecorder) BulkDeleteByPKsWithTx(tx, pks interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectDepartments", reflect.TypeOf((*MockSubjectService)(nil).BulkCreateSubjectDepartments), subjectDepartments)
-}
-
-// BulkCreateSubjectMembers mocks base method.
-func (m *MockSubjectService) BulkCreateSubjectMembers(_type, id string, members []types.Subject, policyExpiredAt int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectMembers", _type, id, members, policyExpiredAt)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreateSubjectMembers indicates an expected call of BulkCreateSubjectMembers.
-func (mr *MockSubjectServiceMockRecorder) BulkCreateSubjectMembers(_type, id, members, policyExpiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectMembers", reflect.TypeOf((*MockSubjectService)(nil).BulkCreateSubjectMembers), _type, id, members, policyExpiredAt)
-}
-
-// BulkCreateSubjectRoles mocks base method.
-func (m *MockSubjectService) BulkCreateSubjectRoles(roleType, system string, subjects []types.Subject) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkCreateSubjectRoles", roleType, system, subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkCreateSubjectRoles indicates an expected call of BulkCreateSubjectRoles.
-func (mr *MockSubjectServiceMockRecorder) BulkCreateSubjectRoles(roleType, system, subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectRoles", reflect.TypeOf((*MockSubjectService)(nil).BulkCreateSubjectRoles), roleType, system, subjects)
-}
-
-// BulkDelete mocks base method.
-func (m *MockSubjectService) BulkDelete(subjects []types.Subject) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDelete", subjects)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkDelete indicates an expected call of BulkDelete.
-func (mr *MockSubjectServiceMockRecorder) BulkDelete(subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockSubjectService)(nil).BulkDelete), subjects)
-}
-
-// BulkDeleteSubjectDepartments mocks base method.
-func (m *MockSubjectService) BulkDeleteSubjectDepartments(subjectIDs []string) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectDepartments", subjectIDs)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkDeleteSubjectDepartments indicates an expected call of BulkDeleteSubjectDepartments.
-func (mr *MockSubjectServiceMockRecorder) BulkDeleteSubjectDepartments(subjectIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectDepartments", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteSubjectDepartments), subjectIDs)
-}
-
-// BulkDeleteSubjectMembers mocks base method.
-func (m *MockSubjectService) BulkDeleteSubjectMembers(_type, id string, members []types.Subject) (map[string]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectMembers", _type, id, members)
-	ret0, _ := ret[0].(map[string]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkDeleteSubjectMembers indicates an expected call of BulkDeleteSubjectMembers.
-func (mr *MockSubjectServiceMockRecorder) BulkDeleteSubjectMembers(_type, id, members interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectMembers", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteSubjectMembers), _type, id, members)
-}
-
-// BulkDeleteSubjectRoles mocks base method.
-func (m *MockSubjectService) BulkDeleteSubjectRoles(roleType, system string, subjects []types.Subject) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkDeleteSubjectRoles", roleType, system, subjects)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkDeleteSubjectRoles indicates an expected call of BulkDeleteSubjectRoles.
-func (mr *MockSubjectServiceMockRecorder) BulkDeleteSubjectRoles(roleType, system, subjects interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectRoles", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteSubjectRoles), roleType, system, subjects)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteByPKsWithTx", reflect.TypeOf((*MockSubjectService)(nil).BulkDeleteByPKsWithTx), tx, pks)
 }
 
 // BulkUpdateName mocks base method.
@@ -161,21 +75,6 @@ func (m *MockSubjectService) BulkUpdateName(subjects []types.Subject) error {
 func (mr *MockSubjectServiceMockRecorder) BulkUpdateName(subjects interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateName", reflect.TypeOf((*MockSubjectService)(nil).BulkUpdateName), subjects)
-}
-
-// BulkUpdateSubjectDepartments mocks base method.
-func (m *MockSubjectService) BulkUpdateSubjectDepartments(subjectDepartments []types.SubjectDepartment) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdateSubjectDepartments", subjectDepartments)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BulkUpdateSubjectDepartments indicates an expected call of BulkUpdateSubjectDepartments.
-func (mr *MockSubjectServiceMockRecorder) BulkUpdateSubjectDepartments(subjectDepartments interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateSubjectDepartments", reflect.TypeOf((*MockSubjectService)(nil).BulkUpdateSubjectDepartments), subjectDepartments)
 }
 
 // Get mocks base method.
@@ -208,51 +107,6 @@ func (mr *MockSubjectServiceMockRecorder) GetCount(_type interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCount", reflect.TypeOf((*MockSubjectService)(nil).GetCount), _type)
 }
 
-// GetEffectThinSubjectGroups mocks base method.
-func (m *MockSubjectService) GetEffectThinSubjectGroups(pk int64) ([]types.ThinSubjectGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEffectThinSubjectGroups", pk)
-	ret0, _ := ret[0].([]types.ThinSubjectGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetEffectThinSubjectGroups indicates an expected call of GetEffectThinSubjectGroups.
-func (mr *MockSubjectServiceMockRecorder) GetEffectThinSubjectGroups(pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEffectThinSubjectGroups", reflect.TypeOf((*MockSubjectService)(nil).GetEffectThinSubjectGroups), pk)
-}
-
-// GetMemberCount mocks base method.
-func (m *MockSubjectService) GetMemberCount(_type, id string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberCount", _type, id)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMemberCount indicates an expected call of GetMemberCount.
-func (mr *MockSubjectServiceMockRecorder) GetMemberCount(_type, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCount", reflect.TypeOf((*MockSubjectService)(nil).GetMemberCount), _type, id)
-}
-
-// GetMemberCountBeforeExpiredAt mocks base method.
-func (m *MockSubjectService) GetMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberCountBeforeExpiredAt", _type, id, expiredAt)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMemberCountBeforeExpiredAt indicates an expected call of GetMemberCountBeforeExpiredAt.
-func (mr *MockSubjectServiceMockRecorder) GetMemberCountBeforeExpiredAt(_type, id, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberCountBeforeExpiredAt", reflect.TypeOf((*MockSubjectService)(nil).GetMemberCountBeforeExpiredAt), _type, id, expiredAt)
-}
-
 // GetPK mocks base method.
 func (m *MockSubjectService) GetPK(_type, id string) (int64, error) {
 	m.ctrl.T.Helper()
@@ -266,96 +120,6 @@ func (m *MockSubjectService) GetPK(_type, id string) (int64, error) {
 func (mr *MockSubjectServiceMockRecorder) GetPK(_type, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPK", reflect.TypeOf((*MockSubjectService)(nil).GetPK), _type, id)
-}
-
-// GetSubjectDepartmentCount mocks base method.
-func (m *MockSubjectService) GetSubjectDepartmentCount() (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSubjectDepartmentCount")
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSubjectDepartmentCount indicates an expected call of GetSubjectDepartmentCount.
-func (mr *MockSubjectServiceMockRecorder) GetSubjectDepartmentCount() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectDepartmentCount", reflect.TypeOf((*MockSubjectService)(nil).GetSubjectDepartmentCount))
-}
-
-// GetSubjectDepartmentPKs mocks base method.
-func (m *MockSubjectService) GetSubjectDepartmentPKs(subjectPK int64) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSubjectDepartmentPKs", subjectPK)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSubjectDepartmentPKs indicates an expected call of GetSubjectDepartmentPKs.
-func (mr *MockSubjectServiceMockRecorder) GetSubjectDepartmentPKs(subjectPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectDepartmentPKs", reflect.TypeOf((*MockSubjectService)(nil).GetSubjectDepartmentPKs), subjectPK)
-}
-
-// ListByPKs mocks base method.
-func (m *MockSubjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]types.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs.
-func (mr *MockSubjectServiceMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectService)(nil).ListByPKs), pks)
-}
-
-// ListEffectThinSubjectGroups mocks base method.
-func (m *MockSubjectService) ListEffectThinSubjectGroups(pks []int64) (map[int64][]types.ThinSubjectGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectThinSubjectGroups", pks)
-	ret0, _ := ret[0].(map[int64][]types.ThinSubjectGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListEffectThinSubjectGroups indicates an expected call of ListEffectThinSubjectGroups.
-func (mr *MockSubjectServiceMockRecorder) ListEffectThinSubjectGroups(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectThinSubjectGroups", reflect.TypeOf((*MockSubjectService)(nil).ListEffectThinSubjectGroups), pks)
-}
-
-// ListExistSubjectsBeforeExpiredAt mocks base method.
-func (m *MockSubjectService) ListExistSubjectsBeforeExpiredAt(subjects []types.Subject, expiredAt int64) ([]types.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListExistSubjectsBeforeExpiredAt", subjects, expiredAt)
-	ret0, _ := ret[0].([]types.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListExistSubjectsBeforeExpiredAt indicates an expected call of ListExistSubjectsBeforeExpiredAt.
-func (mr *MockSubjectServiceMockRecorder) ListExistSubjectsBeforeExpiredAt(subjects, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExistSubjectsBeforeExpiredAt", reflect.TypeOf((*MockSubjectService)(nil).ListExistSubjectsBeforeExpiredAt), subjects, expiredAt)
-}
-
-// ListMember mocks base method.
-func (m *MockSubjectService) ListMember(_type, id string) ([]types.SubjectMember, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMember", _type, id)
-	ret0, _ := ret[0].([]types.SubjectMember)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMember indicates an expected call of ListMember.
-func (mr *MockSubjectServiceMockRecorder) ListMember(_type, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMember", reflect.TypeOf((*MockSubjectService)(nil).ListMember), _type, id)
 }
 
 // ListPKsBySubjects mocks base method.
@@ -386,108 +150,4 @@ func (m *MockSubjectService) ListPaging(_type string, limit, offset int64) ([]ty
 func (mr *MockSubjectServiceMockRecorder) ListPaging(_type, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaging", reflect.TypeOf((*MockSubjectService)(nil).ListPaging), _type, limit, offset)
-}
-
-// ListPagingMember mocks base method.
-func (m *MockSubjectService) ListPagingMember(_type, id string, limit, offset int64) ([]types.SubjectMember, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingMember", _type, id, limit, offset)
-	ret0, _ := ret[0].([]types.SubjectMember)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPagingMember indicates an expected call of ListPagingMember.
-func (mr *MockSubjectServiceMockRecorder) ListPagingMember(_type, id, limit, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMember", reflect.TypeOf((*MockSubjectService)(nil).ListPagingMember), _type, id, limit, offset)
-}
-
-// ListPagingMemberBeforeExpiredAt mocks base method.
-func (m *MockSubjectService) ListPagingMemberBeforeExpiredAt(_type, id string, expiredAt, limit, offset int64) ([]types.SubjectMember, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingMemberBeforeExpiredAt", _type, id, expiredAt, limit, offset)
-	ret0, _ := ret[0].([]types.SubjectMember)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPagingMemberBeforeExpiredAt indicates an expected call of ListPagingMemberBeforeExpiredAt.
-func (mr *MockSubjectServiceMockRecorder) ListPagingMemberBeforeExpiredAt(_type, id, expiredAt, limit, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingMemberBeforeExpiredAt", reflect.TypeOf((*MockSubjectService)(nil).ListPagingMemberBeforeExpiredAt), _type, id, expiredAt, limit, offset)
-}
-
-// ListPagingSubjectDepartment mocks base method.
-func (m *MockSubjectService) ListPagingSubjectDepartment(limit, offset int64) ([]types.SubjectDepartment, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingSubjectDepartment", limit, offset)
-	ret0, _ := ret[0].([]types.SubjectDepartment)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPagingSubjectDepartment indicates an expected call of ListPagingSubjectDepartment.
-func (mr *MockSubjectServiceMockRecorder) ListPagingSubjectDepartment(limit, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectDepartment", reflect.TypeOf((*MockSubjectService)(nil).ListPagingSubjectDepartment), limit, offset)
-}
-
-// ListRoleSystemIDBySubjectPK mocks base method.
-func (m *MockSubjectService) ListRoleSystemIDBySubjectPK(pk int64) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRoleSystemIDBySubjectPK", pk)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListRoleSystemIDBySubjectPK indicates an expected call of ListRoleSystemIDBySubjectPK.
-func (mr *MockSubjectServiceMockRecorder) ListRoleSystemIDBySubjectPK(pk interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRoleSystemIDBySubjectPK", reflect.TypeOf((*MockSubjectService)(nil).ListRoleSystemIDBySubjectPK), pk)
-}
-
-// ListSubjectGroups mocks base method.
-func (m *MockSubjectService) ListSubjectGroups(_type, id string, beforeExpiredAt int64) ([]types.SubjectGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSubjectGroups", _type, id, beforeExpiredAt)
-	ret0, _ := ret[0].([]types.SubjectGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListSubjectGroups indicates an expected call of ListSubjectGroups.
-func (mr *MockSubjectServiceMockRecorder) ListSubjectGroups(_type, id, beforeExpiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectGroups", reflect.TypeOf((*MockSubjectService)(nil).ListSubjectGroups), _type, id, beforeExpiredAt)
-}
-
-// ListSubjectPKByRole mocks base method.
-func (m *MockSubjectService) ListSubjectPKByRole(roleType, system string) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSubjectPKByRole", roleType, system)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListSubjectPKByRole indicates an expected call of ListSubjectPKByRole.
-func (mr *MockSubjectServiceMockRecorder) ListSubjectPKByRole(roleType, system interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectPKByRole", reflect.TypeOf((*MockSubjectService)(nil).ListSubjectPKByRole), roleType, system)
-}
-
-// UpdateMembersExpiredAt mocks base method.
-func (m *MockSubjectService) UpdateMembersExpiredAt(members []types.SubjectMember) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMembersExpiredAt", members)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateMembersExpiredAt indicates an expected call of UpdateMembersExpiredAt.
-func (mr *MockSubjectServiceMockRecorder) UpdateMembersExpiredAt(members interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMembersExpiredAt", reflect.TypeOf((*MockSubjectService)(nil).UpdateMembersExpiredAt), members)
 }

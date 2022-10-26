@@ -20,7 +20,6 @@ import (
 )
 
 var _ = Describe("Time", func() {
-
 	Describe("TodayStartTimestamp", func() {
 		nowTimestamp := time.Now().Unix()
 		todayBeginTimestamp := util.TodayStartTimestamp()
@@ -32,5 +31,4 @@ var _ = Describe("Time", func() {
 			assert.True(GinkgoT(), nowTimestamp-todayBeginTimestamp < 24*60*60)
 		})
 	})
-
 })

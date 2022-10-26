@@ -14,7 +14,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
-	"iam/pkg/abac/prp"
+	"iam/pkg/abac/pap"
 	"iam/pkg/abac/types"
 	"iam/pkg/service"
 	"iam/pkg/util"
@@ -46,8 +46,8 @@ func ListSystemPolicy(c *gin.Context) {
 	systemID := c.Param("system_id")
 
 	// 查询有相关权限的policy列表
-	manager := prp.NewPolicyManager()
-	policies, err := manager.ListSaaSBySubjectSystemTemplate(
+	ctl := pap.NewPolicyController()
+	policies, err := ctl.ListSaaSBySubjectSystemTemplate(
 		systemID, query.SubjectType, query.SubjectID, query.TemplateID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "ListSystemPolicy",
@@ -60,7 +60,8 @@ func ListSystemPolicy(c *gin.Context) {
 }
 
 func convertToInternalTypesPolicy(systemID string, subject types.Subject, id, templateID int64,
-	policy policy) types.Policy {
+	policy policy,
+) types.Policy {
 	return types.Policy{
 		Version: service.PolicyVersion,
 		ID:      id,
@@ -124,8 +125,8 @@ func AlterPolicies(c *gin.Context) {
 			convertToInternalTypesPolicy(systemID, subject, p.ID, service.PolicyTemplateIDCustom, p.policy))
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.AlterCustomPolicies(systemID, body.Subject.Type, body.Subject.ID,
+	ctl := pap.NewPolicyController()
+	err := ctl.AlterCustomPolicies(systemID, body.Subject.Type, body.Subject.ID,
 		createPolicies, updatePolicies, body.DeletePolicyIDs)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "AlterPolicies",
@@ -158,8 +159,8 @@ func BatchDeletePolicies(c *gin.Context) {
 		return
 	}
 
-	manager := prp.NewPolicyManager()
-	err := manager.DeleteByIDs(body.SystemID, body.SubjectType, body.SubjectID, body.IDs)
+	ctl := pap.NewPolicyController()
+	err := ctl.DeleteByIDs(body.SystemID, body.SubjectType, body.SubjectID, body.IDs)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "BatchDeletePolicies",
 			"subjectType=`%s`, subjectID=`%s`, IDs=`%+v`", body.SubjectType, body.SubjectID, body.IDs)
@@ -168,46 +169,6 @@ func BatchDeletePolicies(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", gin.H{})
-}
-
-// GetCustomPolicy godoc
-// @Summary GetCustomPolicy/获取自定义策略
-// @Description get custom policy
-// @ID api-web-get-custom-policy
-// @Tags web
-// @Accept json
-// @Produce json
-// @Param system_id path string true "system id"
-// @Param subject_type query string true "subject type"
-// @Param subject_id query string true "subject id"
-// @Param action_id query string true "action id"
-// @Success 200 {object} util.Response
-// @Header 200 {string} X-Request-Id "the request id"
-// @Security AppCode
-// @Security AppSecret
-// @Router /api/v1/web/custom-policy [get]
-func GetCustomPolicy(c *gin.Context) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "GetCustomPolicy")
-
-	var query queryPolicySerializer
-	if err := c.ShouldBindQuery(&query); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
-
-	systemID := c.Param("system_id")
-	manager := prp.NewPolicyManager()
-	policy, err := manager.GetByActionTemplate(
-		systemID, query.SubjectType, query.SubjectID, query.ActionID, service.PolicyTemplateIDCustom,
-	)
-	if err != nil {
-		err = errorWrapf(err, "system=`%s`, subjectType=`%s`, subjectID=`%s`, actionID=`%+v`",
-			systemID, query.SubjectType, query.SubjectID, query.ActionID)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{"policy_id": policy.ID})
 }
 
 // ListPolicy godoc
@@ -234,8 +195,8 @@ func ListPolicy(c *gin.Context) {
 	}
 
 	// 查询过期时间筛选的policy列表
-	manager := prp.NewPolicyManager()
-	policies, err := manager.ListSaaSBySubjectTemplateBeforeExpiredAt(
+	ctl := pap.NewPolicyController()
+	policies, err := ctl.ListSaaSBySubjectTemplateBeforeExpiredAt(
 		query.SubjectType, query.SubjectID, service.PolicyTemplateIDCustom, query.BeforeExpiredAt)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "ListPolicy",
@@ -248,61 +209,13 @@ func ListPolicy(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", policies)
 }
 
-// UpdatePoliciesExpiredAt godoc
-// @Summary Renew policies/权限续期
-// @Description renew policies
-// @ID api-web-renew-policies
-// @Tags web
-// @Accept json
-// @Produce json
-// @Param body body policiesUpdateExpiredAtSerializer true "renew policies"
-// @Success 200 {object} util.Response
-// @Header 200 {string} X-Request-Id "the request id"
-// @Security AppCode
-// @Security AppSecret
-// @Router /api/v1/web/policies/expired_at [put]
-func UpdatePoliciesExpiredAt(c *gin.Context) {
-	var body policiesUpdateExpiredAtSerializer
-	if err := c.ShouldBindJSON(&body); err != nil {
-		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
-		return
-	}
-	if ok, message := body.validate(); !ok {
-		util.BadRequestErrorJSONResponse(c, message)
-		return
-	}
-
-	manager := prp.NewPolicyManager()
-
-	pkExpiredAts := make([]types.PolicyPKExpiredAt, 0, len(body.Policies))
-	for _, p := range body.Policies {
-		pkExpiredAts = append(pkExpiredAts, types.PolicyPKExpiredAt{
-			PK:        p.ID,
-			ExpiredAt: p.ExpiredAt,
-		})
-	}
-
-	err := manager.UpdateSubjectPoliciesExpiredAt(
-		body.SubjectType, body.SubjectID, pkExpiredAts)
-	if err != nil {
-		err = errorx.Wrapf(err, "Handler", "UpdateSubjectPoliciesExpiredAt",
-			"subjectType=`%s`, subjectID=`%s`, ids=`%+v`",
-			body.SubjectType, body.SubjectID, pkExpiredAts)
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	util.SuccessJSONResponse(c, "ok", gin.H{})
-}
-
 // DeleteActionPolicies will delete all policies by action_id
 func DeleteActionPolicies(c *gin.Context) {
 	systemID := c.Param("system_id")
 	actionID := c.Param("action_id")
 
-	manager := prp.NewPolicyManager()
-
-	err := manager.DeleteByActionID(systemID, actionID)
+	ctl := pap.NewPolicyController()
+	err := ctl.DeleteByActionID(systemID, actionID)
 	if err != nil {
 		err = errorx.Wrapf(err, "Handler", "DeleteActionPolicies",
 			"systemID=`%s`, actionID=`%s`",

@@ -11,14 +11,13 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -35,21 +34,26 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/policies/{policy_id} [get]
+// @Router /api/v1/systems/{system_id}/policies/{policy_id}/ [get]
 func PolicyGet(c *gin.Context) {
-	var pathParams policyGetSerializer
-	if err := c.ShouldBindUri(&pathParams); err != nil {
+	var param policyGetUriSerializer
+	if err := c.ShouldBindUri(&param); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
 
-	// 1. query policy
-	policyService := service.NewPolicyService()
-	queryPolicy, err := policyService.Get(pathParams.PolicyID)
+	var query policyGetQuerySerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	query.initDefault()
+
+	manager := prp.NewOpenPolicyManager()
+	policy, err := manager.Get(query.Type, param.PolicyID)
 	if err != nil {
-		// 不存在的情况, 404
-		if errors.Is(err, sql.ErrNoRows) {
-			util.NotFoundJSONResponse(c, "policy not exist")
+		if errors.Is(err, prp.ErrPolicyNotFound) {
+			util.NotFoundJSONResponse(c, err.Error())
 			return
 		}
 
@@ -57,54 +61,46 @@ func PolicyGet(c *gin.Context) {
 		return
 	}
 
-	// 2. query systemAction from cache
-	systemAction, err := cacheimpls.GetAction(queryPolicy.ActionPK)
+	data, err := convertOpenPolicyToPolicyGetResponse(policy)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
 	systemID := c.Param("system_id")
-	if systemID != systemAction.System {
-		util.ForbiddenJSONResponse(c, fmt.Sprintf("system(%s) can't access system(%s)'s policy",
-			systemID, systemAction.System))
+	if systemID != data.System {
+		util.ForbiddenJSONResponse(c, fmt.Sprintf("system(%s) can't access system(%s)'s policy", systemID, data.System))
 		return
 	}
 
-	// 4. query subj from cache
-	subj, err := cacheimpls.GetSubjectByPK(queryPolicy.SubjectPK)
+	util.SuccessJSONResponse(c, "ok", data)
+}
+
+func convertOpenPolicyToPolicyGetResponse(policy prp.OpenPolicy) (policyGetResponse, error) {
+	subj, err := cacheimpls.GetSubjectByPK(policy.SubjectPK)
 	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
+		return policyGetResponse{}, err
 	}
 
-	// 5. get expression
-	pkExpressionMap, err := translateExpressions([]int64{queryPolicy.ExpressionPK})
+	action, err := cacheimpls.GetAction(policy.ActionPK)
 	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-	expression, ok := pkExpressionMap[queryPolicy.ExpressionPK]
-	if !ok {
-		util.SystemErrorJSONResponse(c, fmt.Errorf("expression pk=`%d` missing", queryPolicy.ExpressionPK))
-		return
+		return policyGetResponse{}, err
 	}
 
-	policy := policyGetResponse{
-		Version: service.PolicyVersion,
-		ID:      queryPolicy.PK,
-		System:  systemAction.System,
+	resp := policyGetResponse{
+		Version: policy.Version,
+		ID:      policy.ID,
+		System:  action.System,
 		Subject: policyResponseSubject{
 			Type: subj.Type,
 			ID:   subj.ID,
 			Name: subj.Name,
 		},
 		Action: policyResponseAction{
-			ID: systemAction.ID,
+			ID: action.ID,
 		},
-		Expression: expression,
-		ExpiredAt:  queryPolicy.ExpiredAt,
+		Expression: policy.Expression,
+		ExpiredAt:  policy.ExpiredAt,
 	}
-
-	util.SuccessJSONResponse(c, "ok", policy)
+	return resp, nil
 }

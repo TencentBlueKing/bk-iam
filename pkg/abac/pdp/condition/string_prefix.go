@@ -66,10 +66,11 @@ func (c *StringPrefixCondition) Translate(withSystem bool) (map[string]interface
 		key = removeSystemFromKey(key)
 	}
 
-	// NOTE: starts_with/ends_with/not_starts_with/not_ends_with should be
+	// NOTE: starts_with/ends_with/not_starts_with/not_ends_with/string_contains should be
 	// 1. single value like: a starts_with x
 	// 2. multiple value like: a starts_with x OR a starts_with y
 	// NEVER BE `a starts_with [x, y]`
+	// issue: https://github.com/TencentBlueKing/bk-iam-saas/issues/1293
 	content := make([]map[string]interface{}, 0, len(c.Value))
 	for _, v := range c.Value {
 		content = append(content, map[string]interface{}{

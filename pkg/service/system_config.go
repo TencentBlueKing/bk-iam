@@ -43,8 +43,6 @@ const (
 // SystemConfigService ...
 type SystemConfigService interface {
 	get(system string, key string) (interface{}, error)
-	Exists(system string, key string) bool
-
 	// actionGroup
 
 	GetActionGroups(system string) ([]interface{}, error)
@@ -80,12 +78,6 @@ func NewSystemConfigService() SystemConfigService {
 	return &systemConfigService{
 		manager: sdao.NewSaaSSystemConfigManager(),
 	}
-}
-
-// Exists ...
-func (s *systemConfigService) Exists(system string, key string) bool {
-	_, err := s.manager.Get(system, key)
-	return err == nil
 }
 
 func (s *systemConfigService) get(system string, key string) (data interface{}, err error) {

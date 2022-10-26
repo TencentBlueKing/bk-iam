@@ -11,7 +11,7 @@
 package middleware
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -41,7 +41,7 @@ func TestClientAuthMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901401"))
 
@@ -59,7 +59,8 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	// 1. right
 	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
+	c := util.CreateTestContextWithDefaultRequest(w)
+
 	util.SetClientID(c, "bk_iam_app")
 	config.InitSuperAppCode("bk_iam_app,bk_iam")
 
@@ -67,13 +68,14 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(string(body), "1901401"))
 
 	// 2. wrong
 	w = httptest.NewRecorder()
-	c, _ = gin.CreateTestContext(w)
+	c = util.CreateTestContextWithDefaultRequest(w)
+
 	util.SetClientID(c, "abc")
 	config.InitSuperAppCode("bk_iam_app,bk_iam")
 
@@ -81,7 +83,7 @@ func TestSuperClientMiddleware(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	body, err = ioutil.ReadAll(w.Body)
+	body, err = io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901401"))
 }

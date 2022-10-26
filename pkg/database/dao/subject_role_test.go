@@ -53,7 +53,9 @@ func Test_subjectRoleManager_BulkCreate(t *testing.T) {
 func Test_subjectRoleManager_BulkDelete(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^DELETE FROM subject_role WHERE role_type`
-		mock.ExpectExec(mockQuery).WithArgs("super_manger", "", int64(1), int64(2)).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec(mockQuery).
+			WithArgs("super_manger", "", int64(1), int64(2)).
+			WillReturnResult(sqlmock.NewResult(1, 1))
 
 		manager := &subjectRoleManager{DB: db}
 		err := manager.BulkDelete("super_manger", "", []int64{1, 2})

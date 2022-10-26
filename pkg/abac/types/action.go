@@ -27,8 +27,9 @@ func NewAction() Action {
 }
 
 // FillAttributes 填充action属性
-func (a *Action) FillAttributes(pk int64, actionResourceTypes []ActionResourceType) {
+func (a *Action) FillAttributes(pk int64, authType int64, actionResourceTypes []ActionResourceType) {
 	a.Attribute.SetPK(pk)
+	a.Attribute.SetAuthType(authType)
 	a.Attribute.SetResourceTypes(actionResourceTypes)
 }
 
@@ -41,6 +42,12 @@ func (a *Action) WithoutResourceType() bool {
 	}
 
 	return false
+}
+
+type ThinResourceType struct {
+	PK     int64
+	System string
+	ID     string
 }
 
 // ActionResourceType 操作关联的资源类型

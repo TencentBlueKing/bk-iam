@@ -112,8 +112,9 @@ func (r *redisRetriever) retrieve(subjectPKs []int64) ([]types.AuthPolicy, []int
 		var ps []types.AuthPolicy
 		err = cacheimpls.PolicyCache.Unmarshal(conv.StringToBytes(policiesStr), &ps)
 		if err != nil {
-			log.WithError(err).Errorf("[%s] parse string to expression fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`",
-				RedisLayer, r.system, r.actionPK, subjectPKs)
+			log.WithError(err).
+				Errorf("[%s] parse string to expression fail system=`%s`, actionPK=`%d`, subjectPKs=`%+v`",
+					RedisLayer, r.system, r.actionPK, subjectPKs)
 
 			// NOTE: 一条解析失败, 重新查/重新设置缓存
 			missSubjectPKs = append(missSubjectPKs, subjectPK)

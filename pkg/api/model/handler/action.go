@@ -85,6 +85,7 @@ func BatchCreateActions(c *gin.Context) {
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
 			Sensitivity:   ac.Sensitivity,
+			AuthType:      convertAuthType(ac.AuthType),
 			Type:          ac.Type,
 			Version:       ac.Version,
 
@@ -167,12 +168,18 @@ func UpdateAction(c *gin.Context) {
 
 	if _, ok := data["related_resource_types"]; ok {
 		// NOTE: the action related_resource_types should not be changed if action has any policies!!!!!!
-		err = checkUpdateActionRelatedResourceTypeNotChanged(systemID, actionID,
-			body.RelatedResourceTypes)
+		err = checkUpdateActionRelatedResourceTypeNotChanged(systemID, actionID, body.RelatedResourceTypes)
 		if err != nil {
 			util.ConflictJSONResponse(c, err.Error())
 			return
 		}
+	}
+
+	// check the updated auth_type/related_resource_type should be valid
+	err = checkUpdatedActionAuthType(systemID, actionID, body.AuthType, body.RelatedResourceTypes)
+	if err != nil {
+		util.ConflictJSONResponse(c, err.Error())
+		return
 	}
 
 	// build the data
@@ -206,6 +213,7 @@ func UpdateAction(c *gin.Context) {
 		DescriptionEn:        body.DescriptionEn,
 		Sensitivity:          body.Sensitivity,
 		Version:              body.Version,
+		AuthType:             body.AuthType,
 		Type:                 body.Type,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
@@ -293,7 +301,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 	}
 
 	// NOTE: the action should not be deleted if action has any policies!!!!!!
-	needAsyncDeletedActionIDs, err := checkActionIDsHasAnyPolicies(systemID, ids)
+	needAsyncDeletedActionIDs, err := newActionHasAnyPolicyChecker().FilterActionWithPolicy(systemID, ids)
 	if err != nil {
 		util.ConflictJSONResponse(c, err.Error())
 		return

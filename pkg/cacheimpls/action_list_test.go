@@ -45,7 +45,6 @@ var _ = Describe("ActionListCache", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), actions, 1)
 			assert.Equal(GinkgoT(), actions[0].ID, "test")
-
 		})
 		It("ActionListCache GetInto fail", func() {
 			mockService := mock.NewMockActionService(ctl)

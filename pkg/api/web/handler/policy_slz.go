@@ -70,35 +70,8 @@ type policiesDeleteSerializer struct {
 	IDs      []int64 `json:"ids" binding:"required,gt=0"`
 }
 
-type queryPolicySerializer struct {
-	SubjectType string `form:"subject_type" json:"subject_type" binding:"required"`
-	SubjectID   string `form:"subject_id" json:"subject_id" binding:"required"`
-	ActionID    string `form:"action_id" json:"action_id" binding:"required"`
-}
-
 type queryListPolicySerializer struct {
 	SubjectType     string `form:"subject_type" json:"subject_type" binding:"required"`
 	SubjectID       string `form:"subject_id" json:"subject_id" binding:"required"`
 	BeforeExpiredAt int64  `form:"before_expired_at" json:"before_expired_at" binding:"required,min=0"`
-}
-
-type idExpiredAtSerializer struct {
-	ID        int64 `json:"id" binding:"required,gt=0"`
-	ExpiredAt int64 `json:"expired_at" binding:"required,min=0,max=4102444800"`
-}
-
-type policiesUpdateExpiredAtSerializer struct {
-	SubjectType string                  `json:"subject_type" binding:"required"`
-	SubjectID   string                  `json:"subject_id" binding:"required"`
-	Policies    []idExpiredAtSerializer `json:"policies" binding:"required,gt=0"`
-}
-
-func (slz *policiesUpdateExpiredAtSerializer) validate() (bool, string) {
-	if len(slz.Policies) > 0 {
-		if valid, message := common.ValidateArray(slz.Policies); !valid {
-			return false, message
-		}
-	}
-
-	return true, ""
 }

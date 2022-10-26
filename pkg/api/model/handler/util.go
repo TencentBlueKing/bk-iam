@@ -60,3 +60,10 @@ func convertToRelatedEnvironments(res []relatedEnvironment) []svctypes.ActionEnv
 	}
 	return aes
 }
+
+func convertAuthType(authType string) string {
+	if authType == "" {
+		return svctypes.AuthTypeABACStr
+	}
+	return authType
+}

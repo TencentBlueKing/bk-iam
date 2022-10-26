@@ -22,7 +22,6 @@ import (
 )
 
 var _ = Describe("Conv", func() {
-
 	Describe("Int64SliceToString", func() {
 		DescribeTable("Int64SliceToString cases", func(expected string, input []int64, sep string) {
 			assert.Equal(GinkgoT(), expected, util.Int64SliceToString(input, sep))
@@ -50,6 +49,15 @@ var _ = Describe("Conv", func() {
 		)
 	})
 
+	Describe("Int64SliceToStringSlice", func() {
+		DescribeTable("Int64SliceToString cases", func(expected []string, input []int64) {
+			assert.Equal(GinkgoT(), expected, util.Int64SliceToStringSlice(input))
+		},
+			Entry("empty slice", []string{}, []int64{}),
+			Entry("slice with 1 value", []string{"1"}, []int64{1}),
+			Entry("slice with 3 values", []string{"1", "2", "3"}, []int64{1, 2, 3}),
+		)
+	})
 })
 
 func BenchmarkInt64ToStringFormat(b *testing.B) {

@@ -57,7 +57,12 @@ func (m *MockpolicyCacher) GetPolicies(subjectPKs []int64) ([]types.AuthPolicy, 
 // GetPolicies indicates an expected call of GetPolicies
 func (mr *MockpolicyCacherMockRecorder) GetPolicies(subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicies", reflect.TypeOf((*MockpolicyCacher)(nil).GetPolicies), subjectPKs)
+	return mr.mock.ctrl.RecordCallWithMethodType(
+		mr.mock,
+		"GetPolicies",
+		reflect.TypeOf((*MockpolicyCacher)(nil).GetPolicies),
+		subjectPKs,
+	)
 }
 
 // SetPolicies mocks base method
@@ -71,5 +76,11 @@ func (m *MockpolicyCacher) SetPolicies(noCacheSubjectPKs []int64, noCachePolicie
 // SetPolicies indicates an expected call of SetPolicies
 func (mr *MockpolicyCacherMockRecorder) SetPolicies(noCacheSubjectPKs, noCachePolicies interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPolicies", reflect.TypeOf((*MockpolicyCacher)(nil).SetPolicies), noCacheSubjectPKs, noCachePolicies)
+	return mr.mock.ctrl.RecordCallWithMethodType(
+		mr.mock,
+		"SetPolicies",
+		reflect.TypeOf((*MockpolicyCacher)(nil).SetPolicies),
+		noCacheSubjectPKs,
+		noCachePolicies,
+	)
 }

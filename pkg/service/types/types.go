@@ -30,3 +30,30 @@ func (a *AllowEmptyFields) HasKey(key string) bool {
 func (a *AllowEmptyFields) AddKey(key string) {
 	a.keys[key] = struct{}{}
 }
+
+const (
+	AuthTypeNone int64 = 0
+	AuthTypeABAC int64 = 1
+	AuthTypeRBAC int64 = 2
+	AuthTypeAll  int64 = 15
+
+	AuthTypeABACStr = "abac"
+	AuthTypeRBACStr = "rbac"
+	AuthTypeNoneStr = "none"
+	AuthTypeAllStr  = "all"
+)
+
+func ConvertToAuthTypeInt(authTypeStr string) int64 {
+	switch authTypeStr {
+	case AuthTypeABACStr:
+		return AuthTypeABAC
+	case AuthTypeRBACStr:
+		return AuthTypeRBAC
+	case AuthTypeNoneStr:
+		return AuthTypeNone
+	case AuthTypeAllStr:
+		return AuthTypeAll
+	}
+
+	return AuthTypeNone
+}

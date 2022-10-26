@@ -79,7 +79,6 @@ var _ = Describe("PolicyService", func() {
 
 			_, err := svc.ListAuthBySubjectAction([]int64{1, 2}, int64(1))
 			assert.Error(GinkgoT(), err)
-
 		})
 	})
 
@@ -249,7 +248,6 @@ var _ = Describe("PolicyService", func() {
 
 			_, err := svc.ListThinBySubjectTemplateBeforeExpiredAt(int64(1), int64(0), int64(10))
 			assert.Error(GinkgoT(), err)
-
 		})
 	})
 
@@ -444,7 +442,7 @@ var _ = Describe("PolicyService", func() {
 		})
 	})
 
-	Describe("ListQueryByPKs cases", func() {
+	Describe("BulkDeleteBySubjectPKsWithTx cases", func() {
 		var ctl *gomock.Controller
 
 		BeforeEach(func() {
@@ -455,389 +453,84 @@ var _ = Describe("PolicyService", func() {
 			ctl.Finish()
 		})
 
-		It("ok", func() {
-			returned := []dao.Policy{
-				{
-					PK:           1,
-					ExpressionPK: 1,
-					TemplateID:   0,
-				},
-				{
-					PK:           2,
-					ExpressionPK: 2,
-					TemplateID:   1,
-				},
-			}
+		It("ListExpressionBySubjectsTemplate fail", func() {
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			policies, err := svc.ListQueryByPKs([]int64{1, 2})
-			assert.NoError(GinkgoT(), err)
-			assert.Len(GinkgoT(), policies, 2)
-		})
-
-		It("fail", func() {
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("list fail"))
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			_, err := svc.ListQueryByPKs([]int64{1, 2})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "manager.ListByPKs")
-		})
-	})
-
-	Describe("UpdateExpiredAt cases", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("ok", func() {
-			returned := []dao.Policy{
-				{
-					PK:           1,
-					ExpressionPK: 1,
-					TemplateID:   0,
-					ExpiredAt:    0,
-				},
-				{
-					PK:           2,
-					ExpressionPK: 2,
-					TemplateID:   1,
-					ExpiredAt:    0,
-				},
-			}
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
-			mockPolicyManager.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), gomock.Any()).Return(nil)
-
-			db, dbMock := database.NewMockSqlxDB()
-			dbMock.ExpectBegin()
-			dbMock.ExpectCommit()
-
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
-			defer patches.Reset()
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			err := svc.UpdateExpiredAt([]types.QueryPolicy{{
-				PK:           1,
-				ExpressionPK: 1,
-			}, {
-				PK:           2,
-				ExpressionPK: 1,
-			}})
-			assert.NoError(GinkgoT(), err)
-		})
-
-		It("ListByPKs fail", func() {
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(nil, errors.New("list fail"))
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			err := svc.UpdateExpiredAt([]types.QueryPolicy{{
-				PK:           1,
-				ExpressionPK: 1,
-			}, {
-				PK:           2,
-				ExpressionPK: 1,
-			}})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListByPKs")
-		})
-
-		It("UpdateExpiredAt", func() {
-			returned := []dao.Policy{
-				{
-					PK:           1,
-					ExpressionPK: 1,
-					TemplateID:   0,
-					ExpiredAt:    0,
-				},
-				{
-					PK:           2,
-					ExpressionPK: 2,
-					TemplateID:   1,
-					ExpiredAt:    0,
-				},
-			}
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListByPKs([]int64{1, 2}).Return(returned, nil)
-			mockPolicyManager.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), gomock.Any()).Return(errors.New("update fail"))
-
-			db, dbMock := database.NewMockSqlxDB()
-			dbMock.ExpectBegin()
-			dbMock.ExpectCommit()
-
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
-			defer patches.Reset()
-
-			svc := policyService{
-				manager: mockPolicyManager,
-			}
-
-			err := svc.UpdateExpiredAt([]types.QueryPolicy{{
-				PK:           1,
-				ExpressionPK: 1,
-			}, {
-				PK:           2,
-				ExpressionPK: 1,
-			}})
-			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "UpdateExpiredAt")
-		})
-	})
-
-	Describe("CreateAndDeleteTemplatePolicies cases", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("ok", func() {
-			mockExpressionManager := mock.NewMockExpressionManager(ctl)
-			mockExpressionManager.EXPECT().ListDistinctBySignaturesType(gomock.Any(), int64(1)).Return([]dao.Expression{
-				{
-					PK:         1,
-					Expression: "test",
-					Signature:  "098f6bcd4621d373cade4e832627b4f6",
-				},
-			}, nil)
-			mockExpressionManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Expression{
-				{
-					Type:       1,
-					Expression: "expression",
-					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
-				},
-			}).Return([]int64{2}, nil)
-
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Policy{
-				{
-					SubjectPK:    1,
-					ActionPK:     1,
-					ExpressionPK: 1,
-					ExpiredAt:    1,
-					TemplateID:   1,
-				},
-				{
-					SubjectPK:    1,
-					ActionPK:     2,
-					ExpressionPK: 2,
-					ExpiredAt:    1,
-					TemplateID:   1,
-				},
-			}).Return(nil)
-			mockPolicyManager.EXPECT().BulkDeleteByTemplatePKsWithTx(
-				gomock.Any(), int64(1), int64(1), []int64{}).Return(int64(0), nil)
-
-			svc := policyService{
-				manager:          mockPolicyManager,
-				expressionManger: mockExpressionManager,
-			}
-
-			db, dbMock := database.NewMockSqlxDB()
-			dbMock.ExpectBegin()
-			dbMock.ExpectCommit()
-
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
-			defer patches.Reset()
-
-			createPolicies := []types.Policy{
-				{
-					Version:    "1",
-					SubjectPK:  1,
-					ActionPK:   1,
-					Expression: "test",
-					Signature:  "",
-					ExpiredAt:  1,
-					TemplateID: 1,
-				},
-				{
-					Version:    "1",
-					SubjectPK:  1,
-					ActionPK:   2,
-					Expression: "expression",
-					Signature:  "",
-					ExpiredAt:  1,
-					TemplateID: 1,
-				},
-			}
-
-			set := set.NewInt64Set()
-			set.Add(1)
-			set.Add(2)
-
-			err := svc.CreateAndDeleteTemplatePolicies(1, 1, createPolicies, []int64{}, set)
-			assert.NoError(GinkgoT(), err)
-
-			// _, err = dbMock.ExpectationsWereMet()
-			err = dbMock.ExpectationsWereMet()
-			assert.NoError(GinkgoT(), err)
-		})
-	})
-
-	Describe("UpdateTemplatePolicies cases", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("ok", func() {
-			mockExpressionManager := mock.NewMockExpressionManager(ctl)
-			mockExpressionManager.EXPECT().ListDistinctBySignaturesType(gomock.Any(), int64(1)).Return([]dao.Expression{
-				{
-					PK:         1,
-					Expression: "test",
-					Signature:  "098f6bcd4621d373cade4e832627b4f6",
-				},
-			}, nil)
-			mockExpressionManager.EXPECT().BulkCreateWithTx(gomock.Any(), []dao.Expression{
-				{
-					Type:       1,
-					Expression: "expression",
-					Signature:  "63973cd3ad7ccf2c8d5dce94b215f683",
-				},
-			}).Return([]int64{2}, nil)
-
-			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().ListBySubjectPKAndPKs(int64(1), []int64{1, 2}).Return(
-				[]dao.Policy{
-					{
-						PK:           1,
-						SubjectPK:    1,
-						ActionPK:     1,
-						ExpressionPK: 3,
-						ExpiredAt:    1,
-						TemplateID:   1,
-					},
-					{
-						PK:           2,
-						SubjectPK:    1,
-						ActionPK:     2,
-						ExpressionPK: 4,
-						ExpiredAt:    1,
-						TemplateID:   1,
-					},
-				}, nil,
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				nil, errors.New("test"),
 			)
-			mockPolicyManager.EXPECT().BulkUpdateExpressionPKWithTx(gomock.Any(), []dao.Policy{
-				{
-					PK:           1,
-					SubjectPK:    1,
-					ActionPK:     1,
-					ExpressionPK: 1,
-					ExpiredAt:    1,
-					TemplateID:   1,
-				},
-				{
-					PK:           2,
-					SubjectPK:    1,
-					ActionPK:     2,
-					ExpressionPK: 2,
-					ExpiredAt:    1,
-					TemplateID:   1,
-				},
-			}).Return(nil)
+
+			svc := policyService{
+				manager: mockPolicyManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListExpressionBySubjectsTemplate")
+		})
+
+		It("BulkDeleteBySubjectPKsWithTx fail", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				errors.New("test"),
+			)
+
+			svc := policyService{
+				manager: mockPolicyManager,
+			}
+
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteBySubjectPKsWithTx")
+		})
+
+		It("BulkDeleteByPKsWithTx fail", func() {
+			mockPolicyManager := mock.NewMockPolicyManager(ctl)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			)
+
+			mockExpressionManager := mock.NewMockExpressionManager(ctl)
+			mockExpressionManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), []int64{3, 4}).Return(
+				int64(0), errors.New("test"),
+			)
 
 			svc := policyService{
 				manager:          mockPolicyManager,
 				expressionManger: mockExpressionManager,
 			}
 
-			db, dbMock := database.NewMockSqlxDB()
-			dbMock.ExpectBegin()
-			dbMock.ExpectCommit()
-
-			patches := gomonkey.ApplyFunc(database.GenerateDefaultDBTx, db.Beginx)
-			defer patches.Reset()
-
-			updatePolicies := []types.Policy{
-				{
-					Version:    "1",
-					ID:         1,
-					SubjectPK:  1,
-					ActionPK:   1,
-					Expression: "test",
-					Signature:  "",
-					ExpiredAt:  1,
-					TemplateID: 1,
-				},
-				{
-					Version:    "1",
-					ID:         2,
-					SubjectPK:  1,
-					ActionPK:   2,
-					Expression: "expression",
-					Signature:  "",
-					ExpiredAt:  1,
-					TemplateID: 1,
-				},
-			}
-
-			set := set.NewInt64Set()
-			set.Add(1)
-			set.Add(2)
-
-			err := svc.UpdateTemplatePolicies(1, updatePolicies, set)
-			assert.NoError(GinkgoT(), err)
-
-			// _, err = dbMock.ExpectationsWereMet()
-			err = dbMock.ExpectationsWereMet()
-			assert.NoError(GinkgoT(), err)
-		})
-	})
-
-	Describe("DeleteTemplatePolicies cases", func() {
-		var ctl *gomock.Controller
-
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-
-		AfterEach(func() {
-			ctl.Finish()
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteByPKsWithTx")
 		})
 
 		It("ok", func() {
 			mockPolicyManager := mock.NewMockPolicyManager(ctl)
-			mockPolicyManager.EXPECT().BulkDeleteBySubjectTemplate(int64(1), int64(1)).Return(nil)
+			mockPolicyManager.EXPECT().ListExpressionBySubjectsTemplate([]int64{1, 2}, int64(0)).Return(
+				[]int64{3, 4}, nil,
+			)
+			mockPolicyManager.EXPECT().BulkDeleteBySubjectPKsWithTx(gomock.Any(), []int64{1, 2}).Return(
+				nil,
+			)
+
+			mockExpressionManager := mock.NewMockExpressionManager(ctl)
+			mockExpressionManager.EXPECT().BulkDeleteByPKsWithTx(gomock.Any(), []int64{3, 4}).Return(
+				int64(1), nil,
+			)
 
 			svc := policyService{
-				manager: mockPolicyManager,
+				manager:          mockPolicyManager,
+				expressionManger: mockExpressionManager,
 			}
 
-			err := svc.DeleteTemplatePolicies(int64(1), int64(1))
+			err := svc.BulkDeleteBySubjectPKsWithTx(nil, []int64{1, 2})
 			assert.NoError(GinkgoT(), err)
 		})
 	})
-
 })

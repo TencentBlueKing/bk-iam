@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("client_jwt", func() {
-
 	Describe("getClientIDFromJWTToken", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
@@ -71,7 +70,6 @@ var _ = Describe("client_jwt", func() {
 			// assert.NoError(GinkgoT(), err)
 			// assert.Equal(GinkgoT(), "abc", clientID)
 		})
-
 	})
 
 	Describe("verifyClientID", func() {
@@ -105,9 +103,7 @@ var _ = Describe("client_jwt", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "bk_test", clientID)
 		})
-
 	})
-
 })
 
 const testPublicKey = `-----BEGIN PUBLIC KEY-----
@@ -122,7 +118,7 @@ MwIDAQAB
 
 // NOTE: copied from apigateway jwt parse and generate
 func TestParseBKJWTToken(t *testing.T) {
-	var data1 = []struct {
+	data1 := []struct {
 		jwt               string
 		publicKey         string
 		expectedJWTHeader map[string]interface{}

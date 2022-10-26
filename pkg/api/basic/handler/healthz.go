@@ -32,7 +32,7 @@ func checkDatabase(dbConfig *config.Database) error {
 
 func checkRedis(redisConfig *config.Redis) error {
 	var rds *redis.Client
-	switch redisConfig.ID {
+	switch redisConfig.Type {
 	case pkgredis.ModeStandalone:
 		opt := &redis.Options{
 			Addr:     redisConfig.Addr,
@@ -109,13 +109,13 @@ func NewHealthzHandleFunc(cfg *config.Config) gin.HandlerFunc {
 		// 2. check redis
 		var err error
 		var addr string
-		redisConfig, ok := cfg.RedisMap[pkgredis.ModeStandalone]
+		redisConfig, ok := cfg.RedisMap[pkgredis.NameCache]
 		if ok {
 			addr = redisConfig.Addr
 			err = checkRedis(&redisConfig)
 		}
 
-		redisConfig, ok = cfg.RedisMap[pkgredis.ModeSentinel]
+		redisConfig, ok = cfg.RedisMap[pkgredis.NameMQ]
 		if ok {
 			addr = redisConfig.SentinelAddr
 			err = checkRedis(&redisConfig)
