@@ -18,7 +18,6 @@ import (
 )
 
 var _ = Describe("attribute", func() {
-
 	Describe("Raw Attribute", func() {
 		var a types.Attribute
 		BeforeEach(func() {
@@ -109,7 +108,6 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, v)
 		})
-
 	})
 
 	Describe("ActionAttribute", func() {
@@ -132,10 +130,28 @@ var _ = Describe("attribute", func() {
 			assert.Equal(GinkgoT(), int64(1), pk)
 		})
 
+		It("GetAuthType", func() {
+			_, err := a.GetAuthType()
+			assert.Error(GinkgoT(), err)
+
+			a.Attribute[types.AuthTypeAttrName] = int64(1)
+			pk, err := a.GetAuthType()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), pk)
+		})
+
 		It("SetPK", func() {
 			a.SetPK(1)
 			assert.True(GinkgoT(), a.Has(types.PKAttrName))
 			v, err := a.GetPK()
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(1), v)
+		})
+
+		It("SetAuthType", func() {
+			a.SetAuthType(1)
+			assert.True(GinkgoT(), a.Has(types.AuthTypeAttrName))
+			v, err := a.GetAuthType()
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(1), v)
 		})
@@ -159,7 +175,6 @@ var _ = Describe("attribute", func() {
 			rt, err := a.GetResourceTypes()
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedRt, rt)
-
 		})
 
 		It("SetResourceTypes", func() {
@@ -176,7 +191,6 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), expectedRt, v)
 		})
-
 	})
 
 	Describe("SubjectAttribute", func() {
@@ -232,34 +246,5 @@ var _ = Describe("attribute", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []int64{1, 2, 3}, v)
 		})
-
-		It("GetGroups", func() {
-			_, err := a.GetGroups()
-			assert.Error(GinkgoT(), err)
-
-			// invalid
-			a.Attribute[types.GroupAttrName] = int64(1)
-			_, err = a.GetGroups()
-			assert.Error(GinkgoT(), err)
-
-			// valid
-			expectedSr := []types.SubjectGroup{}
-			a.Attribute[types.GroupAttrName] = expectedSr
-			v, err := a.GetGroups()
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expectedSr, v)
-		})
-
-		It("SetGroups", func() {
-			expectedSr := []types.SubjectGroup{}
-			a.SetGroups(expectedSr)
-
-			assert.True(GinkgoT(), a.Has(types.GroupAttrName))
-			v, err := a.GetGroups()
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), expectedSr, v)
-		})
-
 	})
-
 })

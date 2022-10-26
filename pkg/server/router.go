@@ -24,8 +24,11 @@ import (
 	"iam/pkg/middleware"
 )
 
-// NewRouter ...
-func NewRouter(cfg *config.Config) *gin.Engine {
+// NewRouterFunc ...
+type NewRouterFunc func(cfg *config.Config) *gin.Engine
+
+// NewBasicRouter ...
+func NewBasicRouter(cfg *config.Config) *gin.Engine {
 	if !cfg.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -44,6 +47,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	// basic apis
 	basic.Register(cfg, router)
 
+	return router
+}
+
+// NewRouter ...
+func NewRouter(cfg *config.Config) *gin.Engine {
+	router := NewBasicRouter(cfg)
+
 	// web apis for SaaS
 	webRouter := router.Group("/api/v1/web")
 	webRouter.Use(middleware.Metrics())
@@ -52,6 +62,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	webRouter.Use(middleware.SuperClientMiddleware())
 	web.Register(webRouter)
 
+	webRouterV2 := router.Group("/api/v2/web")
+	webRouterV2.Use(middleware.Metrics())
+	webRouterV2.Use(middleware.WebLogger())
+	webRouterV2.Use(middleware.NewClientAuthMiddleware(cfg))
+	webRouterV2.Use(middleware.SuperClientMiddleware())
+	web.RegisterV2(webRouterV2)
+
 	// policy apis for auth/query
 	policyRouter := router.Group("/api/v1/policy")
 	policyRouter.Use(middleware.Metrics())
@@ -59,6 +76,13 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouter.Use(middleware.NewClientAuthMiddleware(cfg))
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	policy.Register(policyRouter)
+
+	policyRouterV2 := router.Group("/api/v2/policy")
+	policyRouterV2.Use(middleware.Metrics())
+	policyRouterV2.Use(middleware.APILogger())
+	policyRouterV2.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouterV2.Use(middleware.NewRateLimitMiddleware(cfg))
+	policy.RegisterV2(policyRouterV2)
 
 	// restful apis for open api
 	// 1. legacy apis, will be removed in the future

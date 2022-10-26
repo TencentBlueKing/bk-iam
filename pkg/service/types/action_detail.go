@@ -10,6 +10,12 @@
 
 package types
 
+type ThinResourceType struct {
+	PK     int64
+	System string
+	ID     string
+}
+
 // ThinActionResourceType 用于鉴权的操作关联的资源类型.
 type ThinActionResourceType struct {
 	System string
@@ -20,6 +26,9 @@ type ThinActionResourceType struct {
 type ActionDetail struct {
 	// action pk
 	PK int64
+
+	// action auth type
+	AuthType int64
 
 	// action resource types
 	ResourceTypes []ThinActionResourceType

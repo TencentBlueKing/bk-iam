@@ -24,7 +24,6 @@ var _ = Describe("Object", func() {
 	})
 
 	Describe("ObjectSet eval", func() {
-
 		var o ObjectSetInterface
 		BeforeEach(func() {
 			o = NewObjectSet()
@@ -109,11 +108,7 @@ var _ = Describe("Object", func() {
 				idx := strings.IndexByte(s, '.')
 				assert.Equal(GinkgoT(), parts[0], s[:idx])
 				assert.Equal(GinkgoT(), parts[1], s[idx+1:])
-
 			})
-
 		})
-
 	})
-
 })

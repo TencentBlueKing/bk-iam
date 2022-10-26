@@ -11,7 +11,7 @@
 package common
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -36,7 +36,7 @@ func TestSystemExists(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901400"))
 
@@ -56,7 +56,7 @@ func TestSystemExistsAndClientValid(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	body, err := ioutil.ReadAll(w.Body)
+	body, err := io.ReadAll(w.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "1901400"))
 

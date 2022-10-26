@@ -103,7 +103,7 @@ func Eval(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
@@ -117,9 +117,40 @@ func Eval(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
-	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
+	// 3. 查询关联的group pks
+	debug.AddStep(entry, "Get Effect AuthType Group PKs")
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+v`, action=`%+v` fail",
+			r.System,
+			r.Subject,
+			r.Action,
+		)
+		return false, err
+	}
+	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
+	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
+	// 4. actionAuthType为rbac优先走rbac鉴权逻辑
+	if len(rbacGroupPKs) > 0 {
+		debug.AddStep(entry, "RBAC Eval")
+		isPass, err = rbacEval(r.System, r.Action, r.Resources, rbacGroupPKs, withoutCache, entry)
+		if err != nil {
+			err = errorWrapf(err, "rbacEval systemID=`%s`, actionID=`%d`, resources=`%+v`, groupPKs=`%v` fail",
+				r.System, r.Action.ID, r.Resources, rbacGroupPKs)
+			return false, err
+		}
+
+		if isPass {
+			return isPass, nil
+		}
+	}
+
+	// 5. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
-	policies, err := queryPolicies(r.System, r.Subject, r.Action, withoutCache, entry)
+	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, false, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return false, nil
@@ -301,7 +332,7 @@ func QueryAuthPolicies(
 
 	// 3. PIP查询subject相关的属性
 	debug.AddStep(entry, "Fetch subject details")
-	err = fillSubjectDetail(r)
+	err = fillSubjectDepartments(r)
 	if err != nil {
 		// 如果用户不存在, 表现为没有权限
 		// if the subject not exists
@@ -315,9 +346,25 @@ func QueryAuthPolicies(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
+	// 3. 查询关联的group pks
+	debug.AddStep(entry, "Get Effect AuthType Group PKs")
+	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"GetEffectAuthTypeGroupPKs systemID=`%s`, subject=`%+v`, action=`%+v` fail",
+			r.System,
+			r.Subject,
+			r.Action,
+		)
+		return
+	}
+	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
+	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
+
 	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
-	policies, err = queryPolicies(r.System, r.Subject, r.Action, withoutCache, entry)
+	policies, err = queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, true, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return

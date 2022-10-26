@@ -12,7 +12,7 @@ package handler
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 
@@ -22,9 +22,7 @@ import (
 )
 
 var _ = Describe("Validation", func() {
-
 	Describe("validateDeleteViaID", func() {
-
 		var c *gin.Context
 		BeforeEach(func() {
 			c, _ = gin.CreateTestContext(httptest.NewRecorder())
@@ -32,7 +30,7 @@ var _ = Describe("Validation", func() {
 
 		It("not json body", func() {
 			c.Request = &http.Request{
-				Body: ioutil.NopCloser(bytes.NewBuffer([]byte("hello"))),
+				Body: io.NopCloser(bytes.NewBuffer([]byte("hello"))),
 			}
 
 			_, err := validateDeleteViaID(c)
@@ -41,7 +39,7 @@ var _ = Describe("Validation", func() {
 
 		It("json body but not array", func() {
 			c.Request = &http.Request{
-				Body: ioutil.NopCloser(bytes.NewBuffer([]byte("{}"))),
+				Body: io.NopCloser(bytes.NewBuffer([]byte("{}"))),
 			}
 			_, err := validateDeleteViaID(c)
 			assert.Error(GinkgoT(), err)
@@ -49,7 +47,7 @@ var _ = Describe("Validation", func() {
 
 		It("array but empty", func() {
 			c.Request = &http.Request{
-				Body: ioutil.NopCloser(bytes.NewBuffer([]byte("[]"))),
+				Body: io.NopCloser(bytes.NewBuffer([]byte("[]"))),
 			}
 			_, err := validateDeleteViaID(c)
 			assert.Error(GinkgoT(), err)
@@ -57,12 +55,10 @@ var _ = Describe("Validation", func() {
 
 		It("array not empty", func() {
 			c.Request = &http.Request{
-				Body: ioutil.NopCloser(bytes.NewBuffer([]byte(`[{"id": "123"}]`))),
+				Body: io.NopCloser(bytes.NewBuffer([]byte(`[{"id": "123"}]`))),
 			}
 			_, err := validateDeleteViaID(c)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-
 })

@@ -48,7 +48,7 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "bk-iam",
-	Short: "bi-iam is Identity and Access Management System",
+	Short: "bk-iam is Identity and Access Management System",
 	Long: `BlueKing Identity and Access Management (BK-IAM)
            is a service that helps you securely control access to system resources`,
 
@@ -91,6 +91,7 @@ func Start() {
 	initDatabase()
 	initRedis()
 	// NOTE: should be after initRedis
+	initRmqProducer()
 	initCaches()
 	initPolicyCacheSettings()
 	initVerifyAppCodeAppSecret()
@@ -100,6 +101,7 @@ func Start() {
 	initSecurityAuditAppCode()
 	initComponents()
 	initQuota()
+	initWorker()
 	initSwitch()
 
 	// 2. watch the signal
@@ -109,7 +111,7 @@ func Start() {
 	}()
 
 	// 3. start the server
-	httpServer := server.NewServer(globalConfig)
+	httpServer := server.NewServer(globalConfig, server.NewRouter)
 	httpServer.Run(ctx)
 }
 

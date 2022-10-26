@@ -11,8 +11,10 @@
 package util_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -34,7 +36,6 @@ func readResponse(w *httptest.ResponseRecorder) util.Response {
 }
 
 var _ = Describe("Response", func() {
-
 	var c *gin.Context
 	// var r *gin.Engine
 	var w *httptest.ResponseRecorder
@@ -43,8 +44,7 @@ var _ = Describe("Response", func() {
 		gin.SetMode(gin.ReleaseMode)
 		// gin.DefaultWriter = ioutil.Discard
 		c, _ = gin.CreateTestContext(w)
-		// c, r = gin.CreateTestContext(w)
-		// r.Use(gin.Recovery())
+		c.Request, _ = http.NewRequest("POST", "/api/v1/?force=1&debug=1", new(bytes.Buffer))
 	})
 
 	It("BaseJSONResponse", func() {
@@ -58,8 +58,8 @@ var _ = Describe("Response", func() {
 	})
 
 	It("BaseErrorJSONResponse", func() {
-		util.BaseErrorJSONResponse(c, 1901000, "error")
-		assert.Equal(GinkgoT(), 200, c.Writer.Status())
+		util.BaseErrorJSONResponse(c, 1901000, "error", http.StatusBadRequest)
+		assert.Equal(GinkgoT(), http.StatusBadRequest, c.Writer.Status())
 
 		got := readResponse(w)
 		assert.Equal(GinkgoT(), 1901000, got.Code)
@@ -76,7 +76,6 @@ var _ = Describe("Response", func() {
 	})
 
 	Context("SuccessJSONResponseWithDebug", func() {
-
 		It("debug is nil", func() {
 			util.SuccessJSONResponseWithDebug(c, "ok", nil, nil)
 			assert.Equal(GinkgoT(), 200, c.Writer.Status())
@@ -113,7 +112,6 @@ var _ = Describe("Response", func() {
 	})
 
 	Context("SystemErrorJSONResponseWithDebug", func() {
-
 		It("debug is nil", func() {
 			util.SystemErrorJSONResponseWithDebug(c, errors.New("anError"), nil)
 			assert.Equal(GinkgoT(), 200, c.Writer.Status())
@@ -131,6 +129,27 @@ var _ = Describe("Response", func() {
 		})
 	})
 
+	It("BadRequestErrorJSONResponse /api/v2", func() {
+		c.Request, _ = http.NewRequest("POST", "/api/v2/?force=1&debug=1", new(bytes.Buffer))
+
+		util.BadRequestErrorJSONResponse(c, "error")
+		assert.Equal(GinkgoT(), http.StatusBadRequest, c.Writer.Status())
+
+		got := readResponse(w)
+		assert.Equal(GinkgoT(), util.BadRequestError, got.Code)
+		assert.Equal(GinkgoT(), "bad request:error", got.Message)
+	})
+
+	It("SystemErrorJSONResponse /api/v2", func() {
+		c.Request, _ = http.NewRequest("POST", "/api/v2/?force=1&debug=1", new(bytes.Buffer))
+
+		util.SystemErrorJSONResponse(c, errors.New("anError"))
+		assert.Equal(GinkgoT(), http.StatusInternalServerError, c.Writer.Status())
+
+		got := readResponse(w)
+		assert.Equal(GinkgoT(), util.SystemError, got.Code)
+		assert.Contains(GinkgoT(), got.Message, "system error")
+	})
 })
 
 func BenchmarkSuccessJSONResponseWithDebugNilInterface(b *testing.B) {

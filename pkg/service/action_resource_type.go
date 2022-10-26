@@ -44,7 +44,8 @@ func (l *actionService) ListThinActionResourceTypes(
 
 // ListActionResourceTypeIDByResourceTypeSystem ...
 func (l *actionService) ListActionResourceTypeIDByResourceTypeSystem(resourceTypeSystem string) (
-	actionResourceTypeIDs []types.ActionResourceTypeID, err error) {
+	actionResourceTypeIDs []types.ActionResourceTypeID, err error,
+) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListActionResourceTypeIDByResourceTypeSystem")
 
 	actionResourceTypes, err := l.actionResourceTypeManager.ListByResourceTypeSystem(resourceTypeSystem)
@@ -66,7 +67,8 @@ func (l *actionService) ListActionResourceTypeIDByResourceTypeSystem(resourceTyp
 
 // ListActionResourceTypeIDByActionSystem ...
 func (l *actionService) ListActionResourceTypeIDByActionSystem(actionSystem string) (
-	actionResourceTypeIDs []types.ActionResourceTypeID, err error) {
+	actionResourceTypeIDs []types.ActionResourceTypeID, err error,
+) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "ListActionResourceTypeIDByActionSystem")
 
 	actionResourceTypes, err := l.actionResourceTypeManager.ListByActionSystem(actionSystem)

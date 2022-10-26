@@ -42,4 +42,7 @@ func Test_newEntryPool(t *testing.T) {
 	assert.Len(t, e1.SubDebugs, 1)
 
 	pool.Put(e1)
+
+	// nil, do nothing
+	pool.Put(nil)
 }

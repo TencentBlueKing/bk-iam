@@ -43,7 +43,10 @@ var _ = Describe("LocalAppCodeSecret", func() {
 		})
 
 		It("miss, get from database error", func() {
-			mockManager.EXPECT().Exists(gomock.Any(), gomock.Any()).Return(false, errors.New("errror happend")).AnyTimes()
+			mockManager.EXPECT().
+				Exists(gomock.Any(), gomock.Any()).
+				Return(false, errors.New("errror happend")).
+				AnyTimes()
 			patches = gomonkey.ApplyFunc(edao.NewAppSecretManager,
 				func() edao.AppSecretManager {
 					return mockManager

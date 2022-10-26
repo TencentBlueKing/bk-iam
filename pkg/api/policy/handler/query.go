@@ -12,7 +12,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
@@ -20,7 +19,6 @@ import (
 	"iam/pkg/abac/pdp"
 	"iam/pkg/abac/types"
 	"iam/pkg/abac/types/request"
-	"iam/pkg/cacheimpls"
 	"iam/pkg/logging/debug"
 	"iam/pkg/util"
 )
@@ -42,6 +40,8 @@ import (
 // @Router /api/v1/policy/query [post]
 func Query(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body queryRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -57,37 +57,27 @@ func Query(c *gin.Context) {
 		return
 	}
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", AnyExpression)
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return AnyExpression
+		},
+	) {
 		return
 	}
 
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body)
-
-	var entry *debug.Entry
-
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
 
 	// 如果传的筛选的资源实例为空, 则不判断外部依赖资源是否满足
 	willCheckRemoteResource := true
@@ -126,6 +116,8 @@ func Query(c *gin.Context) {
 // @Router /api/v1/policy/query_by_actions [post]
 func BatchQueryByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryByActions")
+	entry, isDebug, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body queryByActionsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -141,44 +133,33 @@ func BatchQueryByActions(c *gin.Context) {
 		return
 	}
 
-	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
-
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+			for _, action := range body.Actions {
+				policies = append(policies, actionPoliciesResponse{
+					Action:    actionInResponse(action),
+					Condition: AnyExpression,
+				})
+			}
+			return policies
+		},
+	) {
 		return
 	}
-
-	if hasSuperPerm {
-		for _, action := range body.Actions {
-			policies = append(policies, actionPoliciesResponse{
-				Action:    actionInResponse(action),
-				Condition: AnyExpression,
-			})
-		}
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", policies)
-		return
-	}
-
-	// enable debug
-	var entry *debug.Entry
-	_, isDebug := c.GetQuery("debug")
-	if isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
 
 	// TODO: 这里, subject/resource都是一致的, 只是action是多个, 所以其中pdp.Query会存在重复查询/重复计算?
+	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
 	for _, action := range body.Actions {
 		req := request.NewRequest()
 		copyRequestFromQueryByActionsBody(req, &body)
@@ -224,13 +205,14 @@ func BatchQueryByActions(c *gin.Context) {
 // @Router /api/v1/policy/query_by_ext_resources [post]
 func QueryByExtResources(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
+	entry, _, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
 
 	var body queryByExtResourcesRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
-
 	if valid, message := body.Validate(); !valid {
 		util.BadRequestErrorJSONResponse(c, message)
 		return
@@ -244,21 +226,12 @@ func QueryByExtResources(c *gin.Context) {
 		return
 	}
 
-	if cacheimpls.IsSubjectInBlackList(body.Subject.Type, body.Subject.ID) {
-		util.ForbiddenJSONResponse(
-			c,
-			fmt.Sprintf("subject(type=%s,id=%s) has been frozen", body.Subject.Type, body.Subject.ID),
-		)
+	// check blacklist
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
 		return
 	}
 
-	hasSuperPerm, err := hasSystemSuperPermission(systemID, body.Subject.Type, body.Subject.ID)
-	if err != nil {
-		util.SystemErrorJSONResponse(c, err)
-		return
-	}
-
-	if hasSuperPerm {
+	genSuperPermissionResponseData := func() interface{} {
 		extResourcesWithAttr := make([]types.ExtResourceWithAttribute, 0, len(body.ExtResources))
 		for _, extResource := range body.ExtResources {
 			extResourceWithAttr := types.ExtResourceWithAttribute{
@@ -275,25 +248,25 @@ func QueryByExtResources(c *gin.Context) {
 			}
 			extResourcesWithAttr = append(extResourcesWithAttr, extResourceWithAttr)
 		}
-
-		util.SuccessJSONResponse(c, "ok, as super_manager or system_manager", map[string]interface{}{
+		return map[string]interface{}{
 			"expression":    AnyExpression,
 			"ext_resources": extResourcesWithAttr,
-		})
+		}
+	}
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		genSuperPermissionResponseData,
+	) {
 		return
 	}
 
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body.queryRequest)
-
-	var entry *debug.Entry
-	if _, isDebug := c.GetQuery("debug"); isDebug {
-		entry = debug.EntryPool.Get()
-		defer debug.EntryPool.Put(entry)
-	}
-
-	_, isForce := c.GetQuery("force")
 
 	// 结构体隔离转换
 	extResources := make([]types.ExtResource, 0, len(body.ExtResources))

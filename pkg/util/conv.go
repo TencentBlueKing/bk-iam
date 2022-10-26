@@ -38,3 +38,12 @@ func StringToInt64Slice(s, sep string) ([]int64, error) {
 	}
 	return int64Slice, nil
 }
+
+// Int64SliceToStringSlice ...
+func Int64SliceToStringSlice(s []int64) []string {
+	strSlice := make([]string, 0, len(s))
+	for _, i := range s {
+		strSlice = append(strSlice, strconv.FormatInt(i, 10))
+	}
+	return strSlice
+}

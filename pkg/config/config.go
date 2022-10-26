@@ -47,6 +47,7 @@ type Logger struct {
 	Audit     LogConfig
 	Web       LogConfig
 	Component LogConfig
+	Worker    LogConfig
 }
 
 // LogConfig ...
@@ -73,6 +74,7 @@ type Database struct {
 // Redis ...
 type Redis struct {
 	ID           string
+	Type         string
 	Addr         string
 	Password     string
 	DB           int
@@ -101,6 +103,9 @@ type Quota struct {
 
 	// NOTE: only used for rate limit middleware, will remove in the future
 	API map[string]int
+
+	// NOTE: for web api logic
+	Web map[string]int
 }
 
 // SystemQuota store the settings for specific system
@@ -118,6 +123,15 @@ type Host struct {
 type Crypto struct {
 	ID  string
 	Key string
+}
+
+type Worker struct {
+	MaxSubjectActionAlterEventCheckCount               int // max count for subject action alter event check
+	MaxMessageGeneratedCountPerSubjectActionAlterEvent int // max count for subject action alter event generation message
+
+	MaxConsumerCountPerWorker int
+
+	EnableMetrics bool
 }
 
 // Config ...
@@ -138,6 +152,8 @@ type Config struct {
 	SupportShieldFeatures []string
 	// 安全app_code, 共享权限模型白名单, 并且可以作为各个系统合法clients调用权限相关接口
 	SecurityAuditAppCode string
+
+	Worker Worker
 
 	Databases   []Database
 	DatabaseMap map[string]Database

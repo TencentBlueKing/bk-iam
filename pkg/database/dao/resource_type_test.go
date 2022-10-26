@@ -10,30 +10,50 @@
 
 package dao
 
-//func Test_resourceTypeManager_List(t *testing.T) {
-//	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-//		mockData := []interface{}{
-//			ResourceType{
-//				PK:     1,
-//				System: "cmdb",
-//				ID:     "host",
-//			},
-//			ResourceType{
-//				PK:     1,
-//				System: "cmdb",
-//				ID:     "instance",
-//			},
-//		}
-//
-//		mockQuery := `^SELECT pk, system_id, id FROM resource_type WHERE pk IN`
-//		mockRows := database.NewMockRows(mock, mockData...)
-//		mock.ExpectQuery(mockQuery).WithArgs(1, 2, 3).WillReturnRows(mockRows)
-//
-//		manager := &resourceTypeManager{DB: db}
-//		resourceTypes, err := manager.List([]int64{1, 2, 3})
-//
-//		assert.NoError(t, err)
-//		assert.Equal(t, len(resourceTypes), 2)
-//		assert.Equal(t, resourceTypes[0].ID, "host")
-//	})
-//}
+import (
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/database"
+)
+
+var _ = Describe("", func() {
+	var (
+		mock    sqlmock.Sqlmock
+		db      *sqlx.DB
+		manager ResourceTypeManager
+	)
+	BeforeEach(func() {
+		db, mock = database.NewMockSqlxDB()
+		manager = &resourceTypeManager{DB: db}
+	})
+	It("GetPK", func() {
+		mockRows := sqlmock.NewRows([]string{"pk"}).
+			AddRow(1)
+		mock.ExpectQuery(
+			"^SELECT pk FROM resource_type WHERE system_id = (.*) AND id = (.*)$",
+		).WithArgs("system_id", "id").WillReturnRows(mockRows)
+
+		pk, err := manager.GetPK("system_id", "id")
+		assert.NoError(GinkgoT(), err)
+		assert.Equal(GinkgoT(), int64(1), pk)
+	})
+
+	It("GetByPK", func() {
+		mockRows := sqlmock.NewRows([]string{"pk", "system_id", "id"}).
+			AddRow(1, "system", "id")
+		mock.ExpectQuery(
+			"^SELECT pk, system_id, id FROM resource_type WHERE pk=(.*)$",
+		).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		resourceType, err := manager.GetByPK(1)
+		assert.NoError(GinkgoT(), err)
+		assert.Equal(GinkgoT(), ResourceType{
+			PK:     1,
+			System: "system",
+			ID:     "id",
+		}, resourceType)
+	})
+})

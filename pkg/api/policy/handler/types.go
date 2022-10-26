@@ -64,6 +64,17 @@ type authResponse struct {
 	Allowed bool `json:"allowed" example:"false"`
 }
 
+// ====== auth v2
+type authV2Request struct {
+	Subject   subject    `json:"subject" binding:"required"`
+	Action    action     `json:"action" binding:"required"`
+	Resources []resource `json:"resources" binding:"required"`
+}
+
+type authV2Response struct {
+	Allowed bool `json:"allowed" example:"false"`
+}
+
 // ======= auth by actions
 
 type authByActionsRequest struct {
@@ -91,6 +102,15 @@ type queryRequest struct {
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
 	Action    action     `json:"action" binding:"required"`
+}
+
+// ====== query v2
+
+type queryV2Request struct {
+	Subject subject `json:"subject" binding:"required"`
+	Action  action  `json:"action" binding:"required"`
+	// can be empty
+	Resources []resource `json:"resources" binding:"omitempty"`
 }
 
 // ======= query by actions
@@ -127,3 +147,5 @@ func (q *queryByExtResourcesRequest) Validate() (bool, string) {
 	}
 	return true, ""
 }
+
+type GenSuperPermissionResponseData func() interface{}

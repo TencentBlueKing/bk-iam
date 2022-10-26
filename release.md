@@ -1,3 +1,28 @@
+# 1.12.5
+
+- restore subject_relation table field policy_expired_at
+
+# 1.12.4
+
+- merge develop 1.11.10
+
+# 1.12.3
+
+- merge develop 1.11.9
+
+# 1.12.2
+
+- add: subject group quota check api
+- add: task stats metrics
+
+# 1.12.1
+
+- add: transfer worker checker rbac command
+
+# 1.12.0
+
+- add: rbac action support
+
 # 1.11.10
 
 - bugfix: fix mysql session time zone

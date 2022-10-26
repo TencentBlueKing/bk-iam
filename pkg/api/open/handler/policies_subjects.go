@@ -17,8 +17,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/prp"
 	"iam/pkg/cacheimpls"
-	"iam/pkg/service"
 	"iam/pkg/util"
 )
 
@@ -40,13 +40,13 @@ func PoliciesSubjects(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "policy_list.PoliciesSubjects")
 	// TODO: maybe add cache here;
 	// key is subjectsSerializer md5 => value is []subjects; search from git history LocalPolicySubjectsCache
-
 	systemID := c.Param("system_id")
 	var query subjectsSerializer
 	if err := c.ShouldBindQuery(&query); err != nil {
 		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
 		return
 	}
+	query.initDefault()
 
 	pks, err := util.StringToInt64Slice(query.IDs, ",")
 	if err != nil {
@@ -54,44 +54,32 @@ func PoliciesSubjects(c *gin.Context) {
 		return
 	}
 
-	// NOTE: 防止敏感信息泄漏, 只能查询自己系统 + 自己action的
-	// 1. query policy
-	svc := service.NewPolicyService()
-	policies, err := svc.ListQueryByPKs(pks)
+	manager := prp.NewOpenPolicyManager()
+	policySubjects, err := manager.ListSubjects(query.Type, systemID, pks)
 	if err != nil {
-		err = fmt.Errorf("svc.ListQueryByPKs system=`%s`, policy_ids=`%+v` fail. err=%w",
-			systemID, pks, err)
+		err = fmt.Errorf(
+			"manager.ListSubjects _type=`%s`, systemID=`%+s`, pks=`%+v` fail. err=%w",
+			query.Type,
+			systemID,
+			pks,
+			err,
+		)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
 
 	data := policySubjectsResponse{}
-	for _, policy := range policies {
-		sa, err := cacheimpls.GetAction(policy.ActionPK)
-		if err != nil {
-			log.Info(errorWrapf(err,
-				"policy_list.GetSystemAction action_pk=`%d` fail",
-				policy.ActionPK))
-
-			continue
-		}
-		// 不是本系统的策略, 过滤掉. not my system policy, continue
-		if systemID != sa.System {
-			continue
-		}
-
-		subj, err1 := cacheimpls.GetSubjectByPK(policy.SubjectPK)
+	for policyPK, subjectPK := range policySubjects {
+		subj, err1 := cacheimpls.GetSubjectByPK(subjectPK)
 		// if get subject fail, continue
 		if err1 != nil {
-			log.Info(errorWrapf(err1,
-				"policy_list.PoliciesSubjects GetSubjectByPK subject_pk=`%d` fail",
-				policy.SubjectPK))
+			log.Info(errorWrapf(err1, "cacheimpls.GetSubjectByPK subject_pk=`%d` fail", subjectPK))
 
 			continue
 		}
 
 		data = append(data, policyIDSubject{
-			PolicyID: policy.PK,
+			PolicyID: policyPK,
 			Subject: policyResponseSubject{
 				Type: subj.Type,
 				ID:   subj.ID,

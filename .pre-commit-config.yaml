@@ -3,6 +3,13 @@
 repos:
 - repo: local
   hooks:
+    - id: format
+      name: format
+      description: Format code for Go.
+      entry: make fmt
+      types: [go]
+      language: golang
+      pass_filenames: false
     - id: golangci-lint
       name: golangci-lint
       description: Fast linters runner for Go.

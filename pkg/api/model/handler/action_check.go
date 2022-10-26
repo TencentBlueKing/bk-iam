@@ -167,47 +167,95 @@ func checkActionIDsExist(systemID string, ids []string) error {
 	return nil
 }
 
-func checkActionIDsHasAnyPolicies(systemID string, ids []string) ([]string, error) {
-	// TODO: 需要重构，基于单一原则，规范里check方法返回只有error，不返回其他数据
-	svc := service.NewPolicyService()
-	eventSvc := service.NewModelChangeService()
-	// 记录需要异步删除的Action
-	needAsyncDeletedActionIDs := make([]string, 0, len(ids))
-	for _, id := range ids {
-		actionPK, err := cacheimpls.GetActionPK(systemID, id)
+type actionHasAnyPolicyChecker struct {
+	policyService                     service.PolicyService
+	subjectActionGroupResourceService service.SubjectActionGroupResourceService
+	modelChangeService                service.ModelChangeEventService
+}
+
+func newActionHasAnyPolicyChecker() *actionHasAnyPolicyChecker {
+	return &actionHasAnyPolicyChecker{
+		policyService:                     service.NewPolicyService(),
+		subjectActionGroupResourceService: service.NewSubjectActionGroupResourceService(),
+		modelChangeService:                service.NewModelChangeService(),
+	}
+}
+
+func (c *actionHasAnyPolicyChecker) hasAnyPolicy(actionPK int64) (bool, error) {
+	// 1. check abac policy exists
+	exist, err := c.policyService.HasAnyByActionPK(actionPK)
+	if err != nil {
+		return false, fmt.Errorf("query action abac policies fail, actionPK=%d",
+			actionPK)
+	}
+
+	if exist {
+		return true, nil
+	}
+
+	// 2. check rbac policy exists
+	exist, err = c.subjectActionGroupResourceService.HasAnyByActionPK(actionPK)
+	if err != nil {
+		return false, fmt.Errorf("query action rbac policies fail, actionPK=%d",
+			actionPK)
+	}
+
+	return exist, nil
+}
+
+func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, error) {
+	actionPK, err := cacheimpls.GetActionPK(systemID, actionID)
+	if err != nil {
+		return false, fmt.Errorf("query action pk fail, systemID=%s, id=%s", systemID, actionID)
+	}
+
+	policyExist, err := c.hasAnyPolicy(actionPK)
+	if err != nil {
+		return false, fmt.Errorf("query action policy fail, actionPK=%d, error=%v", actionPK, err)
+	}
+
+	if !policyExist {
+		return true, nil
+	}
+
+	// 如果策略存在，需要再检查是否已经发起异步删除策略的事件
+	// TODO: 可以重构，提供一个定制部分参数的ExistByTypeModel方法，因为该方法使用的地方挺多，但是status/modelType是一样的
+	eventExist, err := c.modelChangeService.ExistByTypeModel(
+		service.ModelChangeEventTypeActionPolicyDeleted,
+		service.ModelChangeEventStatusPending,
+		service.ModelChangeEventModelTypeAction,
+		actionPK,
+	)
+	if err != nil {
+		return false, fmt.Errorf("query action model event fail, actionPK=%d",
+			actionPK)
+	}
+
+	if !eventExist {
+		return false, fmt.Errorf("action has releated policies, "+
+			"you can't delete it or update the related_resource_types unless delete all the related policies. "+
+			"please contact administrator. [systemID=%s, id=%s, actionPK=%d]",
+			systemID, actionID, actionPK)
+	}
+
+	return true, nil
+}
+
+func (c *actionHasAnyPolicyChecker) FilterActionWithPolicy(
+	systemID string,
+	actionIDs []string,
+) (actionIDsWithAnyPolicy []string, err error) {
+	actionIDsWithAnyPolicy = make([]string, 0, len(actionIDs))
+	for _, id := range actionIDs {
+		canAlter, err := c.CanAlter(systemID, id)
 		if err != nil {
-			return []string{}, fmt.Errorf("query action pk fail, systemID=%s, id=%s", systemID, id)
+			return nil, err
 		}
-		exist, err := svc.HasAnyByActionPK(actionPK)
-		if err != nil {
-			return []string{}, fmt.Errorf("query action policies fail, systemID=%s, id=%s, actionPK=%d",
-				systemID, id, actionPK)
-		}
-		if exist {
-			// 如果策略存在，需要再检查是否已经发起异步删除策略的事件
-			// TODO: 可以重构，提供一个定制部分参数的ExistByTypeModel方法，因为该方法使用的地方挺多，但是status/modelType是一样的
-			eventExist, err := eventSvc.ExistByTypeModel(
-				service.ModelChangeEventTypeActionPolicyDeleted,
-				service.ModelChangeEventStatusPending,
-				service.ModelChangeEventModelTypeAction,
-				actionPK,
-			)
-			if err != nil {
-				return []string{}, fmt.Errorf("query action model event fail, systemID=%s, id=%s, actionPK=%d",
-					systemID, id,
-					actionPK)
-			}
-			// 若删除Action策略时间不存在，则Action不可删除
-			if !eventExist {
-				return []string{}, fmt.Errorf("action has releated policies, "+
-					"you can't delete it or update the related_resource_types unless delete all the related policies. "+
-					"please contact administrator. [systemID=%s, id=%s, actionPK=%d]",
-					systemID, id, actionPK)
-			}
-			needAsyncDeletedActionIDs = append(needAsyncDeletedActionIDs, id)
+		if !canAlter {
+			actionIDsWithAnyPolicy = append(actionIDsWithAnyPolicy, id)
 		}
 	}
-	return needAsyncDeletedActionIDs, nil
+	return actionIDsWithAnyPolicy, nil
 }
 
 func checkUpdateActionRelatedResourceTypeNotChanged(
@@ -228,9 +276,9 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 	}
 
 	// if not policies, no need to check
-	needAsyncDeletedActionIDs, err := checkActionIDsHasAnyPolicies(systemID, []string{actionID})
+	canAlter, err := newActionHasAnyPolicyChecker().CanAlter(systemID, actionID)
 	// TODO: 目前删除Action策略的事件只能用于删除Action模型，其他都暂时不可用，所以这里调整Action关联的资源类型还是必须保证DB里真正无策略
-	if err == nil && len(needAsyncDeletedActionIDs) == 0 {
+	if err == nil && canAlter {
 		return nil
 	}
 
@@ -249,9 +297,75 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 		if currentRT.SystemID != oldRT.System || currentRT.ID != oldRT.ID {
 			err = fmt.Errorf(
 				"%w, related_resource_types[%d](system=%s, id=%s) different to exist related_resource_types[%d](system=%s, id=%s)",
-				err, i, currentRT.SystemID, currentRT.ID, i, oldRT.System, oldRT.ID)
+				err,
+				i,
+				currentRT.SystemID,
+				currentRT.ID,
+				i,
+				oldRT.System,
+				oldRT.ID,
+			)
 			return err
 		}
+	}
+	return nil
+}
+
+func checkUpdatedActionAuthType(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
+	// if not change the auth_type and relatedResourceTypes
+	if authType == "" && len(relatedResourceTypes) == 0 {
+		return nil
+	}
+
+	// if authType != "" || len(relatedResourceTypes) > 0
+
+	oldAction, err := service.NewActionService().Get(systemID, actionID)
+	if err != nil {
+		return fmt.Errorf("actionService get systemID=%s, actionID=%s fail, %w", systemID, actionID, err)
+	}
+
+	// 1. if auth_type want to change, should has no policies
+	if authType != "" && authType != oldAction.AuthType {
+		canAlter, err := newActionHasAnyPolicyChecker().CanAlter(systemID, actionID)
+		if err != nil {
+			return fmt.Errorf("checkActionIDsHashAnyPolicies systemID=%s, actionID=%s: %w", systemID, actionID, err)
+		}
+		if !canAlter {
+			return fmt.Errorf("systemID=%s, actionID=%s has related policies, you cant't update the auth_type",
+				systemID, actionID)
+		}
+	}
+
+	// 2. new auth_type/related_resource_types should be valid
+	var newAuthType string
+	var newRelatedResourceTypes []relatedResourceType
+
+	if authType != "" {
+		newAuthType = authType
+	} else {
+		newAuthType = oldAction.AuthType
+	}
+
+	if len(relatedResourceTypes) > 0 {
+		newRelatedResourceTypes = relatedResourceTypes
+	} else {
+		for _, rrt := range oldAction.RelatedResourceTypes {
+			relatedInstanceSelections := make([]referenceInstanceSelection, 0)
+			for _, rrtis := range rrt.RelatedInstanceSelections {
+				relatedInstanceSelections = append(relatedInstanceSelections, referenceInstanceSelection{
+					IgnoreIAMPath: rrtis["ignore_iam_path"].(bool),
+				})
+			}
+
+			newRelatedResourceTypes = append(newRelatedResourceTypes, relatedResourceType{
+				SelectionMode:             rrt.SelectionMode,
+				RelatedInstanceSelections: relatedInstanceSelections,
+			})
+		}
+	}
+	valid, message := validateActionAuthType(newAuthType, newRelatedResourceTypes)
+	if !valid {
+		return fmt.Errorf("validateActionAuthType fail:%s", message)
 	}
 	return nil
 }

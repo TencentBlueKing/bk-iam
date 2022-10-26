@@ -20,7 +20,6 @@ import (
 )
 
 var _ = Describe("LocalApigwJwtClientId", func() {
-
 	It("Key", func() {
 		key := APIGatewayJWTClientIDCacheKey{
 			JWTToken: "abc",
@@ -40,11 +39,8 @@ var _ = Describe("LocalApigwJwtClientId", func() {
 	})
 
 	Describe("mock cache", func() {
-
 		BeforeEach(func() {
-			var (
-				expiration = 5 * time.Minute
-			)
+			expiration := 5 * time.Minute
 
 			retrieveFunc := func(key cache.Key) (interface{}, error) {
 				return true, nil
@@ -77,7 +73,5 @@ var _ = Describe("LocalApigwJwtClientId", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), "bk_test", clientID)
 		})
-
 	})
-
 })

@@ -246,15 +246,23 @@ func Test_policyManager_BulkUpdateExpressionPKWithTx(t *testing.T) {
 	})
 }
 
-func Test_policyManager_BulkDeleteBySubjectTemplate(t *testing.T) {
+func Test_policyManager_DeleteByActionPKWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectExec(`DELETE FROM policy WHERE subject_pk =`).WithArgs(
+		mock.ExpectBegin()
+		mock.ExpectExec(`^DELETE FROM policy WHERE action_pk = (.*) LIMIT (.*)`).WithArgs(
 			int64(1), int64(2),
-		).WillReturnResult(sqlmock.NewResult(1, 1))
+		).WillReturnResult(sqlmock.NewResult(1, 2))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
 
 		manager := &policyManager{DB: db}
-		err := manager.BulkDeleteBySubjectTemplate(int64(1), int64(2))
+		count, err := manager.DeleteByActionPKWithTx(tx, 1, 2)
+
+		tx.Commit()
 
 		assert.NoError(t, err)
+		assert.Equal(t, count, int64(2))
 	})
 }

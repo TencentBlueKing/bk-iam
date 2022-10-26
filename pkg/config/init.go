@@ -12,6 +12,7 @@ package config
 
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
+	log "github.com/sirupsen/logrus"
 )
 
 // SuperAppCodeSet ...
@@ -20,6 +21,14 @@ var (
 	SuperUserSet             *set.StringSet
 	SupportShieldFeaturesSet *set.StringSet
 	SecurityAuditAppCode     *set.StringSet
+)
+
+// Worker ...
+var (
+	MaxSubjectActionAlterEventCheckCount               int = 3
+	MaxMessageGeneratedCountPreSubjectActionAlterEvent int = 100
+
+	MaxConsumerCountPerWorker int = 3
 )
 
 // InitSuperAppCode ...
@@ -59,4 +68,28 @@ func InitSupportShieldFeatures(supportShieldFeatures []string) {
 // InitSecurityAuditAppCode read the value from config, parse to set
 func InitSecurityAuditAppCode(securityAuditAppCode string) {
 	SecurityAuditAppCode = set.SplitStringToSet(securityAuditAppCode, ",")
+}
+
+// InitWorker ...
+func InitWorker(w Worker) {
+	if w.MaxSubjectActionAlterEventCheckCount != 0 {
+		MaxSubjectActionAlterEventCheckCount = w.MaxSubjectActionAlterEventCheckCount
+	}
+
+	if w.MaxMessageGeneratedCountPerSubjectActionAlterEvent != 0 {
+		MaxMessageGeneratedCountPreSubjectActionAlterEvent = w.MaxMessageGeneratedCountPerSubjectActionAlterEvent
+	}
+
+	if w.MaxConsumerCountPerWorker != 0 {
+		MaxConsumerCountPerWorker = w.MaxConsumerCountPerWorker
+	}
+
+	log.Infof(
+		"init worker success, MaxMessageGeneratedCountPreSubjectActionAlterEvent=%d, "+
+			"MaxSubjectActionAlterEventCheckCount=%d, "+
+			"MaxConsumerCountPerWorker=%d",
+		MaxMessageGeneratedCountPreSubjectActionAlterEvent,
+		MaxSubjectActionAlterEventCheckCount,
+		MaxConsumerCountPerWorker,
+	)
 }

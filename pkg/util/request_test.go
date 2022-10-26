@@ -22,11 +22,8 @@ import (
 )
 
 var _ = Describe("Request", func() {
-
 	Describe("ReadRequestBody", func() {
-
 		It("nil body", func() {
-
 			r := &http.Request{Body: nil}
 			body, err := util.ReadRequestBody(r)
 			assert.Error(GinkgoT(), err)
@@ -46,7 +43,6 @@ var _ = Describe("Request", func() {
 			r, _ := util.NewRequestErrorResponse()
 			_, err := util.ReadRequestBody(r)
 			assert.Error(GinkgoT(), err)
-
 		})
 
 		It("read test content from body", func() {
@@ -68,7 +64,6 @@ var _ = Describe("Request", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), util.TestingContent, body)
 		})
-
 	})
 
 	Describe("RequestID", func() {
@@ -88,7 +83,6 @@ var _ = Describe("Request", func() {
 			id := util.GetRequestID(c)
 			assert.Equal(GinkgoT(), "123", id)
 		})
-
 	})
 
 	Describe("ClientID", func() {
@@ -128,13 +122,15 @@ var _ = Describe("Request", func() {
 			assert.True(GinkgoT(), ok)
 			assert.Equal(GinkgoT(), expected, err)
 		})
-
 	})
 
 	Describe("BasicAuthAuthorizationHeader", func() {
 		It("valid basic auth", func() {
-			assert.Equal(GinkgoT(), "Basic YWRtaW46cGFzc3dvcmQ=", util.BasicAuthAuthorizationHeader("admin", "password"))
+			assert.Equal(
+				GinkgoT(),
+				"Basic YWRtaW46cGFzc3dvcmQ=",
+				util.BasicAuthAuthorizationHeader("admin", "password"),
+			)
 		})
-
 	})
 })

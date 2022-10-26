@@ -92,6 +92,21 @@ func (mr *MockActionServiceMockRecorder) GetActionPK(system, id interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActionPK", reflect.TypeOf((*MockActionService)(nil).GetActionPK), system, id)
 }
 
+// GetAuthType mocks base method.
+func (m *MockActionService) GetAuthType(system, id string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthType", system, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthType indicates an expected call of GetAuthType.
+func (mr *MockActionServiceMockRecorder) GetAuthType(system, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthType", reflect.TypeOf((*MockActionService)(nil).GetAuthType), system, id)
+}
+
 // GetThinActionByPK mocks base method.
 func (m *MockActionService) GetThinActionByPK(pk int64) (types.ThinAction, error) {
 	m.ctrl.T.Helper()

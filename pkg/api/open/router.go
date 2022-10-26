@@ -19,6 +19,7 @@ import (
 
 // RegisterLegacySystemAPIs the urls: /api/v1/systems
 // NOTE: should not add more apis here, move to /api/v1/open/systems/{system_id}/
+// Deprecated: will removed later
 func RegisterLegacySystemAPIs(r *gin.RouterGroup) {
 	policies := r.Group("/:system_id/policies")
 	policies.Use(common.SystemExistsAndClientValid())
@@ -40,38 +41,34 @@ func Register(r *gin.RouterGroup) {
 	// 1. system scope /api/v1/open/systems
 
 	// 1.1 policies
-	policies := r.Group("/systems/:system_id/policies")
+	policies := r.Group("/systems/:system_id/policies/")
 	policies.Use(common.SystemExistsAndClientValid())
 	{
 		// GET /api/v1/open/systems/:system_id/policies?action=x    拉取某个操作的所有策略列表
-		policies.GET("", handler.PolicyList)
+		policies.GET("/", handler.PolicyList)
 
 		// GET /api/v1/open/systems/:system_id/policies/:policy_id  查询某个策略详情(这个策略必须属于本系统)
-		policies.GET("/:policy_id", handler.PolicyGet)
+		policies.GET("/:policy_id/", handler.PolicyGet)
 
 		// https://cloud.google.com/apis/design/design_patterns#list_sub-collections
 		// GET /api/v1/open/systems/:system_id/policies/-/subjects?ids=1,2,3,4
-		policies.GET("/-/subjects", handler.PoliciesSubjects)
+		policies.GET("/-/subjects/", handler.PoliciesSubjects)
 	}
 
+	// NOTE: @Deprecated
 	// 2. subjects: users, departments, groups
 	users := r.Group("/users")
 	{
 		// GET /user/123/groups?inherit=true
+		// Deprecated:
 		users.GET("/:user_id/groups", handler.UserGroups)
 	}
 
+	// NOTE: @Deprecated
 	departments := r.Group("/departments")
 	{
 		// GET /department/456/groups
+		// Deprecated:
 		departments.GET("/:department_id/groups", handler.DepartmentGroups)
 	}
-
-	// 3. groups
-	// groups := r.Group("/groups")
-	// {
-	// 	groups.GET("/:group_id/members", handler.GroupMembers)
-	// 	groups.GET("/", handler.Groups)
-	// 	groups.GET("/:group_id", handler.GroupGet)
-	// }
 }

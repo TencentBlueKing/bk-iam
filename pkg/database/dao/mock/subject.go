@@ -137,21 +137,6 @@ func (mr *MockSubjectManagerMockRecorder) ListByIDs(_type, ids interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByIDs", reflect.TypeOf((*MockSubjectManager)(nil).ListByIDs), _type, ids)
 }
 
-// ListByPKs mocks base method.
-func (m *MockSubjectManager) ListByPKs(pks []int64) ([]dao.Subject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByPKs", pks)
-	ret0, _ := ret[0].([]dao.Subject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByPKs indicates an expected call of ListByPKs.
-func (mr *MockSubjectManagerMockRecorder) ListByPKs(pks interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByPKs", reflect.TypeOf((*MockSubjectManager)(nil).ListByPKs), pks)
-}
-
 // ListPaging mocks base method.
 func (m *MockSubjectManager) ListPaging(_type string, limit, offset int64) ([]dao.Subject, error) {
 	m.ctrl.T.Helper()

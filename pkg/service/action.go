@@ -21,6 +21,7 @@ types定义的数据结构的加载层
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	jsoniter "github.com/json-iterator/go"
@@ -42,7 +43,9 @@ type ActionService interface {
 
 	Get(system, id string) (types.Action, error)
 
-	// ListBySystem, 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
+	GetAuthType(system, id string) (int64, error)
+
+	// ListBySystem 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
 	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
 	ListBySystem(system string) ([]types.Action, error)
 
@@ -76,6 +79,7 @@ type ActionService interface {
 type actionService struct {
 	manager                       dao.ActionManager
 	actionResourceTypeManager     dao.ActionResourceTypeManager
+	resourceTypeManager           dao.ResourceTypeManager
 	saasManager                   sdao.SaaSActionManager
 	saasActionResourceTypeManager sdao.SaaSActionResourceTypeManager
 	saasInstanceSelectionManager  sdao.SaaSInstanceSelectionManager
@@ -86,6 +90,7 @@ func NewActionService() ActionService {
 	return &actionService{
 		manager:                       dao.NewActionManager(),
 		actionResourceTypeManager:     dao.NewActionResourceTypeManager(),
+		resourceTypeManager:           dao.NewResourceTypeManager(),
 		saasManager:                   sdao.NewSaaSActionManager(),
 		saasActionResourceTypeManager: sdao.NewSaaSActionResourceTypeManager(),
 		saasInstanceSelectionManager:  sdao.NewSaaSInstanceSelectionManager(),
@@ -133,17 +138,22 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	}
 
 	action = types.Action{
-		ID:      dbAction.ID,
-		Name:    dbAction.Name,
-		NameEn:  dbAction.NameEn,
-		Type:    dbAction.Type,
-		Version: dbAction.Version,
+		ID:       dbAction.ID,
+		Name:     dbAction.Name,
+		NameEn:   dbAction.NameEn,
+		AuthType: dbAction.AuthType,
+		Type:     dbAction.Type,
+		Version:  dbAction.Version,
 	}
 
 	if dbAction.RelatedEnvironments != "" {
 		err = jsoniter.UnmarshalFromString(dbAction.RelatedEnvironments, &action.RelatedEnvironments)
 		if err != nil {
-			return action, errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", dbAction.RelatedEnvironments)
+			return action, errorWrapf(
+				err,
+				"unmarshal action.RelatedEnvironments=`%+v` fail",
+				dbAction.RelatedEnvironments,
+			)
 		}
 	}
 
@@ -208,6 +218,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
 		}
@@ -303,6 +314,7 @@ func (l *actionService) ListBaseInfoBySystem(system string) ([]types.ActionBaseI
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
 		}
@@ -353,11 +365,15 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			Sensitivity:         ac.Sensitivity,
 			RelatedActions:      relatedActions,
 			RelatedEnvironments: relatedEnvironments,
+			AuthType:            ac.AuthType,
 			Type:                ac.Type,
 			Version:             ac.Version,
 		})
 
-		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(system, ac)
+		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(
+			system,
+			ac,
+		)
 		if err1 != nil {
 			return errorWrapf(err1, "convertToDbRelatedResourceTypes system=`%s`, action=`%+v`", system, ac)
 		}
@@ -440,7 +456,11 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		}
 		err = l.actionResourceTypeManager.BulkCreateWithTx(tx, dbActionResourceTypes)
 		if err != nil {
-			return errorWrapf(err, "actionResourceTypeManager.BulkCreateWithTx actionResourceTypes=`%+v`", dbActionResourceTypes)
+			return errorWrapf(
+				err,
+				"actionResourceTypeManager.BulkCreateWithTx actionResourceTypes=`%+v`",
+				dbActionResourceTypes,
+			)
 		}
 	}
 
@@ -487,6 +507,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		Description:         action.Description,
 		DescriptionEn:       action.DescriptionEn,
 		Sensitivity:         action.Sensitivity,
+		AuthType:            action.AuthType,
 		Type:                action.Type,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,
@@ -616,4 +637,21 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 		})
 	}
 	return instanceSelections, nil
+}
+
+// GetAuthType 获取action 的授权类型
+func (l *actionService) GetAuthType(system, id string) (int64, error) {
+	authTypeStr, err := l.saasManager.GetAuthType(system, id)
+	if err != nil {
+		return 0, errorx.Wrapf(err, ActionSVC, "GetAuthType", "system=`%s`, id=`%s`", system, id)
+	}
+
+	switch authTypeStr {
+	case "", types.AuthTypeABACStr:
+		return types.AuthTypeABAC, nil
+	case types.AuthTypeRBACStr:
+		return types.AuthTypeRBAC, nil
+	}
+
+	return 0, errors.New("unknown auth type")
 }

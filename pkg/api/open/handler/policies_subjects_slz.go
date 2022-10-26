@@ -10,8 +10,18 @@
 
 package handler
 
+import "iam/pkg/abac/prp"
+
 type subjectsSerializer struct {
 	IDs string `form:"ids" binding:"required" example:"1,2,3"`
+
+	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
+}
+
+func (s *subjectsSerializer) initDefault() {
+	if s.Type == "" {
+		s.Type = prp.PolicyTypeAbac
+	}
 }
 
 type policyIDSubject struct {

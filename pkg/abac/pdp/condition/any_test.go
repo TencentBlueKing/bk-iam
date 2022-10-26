@@ -77,7 +77,5 @@ var _ = Describe("Any", func() {
 			}
 			assert.Equal(GinkgoT(), expected, ec)
 		})
-
 	})
-
 })

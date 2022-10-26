@@ -29,9 +29,7 @@ import (
 )
 
 var _ = Describe("Entrance", func() {
-
 	Describe("Eval", func() {
-
 		var entry *debug.Entry
 		var req *request.Request
 		var ctl *gomock.Controller
@@ -73,6 +71,8 @@ var _ = Describe("Entrance", func() {
 
 		It("ValidateAction error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
@@ -88,13 +88,15 @@ var _ = Describe("Entrance", func() {
 
 		It("FillSubject error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
@@ -102,23 +104,60 @@ var _ = Describe("Entrance", func() {
 			assert.False(GinkgoT(), ok)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
-
 		})
 
-		It("QueryPolicies error", func() {
+		It("getEffectAuthTypeGroupPKs error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return nil, nil, errors.New("getEffectAuthTypeGroupPKs fail")
+			})
+
+			ok, err := Eval(req, entry, false)
+			assert.False(GinkgoT(), ok)
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "getEffectAuthTypeGroupPKs fail")
+		})
+
+		It("QueryPolicies error", func() {
+			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
+				return nil
+			})
+			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
+				func(_ *request.Request) bool {
+					return true
+				})
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
+				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -133,18 +172,29 @@ var _ = Describe("Entrance", func() {
 		//
 		It("ok, QueryPolicies single pass", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -163,18 +213,29 @@ var _ = Describe("Entrance", func() {
 
 		It("ok, QueryPolicies single no pass", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -193,18 +254,29 @@ var _ = Describe("Entrance", func() {
 
 		It("fail, QueryPolicies single fail", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -225,18 +297,29 @@ var _ = Describe("Entrance", func() {
 
 		It("fail, EvalPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -255,18 +338,29 @@ var _ = Describe("Entrance", func() {
 		//
 		It("ok, EvalPolicies success", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
 			patches.ApplyMethod(reflect.TypeOf(req), "ValidateActionResource",
 				func(_ *request.Request) bool {
 					return true
 				})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -379,9 +473,7 @@ var _ = Describe("Entrance", func() {
 				"hello": "world",
 			})
 			assert.NoError(GinkgoT(), err)
-
 		})
-
 	})
 
 	Describe("QueryByExtResources", func() {
@@ -556,7 +648,6 @@ var _ = Describe("Entrance", func() {
 			}, resources)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
 
 	Describe("QueryAuthPolicies", func() {
@@ -604,28 +695,40 @@ var _ = Describe("Entrance", func() {
 
 		It("FillSubject error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return errors.New("fill subject fail")
 			})
 
 			_, err := QueryAuthPolicies(req, entry, false)
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "fill subject fail")
-
 		})
 
 		It("QueryPolicies error", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -639,14 +742,25 @@ var _ = Describe("Entrance", func() {
 		//
 		It("ok, QueryPolicies single pass", func() {
 			patches.ApplyFunc(fillActionDetail, func(req *request.Request) error {
+				req.Action = types.NewAction()
+				req.Action.FillAttributes(123, 1, nil)
 				return nil
 			})
-			patches.ApplyFunc(fillSubjectDetail, func(req *request.Request) error {
+			patches.ApplyFunc(fillSubjectDepartments, func(req *request.Request) error {
 				return nil
+			})
+			patches.ApplyFunc(getEffectAuthTypeGroupPKs, func(
+				system string,
+				subject types.Subject,
+				action types.Action,
+			) (abacGroupPKs []int64, rbacGroupPKs []int64, err error) {
+				return []int64{1, 2}, nil, nil
 			})
 			patches.ApplyFunc(queryPolicies, func(system string,
 				subject types.Subject,
 				action types.Action,
+				effectGroupPKs []int64,
+				withRbacPolicies bool,
 				withoutCache bool,
 				entry *debug.Entry,
 			) (policies []types.AuthPolicy, err error) {
@@ -657,7 +771,5 @@ var _ = Describe("Entrance", func() {
 			assert.NotNil(GinkgoT(), policies)
 			assert.NoError(GinkgoT(), err)
 		})
-
 	})
-
 })

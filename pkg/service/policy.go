@@ -44,9 +44,7 @@ const (
 	PolicyTemplateIDCustom int64 = 0
 )
 
-var (
-	errPolicy = errors.New("policy data error")
-)
+var errPolicy = errors.New("policy data error")
 
 // PolicyService ...
 type PolicyService interface {
@@ -57,31 +55,39 @@ type PolicyService interface {
 
 	// for saas
 
-	GetByActionTemplate(subjectPK, actionPK, templateID int64) (policy types.Policy, err error)
 	ListThinBySubjectActionTemplate(subjectPK int64, actionPKs []int64, templateID int64) ([]types.ThinPolicy, error)
 	ListThinBySubjectTemplateBeforeExpiredAt(subjectPK int64, templateID, expiredAt int64) ([]types.ThinPolicy, error)
 
-	UpdateExpiredAt(policies []types.QueryPolicy) error
 	AlterCustomPolicies(subjectPK int64, createPolicies, updatePolicies []types.Policy, deletePolicyIDs []int64,
 		actionPKWithResourceTypeSet *set.Int64Set) (map[int64][]int64, error)
+	AlterCustomPoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK int64,
+		createPolicies, updatePolicies []types.Policy,
+		deletePolicyIDs []int64,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) (map[int64][]int64, error)
 
 	DeleteByPKs(subjectPK int64, pks []int64) error
 
-	DeleteByActionPK(actionPK int64) error
+	DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error
 
-	CreateAndDeleteTemplatePolicies(subjectPK, templateID int64, createPolicies []types.Policy, deletePolicyIDs []int64,
-		actionPKWithResourceTypeSet *set.Int64Set) error
-	UpdateTemplatePolicies(subjectPK int64, policies []types.Policy, actionPKWithResourceTypeSet *set.Int64Set) error
-	DeleteTemplatePolicies(subjectPK int64, templateID int64) error
+	CreateAndDeleteTemplatePoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK, templateID int64,
+		createPolicies []types.Policy,
+		deletePolicyIDs []int64,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) error
+	UpdateTemplatePoliciesWithTx(
+		tx *sqlx.Tx,
+		subjectPK int64,
+		policies []types.Policy,
+		actionPKWithResourceTypeSet *set.Int64Set,
+	) error
 
-	// for query
-
-	Get(pk int64) (types.QueryPolicy, error)
-	ListPagingQueryByActionBeforeExpiredAt(
-		actionPK int64, expiredAt int64, offset int64, limit int64) ([]types.QueryPolicy, error)
-	GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error)
-
-	ListQueryByPKs(pks []int64) ([]types.QueryPolicy, error)
+	// for pap
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error
 
 	// for model update
 
@@ -194,45 +200,39 @@ func (s *policyService) ListThinBySubjectTemplateBeforeExpiredAt(
 	return s.convertToThinPolicies(daoPolicies), nil
 }
 
-// GetByActionTemplate ...
-func (s *policyService) GetByActionTemplate(subjectPK, actionPK, templateID int64) (policy types.Policy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "GetByAction")
-
-	daoPolicy, err := s.manager.GetByActionTemplate(subjectPK, actionPK, templateID)
-	if err != nil {
-		return policy, errorWrapf(
-			err, "manager.GetByActionTemplate subjectPK=`%d`, actionPK=`%d`, templateID=", subjectPK, actionPK, templateID,
-		)
-	}
-	if daoPolicy.ExpressionPK == expressionPKActionWithoutResource {
-		policy = types.Policy{
-			Version:   PolicyVersion,
-			ID:        daoPolicy.PK,
-			SubjectPK: daoPolicy.SubjectPK,
-			ActionPK:  daoPolicy.ActionPK,
-			ExpiredAt: daoPolicy.ExpiredAt,
-		}
-		return
-	}
-	expressions, err := s.expressionManger.ListAuthByPKs([]int64{daoPolicy.ExpressionPK})
-	if err != nil || len(expressions) == 0 {
-		return policy, errorWrapf(err, "expressionManger.ListAuthByPKs expressionPK=`%d`", daoPolicy.ExpressionPK)
-	}
-	expression := expressions[0]
-	policy = types.Policy{
-		Version:    PolicyVersion,
-		ID:         daoPolicy.PK,
-		SubjectPK:  daoPolicy.SubjectPK,
-		ActionPK:   daoPolicy.ActionPK,
-		ExpiredAt:  daoPolicy.ExpiredAt,
-		Expression: expression.Expression,
-		Signature:  expression.Signature,
-	}
-	return policy, err
-}
-
 // AlterCustomPolicies subject custom alter policies
 func (s *policyService) AlterCustomPolicies(
+	subjectPK int64,
+	createPolicies, updatePolicies []types.Policy,
+	deletePolicyIDs []int64,
+	actionPKWithResourceTypeSet *set.Int64Set,
+) (updatedActionPKExpressionPKs map[int64][]int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterCustomPolicies")
+
+	// 使用事务
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		err = errorWrapf(err, "define tx fail")
+		return
+	}
+
+	updatedActionPKExpressionPKs, err = s.AlterCustomPoliciesWithTx(
+		tx, subjectPK,
+		createPolicies, updatePolicies, deletePolicyIDs,
+		actionPKWithResourceTypeSet,
+	)
+	if err != nil {
+		err = errorWrapf(err, "s.AlterCustomPoliciesWithTx subjectPK=`%d` fail", subjectPK)
+		return
+	}
+
+	err = tx.Commit()
+	return updatedActionPKExpressionPKs, err
+}
+
+func (s *policyService) AlterCustomPoliciesWithTx(
+	tx *sqlx.Tx,
 	subjectPK int64,
 	createPolicies, updatePolicies []types.Policy,
 	deletePolicyIDs []int64,
@@ -241,7 +241,7 @@ func (s *policyService) AlterCustomPolicies(
 	// 自定义权限每个policy对应一个expression
 	// 创建policy的同时创建expression
 	// 修改policy时直接修改关联的expression
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterPolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "AlterCustomPoliciesWithTx")
 
 	daoCreateExpressions := make([]dao.Expression, 0, len(createPolicies))
 	daoCreatePolicies := make([]dao.Policy, 0, len(createPolicies))
@@ -320,15 +320,6 @@ func (s *policyService) AlterCustomPolicies(
 		}
 	}
 
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
-	}
-
 	expressionPKs, err := s.expressionManger.BulkCreateWithTx(tx, daoCreateExpressions)
 	if err != nil {
 		err = errorWrapf(err, "expressionManger.BulkCreateWithTx expressions=`%+v`", daoCreateExpressions)
@@ -365,7 +356,6 @@ func (s *policyService) AlterCustomPolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return updatedActionPKExpressionPKs, err
 }
 
@@ -419,143 +409,9 @@ func (s *policyService) DeleteByPKs(subjectPK int64, pks []int64) error {
 	return err
 }
 
-// UpdateExpiredAt ...
-func (s *policyService) UpdateExpiredAt(queryPolicies []types.QueryPolicy) error {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "RenewExpiredAtByPKs")
-
-	pks := make([]int64, 0, len(queryPolicies))
-	pkExpiredAt := make(map[int64]int64, len(queryPolicies))
-	for _, p := range queryPolicies {
-		pks = append(pks, p.PK)
-		pkExpiredAt[p.PK] = p.ExpiredAt
-	}
-
-	policies, err := s.manager.ListByPKs(pks)
-	if err != nil {
-		return errorWrapf(err, "ListByPKs pks=`%+v`", pks)
-	}
-
-	updatePolicies := make([]dao.Policy, 0, len(policies))
-
-	for _, p := range policies {
-		if p.ExpiredAt < pkExpiredAt[p.PK] {
-			p.ExpiredAt = pkExpiredAt[p.PK]
-			updatePolicies = append(updatePolicies, p)
-		}
-	}
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return err
-	}
-
-	err = s.manager.BulkUpdateExpiredAtWithTx(tx, updatePolicies)
-	if err != nil {
-		return errorWrapf(err, "UpdateExpiredAt policies=`%+v`", updatePolicies)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errorWrapf(err, "tx.Commit fail")
-	}
-	return nil
-}
-
-// Get ...
-func (s *policyService) Get(pk int64) (daoPolicy types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
-	policy, err1 := s.manager.Get(pk)
-	if err1 != nil {
-		err = errorWrapf(err1, "manager.Get pk=`%d` fail", pk)
-		return
-	}
-
-	daoPolicy = types.QueryPolicy{
-		PK:           policy.PK,
-		SubjectPK:    policy.SubjectPK,
-		ActionPK:     policy.ActionPK,
-		ExpressionPK: policy.ExpressionPK,
-		ExpiredAt:    policy.ExpiredAt,
-	}
-	return
-}
-
-// GetCountByActionBeforeExpiredAt ...
-func (s *policyService) GetCountByActionBeforeExpiredAt(actionPK int64, expiredAt int64) (int64, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "Get")
-
-	count, err := s.manager.GetCountByActionBeforeExpiredAt(actionPK, expiredAt)
-	if err != nil {
-		err = errorWrapf(err, "manager.GetCountByAction actionPK=`%d`, expiredAt=`%d`", actionPK, expiredAt)
-		return -1, err
-	}
-	return count, nil
-}
-
-// ListPagingQueryByActionBeforeExpiredAt ...
-func (s *policyService) ListPagingQueryByActionBeforeExpiredAt(
-	actionPK int64,
-	expiredAt int64,
-	offset int64,
-	limit int64,
-) (queryPolicies []types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByAction")
-
-	policies, err := s.manager.ListPagingByActionPKBeforeExpiredAt(actionPK, expiredAt, offset, limit)
-	if err != nil {
-		err = errorWrapf(err,
-			"manager.ListByActionPK actionPK=`%d`, expiredAt=`%d`, offset=`%d`, limit=`%d` fail",
-			actionPK, expiredAt, offset, limit)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToQueryPolicies(policies)
-	return
-}
-
-// ListQueryByPKs ...
-func (s *policyService) ListQueryByPKs(pks []int64) (queryPolicies []types.QueryPolicy, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "ListQueryByPKs")
-
-	policies, err := s.manager.ListByPKs(pks)
-	if err != nil {
-		err = errorWrapf(err,
-			"manager.ListByPKs pks=`%+v` fail", pks)
-		return nil, err
-	}
-
-	queryPolicies = convertPoliciesToQueryPolicies(policies)
-	return
-}
-
-func convertPoliciesToQueryPolicies(policies []dao.Policy) []types.QueryPolicy {
-	queryPolicies := make([]types.QueryPolicy, 0, len(policies))
-	for _, p := range policies {
-		queryPolicies = append(queryPolicies, types.QueryPolicy{
-			PK:           p.PK,
-			SubjectPK:    p.SubjectPK,
-			ActionPK:     p.ActionPK,
-			ExpressionPK: p.ExpressionPK,
-			ExpiredAt:    p.ExpiredAt,
-		})
-	}
-	return queryPolicies
-}
-
 // HasAnyByActionPK ...
 func (s *policyService) HasAnyByActionPK(actionPK int64) (bool, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "HasAnyByActionPK")
-
-	exist, err := s.manager.HasAnyByActionPK(actionPK)
-	if err != nil {
-		err = errorWrapf(err, "manager.HasAnyByActionPK actionPK=`%d` fail", actionPK)
-		return false, err
-	}
-	return exist, nil
+	return s.manager.HasAnyByActionPK(actionPK)
 }
 
 // generateSignatureExpressionPKMap generate signature expressionPK map if expression does not exist create it
@@ -621,22 +477,15 @@ func (s *policyService) generateSignatureExpressionPKMap(
 	return signatureExpressionPKMap, nil
 }
 
-// CreateAndDeleteTemplatePolicies subject create and delete template policies
-func (s *policyService) CreateAndDeleteTemplatePolicies(
+// CreateAndDeleteTemplatePoliciesWithTx subject create and delete template policies
+func (s *policyService) CreateAndDeleteTemplatePoliciesWithTx(
+	tx *sqlx.Tx,
 	subjectPK, templateID int64,
 	createPolicies []types.Policy,
 	deletePolicyIDs []int64,
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "CreateAndDeleteTemplatePolicies")
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
-	}
 
 	// 生成 signature -> expression pk map
 	signatureExpressionPKMap, err := s.generateSignatureExpressionPKMap(
@@ -688,17 +537,17 @@ func (s *policyService) CreateAndDeleteTemplatePolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return err
 }
 
-// UpdateTemplatePolicies subject update template policies
-func (s *policyService) UpdateTemplatePolicies(
+// UpdateTemplatePoliciesWithTx subject update template policies
+func (s *policyService) UpdateTemplatePoliciesWithTx(
+	tx *sqlx.Tx,
 	subjectPK int64,
 	policies []types.Policy,
 	actionPKWithResourceTypeSet *set.Int64Set,
 ) (err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePolicies")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "UpdateTemplatePoliciesWithTx")
 
 	// 1. 查询要更新的policies数据
 	policyPKs := make([]int64, 0, len(policies))
@@ -713,14 +562,6 @@ func (s *policyService) UpdateTemplatePolicies(
 	daoPolicyMap := make(map[int64]dao.Policy, len(daoPolicies))
 	for _, p := range daoPolicies {
 		daoPolicyMap[p.PK] = p
-	}
-
-	// 使用事务
-	tx, err := database.GenerateDefaultDBTx()
-	defer database.RollBackWithLog(tx)
-	if err != nil {
-		err = errorWrapf(err, "define tx fail")
-		return
 	}
 
 	// 2. 生成 signature -> expression pk map
@@ -770,38 +611,22 @@ func (s *policyService) UpdateTemplatePolicies(
 		return
 	}
 
-	err = tx.Commit()
 	return err
 }
 
-// DeleteTemplatePolicies delete subject template policies
-func (s *policyService) DeleteTemplatePolicies(subjectPK int64, templateID int64) error {
-	err := s.manager.BulkDeleteBySubjectTemplate(subjectPK, templateID)
-	if err != nil {
-		return errorx.Wrapf(err, PolicySVC, "DeleteTemplatePolicies",
-			"manager.BulkDeleteBySubjectTemplate subjectPK=`%d`, templateID=`%d` fail",
-			subjectPK, templateID)
-	}
-	return nil
-}
-
-// DeleteByActionPK ...
-func (s *policyService) DeleteByActionPK(actionPK int64) error {
+// DeleteByActionPKWithTx ...
+func (s *policyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
-	tx, err := database.GenerateDefaultDBTx()
-	if err != nil {
-		return errorWrapf(err, "define tx fail")
-	}
-	defer database.RollBackWithLog(tx)
+
 	// TODO: 需要改造，先查询数据量，然后再按照数量进行删除，同时需要考虑
 	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
 	rowLimit := int64(10000)
 	maxAttempts := 100 // 相当于最多删除100万数据
 
 	for i := 0; i < maxAttempts; i++ {
-		rowsAffected, err1 := s.manager.DeleteByActionPKWithTx(tx, actionPK, rowLimit)
-		if err1 != nil {
-			return errorWrapf(err1, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
+		rowsAffected, err := s.manager.DeleteByActionPKWithTx(tx, actionPK, rowLimit)
+		if err != nil {
+			return errorWrapf(err, "manager.DeleteByActionPKWithTx actionPK=`%d`", actionPK)
 		}
 		// 如果已经没有需要删除的了，就停止
 		if rowsAffected == 0 {
@@ -809,14 +634,10 @@ func (s *policyService) DeleteByActionPK(actionPK int64) error {
 		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return errorWrapf(err, "tx.Commit fail")
-	}
-	return err
+	return nil
 }
 
-// DeleteUnquotedExpressions 删除未被引用的expression
+// DeleteUnreferencedExpressions 删除未被引用的expression
 func (s *policyService) DeleteUnreferencedExpressions() error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteUnquotedExpression")
 	updateAt := time.Now().Unix() - 24*60*60 // 取前一天的时间戳
@@ -844,5 +665,31 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 			expressionTypeTemplate, expressionTypeUnreferenced)
 	}
 
+	return nil
+}
+
+// BulkDeleteBySubjectPKsWithTx ...
+func (s *policyService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, pks []int64) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "BulkDeleteBySubjectPKs")
+
+	// 查询Policy里的Subject单独的Expression
+	expressionPKs, err := s.manager.ListExpressionBySubjectsTemplate(pks, 0)
+	if err != nil {
+		return errorWrapf(err, "policyManager.ListExpressionBySubjectsTemplate subjectPKs=`%+v` fail", pks)
+	}
+
+	// 删除策略 policy
+	err = s.manager.BulkDeleteBySubjectPKsWithTx(tx, pks)
+	if err != nil {
+		return errorWrapf(
+			err, "policyManager.BulkDeleteBySubjectPKsWithTx subject_pks=`%+v` fail", pks)
+	}
+
+	// 删除策略对应的非来着权限模板的Expression
+	_, err = s.expressionManger.BulkDeleteByPKsWithTx(tx, expressionPKs)
+	if err != nil {
+		return errorWrapf(
+			err, "expressionManager.BulkDeleteByPKsWithTx pks=`%+v` fail", expressionPKs)
+	}
 	return nil
 }
