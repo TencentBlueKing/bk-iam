@@ -212,26 +212,28 @@ func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectRelationManager_ListExistSubjectGroupPKsAfterExpiredAt(t *testing.T) {
+func Test_subjectRelationManager_ListThinRelationBySubjectPKGroupPKs(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT
-		parent_pk
+		subject_pk,
+		parent_pk,
+		policy_expired_at
 		FROM subject_relation
-		WHERE subject_pk in (.*)
-		AND parent_pk in (.*)
-		AND policy_expired_at > (.*)`
+		WHERE subject_pk = (.*)
+		AND parent_pk in (.*)`
 		mockRows := sqlmock.NewRows(
 			[]string{
+				"subject_pk",
 				"parent_pk",
+				"policy_expired_at",
 			},
-		).AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1), int64(1656491305)).WillReturnRows(mockRows)
+		).AddRow(int64(1), int64(2), int64(3))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(
-			[]int64{123},
+		relations, err := manager.ListThinRelationBySubjectPKGroupPKs(
+			123,
 			[]int64{1},
-			int64(1656491305),
 		)
 
 		assert.NoError(t, err, "query from db fail.")
