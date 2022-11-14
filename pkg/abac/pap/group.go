@@ -32,7 +32,11 @@ const GroupCTL = "GroupCTL"
 
 type GroupController interface {
 	GetSubjectGroupCountBeforeExpiredAt(_type, id string, beforeExpiredAt int64) (int64, error)
+	GetSubjectSystemGroupCountBeforeExpiredAt(_type, id, systemID string, expiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
+	ListPagingSubjectSystemGroups(
+		_type, id, systemID string, beforeExpiredAt, limit, offset int64,
+	) ([]SubjectGroup, error)
 	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
 	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
 
@@ -82,6 +86,32 @@ func (c *groupController) GetSubjectGroupCountBeforeExpiredAt(
 			err,
 			"service.GetSubjectGroupCountBeforeExpiredAt subjectPK=`%s`, expiredAt=`%d`",
 			subjectPK,
+			expiredAt,
+		)
+	}
+
+	return count, nil
+}
+
+// GetSubjectSystemGroupCountBeforeExpiredAt ...
+func (c *groupController) GetSubjectSystemGroupCountBeforeExpiredAt(
+	_type, id string,
+	systemID string,
+	expiredAt int64,
+) (count int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectSystemGroupCountBeforeExpiredAt")
+	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	if err != nil {
+		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	count, err = c.service.GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"service.GetSubjectSystemGroupCountBeforeExpiredAt subjectPK=`%s`, systemID=`%s`, expiredAt=`%d`",
+			subjectPK,
+			systemID,
 			expiredAt,
 		)
 	}
@@ -225,6 +255,35 @@ func (c *groupController) ListPagingSubjectGroups(
 		return nil, errorWrapf(
 			err, "service.ListPagingSubjectGroups subjectPK=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
 			subjectPK, beforeExpiredAt, limit, offset,
+		)
+	}
+
+	groups, err := convertToSubjectGroups(svcSubjectGroups)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectGroups svcSubjectGroups=`%+v` fail", svcSubjectGroups)
+	}
+
+	return groups, nil
+}
+
+// ListPagingSubjectSystemGroups ...
+func (c *groupController) ListPagingSubjectSystemGroups(
+	_type, id string,
+	systemID string,
+	beforeExpiredAt, limit, offset int64,
+) ([]SubjectGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingSubjectSystemGroups")
+	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	svcSubjectGroups, err := c.service.ListPagingSubjectSystemGroups(subjectPK, systemID, beforeExpiredAt, limit, offset)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.ListPagingSubjectSystemGroups "+
+				"subjectPK=`%s`, systemID=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK, systemID, beforeExpiredAt, limit, offset,
 		)
 	}
 

@@ -55,6 +55,9 @@ func Register(r *gin.RouterGroup) {
 		// temporary policy
 		// 创建临时权限
 		s.POST("/temporary-policies", handler.CreateTemporaryPolicies)
+
+		// 带分页 https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
+		s.GET("/subject-groups", handler.ListSystemSubjectGroups)
 	}
 
 	// policy

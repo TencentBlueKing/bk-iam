@@ -252,3 +252,71 @@ func Test_subjectRelationManager_GetExpiredAtBySubjectGroup(t *testing.T) {
 		assert.Equal(t, expiredAt, int64(1))
 	})
 }
+
+func Test_subjectRelationManager_GetSubjectSystemGroupCount(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT COUNT(.*) FROM subject_relation t LEFT JOIN group_system_auth_type s ON t.parent_pk = s.group_pk WHERE t.subject_pk =`
+		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), "demo").WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		cnt, err := manager.GetSubjectSystemGroupCount(int64(1), "demo")
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, cnt, int64(1))
+	})
+}
+
+func Test_subjectRelationManager_GetSubjectSystemGroupCountBeforeExpiredAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT COUNT(.*) FROM subject_relation t LEFT JOIN group_system_auth_type s ON t.parent_pk = s.group_pk WHERE t.subject_pk =`
+		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), "demo").WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		cnt, err := manager.GetSubjectSystemGroupCountBeforeExpiredAt(int64(1), "demo", int64(2))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, cnt, int64(1))
+	})
+}
+
+func Test_subjectRelationManager_ListPagingSubjectSystemGroups(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT t.pk, t.subject_pk, t.parent_pk, t.policy_expired_at, t.created_at
+		 FROM subject_relation t LEFT JOIN group_system_auth_type s ON t.parent_pk = s.group_pk
+		 WHERE t.subject_pk = (.*) AND s.system_id = (.*) ORDER BY t.pk DESC LIMIT (.*) OFFSET (.*)`
+		mockRows := sqlmock.NewRows(
+			[]string{
+				"pk", "subject_pk", "parent_pk", "policy_expired_at",
+			},
+		).AddRow(int64(1), int64(2), int64(3), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), "demo", int64(10), int64(0)).WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		relations, err := manager.ListPagingSubjectSystemGroups(int64(1), "demo", 10, 0)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}
+
+func Test_subjectRelationManager_ListPagingSubjectSystemGroupBeforeExpiredAt(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT t.pk, t.subject_pk, t.parent_pk, t.policy_expired_at, t.created_at
+		 FROM subject_relation t LEFT JOIN group_system_auth_type s ON t.parent_pk = s.group_pk
+		 WHERE t.subject_pk = (.*) AND t.policy_expired_at < (.*) AND s.system_id = (.*) ORDER BY t.pk DESC LIMIT (.*) OFFSET (.*)`
+		mockRows := sqlmock.NewRows(
+			[]string{
+				"pk", "subject_pk", "parent_pk", "policy_expired_at",
+			},
+		).AddRow(int64(1), int64(2), int64(3), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), "demo", int64(10), int64(0)).WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		relations, err := manager.ListPagingSubjectSystemGroupBeforeExpiredAt(int64(1), "demo", int64(2), 10, 0)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}

@@ -403,3 +403,57 @@ func ListGroupSubjectBeforeExpiredAt(c *gin.Context) {
 		"results": groupSubjects,
 	})
 }
+
+// ListSystemSubjectGroups 获取subject关联有指定系统权限的用户组
+func ListSystemSubjectGroups(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSystemSubjectGroups")
+
+	var query listSubjectGroupSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	query.Default()
+
+	systemID := c.Param("system_id")
+
+	ctl := pap.NewGroupController()
+
+	count, err := ctl.GetSubjectSystemGroupCountBeforeExpiredAt(query.Type, query.ID, systemID, query.BeforeExpiredAt)
+	if err != nil {
+		err = errorWrapf(err, "type=`%s`, id=`%s`", query.Type, query.ID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	groups, err := ctl.ListPagingSubjectSystemGroups(
+		query.Type,
+		query.ID,
+		systemID,
+		query.BeforeExpiredAt,
+		query.Limit,
+		query.Offset,
+	)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListPagingSubjectGroups",
+			"type=`%s`, id=`%s`, systemID=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			query.Type,
+			query.ID,
+			systemID,
+			query.BeforeExpiredAt,
+			query.Limit,
+			query.Offset,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{
+		"count":   count,
+		"results": groups,
+	})
+}
