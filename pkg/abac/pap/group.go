@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac/pip"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	"iam/pkg/service"
@@ -48,6 +49,8 @@ type GroupController interface {
 	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
 	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
+
+	ListRbacGroupByResource(systemID, actionID string, resource Resource) ([]Subject, error)
 }
 
 type groupController struct {
@@ -543,6 +546,88 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 			},
 		)
 	}
+}
+
+// QueryRbacGroupByResource ...
+func (c *groupController) ListRbacGroupByResource(systemID, actionID string, resource Resource) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByResource")
+
+	// 查询操作相关的信息
+	actionPK, authType, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
+	if err != nil {
+		err = errorWrapf(
+			err, "pip.GetActionDetail systemID=`%s`, actionID=`%s`",
+			systemID, actionID,
+		)
+		return nil, err
+	}
+
+	if authType != types.AuthTypeRBAC {
+		return nil, errorWrapf(errors.New("only support rbac"), "authType=`%s`", authType)
+	}
+
+	// 查询操作关联的资源类型id
+	actionResourceTypePK, err := cacheimpls.GetLocalResourceTypePK(
+		actionResourceTypes[0].System, actionResourceTypes[0].Type,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err, "cacheimpls.GetLocalResourceTypePK systemID=`%s`, resourceType=`%s`",
+			actionResourceTypes[0].System, actionResourceTypes[0].Type,
+		)
+		return nil, err
+	}
+
+	// 查询资源类型的pk
+	resourceTypePK, err := cacheimpls.GetLocalResourceTypePK(resource.System, resource.Type)
+	if err != nil {
+		err = errorWrapf(
+			err, "cacheimpls.GetLocalResourceTypePK systemID=`%s`, resourceType=`%s`",
+			resource.System, resource.Type,
+		)
+		return nil, err
+	}
+
+	// 查询有权限的用户组
+	groupPKs, err := cacheimpls.GetResourceActionAuthorizedGroupPKs(
+		systemID,
+		actionPK,
+		actionResourceTypePK,
+		resourceTypePK,
+		resource.ID,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err, "cacheimpls.GetResourceActionAuthorizedGroupPKs "+
+				"systemID=`%s`, actionPK=`%d`, actionResourceTypePK=`%d`, resourceTypePK==`%d`, resourceID=`%s`",
+			systemID,
+			actionPK,
+			actionResourceTypePK,
+			resourceTypePK,
+			resource.ID,
+		)
+		return nil, err
+	}
+
+	// 查询用户组信息
+	groups := make([]Subject, 0, len(groupPKs))
+	for _, pk := range groupPKs {
+		subject, err := cacheimpls.GetSubjectByPK(pk)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+
+			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
+		}
+
+		groups = append(groups, Subject{
+			Type: subject.Type,
+			ID:   subject.ID,
+			Name: subject.Name,
+		})
+	}
+	return groups, nil
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

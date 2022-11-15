@@ -201,3 +201,8 @@ type listGroupSubjectSerializer struct {
 	BeforeExpiredAt int64 `form:"before_expired_at" binding:"omitempty,min=0"`
 	pageSerializer
 }
+
+type queryRbacGroupByResourceSerializer struct {
+	ActionID string             `json:"action_id" binding:"required"`
+	Resource resourceSerializer `json:"resource" binding:"required"`
+}
