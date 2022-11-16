@@ -38,7 +38,11 @@ type GroupService interface {
 
 	// web api
 	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
+	GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK int64, systemID string, expiredAt int64) (int64, error)
 	ListPagingSubjectGroups(subjectPK, beforeExpiredAt int64, limit, offset int64) ([]types.SubjectGroup, error)
+	ListPagingSubjectSystemGroups(
+		subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
+	) ([]types.SubjectGroup, error)
 	ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.ThinSubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
@@ -149,6 +153,31 @@ func (l *groupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expi
 	return count, nil
 }
 
+// GetSubjectSystemGroupCountBeforeExpiredAt ...
+func (l *groupService) GetSubjectSystemGroupCountBeforeExpiredAt(
+	subjectPK int64,
+	systemID string,
+	expiredAt int64,
+) (count int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "GetSubjectSystemGroupCountBeforeExpiredAt")
+
+	if expiredAt == 0 {
+		count, err = l.manager.GetSubjectSystemGroupCount(subjectPK, systemID)
+	} else {
+		count, err = l.manager.GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt)
+	}
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"manager.GetSubjectSystemGroupCountBeforeExpiredAt subjectPK=`%d, systemID=`%s`, expiredAt=`%d` fail",
+			subjectPK,
+			systemID,
+			expiredAt,
+		)
+	}
+	return count, nil
+}
+
 // GetGroupSubjectCountBeforeExpiredAt ...
 func (l *groupService) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error) {
 	return l.manager.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
@@ -172,6 +201,41 @@ func (l *groupService) ListPagingSubjectGroups(
 			err,
 			"manager.ListPagingSubjectGroupBeforeExpiredAt subjectPK=`%d`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
 			subjectPK,
+			beforeExpiredAt,
+			limit,
+			offset,
+		)
+	}
+
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
+	for _, r := range relations {
+		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+	}
+	return subjectGroups, err
+}
+
+// ListPagingSubjectSystemGroups ...
+func (l *groupService) ListPagingSubjectSystemGroups(
+	subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
+) (subjectGroups []types.SubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListPagingSubjectGroups")
+
+	var relations []dao.SubjectRelation
+	if beforeExpiredAt == 0 {
+		relations, err = l.manager.ListPagingSubjectSystemGroups(subjectPK, systemID, limit, offset)
+	} else {
+		relations, err = l.manager.ListPagingSubjectSystemGroupBeforeExpiredAt(
+			subjectPK, systemID, beforeExpiredAt, limit, offset,
+		)
+	}
+
+	if err != nil {
+		return subjectGroups, errorWrapf(
+			err,
+			"manager.ListPagingSubjectSystemGroupBeforeExpiredAt subjectPK=`%d`, "+
+				"systemID=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK,
+			systemID,
 			beforeExpiredAt,
 			limit,
 			offset,
