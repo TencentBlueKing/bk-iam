@@ -563,12 +563,12 @@ func (c *groupController) ListRbacGroupByResource(systemID, actionID string, res
 	}
 
 	if authType != types.AuthTypeRBAC {
-		return nil, errorWrapf(errors.New("only support rbac"), "authType=`%s`", authType)
+		return nil, errorWrapf(errors.New("only support rbac"), "authType=`%d`", authType)
 	}
 
 	// 查询操作关联的资源类型id
 	actionResourceTypePK, err := cacheimpls.GetLocalResourceTypePK(
-		actionResourceTypes[0].System, actionResourceTypes[0].Type,
+		actionResourceTypes[0].System, actionResourceTypes[0].Type, // 配置rbac的操作一定只关联了1个资源类型
 	)
 	if err != nil {
 		err = errorWrapf(
