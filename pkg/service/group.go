@@ -17,7 +17,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -40,7 +39,7 @@ type GroupService interface {
 	// web api
 	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
 	ListPagingSubjectGroups(subjectPK, beforeExpiredAt int64, limit, offset int64) ([]types.SubjectGroup, error)
-	FilterExistEffectSubjectGroupPKs(subjectPKs []int64, groupPKs []int64) ([]int64, error)
+	ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.ThinSubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -193,24 +192,26 @@ func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 }
 
-func (l *groupService) FilterExistEffectSubjectGroupPKs(
-	subjectPKs []int64,
+func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKGroupPKs(
+	subjectPK int64,
 	groupPKs []int64,
-) (existGroupPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterExistEffectSubjectGroupPKs")
+) (subjectGroups []types.ThinSubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroupsBySubjectPKGroupPKs")
 
-	// 过期时间必须大于当前时间
-	now := time.Now().Unix()
-
-	existGroupPKs, err = l.manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs, groupPKs, now)
+	relations, err := l.manager.ListThinRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
-			subjectPKs, groupPKs, now,
+			"manager.ListThinRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
+			subjectPK, groupPKs,
 		)
 	}
-	return set.NewInt64SetWithValues(existGroupPKs).ToSlice(), nil
+
+	subjectGroups = make([]types.ThinSubjectGroup, 0, len(relations))
+	for _, r := range relations {
+		subjectGroups = append(subjectGroups, convertThinRelationToThinSubjectGroup(r))
+	}
+	return subjectGroups, nil
 }
 
 // from subject_member.go

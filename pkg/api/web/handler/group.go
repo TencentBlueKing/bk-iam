@@ -127,7 +127,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, query.Inherit, groupIDs)
+	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, groupIDs)
 	if err != nil {
 		err = errorx.Wrapf(
 			err,

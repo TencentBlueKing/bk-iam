@@ -396,14 +396,14 @@ var _ = Describe("GroupController", func() {
 				service: mock.NewMockGroupService(ctl),
 			}
 
-			_, err := c.CheckSubjectEffectGroups("user", "notexist", true, []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "notexist", []string{"10", "20"})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetLocalSubjectPK")
 		})
 
 		It("get subject all group pks fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -411,45 +411,72 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20"})
 
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "FilterExistEffectSubjectGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListEffectThinSubjectGroupsBySubjectPKGroupPKs")
 		})
 
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]int64{10, 30}, nil,
+			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.ThinSubjectGroup{{
+					GroupPK:   10,
+					ExpiredAt: 1,
+				}, {
+					GroupPK:   30,
+					ExpiredAt: 1,
+				}}, nil,
 			).AnyTimes()
 
 			c := &groupController{
 				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
-			assert.True(GinkgoT(), groupIDBelong["10"])
-			assert.False(GinkgoT(), groupIDBelong["20"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     true,
+				"expired_at": int64(1),
+			}, groupIDBelong["10"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+			}, groupIDBelong["20"])
 		})
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]int64{10, 30}, nil,
+			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.ThinSubjectGroup{{
+					GroupPK:   10,
+					ExpiredAt: 1,
+				}, {
+					GroupPK:   30,
+					ExpiredAt: 1,
+				}}, nil,
 			).AnyTimes()
 
 			c := &groupController{
 				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20", "invalid"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20", "invalid"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
-			assert.True(GinkgoT(), groupIDBelong["10"])
-			assert.False(GinkgoT(), groupIDBelong["20"])
-			assert.False(GinkgoT(), groupIDBelong["invalid"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     true,
+				"expired_at": int64(1),
+			}, groupIDBelong["10"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+			}, groupIDBelong["20"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+			}, groupIDBelong["invalid"])
 		})
 	})
 })

@@ -14,7 +14,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
@@ -34,7 +33,7 @@ type GroupController interface {
 	GetSubjectGroupCountBeforeExpiredAt(_type, id string, beforeExpiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
 	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
-	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
+	CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error)
 
 	GetGroupMemberCount(_type, id string) (int64, error)
 	ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error)
@@ -134,9 +133,8 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 
 func (c *groupController) CheckSubjectEffectGroups(
 	_type, id string,
-	inherit bool,
 	groupIDs []string,
-) (map[string]bool, error) {
+) (map[string]map[string]interface{}, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
 
 	// subject Type+ID to PK
@@ -145,17 +143,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	subjectPKs := []int64{subjectPK}
-	if inherit && _type == types.UserType {
-		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
-		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
-		}
-
-		subjectPKs = append(subjectPKs, departmentPKs...)
-	}
-
-	groupIDToGroupPK := make(map[string]int64, len(groupIDs))
+	groupPKToID := make(map[int64]string, len(groupIDs))
 	groupPKs := make([]int64, 0, len(groupIDs))
 	for _, groupID := range groupIDs {
 		// if groupID is empty, skip
@@ -180,30 +168,41 @@ func (c *groupController) CheckSubjectEffectGroups(
 		}
 
 		groupPKs = append(groupPKs, groupPK)
-		groupIDToGroupPK[groupID] = groupPK
+		groupPKToID[groupPK] = groupID
 	}
 
 	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
-	effectGroupPKs, err := c.service.FilterExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	subjectGroups, err := c.service.ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"service.FilterExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
-			subjectPKs,
+			"service.ListEffectThinSubjectGroupsBySubjectPKGroupPKs subjectPKs=`%d`, groupPKs=`%+v` fail",
+			subjectPK,
 			groupPKs,
 		)
 	}
-	existGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
 
 	// the result
-	groupIDBelong := make(map[string]bool, len(groupIDs))
-	for _, groupID := range groupIDs {
-		groupPK, ok := groupIDToGroupPK[groupID]
+	groupIDBelong := make(map[string]map[string]interface{}, len(groupIDs))
+	for _, group := range subjectGroups {
+		groupID, ok := groupPKToID[group.GroupPK]
 		if !ok {
-			groupIDBelong[groupID] = false
 			continue
 		}
-		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
+
+		groupIDBelong[groupID] = map[string]interface{}{
+			"belong":     true,
+			"expired_at": group.ExpiredAt,
+		}
+	}
+
+	for _, groupID := range groupIDs {
+		if _, ok := groupIDBelong[groupID]; !ok {
+			groupIDBelong[groupID] = map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+			}
+		}
 	}
 
 	return groupIDBelong, nil
