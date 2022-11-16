@@ -1,3 +1,8 @@
+# 1.12.6
+
+- upgrade: /subjects-groups/belong api
+- add: query rbac resource group api
+
 # 1.12.5
 
 - restore subject_relation table field policy_expired_at
