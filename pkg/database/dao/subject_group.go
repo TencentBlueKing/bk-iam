@@ -70,9 +70,9 @@ type SubjectGroupManager interface {
 		expiredAt int64,
 		limit, offset int64,
 	) (members []ThinSubjectRelation, err error)
+	ListThinRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]ThinSubjectRelation, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
-	FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs []int64, groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationForUpdateExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
@@ -434,26 +434,26 @@ func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
 	return expiredGroupPKs, err
 }
 
-func (m *subjectGroupManager) FilterSubjectPKsExistGroupPKsAfterExpiredAt(
-	subjectPKs []int64,
+func (m *subjectGroupManager) ListThinRelationBySubjectPKGroupPKs(
+	subjectPK int64,
 	groupPKs []int64,
-	expiredAt int64,
-) ([]int64, error) {
-	existGroupPKs := []int64{}
+) ([]ThinSubjectRelation, error) {
+	relations := []ThinSubjectRelation{}
 
 	query := `SELECT
-		 parent_pk
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at
 		 FROM subject_relation
-		 WHERE subject_pk in (?)
-		 AND parent_pk in (?)
-		 AND policy_expired_at > ?`
+		 WHERE subject_pk = ?
+		 AND parent_pk in (?)`
 
-	err := database.SqlxSelect(m.DB, &existGroupPKs, query, subjectPKs, groupPKs, expiredAt)
+	err := database.SqlxSelect(m.DB, &relations, query, subjectPK, groupPKs)
 	if errors.Is(err, sql.ErrNoRows) {
-		return groupPKs, nil
+		return relations, nil
 	}
 
-	return groupPKs, err
+	return relations, err
 }
 
 func (m *subjectGroupManager) selectPagingMembers(
