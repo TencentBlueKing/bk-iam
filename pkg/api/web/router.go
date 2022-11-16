@@ -169,5 +169,8 @@ func RegisterV2(r *gin.RouterGroup) {
 	{
 		// policies 变更
 		s.POST("/policies", handler.AlterPoliciesV2)
+
+		// 查询rbac有资源实例权限的用户组
+		s.POST("/rbac/resource-groups", handler.QueryRbacGroupByResource)
 	}
 }

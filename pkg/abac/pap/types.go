@@ -49,3 +49,10 @@ type GroupSubject struct {
 	Group     Subject `json:"group"`
 	ExpiredAt int64   `json:"expired_at"`
 }
+
+// Resource ...
+type Resource struct {
+	System string `json:"system"`
+	Type   string `json:"type"`
+	ID     string `json:"id"`
+}

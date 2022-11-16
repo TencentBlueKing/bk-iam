@@ -457,3 +457,34 @@ func ListSystemSubjectGroups(c *gin.Context) {
 		"results": groups,
 	})
 }
+
+// QueryRbacGroupByResource 查询有资源实例权限的rbac用户组
+func QueryRbacGroupByResource(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "QueryRbacGroupByResource")
+
+	var body queryRbacGroupByResourceSerializer
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	systemID := c.Param("system_id")
+
+	ctl := pap.NewGroupController()
+
+	groups, err := ctl.ListRbacGroupByResource(systemID, body.ActionID, pap.Resource{
+		System: body.Resource.SystemID,
+		Type:   body.Resource.Type,
+		ID:     body.Resource.ID,
+	})
+	if err != nil {
+		err = errorWrapf(
+			err, "ctl.ListRbacGroupByResource systemID=`%s`, actionID=`%s`, resource=`%+v`",
+			systemID, body.ActionID, body.Resource,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", groups)
+}
