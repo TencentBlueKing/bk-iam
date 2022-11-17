@@ -155,7 +155,7 @@ func GetSystemCustomFrontendSettings(c *gin.Context) {
 	svc := service.NewSystemConfigService()
 	settings, err := svc.GetCustomFrontendSettings(systemID)
 	if errors.Is(err, sql.ErrNoRows) {
-		util.SuccessJSONResponse(c, "ok", []interface{}{})
+		util.SuccessJSONResponse(c, "ok", map[string]interface{}{})
 		return
 	}
 	if err != nil {
