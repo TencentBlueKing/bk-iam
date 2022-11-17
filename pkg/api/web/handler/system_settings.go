@@ -28,6 +28,7 @@ const (
 	SystemCommonActions          = "common-actions"
 	SystemFeatureShieldRules     = "feature-shield-rules"
 	SystemMangers                = "system-managers"
+	SystemCustomFrontendSettings = "custom-frontend-settings"
 )
 
 // GetSystemSettings ...
@@ -48,6 +49,9 @@ func GetSystemSettings(c *gin.Context) {
 		return
 	case SystemMangers:
 		GetSystemManger(c)
+		return
+	case SystemCustomFrontendSettings:
+		GetSystemCustomFrontendSettings(c)
 		return
 	default:
 		util.BadRequestErrorJSONResponse(c, fmt.Sprintf("unsupported settings name %s", name))
@@ -142,4 +146,22 @@ func GetSystemManger(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", sm)
+}
+
+// GetSystemCustomFrontendSettings ...
+func GetSystemCustomFrontendSettings(c *gin.Context) {
+	systemID := c.Param("system_id")
+
+	svc := service.NewSystemConfigService()
+	settings, err := svc.GetCustomFrontendSettings(systemID)
+	if errors.Is(err, sql.ErrNoRows) {
+		util.SuccessJSONResponse(c, "ok", []interface{}{})
+		return
+	}
+	if err != nil {
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", settings)
 }

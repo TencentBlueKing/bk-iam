@@ -24,13 +24,15 @@ import (
 
 // AllowConfigNames ...
 const (
-	AllowConfigNames = "action_groups,resource_creator_actions,common_actions,feature_shield_rules,system_managers"
+	AllowConfigNames = "action_groups,resource_creator_actions,common_actions,feature_shield_rules,system_managers," +
+		"custom_frontend_settings"
 
 	ConfigNameActionGroups           = "action_groups"
 	ConfigNameResourceCreatorActions = "resource_creator_actions"
 	ConfigNameCommonActions          = "common_actions"
 	ConfigNameFeatureShieldRules     = "feature_shield_rules"
 	ConfigNameSystemManagers         = "system_managers"
+	ConfigNameCustomFrontendSettings = "custom_frontend_settings"
 )
 
 // CreateOrUpdateConfigDispatch godoc
@@ -74,6 +76,9 @@ func CreateOrUpdateConfigDispatch(c *gin.Context) {
 		return
 	case ConfigNameSystemManagers:
 		systemMangerHandler(systemID, c)
+		return
+	case ConfigNameCustomFrontendSettings:
+		customFrontendSettingsMangerHandler(systemID, c)
 		return
 	default:
 		util.SystemErrorJSONResponse(c, errors.New("should not be here"))
@@ -249,6 +254,25 @@ func systemMangerHandler(systemID string, c *gin.Context) {
 	err := svc.CreateOrUpdateSystemManagers(systemID, sms)
 	if err != nil {
 		err = errorWrapf(err, "svc.CreateOrUpdateSystemManagers systemID=`%s` fail", systemID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", nil)
+}
+
+func customFrontendSettingsMangerHandler(systemID string, c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "customFrontendSettingsMangerHandler")
+	var body map[string]interface{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	svc := service.NewSystemConfigService()
+	err := svc.CreateOrUpdateCustomFrontendSettings(systemID, body)
+	if err != nil {
+		err = errorWrapf(err, "svc.CreateOrUpdateCustomFrontendSettings systemID=`%s` fail", systemID)
 		util.SystemErrorJSONResponse(c, err)
 		return
 	}
