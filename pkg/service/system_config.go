@@ -265,7 +265,7 @@ func (s *systemConfigService) CreateOrUpdateSystemManagers(system string, system
 	return s.createOrUpdate(system, ConfigKeySystemManagers, ConfigTypeJSON, systemManagers)
 }
 
-// GetFrontendDisplay ...
+// GetCustomFrontendSettings ...
 func (s *systemConfigService) GetCustomFrontendSettings(system string) (settings map[string]interface{}, err error) {
 	return s.getMapConfig(system, ConfigKeyCustomFrontendSettings)
 }
