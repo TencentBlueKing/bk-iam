@@ -280,7 +280,13 @@ func (c *groupController) ListPagingSubjectSystemGroups(
 		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcSubjectGroups, err := c.service.ListPagingSubjectSystemGroups(subjectPK, systemID, beforeExpiredAt, limit, offset)
+	svcSubjectGroups, err := c.service.ListPagingSubjectSystemGroups(
+		subjectPK,
+		systemID,
+		beforeExpiredAt,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, errorWrapf(
 			err, "service.ListPagingSubjectSystemGroups "+

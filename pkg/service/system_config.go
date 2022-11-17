@@ -36,6 +36,7 @@ const (
 	ConfigKeyCommonActions          = "common_actions"
 	ConfigKeyFeatureShieldRules     = "feature_shield_rules"
 	ConfigKeySystemManagers         = "system_managers"
+	ConfigKeyCustomFrontendSettings = "custom_frontend_settings"
 
 	ConfigTypeJSON = "json"
 )
@@ -67,6 +68,11 @@ type SystemConfigService interface {
 
 	GetSystemManagers(system string) (sm []interface{}, err error)
 	CreateOrUpdateSystemManagers(system string, systemManagers []interface{}) (err error)
+
+	// custom frontend settings
+
+	GetCustomFrontendSettings(system string) (settings map[string]interface{}, err error)
+	CreateOrUpdateCustomFrontendSettings(system string, settings map[string]interface{}) (err error)
 }
 
 type systemConfigService struct {
@@ -257,4 +263,16 @@ func (s *systemConfigService) GetSystemManagers(system string) (sm []interface{}
 // CreateOrUpdateSystemManagers ...
 func (s *systemConfigService) CreateOrUpdateSystemManagers(system string, systemManagers []interface{}) (err error) {
 	return s.createOrUpdate(system, ConfigKeySystemManagers, ConfigTypeJSON, systemManagers)
+}
+
+// GetCustomFrontendSettings ...
+func (s *systemConfigService) GetCustomFrontendSettings(system string) (settings map[string]interface{}, err error) {
+	return s.getMapConfig(system, ConfigKeyCustomFrontendSettings)
+}
+
+// CreateOrUpdateCustomFrontendSettings ...
+func (s *systemConfigService) CreateOrUpdateCustomFrontendSettings(
+	system string, settings map[string]interface{},
+) (err error) {
+	return s.createOrUpdate(system, ConfigKeyCustomFrontendSettings, ConfigTypeJSON, settings)
 }
