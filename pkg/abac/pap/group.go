@@ -13,11 +13,15 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac"
 	"iam/pkg/abac/pip"
+	abacTypes "iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	"iam/pkg/service"
@@ -53,21 +57,24 @@ type GroupController interface {
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
 	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
 
-	ListRbacGroupByResource(systemID, actionID string, resource Resource) ([]Subject, error)
+	ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error)
+	ListRbacGroupByActionResource(systemID, actionID string, resource abacTypes.Resource) ([]Subject, error)
 }
 
 type groupController struct {
 	service service.GroupService
 
-	subjectService         service.SubjectService
-	groupAlterEventService service.GroupAlterEventService
+	subjectService             service.SubjectService
+	groupAlterEventService     service.GroupAlterEventService
+	groupResourcePolicyService service.GroupResourcePolicyService
 }
 
 func NewGroupController() GroupController {
 	return &groupController{
-		service:                service.NewGroupService(),
-		subjectService:         service.NewSubjectService(),
-		groupAlterEventService: service.NewGroupAlterEventService(),
+		service:                    service.NewGroupService(),
+		subjectService:             service.NewSubjectService(),
+		groupAlterEventService:     service.NewGroupAlterEventService(),
+		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 	}
 }
 
@@ -612,9 +619,62 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 	}
 }
 
-// QueryRbacGroupByResource ...
-func (c *groupController) ListRbacGroupByResource(systemID, actionID string, resource Resource) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByResource")
+// ListRbacGroupByResource ...
+func (c *groupController) ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByActionResource")
+
+	// 解析资源实例信息
+	resourceNodes, err := abac.ParseResourceNode(resource)
+	if err != nil {
+		err = errorWrapf(
+			err, "abac.ParseResourceNode resource=`%+v`",
+			resource,
+		)
+		return nil, err
+	}
+
+	// 没有操作筛选的情况下选择最后一个资源类型的类型pk
+	actionResourceTypePK := resourceNodes[len(resourceNodes)-1].TypePK
+
+	groupPKset := set.NewInt64Set()
+	// 查询有权限的用户组
+	for _, resourceNode := range resourceNodes {
+		actionGroupPKs, err := c.groupResourcePolicyService.GetAuthorizedActionGroupMap(
+			systemID, actionResourceTypePK, resourceNode.TypePK, resourceNode.ID,
+		)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"svc.GetAuthorizedActionGroupMap fail, system=`%s`, resource=`%+v`",
+				systemID,
+				resourceNode,
+			)
+			return nil, err
+		}
+
+		for _, groupPKs := range actionGroupPKs {
+			groupPKset.Append(groupPKs...)
+		}
+	}
+
+	// 查询用户组信息
+	groups, err := groupPKsToSubjects(groupPKset.ToSlice())
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupPKsToSubjects fail",
+		)
+		return nil, err
+	}
+	return groups, nil
+}
+
+// ListRbacGroupByResource ...
+func (c *groupController) ListRbacGroupByActionResource(
+	systemID, actionID string,
+	resource abacTypes.Resource,
+) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByActionResource")
 
 	// 查询操作相关的信息
 	actionPK, authType, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
@@ -642,38 +702,53 @@ func (c *groupController) ListRbacGroupByResource(systemID, actionID string, res
 		return nil, err
 	}
 
-	// 查询资源类型的pk
-	resourceTypePK, err := cacheimpls.GetLocalResourceTypePK(resource.System, resource.Type)
+	// 解析资源实例信息
+	resourceNodes, err := abac.ParseResourceNode(resource)
 	if err != nil {
 		err = errorWrapf(
-			err, "cacheimpls.GetLocalResourceTypePK systemID=`%s`, resourceType=`%s`",
-			resource.System, resource.Type,
+			err, "abac.ParseResourceNode resource=`%+v`",
+			resource,
 		)
 		return nil, err
 	}
 
+	groupPKset := set.NewInt64Set()
 	// 查询有权限的用户组
-	groupPKs, err := cacheimpls.GetResourceActionAuthorizedGroupPKs(
-		systemID,
-		actionPK,
-		actionResourceTypePK,
-		resourceTypePK,
-		resource.ID,
-	)
-	if err != nil {
-		err = errorWrapf(
-			err, "cacheimpls.GetResourceActionAuthorizedGroupPKs "+
-				"systemID=`%s`, actionPK=`%d`, actionResourceTypePK=`%d`, resourceTypePK==`%d`, resourceID=`%s`",
+	for _, resourceNode := range resourceNodes {
+		groupPKs, err := cacheimpls.GetResourceActionAuthorizedGroupPKs(
 			systemID,
 			actionPK,
 			actionResourceTypePK,
-			resourceTypePK,
-			resource.ID,
+			resourceNode.TypePK,
+			resourceNode.ID,
 		)
-		return nil, err
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"cacheimpls.GetResourceActionAuthorizedGroupPKs fail, system=`%s` action_id=`%s` resource=`%+v`",
+				systemID,
+				actionID,
+				resourceNode,
+			)
+			return nil, err
+		}
+
+		groupPKset.Append(groupPKs...)
 	}
 
 	// 查询用户组信息
+	groups, err := groupPKsToSubjects(groupPKset.ToSlice())
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupPKsToSubjects fail",
+		)
+		return nil, err
+	}
+	return groups, nil
+}
+
+func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
 	groups := make([]Subject, 0, len(groupPKs))
 	for _, pk := range groupPKs {
 		subject, err := cacheimpls.GetSubjectByPK(pk)
@@ -682,7 +757,7 @@ func (c *groupController) ListRbacGroupByResource(systemID, actionID string, res
 				continue
 			}
 
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
+			return nil, fmt.Errorf("subject query fail, subjectPK=`%d`", pk)
 		}
 
 		groups = append(groups, Subject{

@@ -6,6 +6,7 @@ package mock
 
 import (
 	pap "iam/pkg/abac/pap"
+	types "iam/pkg/abac/types"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -244,19 +245,34 @@ func (mr *MockGroupControllerMockRecorder) ListPagingSubjectSystemGroups(_type, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectSystemGroups", reflect.TypeOf((*MockGroupController)(nil).ListPagingSubjectSystemGroups), _type, id, systemID, beforeExpiredAt, limit, offset)
 }
 
-// ListRbacGroupByResource mocks base method.
-func (m *MockGroupController) ListRbacGroupByResource(systemID, actionID string, resource pap.Resource) ([]pap.Subject, error) {
+// ListRbacGroupByActionResource mocks base method.
+func (m *MockGroupController) ListRbacGroupByActionResource(systemID, actionID string, resource types.Resource) ([]pap.Subject, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListRbacGroupByResource", systemID, actionID, resource)
+	ret := m.ctrl.Call(m, "ListRbacGroupByActionResource", systemID, actionID, resource)
+	ret0, _ := ret[0].([]pap.Subject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRbacGroupByActionResource indicates an expected call of ListRbacGroupByActionResource.
+func (mr *MockGroupControllerMockRecorder) ListRbacGroupByActionResource(systemID, actionID, resource interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRbacGroupByActionResource", reflect.TypeOf((*MockGroupController)(nil).ListRbacGroupByActionResource), systemID, actionID, resource)
+}
+
+// ListRbacGroupByResource mocks base method.
+func (m *MockGroupController) ListRbacGroupByResource(systemID string, resource types.Resource) ([]pap.Subject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRbacGroupByResource", systemID, resource)
 	ret0, _ := ret[0].([]pap.Subject)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListRbacGroupByResource indicates an expected call of ListRbacGroupByResource.
-func (mr *MockGroupControllerMockRecorder) ListRbacGroupByResource(systemID, actionID, resource interface{}) *gomock.Call {
+func (mr *MockGroupControllerMockRecorder) ListRbacGroupByResource(systemID, resource interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRbacGroupByResource", reflect.TypeOf((*MockGroupController)(nil).ListRbacGroupByResource), systemID, actionID, resource)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRbacGroupByResource", reflect.TypeOf((*MockGroupController)(nil).ListRbacGroupByResource), systemID, resource)
 }
 
 // UpdateGroupMembersExpiredAt mocks base method.
