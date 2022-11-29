@@ -621,7 +621,7 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 
 // ListRbacGroupByResource ...
 func (c *groupController) ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByActionResource")
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByResource")
 
 	// 解析资源实例信息
 	resourceNodes, err := abac.ParseResourceNode(resource)

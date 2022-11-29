@@ -15,10 +15,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
+
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
-
-	"github.com/TencentBlueKing/gopkg/collection/set"
 )
 
 // ParseResourceNode 解析资源节点并去重
