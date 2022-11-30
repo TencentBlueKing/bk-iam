@@ -201,7 +201,7 @@ type listGroupSubjectSerializer struct {
 	pageSerializer
 }
 
-type resource struct {
+type rbacResource struct {
 	System    string                 `json:"system" binding:"required" example:"bk_paas"`
 	Type      string                 `json:"type" binding:"required" example:"app"`
 	ID        string                 `json:"id" binding:"required" example:"framework"`
@@ -209,6 +209,6 @@ type resource struct {
 }
 
 type queryRbacGroupByResourceSerializer struct {
-	ActionID string   `json:"action_id" binding:"omitempty"`
-	Resource resource `json:"resource" binding:"required"`
+	ActionID string       `json:"action_id" binding:"omitempty"`
+	Resource rbacResource `json:"resource" binding:"required"`
 }
