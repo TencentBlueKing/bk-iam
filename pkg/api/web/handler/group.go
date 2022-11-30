@@ -19,6 +19,7 @@ import (
 	"github.com/jinzhu/copier"
 
 	"iam/pkg/abac/pap"
+	abacTypes "iam/pkg/abac/types"
 	"iam/pkg/api/common"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -472,18 +473,37 @@ func QueryRbacGroupByResource(c *gin.Context) {
 
 	ctl := pap.NewGroupController()
 
-	groups, err := ctl.ListRbacGroupByResource(systemID, body.ActionID, pap.Resource{
-		System: body.Resource.SystemID,
-		Type:   body.Resource.Type,
-		ID:     body.Resource.ID,
-	})
-	if err != nil {
-		err = errorWrapf(
-			err, "ctl.ListRbacGroupByResource systemID=`%s`, actionID=`%s`, resource=`%+v`",
-			systemID, body.ActionID, body.Resource,
-		)
-		util.SystemErrorJSONResponse(c, err)
-		return
+	resource := abacTypes.Resource{
+		System:    body.Resource.System,
+		Type:      body.Resource.Type,
+		ID:        body.Resource.ID,
+		Attribute: body.Resource.Attribute,
+	}
+
+	var (
+		groups []pap.Subject
+		err    error
+	)
+	if body.ActionID != "" {
+		groups, err = ctl.ListRbacGroupByActionResource(systemID, body.ActionID, resource)
+		if err != nil {
+			err = errorWrapf(
+				err, "ctl.ListRbacGroupByActionResource systemID=`%s`, actionID=`%s`, resource=`%+v`",
+				systemID, body.ActionID, body.Resource,
+			)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
+	} else {
+		groups, err = ctl.ListRbacGroupByResource(systemID, resource)
+		if err != nil {
+			err = errorWrapf(
+				err, "ctl.ListRbacGroupByResource systemID=`%s`, resource=`%+v`",
+				systemID, body.Resource,
+			)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
 	}
 
 	util.SuccessJSONResponse(c, "ok", groups)
