@@ -56,7 +56,9 @@ func GetActionDetail(systemID, actionID string) (detail types.ActionDetail, err 
 	}
 
 	err = ActionDetailCache.GetInto(key, &detail, retrieveActionDetail)
-	err = errorx.Wrapf(err, CacheLayer, "GetActionDetail",
-		"ActionDetailCache.GetInto key=`%s` fail", key.Key())
+	if err != nil {
+		err = errorx.Wrapf(err, CacheLayer, "GetActionDetail",
+			"ActionDetailCache.GetInto key=`%s` fail", key.Key())
+	}
 	return
 }

@@ -97,8 +97,8 @@ func batchGetSystemSubjectGroups(
 	}
 	hitCacheResults, err := SubjectSystemGroupCache.BatchGet(keys)
 	if err != nil {
-		err = errorWrapf(err, "SubjectGroupCache.BatchGet keys=`%+v` fail", keys)
-		return
+		// 只记日志, 缓存查询错误时 fallback 到 db 查询
+		log.WithError(err).Errorf("[%s] SubjectGroupCache.BatchGet keys=`%+v` fail", CacheLayer, keys)
 	}
 
 	for _, pk := range pks {
@@ -117,7 +117,7 @@ func batchGetSystemSubjectGroups(
 		}
 	}
 
-	return subjectGroups, notExistCachePKs, err
+	return subjectGroups, notExistCachePKs, nil
 }
 
 func setMissingSystemSubjectGroup(
