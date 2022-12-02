@@ -76,12 +76,9 @@ func retrieveResourceActionAuthorizedGroupPKs(key SystemResourceCacheKey, action
 	}
 
 	groupPKs := actionGroupPKs[actionPK]
-	err = setActionGroupPKs(key, actionPK, groupPKs)
-	if err != nil {
-		return nil, err
-	}
+	setActionGroupPKs(key, actionPK, groupPKs)
 
-	return actionGroupPKs[actionPK], nil
+	return groupPKs, nil
 }
 
 func setActionGroupPKs(key cache.Key, actionPK int64, groupPKs []int64) error {
@@ -96,6 +93,7 @@ func setActionGroupPKs(key cache.Key, actionPK int64, groupPKs []int64) error {
 
 	err = GroupResourcePolicyCache.HSet(hashKeyField, conv.BytesToString(_bytes))
 	if err != nil {
+		log.WithError(err).Errorf("GroupResourcePolicyCache.HSet field=`%s` fail", hashKeyField)
 		return err
 	}
 
@@ -103,6 +101,9 @@ func setActionGroupPKs(key cache.Key, actionPK int64, groupPKs []int64) error {
 		key,
 		GroupResourcePolicyCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
 	)
+	if err != nil {
+		log.WithError(err).Errorf("GroupResourcePolicyCache.Expire key=`%s` fail", key)
+	}
 
 	return err
 }
@@ -116,14 +117,14 @@ func getResourceActionAuthorizedGroupPKsFromCache(key cache.Key, actionPK int64)
 
 	value, err := GroupResourcePolicyCache.HGet(hashKeyField)
 	if err != nil {
-		log.Errorf("GetResourceActionAuthorizedGroupPKs error: %s", err.Error())
+		log.WithError(err).Errorf("GroupResourcePolicyCache.HGet field=`%+v` fail", hashKeyField)
 		return nil, err
 	}
 
 	var groupPKs []int64
 	err = GroupResourcePolicyCache.Unmarshal(conv.StringToBytes(value), &groupPKs)
 	if err != nil {
-		log.Errorf("GetResourceActionAuthorizedGroupPKs error: %s", err.Error())
+		log.WithError(err).Errorf("GroupResourcePolicyCache.Unmarshal value=`%s` fail", value)
 		return nil, err
 	}
 
