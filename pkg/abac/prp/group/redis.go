@@ -159,7 +159,9 @@ func (r *groupAuthTypeRedisRetriever) batchSetGroupAuthTypeCache(groupAuthTypes 
 	)
 	if err != nil {
 		// 缓存设置失败, 不影响正常鉴权, 只记日志
-		log.WithError(err).Errorf("[%s] cacheimpls.GroupSystemAuthTypeCache.BatchSetWithTx keys=`%+v` fail", RedisLayer, cacheKvs)
+		log.WithError(err).Errorf(
+			"[%s] cacheimpls.GroupSystemAuthTypeCache.BatchSetWithTx keys=`%+v` fail", RedisLayer, cacheKvs,
+		)
 	}
 
 	return nil
