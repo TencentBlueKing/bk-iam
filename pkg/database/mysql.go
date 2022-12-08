@@ -93,7 +93,7 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		cfg.Name,
 		"utf8",
 		"UTC",
-		url.QueryEscape("+00:00"),
+		url.QueryEscape("'+00:00'"),
 	)
 
 	maxOpenConns := defaultMaxOpenConns
