@@ -70,7 +70,7 @@ type SubjectGroupManager interface {
 		expiredAt int64,
 		limit, offset int64,
 	) (members []ThinSubjectRelation, err error)
-	ListThinRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]ThinSubjectRelation, error)
+	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectRelation, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
@@ -434,16 +434,18 @@ func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
 	return expiredGroupPKs, err
 }
 
-func (m *subjectGroupManager) ListThinRelationBySubjectPKGroupPKs(
+func (m *subjectGroupManager) ListRelationBySubjectPKGroupPKs(
 	subjectPK int64,
 	groupPKs []int64,
-) ([]ThinSubjectRelation, error) {
-	relations := []ThinSubjectRelation{}
+) ([]SubjectRelation, error) {
+	relations := []SubjectRelation{}
 
 	query := `SELECT
+		 pk,
 		 subject_pk,
 		 parent_pk,
-		 policy_expired_at
+		 policy_expired_at,
+		 created_at
 		 FROM subject_relation
 		 WHERE subject_pk = ?
 		 AND parent_pk in (?)`

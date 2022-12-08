@@ -215,9 +215,11 @@ func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 func Test_subjectRelationManager_ListThinRelationBySubjectPKGroupPKs(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT
+		pk,
 		subject_pk,
 		parent_pk,
-		policy_expired_at
+		policy_expired_at,
+		created_at
 		FROM subject_relation
 		WHERE subject_pk = (.*)
 		AND parent_pk in (.*)`
@@ -231,7 +233,7 @@ func Test_subjectRelationManager_ListThinRelationBySubjectPKGroupPKs(t *testing.
 		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1)).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListThinRelationBySubjectPKGroupPKs(
+		relations, err := manager.ListRelationBySubjectPKGroupPKs(
 			123,
 			[]int64{1},
 		)

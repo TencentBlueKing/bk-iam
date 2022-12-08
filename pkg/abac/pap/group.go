@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -212,11 +213,11 @@ func (c *groupController) CheckSubjectEffectGroups(
 	}
 
 	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
-	subjectGroups, err := c.service.ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs)
+	subjectGroups, err := c.service.ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"service.ListEffectThinSubjectGroupsBySubjectPKGroupPKs subjectPKs=`%d`, groupPKs=`%+v` fail",
+			"service.ListEffectSubjectGroupsBySubjectPKGroupPKs subjectPKs=`%d`, groupPKs=`%+v` fail",
 			subjectPK,
 			groupPKs,
 		)
@@ -233,6 +234,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 		groupIDBelong[groupID] = map[string]interface{}{
 			"belong":     true,
 			"expired_at": group.ExpiredAt,
+			"created_at": group.CreatedAt,
 		}
 	}
 
@@ -241,6 +243,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 			groupIDBelong[groupID] = map[string]interface{}{
 				"belong":     false,
 				"expired_at": 0,
+				"created_at": time.Time{},
 			}
 		}
 	}

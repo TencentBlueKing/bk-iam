@@ -212,6 +212,21 @@ func (mr *MockGroupServiceMockRecorder) GetSubjectSystemGroupCountBeforeExpiredA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
 }
 
+// ListEffectSubjectGroupsBySubjectPKGroupPKs mocks base method.
+func (m *MockGroupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListEffectSubjectGroupsBySubjectPKGroupPKs", subjectPK, groupPKs)
+	ret0, _ := ret[0].([]types.SubjectGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListEffectSubjectGroupsBySubjectPKGroupPKs indicates an expected call of ListEffectSubjectGroupsBySubjectPKGroupPKs.
+func (mr *MockGroupServiceMockRecorder) ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectSubjectGroupsBySubjectPKGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListEffectSubjectGroupsBySubjectPKGroupPKs), subjectPK, groupPKs)
+}
+
 // ListEffectThinSubjectGroups mocks base method.
 func (m *MockGroupService) ListEffectThinSubjectGroups(systemID string, subjectPKs []int64) (map[int64][]types.ThinSubjectGroup, error) {
 	m.ctrl.T.Helper()
@@ -225,21 +240,6 @@ func (m *MockGroupService) ListEffectThinSubjectGroups(systemID string, subjectP
 func (mr *MockGroupServiceMockRecorder) ListEffectThinSubjectGroups(systemID, subjectPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectThinSubjectGroups", reflect.TypeOf((*MockGroupService)(nil).ListEffectThinSubjectGroups), systemID, subjectPKs)
-}
-
-// ListEffectThinSubjectGroupsBySubjectPKGroupPKs mocks base method.
-func (m *MockGroupService) ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.ThinSubjectGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectThinSubjectGroupsBySubjectPKGroupPKs", subjectPK, groupPKs)
-	ret0, _ := ret[0].([]types.ThinSubjectGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListEffectThinSubjectGroupsBySubjectPKGroupPKs indicates an expected call of ListEffectThinSubjectGroupsBySubjectPKGroupPKs.
-func (mr *MockGroupServiceMockRecorder) ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectThinSubjectGroupsBySubjectPKGroupPKs", reflect.TypeOf((*MockGroupService)(nil).ListEffectThinSubjectGroupsBySubjectPKGroupPKs), subjectPK, groupPKs)
 }
 
 // ListEffectThinSubjectGroupsBySubjectPKs mocks base method.
