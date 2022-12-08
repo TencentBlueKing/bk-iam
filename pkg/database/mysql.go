@@ -12,6 +12,7 @@ package database
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -69,11 +70,6 @@ func (db *DBClient) Connect() error {
 	db.DB.SetMaxIdleConns(db.maxIdleConns)
 	db.DB.SetConnMaxLifetime(db.connMaxLifetime)
 
-	_, err = db.DB.Exec(`SET time_zone = "+00:00";`) // set session time zon to utc
-	if err != nil {
-		return err
-	}
-
 	log.Infof("connect to database: %s[maxOpenConns=%d, maxIdleConns=%d, connMaxLifetime=%s]",
 		db.name, db.maxOpenConns, db.maxIdleConns, db.connMaxLifetime)
 
@@ -89,7 +85,7 @@ func (db *DBClient) Close() {
 
 // NewDBClient :
 func NewDBClient(cfg *config.Database) *DBClient {
-	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s",
+	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s&time_zone=%s",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,
@@ -97,6 +93,7 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		cfg.Name,
 		"utf8",
 		"UTC",
+		url.QueryEscape("+00:00"),
 	)
 
 	maxOpenConns := defaultMaxOpenConns
