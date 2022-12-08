@@ -13,6 +13,7 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
@@ -405,7 +406,7 @@ var _ = Describe("GroupController", func() {
 
 		It("get subject all group pks fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -416,18 +417,20 @@ var _ = Describe("GroupController", func() {
 			_, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20"})
 
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListEffectThinSubjectGroupsBySubjectPKGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListEffectSubjectGroupsBySubjectPKGroupPKs")
 		})
 
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.ThinSubjectGroup{{
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.SubjectGroup{{
 					GroupPK:   10,
 					ExpiredAt: 1,
+					CreatedAt: time.Time{},
 				}, {
 					GroupPK:   30,
 					ExpiredAt: 1,
+					CreatedAt: time.Time{},
 				}}, nil,
 			).AnyTimes()
 
@@ -441,17 +444,19 @@ var _ = Describe("GroupController", func() {
 			assert.Equal(GinkgoT(), map[string]interface{}{
 				"belong":     true,
 				"expired_at": int64(1),
+				"created_at": time.Time{},
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
 				"belong":     false,
 				"expired_at": 0,
+				"created_at": time.Time{},
 			}, groupIDBelong["20"])
 		})
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().ListEffectThinSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.ThinSubjectGroup{{
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.SubjectGroup{{
 					GroupPK:   10,
 					ExpiredAt: 1,
 				}, {
@@ -470,14 +475,17 @@ var _ = Describe("GroupController", func() {
 			assert.Equal(GinkgoT(), map[string]interface{}{
 				"belong":     true,
 				"expired_at": int64(1),
+				"created_at": time.Time{},
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
 				"belong":     false,
 				"expired_at": 0,
+				"created_at": time.Time{},
 			}, groupIDBelong["20"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
 				"belong":     false,
 				"expired_at": 0,
+				"created_at": time.Time{},
 			}, groupIDBelong["invalid"])
 		})
 	})

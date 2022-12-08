@@ -43,7 +43,7 @@ type GroupService interface {
 	ListPagingSubjectSystemGroups(
 		subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
 	) ([]types.SubjectGroup, error)
-	ListEffectThinSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.ThinSubjectGroup, error)
+	ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -256,24 +256,24 @@ func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 }
 
-func (l *groupService) ListEffectThinSubjectGroupsBySubjectPKGroupPKs(
+func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 	subjectPK int64,
 	groupPKs []int64,
-) (subjectGroups []types.ThinSubjectGroup, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectThinSubjectGroupsBySubjectPKGroupPKs")
+) (subjectGroups []types.SubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectSubjectGroupsBySubjectPKGroupPKs")
 
-	relations, err := l.manager.ListThinRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
+	relations, err := l.manager.ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.ListThinRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
+			"manager.ListRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
 			subjectPK, groupPKs,
 		)
 	}
 
-	subjectGroups = make([]types.ThinSubjectGroup, 0, len(relations))
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
 	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertThinRelationToThinSubjectGroup(r))
+		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
 	}
 	return subjectGroups, nil
 }

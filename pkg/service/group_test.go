@@ -300,7 +300,7 @@ var _ = Describe("GroupService", func() {
 		It("manager.ListEffectThinSubjectGroupsBySubjectPKGroupPKs fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				ListThinRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
+				ListRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
 				Return(
 					nil, errors.New("error"),
 				).
@@ -310,17 +310,17 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.ListEffectThinSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
+			_, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "ListThinRelationBySubjectPKGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListRelationBySubjectPKGroupPKs")
 		})
 
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				ListThinRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
+				ListRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
 				Return(
-					[]dao.ThinSubjectRelation{{
+					[]dao.SubjectRelation{{
 						SubjectPK: 123,
 						GroupPK:   1,
 						ExpiredAt: 1,
@@ -336,9 +336,9 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			subjectGroups, err := manager.ListEffectThinSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
+			subjectGroups, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
 			assert.NoError(GinkgoT(), err)
-			assert.ElementsMatch(GinkgoT(), []types.ThinSubjectGroup{{
+			assert.ElementsMatch(GinkgoT(), []types.SubjectGroup{{
 				GroupPK:   1,
 				ExpiredAt: 1,
 			}, {
