@@ -15,13 +15,13 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/golang/mock/gomock"
-	jsoniter "github.com/json-iterator/go"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/database/dao/mock"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 func assertJsonStringOfInt64Slice(t assert.TestingT, expected string, input string) {
@@ -30,10 +30,10 @@ func assertJsonStringOfInt64Slice(t assert.TestingT, expected string, input stri
 		i []int64
 	)
 
-	err := jsoniter.UnmarshalFromString(expected, &e)
+	err := json.UnmarshalFromString(expected, &e)
 	assert.NoError(t, err)
 
-	err = jsoniter.UnmarshalFromString(input, &i)
+	err = json.UnmarshalFromString(input, &i)
 	assert.NoError(t, err)
 
 	assert.ElementsMatch(t, e, i)
@@ -89,7 +89,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 		Context("calculateChangedActionPKs", func() {
 			It("json loads error", func() {
 				aks, err := interSvc.calculateChangedActionPKs("[x]", set.NewInt64Set(), types.ResourceChangedContent{})
-				assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString (.*) fail", err.Error())
+				assert.Regexp(GinkgoT(), "json.UnmarshalFromString (.*) fail", err.Error())
 				assert.Equal(GinkgoT(), "", aks)
 			})
 			It("old_action_pks empty", func() {
@@ -281,7 +281,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			assert.Regexp(GinkgoT(), "manager.ListThinByResource fail", err.Error())
 		})
 
-		It("jsoniter.UnmarshalFromString error", func() {
+		It("json.UnmarshalFromString error", func() {
 			mockManager.EXPECT().
 				ListThinByResource("test", int64(1), int64(2), "resource_test").
 				Return([]dao.ThinGroupResourcePolicy{{
@@ -291,7 +291,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 			_, err := svc.GetAuthorizedActionGroupMap("test", int64(1), int64(2), "resource_test")
 			assert.Error(GinkgoT(), err)
-			assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString fail", err.Error())
+			assert.Regexp(GinkgoT(), "json.UnmarshalFromString fail", err.Error())
 		})
 
 		It("ok", func() {
@@ -353,7 +353,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 			assert.Regexp(GinkgoT(), "manager.ListByGroupSystemActionRelatedResourceType fail", err.Error())
 		})
 
-		It("jsoniter.UnmarshalFromString error", func() {
+		It("json.UnmarshalFromString error", func() {
 			mockManager.EXPECT().
 				ListByGroupSystemActionRelatedResourceType(int64(1), "test", int64(1)).
 				Return([]dao.GroupResourcePolicy{{
@@ -363,7 +363,7 @@ var _ = Describe("GroupResourcePolicyService", func() {
 
 			_, err := svc.ListResourceByGroupAction(int64(1), "test", int64(1), int64(1))
 			assert.Error(GinkgoT(), err)
-			assert.Regexp(GinkgoT(), "jsoniter.UnmarshalFromString fail", err.Error())
+			assert.Regexp(GinkgoT(), "json.UnmarshalFromString fail", err.Error())
 		})
 
 		It("ok", func() {

@@ -18,9 +18,9 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/sdao"
+	"iam/pkg/util/json"
 )
 
 // SystemConfigSVC ...
@@ -100,7 +100,7 @@ func (s *systemConfigService) get(system string, key string) (data interface{}, 
 		return
 	}
 
-	err = jsoniter.UnmarshalFromString(sc.Value, &data)
+	err = json.UnmarshalFromString(sc.Value, &data)
 	if err != nil {
 		err = errorWrapf(err, "unmarshal system=`%s`, key=`%s`, value=`%s` fail", system, key, sc.Value)
 	}
@@ -148,7 +148,7 @@ func (s *systemConfigService) create(system, key, _type string, data interface{}
 		err   error
 	)
 	if _type == ConfigTypeJSON {
-		value, err = jsoniter.MarshalToString(data)
+		value, err = json.MarshalToString(data)
 		if err != nil {
 			return errorWrapf(err, "unmarshal data=`%+v` fail", data)
 		}
@@ -171,7 +171,7 @@ func (s *systemConfigService) update(systemConfig sdao.SaaSSystemConfig, data in
 		err   error
 	)
 	if systemConfig.Type == ConfigTypeJSON {
-		value, err = jsoniter.MarshalToString(data)
+		value, err = json.MarshalToString(data)
 		if err != nil {
 			return errorWrapf(err, "unmarshal data=`%+v` fail", data)
 		}

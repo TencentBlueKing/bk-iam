@@ -14,11 +14,11 @@ package event
 import (
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/task"
 	"iam/pkg/task/producer"
+	"iam/pkg/util/json"
 )
 
 const PapEvent = "PapEvent"
@@ -60,7 +60,7 @@ func (p *policyEventProducer) publishDeletePolicyEvent(deletePolicyIDs []int64) 
 		"type":      EngineDeletionTypePolicy,
 		"data":      map[string]any{"policy_ids": deletePolicyIDs},
 	}
-	message, err := jsoniter.MarshalToString(data)
+	message, err := json.MarshalToString(data)
 	if err != nil {
 		log.WithError(err).
 			Errorf("pap.createDeletePolicyEvent marshal message data=`%+v` fail", data)

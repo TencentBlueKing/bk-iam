@@ -14,12 +14,12 @@ package event
 import (
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/service/types"
 	"iam/pkg/task"
 	"iam/pkg/task/producer"
+	"iam/pkg/util/json"
 )
 
 type SubjectEventProducer interface {
@@ -42,7 +42,7 @@ func (p *subjectEventProducer) PublishDeleteEvent(deleteSubjects []types.Subject
 		"type":      EngineDeletionTypeSubject,
 		"data":      map[string]any{"subjects": deleteSubjects},
 	}
-	message, err := jsoniter.MarshalToString(data)
+	message, err := json.MarshalToString(data)
 	if err != nil {
 		log.WithError(err).
 			Errorf("pap.createDeletePolicyEvent marshal message data=`%+v` fail", data)

@@ -49,27 +49,27 @@ fmt:
 test:
 # Apple Silicon
 ifeq ("$(shell go env GOOS)-$(shell go env GOARCH)","darwin-arm64")
-	GOARCH=amd64 go test -mod=vendor -gcflags=all=-l $(shell go list ./... | grep -v mock | grep -v docs) -covermode=count -coverprofile .coverage.cov
+	GOARCH=amd64 go test -tags=go_json -mod=vendor -gcflags=all=-l $(shell go list ./... | grep -v mock | grep -v docs) -covermode=count -coverprofile .coverage.cov
 else
-	go test -mod=vendor -gcflags=all=-l $(shell go list ./... | grep -v mock | grep -v docs) -covermode=count -coverprofile .coverage.cov
+	go test -tags=go_json -mod=vendor -gcflags=all=-l $(shell go list ./... | grep -v mock | grep -v docs) -covermode=count -coverprofile .coverage.cov
 endif
 
 cov:
 	go tool cover -html=.coverage.cov
 
 bench:
-	go test -run=nonthingplease -benchmem -bench=. $(shell go list ./... | grep -v /vendor/)
+	go test -tags=go_json -run=nonthingplease -benchmem -bench=. $(shell go list ./... | grep -v /vendor/)
 
 build:
 	# go build .
-	go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	go build -mod=vendor -tags=go_json -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 build-linux:
 	# GOOS=linux GOARCH=amd64 go build .
-	GOOS=linux GOARCH=amd64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	GOOS=linux GOARCH=amd64 go build -mod=vendor -tags=go_json -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 build-aarch64:
-	GOOS=linux GOARCH=arm64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	GOOS=linux GOARCH=arm64 go build -mod=vendor -tags=go_json -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 all: lint test build
 

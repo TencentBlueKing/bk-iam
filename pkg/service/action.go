@@ -24,12 +24,12 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // ActionSVC ...
@@ -147,7 +147,7 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	}
 
 	if dbAction.RelatedEnvironments != "" {
-		err = jsoniter.UnmarshalFromString(dbAction.RelatedEnvironments, &action.RelatedEnvironments)
+		err = json.UnmarshalFromString(dbAction.RelatedEnvironments, &action.RelatedEnvironments)
 		if err != nil {
 			return action, errorWrapf(
 				err,
@@ -223,13 +223,13 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			Version:       ac.Version,
 		}
 		if ac.RelatedActions != "" {
-			err = jsoniter.UnmarshalFromString(ac.RelatedActions, &action.RelatedActions)
+			err = json.UnmarshalFromString(ac.RelatedActions, &action.RelatedActions)
 			if err != nil {
 				return nil, errorWrapf(err, "unmarshal action.RelatedActions=`%+v` fail", ac.RelatedActions)
 			}
 		}
 		if ac.RelatedEnvironments != "" {
-			err = jsoniter.UnmarshalFromString(ac.RelatedEnvironments, &action.RelatedEnvironments)
+			err = json.UnmarshalFromString(ac.RelatedEnvironments, &action.RelatedEnvironments)
 			if err != nil {
 				return nil, errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", ac.RelatedEnvironments)
 			}
@@ -272,7 +272,7 @@ func (l *actionService) convertToDBRelatedResourceTypes(
 	for _, rt := range action.RelatedResourceTypes {
 		var relatedInstanceSelections string
 		if len(rt.RelatedInstanceSelections) > 0 {
-			relatedInstanceSelections, err = jsoniter.MarshalToString(rt.RelatedInstanceSelections)
+			relatedInstanceSelections, err = json.MarshalToString(rt.RelatedInstanceSelections)
 			if err != nil {
 				err = errorWrapf(err, "marshal rt.RelatedInstanceSelections=`%+v` fail", rt.RelatedInstanceSelections)
 				return nil, nil, err
@@ -346,11 +346,11 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			ID:     ac.ID,
 		})
 
-		relatedActions, err1 := jsoniter.MarshalToString(ac.RelatedActions)
+		relatedActions, err1 := json.MarshalToString(ac.RelatedActions)
 		if err1 != nil {
 			return errorWrapf(err1, "marshal action.RelatedActions=`%+v` fail", ac.RelatedActions)
 		}
-		relatedEnvironments, err2 := jsoniter.MarshalToString(ac.RelatedEnvironments)
+		relatedEnvironments, err2 := json.MarshalToString(ac.RelatedEnvironments)
 		if err2 != nil {
 			return errorWrapf(err1, "marshal action.RelatedEnvironments=`%+v` fail", ac.RelatedEnvironments)
 		}
@@ -484,7 +484,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		allowBlank.AddKey("RelatedActions")
 
 		var err1 error
-		relatedActions, err1 = jsoniter.MarshalToString(action.RelatedActions)
+		relatedActions, err1 = json.MarshalToString(action.RelatedActions)
 		if err1 != nil {
 			return errorWrapf(err, "unmarshal action.RelatedActions=`%+v` fail", action.RelatedActions)
 		}
@@ -494,7 +494,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		allowBlank.AddKey("RelatedEnvironments")
 
 		var err1 error
-		relatedEnvironments, err1 = jsoniter.MarshalToString(action.RelatedEnvironments)
+		relatedEnvironments, err1 = json.MarshalToString(action.RelatedEnvironments)
 		if err1 != nil {
 			return errorWrapf(err, "unmarshal action.RelatedEnvironments=`%+v` fail", action.RelatedEnvironments)
 		}
@@ -600,7 +600,7 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 	}
 
 	relatedInstanceSelections := []types.ReferenceInstanceSelection{}
-	err = jsoniter.UnmarshalFromString(rawRelatedInstanceSelections, &relatedInstanceSelections)
+	err = json.UnmarshalFromString(rawRelatedInstanceSelections, &relatedInstanceSelections)
 	if err != nil {
 		err = errorWrapf(err, "unmarshal rawRelatedInstanceSelections=`%s` fail", rawRelatedInstanceSelections)
 		return
@@ -620,7 +620,7 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 		}
 
 		chain := []map[string]interface{}{}
-		err = jsoniter.UnmarshalFromString(is.ResourceTypeChain, &chain)
+		err = json.UnmarshalFromString(is.ResourceTypeChain, &chain)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal instanceSelection.ResourceTypeChain=`%s` fail", is.ResourceTypeChain)
 			return

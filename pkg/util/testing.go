@@ -12,7 +12,6 @@ package util
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -24,9 +23,10 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/util/json"
 )
 
 // TestingContent ...
@@ -104,7 +104,7 @@ func NewTestRouter(r *gin.Engine) {
 // CreateTestingServer ...
 func CreateTestingServer(data interface{}) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		respBody, _ := jsoniter.Marshal(data)
+		respBody, _ := json.Marshal(data)
 		w.WriteHeader(http.StatusOK)
 		w.Write(respBody)
 	}))
@@ -114,7 +114,7 @@ func CreateTestingServer(data interface{}) *httptest.Server {
 // CreateTesting500Server ...
 func CreateTesting500Server() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		respBody, _ := jsoniter.Marshal(map[string]interface{}{})
+		respBody, _ := json.Marshal(map[string]interface{}{})
 		w.WriteHeader(http.StatusInternalServerError)
 		// w.Write([]byte("Internal Server Error"))
 		w.Write(respBody)
@@ -253,7 +253,7 @@ func (g *GinAPIRequest) BadRequest(message string) {
 		Expect(g.t).
 		Assert(NewResponseAssertFunc(g.t, func(resp Response) error {
 			assert.Equal(g.t, BadRequestError, resp.Code)
-			assert.Equal(g.t, message, resp.Message)
+			assert.Contains(g.t, resp.Message, message)
 			return nil
 		})).
 		Status(http.StatusOK).

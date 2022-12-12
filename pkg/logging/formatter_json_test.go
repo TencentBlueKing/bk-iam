@@ -38,7 +38,6 @@
 package logging
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
@@ -46,6 +45,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
+	"iam/pkg/util/json"
 )
 
 // TODO: logrus

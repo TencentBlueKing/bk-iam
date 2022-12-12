@@ -17,11 +17,11 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/TencentBlueKing/gopkg/stringx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/cacheimpls"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
+	"iam/pkg/util/json"
 )
 
 const convertLayer = "convert"
@@ -81,7 +81,7 @@ func convertExpressionContentToString(content []interface{}) (string, error) {
 		}
 	}
 
-	expStr, err := jsoniter.MarshalToString(exp)
+	expStr, err := json.MarshalToString(exp)
 	if err != nil {
 		return "", err
 	}
