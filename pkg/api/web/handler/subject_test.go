@@ -35,7 +35,7 @@ func TestBatchCreateSubjects(t *testing.T) {
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
 				"hello": "123",
-			}).BadRequest("bad request:json decode or validate fail, err=json:")
+			}).BadRequest("bad request:json decode or validate fail")
 	})
 
 	t.Run("bad request subjects", func(t *testing.T) {
@@ -125,7 +125,7 @@ func TestBatchDeleteSubjects(t *testing.T) {
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
 				"hello": "123",
-			}).BadRequest("bad request:json decode or validate fail, err=json:")
+			}).BadRequest("bad request:json decode or validate fail")
 	})
 
 	t.Run("bad request subjects", func(t *testing.T) {
@@ -212,7 +212,7 @@ func TestBatchUpdateSubject(t *testing.T) {
 		newRequestFunc(t).
 			JSON(map[string]interface{}{
 				"hello": "123",
-			}).BadRequest("bad request:json decode or validate fail, err=json:")
+			}).BadRequest("bad request:json decode or validate fail")
 	})
 
 	t.Run("bad request subjects", func(t *testing.T) {
