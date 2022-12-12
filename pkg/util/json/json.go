@@ -21,7 +21,11 @@
 
 package json
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/TencentBlueKing/gopkg/conv"
+)
 
 var (
 	// Marshal is exported by gin/json package.
@@ -43,10 +47,10 @@ func MarshalToString(v interface{}) (string, error) {
 		return "", err
 	}
 
-	return string(json), nil
+	return conv.BytesToString(json), nil
 }
 
 // UnmarshalFromString is a convenient method to read from string instead of []byte
 func UnmarshalFromString(str string, v interface{}) error {
-	return Unmarshal([]byte(str), v)
+	return Unmarshal(conv.StringToBytes(str), v)
 }
