@@ -13,10 +13,10 @@ package service
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -146,7 +146,7 @@ func convertToSvcSubjectActionGroupResource(
 		ActionPK:  daoObj.ActionPK,
 	}
 
-	err = jsoniter.UnmarshalFromString(daoObj.GroupResource, &obj.GroupResource)
+	err = json.UnmarshalFromString(daoObj.GroupResource, &obj.GroupResource)
 	return obj, err
 }
 
@@ -158,6 +158,6 @@ func convertToDaoSubjectActionGroupResource(
 		SubjectPK: obj.SubjectPK,
 		ActionPK:  obj.ActionPK,
 	}
-	daoObj.GroupResource, err = jsoniter.MarshalToString(obj.GroupResource)
+	daoObj.GroupResource, err = json.MarshalToString(obj.GroupResource)
 	return daoObj, err
 }

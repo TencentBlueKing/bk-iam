@@ -17,12 +17,12 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // ErrNoPolicies ...
@@ -182,7 +182,7 @@ func (l *groupService) createSubjectSystemGroup(
 	systemID string,
 	subjectPK, groupPK, expiredAt int64,
 ) error {
-	groups, err := jsoniter.MarshalToString(map[int64]int64{groupPK: expiredAt})
+	groups, err := json.MarshalToString(map[int64]int64{groupPK: expiredAt})
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func updateGroupsString(
 ) (string, error) {
 	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
 	if groups != "" {
-		err := jsoniter.UnmarshalFromString(groups, &groupExpiredAtMap)
+		err := json.UnmarshalFromString(groups, &groupExpiredAtMap)
 		if err != nil {
 			return "", err
 		}
@@ -213,7 +213,7 @@ func updateGroupsString(
 	if err != nil {
 		return "", err
 	}
-	groups, err = jsoniter.MarshalToString(groupExpiredAtMap)
+	groups, err = json.MarshalToString(groupExpiredAtMap)
 	if err != nil {
 		return "", err
 	}
@@ -262,7 +262,7 @@ func convertSystemSubjectGroupsToThinSubjectGroup(
 ) (thinSubjectGroup []types.ThinSubjectGroup, err error) {
 	var groupExpiredAtMap map[int64]int64 = make(map[int64]int64)
 	if groups != "" {
-		err := jsoniter.UnmarshalFromString(groups, &groupExpiredAtMap)
+		err := json.UnmarshalFromString(groups, &groupExpiredAtMap)
 		if err != nil {
 			return nil, err
 		}

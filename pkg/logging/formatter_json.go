@@ -42,8 +42,9 @@ import (
 	"runtime"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
+
+	"iam/pkg/util/json"
 )
 
 // ! this json formatter just for api.log
@@ -171,7 +172,7 @@ func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	// 	return nil, fmt.Errorf("failed to marshal fields to JSON, %v", err)
 	// }
 
-	buf, err := jsoniter.Marshal(data)
+	buf, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal fields to JSON, %v", err)
 	}

@@ -15,10 +15,10 @@ package service
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // SubjectActionAlterEventSVC ...
@@ -59,7 +59,7 @@ func convertToSvcSubjectActionAlterEvent(
 		CheckCount: daoEvent.CheckCount,
 	}
 
-	err := jsoniter.UnmarshalFromString(daoEvent.Data, &event.Messages)
+	err := json.UnmarshalFromString(daoEvent.Data, &event.Messages)
 	if err != nil {
 		return event, err
 	}
@@ -110,9 +110,9 @@ func (s *subjectActionAlterEventService) BulkCreateWithTx(
 			CheckCount: event.CheckCount,
 		}
 
-		daoMessage.Data, err = jsoniter.MarshalToString(event.Messages)
+		daoMessage.Data, err = json.MarshalToString(event.Messages)
 		if err != nil {
-			err = errorWrapf(err, "jsoniter.MarshalToString event=`%v` fail", event.Messages)
+			err = errorWrapf(err, "json.MarshalToString event=`%v` fail", event.Messages)
 			return err
 		}
 

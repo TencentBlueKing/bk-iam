@@ -15,10 +15,10 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/abac/pdp/condition"
 	pdptypes "iam/pkg/abac/pdp/types"
+	"iam/pkg/util/json"
 )
 
 /*
@@ -103,7 +103,7 @@ func ConditionsTranslate(
 
 func oldExprToCondition(expr string) (condition.Condition, error) {
 	expressions := []pdptypes.ResourceExpression{}
-	err := jsoniter.UnmarshalFromString(expr, &expressions)
+	err := json.UnmarshalFromString(expr, &expressions)
 	// 无效的policy条件表达式, 容错
 	if err != nil {
 		err = fmt.Errorf("unmarshalFromString old expr fail! expr: %s error: %w",
@@ -140,7 +140,7 @@ func oldExprToCondition(expr string) (condition.Condition, error) {
 
 func newExprToCondition(expr string) (condition.Condition, error) {
 	pc := pdptypes.PolicyCondition{}
-	err := jsoniter.UnmarshalFromString(expr, &pc)
+	err := json.UnmarshalFromString(expr, &pc)
 	// 无效的policy条件表达式, 容错
 	if err != nil {
 		err = fmt.Errorf("unmarshalFromString new expr fail! expr: %s error: %w",

@@ -14,11 +14,11 @@ package service
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/sdao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // InstanceSelectionSVC ...
@@ -63,7 +63,7 @@ func (s *instanceSelectionService) ListBySystem(system string) (
 			IsDynamic: sis.IsDynamic,
 		}
 
-		err = jsoniter.UnmarshalFromString(sis.ResourceTypeChain, &instanceSelection.ResourceTypeChain)
+		err = json.UnmarshalFromString(sis.ResourceTypeChain, &instanceSelection.ResourceTypeChain)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal sis.ResourceTypeChain=`%s` fail", sis.ResourceTypeChain)
 			return
@@ -80,7 +80,7 @@ func (s *instanceSelectionService) BulkCreate(system string, instanceSelections 
 	// 数据转换
 	dbSaaSInstanceSelections := make([]sdao.SaaSInstanceSelection, 0, len(instanceSelections))
 	for _, is := range instanceSelections {
-		chain, err1 := jsoniter.MarshalToString(is.ResourceTypeChain)
+		chain, err1 := json.MarshalToString(is.ResourceTypeChain)
 		if err1 != nil {
 			return errorWrapf(err, "marshal is.ResourceTypeChain=`%+v` fail", is.ResourceTypeChain)
 		}
@@ -123,7 +123,7 @@ func (s *instanceSelectionService) Update(
 	var err error
 
 	var chain string
-	chain, err = jsoniter.MarshalToString(instanceSelection.ResourceTypeChain)
+	chain, err = json.MarshalToString(instanceSelection.ResourceTypeChain)
 	if err != nil {
 		return errorWrapf(err,
 			"marshal instanceSelection.ResourceTypeChain=`%+v` fail",

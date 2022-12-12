@@ -16,10 +16,10 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 type EngineRbacPolicyService interface {
@@ -87,10 +87,10 @@ func convertToEngineRbacPolicies(policies []dao.EngineRbacPolicy) (rbacPolicies 
 
 	for _, p := range policies {
 		var actionPKs []int64
-		err := jsoniter.UnmarshalFromString(p.ActionPKs, &actionPKs)
+		err := json.UnmarshalFromString(p.ActionPKs, &actionPKs)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"jsoniter.UnmarshalFromString actionPKs=`%s` fail, err: %w", p.ActionPKs, err,
+				"json.UnmarshalFromString actionPKs=`%s` fail, err: %w", p.ActionPKs, err,
 			)
 		}
 

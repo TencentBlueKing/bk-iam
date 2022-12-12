@@ -12,7 +12,8 @@ package handler
 
 import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
-	jsoniter "github.com/json-iterator/go"
+
+	"iam/pkg/util/json"
 )
 
 func validateFields(expected, actual string) bool {
@@ -29,13 +30,13 @@ func validateFields(expected, actual string) bool {
 func filterFields(set *set.StringSet, obj interface{}) (data map[string]interface{}, err error) {
 	// 1. json.Marshal to json
 	var m []byte
-	m, err = jsoniter.Marshal(obj)
+	m, err = json.Marshal(obj)
 	if err != nil {
 		return
 	}
 
 	// 2. json.UnMarshal from json to map[string]interface{}
-	err = jsoniter.Unmarshal(m, &data)
+	err = json.Unmarshal(m, &data)
 	if err != nil {
 		return
 	}

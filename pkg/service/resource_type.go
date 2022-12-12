@@ -14,12 +14,12 @@ package service
 
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // NOTE: service层的error全部wrap后return, 不记录日志
@@ -74,14 +74,14 @@ func (l *resourceTypeService) ListBySystem(system string) (allResourceTypes []ty
 
 		// NOTE: the input Parents maybe empty string!
 		if rt.Parents != "" {
-			err = jsoniter.UnmarshalFromString(rt.Parents, &resourceType.Parents)
+			err = json.UnmarshalFromString(rt.Parents, &resourceType.Parents)
 			if err != nil {
 				err = errorWrapf(err, "unmarshal rt.Parents=`%s` fail", rt.Parents)
 				return
 			}
 		}
 
-		err = jsoniter.UnmarshalFromString(rt.ProviderConfig, &resourceType.ProviderConfig)
+		err = json.UnmarshalFromString(rt.ProviderConfig, &resourceType.ProviderConfig)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal rt.ProviderConfig=`%s` fail", rt.ProviderConfig)
 			return
@@ -110,14 +110,14 @@ func (l *resourceTypeService) Get(system string, resourceTypeID string) (rt type
 	}
 
 	if srt.Parents != "" {
-		err = jsoniter.UnmarshalFromString(srt.Parents, &resourceType.Parents)
+		err = json.UnmarshalFromString(srt.Parents, &resourceType.Parents)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal resourceType.Parents=`%s` fail", srt.Parents)
 			return
 		}
 	}
 
-	err = jsoniter.UnmarshalFromString(srt.ProviderConfig, &resourceType.ProviderConfig)
+	err = json.UnmarshalFromString(srt.ProviderConfig, &resourceType.ProviderConfig)
 	if err != nil {
 		err = errorWrapf(err, "unmarshal resourceType.ProviderConfig=`%s` fail", srt.ProviderConfig)
 		return
@@ -146,11 +146,11 @@ func (l *resourceTypeService) BulkCreate(system string, resourceTypes []types.Re
 	dbResourceTypes := make([]dao.ResourceType, 0, len(resourceTypes))
 	dbSaaSResourceTypes := make([]sdao.SaaSResourceType, 0, len(resourceTypes))
 	for _, rt := range resourceTypes {
-		parents, err1 := jsoniter.MarshalToString(rt.Parents)
+		parents, err1 := json.MarshalToString(rt.Parents)
 		if err1 != nil {
 			return errorWrapf(err, "marshal rt.Parents=`%+v` fail", rt.Parents)
 		}
-		providerConfig, err1 := jsoniter.MarshalToString(rt.ProviderConfig)
+		providerConfig, err1 := json.MarshalToString(rt.ProviderConfig)
 		if err1 != nil {
 			return errorWrapf(err, "marshal rt.ProviderConfig=`%+v` fail", rt.ProviderConfig)
 		}
@@ -197,7 +197,7 @@ func (l *resourceTypeService) Update(
 	// BUG: if resourceType.Parents is empty and allowBlank => will be set to "" instead of [] => we need []
 	var parents string
 	// if len(resourceType.Parents) > 0 {
-	parents, err = jsoniter.MarshalToString(resourceType.Parents)
+	parents, err = json.MarshalToString(resourceType.Parents)
 	if err != nil {
 		return errorWrapf(err, "marshal resourceType.Parent=`%+v` fail", resourceType.Parents)
 	}
@@ -205,7 +205,7 @@ func (l *resourceTypeService) Update(
 
 	var providerConfig string
 	if len(resourceType.ProviderConfig) > 0 {
-		providerConfig, err = jsoniter.MarshalToString(resourceType.ProviderConfig)
+		providerConfig, err = json.MarshalToString(resourceType.ProviderConfig)
 		if err != nil {
 			return errorWrapf(err, "marshal resourceType.ProviderConfig=`%+v` fail", resourceType.ProviderConfig)
 		}

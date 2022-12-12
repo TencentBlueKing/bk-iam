@@ -20,10 +20,10 @@ import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 const GroupResourcePolicySVC = "GroupResourcePolicySVC"
@@ -85,10 +85,10 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 	// 将ActionPKs从Json字符串转为列表格式
 	var oldActionPKList []int64
 	if len(oldActionPKs) > 0 {
-		err := jsoniter.UnmarshalFromString(oldActionPKs, &oldActionPKList)
+		err := json.UnmarshalFromString(oldActionPKs, &oldActionPKList)
 		if err != nil {
 			return "", fmt.Errorf(
-				"jsoniter.UnmarshalFromString actionPKs=`%s` fail, err: %w", oldActionPKs, err,
+				"json.UnmarshalFromString actionPKs=`%s` fail, err: %w", oldActionPKs, err,
 			)
 		}
 	}
@@ -122,9 +122,9 @@ func (s *groupResourcePolicyService) calculateChangedActionPKs(
 	actionPKs := actionPKSet.ToSlice()
 	sort.Slice(actionPKs, func(i, j int) bool { return actionPKs[i] < actionPKs[j] })
 
-	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
+	actionPKStr, err := json.MarshalToString(actionPKs)
 	if err != nil {
-		return "", fmt.Errorf("jsoniter.MarshalToString actionPKs=`%v` fail, err: %w", actionPKs, err)
+		return "", fmt.Errorf("json.MarshalToString actionPKs=`%v` fail, err: %w", actionPKs, err)
 	}
 
 	return actionPKStr, nil
@@ -272,10 +272,10 @@ func (s *groupResourcePolicyService) GetAuthorizedActionGroupMap(
 	actionGroupPKsSets := make(map[int64]*set.Int64Set, 5)
 	for _, daoGroupResourcePolicy := range daoGroupResourcePolicies {
 		var actionPKs []int64
-		if err := jsoniter.UnmarshalFromString(daoGroupResourcePolicy.ActionPKs, &actionPKs); err != nil {
+		if err := json.UnmarshalFromString(daoGroupResourcePolicy.ActionPKs, &actionPKs); err != nil {
 			return nil, errorWrapf(
 				err,
-				"jsoniter.UnmarshalFromString fail, actionPKs=`%s`",
+				"json.UnmarshalFromString fail, actionPKs=`%s`",
 				daoGroupResourcePolicy.ActionPKs,
 			)
 		}
@@ -321,10 +321,10 @@ func (s *groupResourcePolicyService) ListResourceByGroupAction(
 	resources := make([]types.Resource, 0, len(policies)/2)
 	for _, policy := range policies {
 		var actionPKs []int64
-		if err := jsoniter.UnmarshalFromString(policy.ActionPKs, &actionPKs); err != nil {
+		if err := json.UnmarshalFromString(policy.ActionPKs, &actionPKs); err != nil {
 			return nil, errorWrapf(
 				err,
-				"jsoniter.UnmarshalFromString fail, pk=`%d` actionPKs=`%s`",
+				"json.UnmarshalFromString fail, pk=`%d` actionPKs=`%s`",
 				policy.PK, policy.ActionPKs,
 			)
 		}
@@ -356,9 +356,9 @@ func (s *groupResourcePolicyService) BulkDeleteByGroupPKsWithTx(
 func (s *groupResourcePolicyService) DeleteByActionPKWithTx(tx *sqlx.Tx, actionPK int64) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(PolicySVC, "DeleteByActionPK")
 
-	actionPKs, err := jsoniter.MarshalToString([]int64{actionPK})
+	actionPKs, err := json.MarshalToString([]int64{actionPK})
 	if err != nil {
-		return errorWrapf(err, "jsoniter.MarshalToString fail, actionPK=`%d`", actionPK)
+		return errorWrapf(err, "json.MarshalToString fail, actionPK=`%d`", actionPK)
 	}
 
 	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次

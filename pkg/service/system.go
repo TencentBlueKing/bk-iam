@@ -15,12 +15,12 @@ package service
 import (
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/TencentBlueKing/gopkg/stringx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database"
 	"iam/pkg/database/dao"
 	"iam/pkg/database/sdao"
 	"iam/pkg/service/types"
+	"iam/pkg/util/json"
 )
 
 // SystemSVC ...
@@ -66,7 +66,7 @@ func (l *systemService) Get(id string) (system types.System, err error) {
 	system.DescriptionEn = saasSystem.DescriptionEn
 	system.Clients = saasSystem.Clients
 
-	err = jsoniter.UnmarshalFromString(saasSystem.ProviderConfig, &system.ProviderConfig)
+	err = json.UnmarshalFromString(saasSystem.ProviderConfig, &system.ProviderConfig)
 	if err != nil {
 		err = errorWrapf(err, "unmarshal system.ProviderConfig=`%s` fail", saasSystem.ProviderConfig)
 		return
@@ -100,7 +100,7 @@ func (l *systemService) ListAll() (allSystems []types.System, err error) {
 			DescriptionEn: sys.DescriptionEn,
 			Clients:       sys.Clients,
 		}
-		err = jsoniter.UnmarshalFromString(sys.ProviderConfig, &system.ProviderConfig)
+		err = json.UnmarshalFromString(sys.ProviderConfig, &system.ProviderConfig)
 		if err != nil {
 			err = errorWrapf(err, "unmarshal system.ProviderConfig=`%s` fail", sys.ProviderConfig)
 			return
@@ -132,7 +132,7 @@ func (l *systemService) Create(system types.System) error {
 	// NOTE: generate token here
 	system.ProviderConfig["token"] = stringx.Random(32)
 
-	providerConfig, err := jsoniter.MarshalToString(system.ProviderConfig)
+	providerConfig, err := json.MarshalToString(system.ProviderConfig)
 	if err != nil {
 		return errorWrapf(err, "marshal system.ProviderConfig=`%+v` fail", system.ProviderConfig)
 	}
@@ -172,7 +172,7 @@ func (l *systemService) Update(id string, system types.System) error {
 		// NOTE: should only update the fields: host/auth, not token
 		s, _ := l.saasManager.Get(id)
 		if s.ProviderConfig != "" {
-			err = jsoniter.UnmarshalFromString(s.ProviderConfig, &providerConfig)
+			err = json.UnmarshalFromString(s.ProviderConfig, &providerConfig)
 			if err != nil {
 				return errorWrapf(err, "unmarshal system.Provider=`%s` fail", s.ProviderConfig)
 			}
@@ -184,7 +184,7 @@ func (l *systemService) Update(id string, system types.System) error {
 			providerConfig = system.ProviderConfig
 		}
 
-		providerConfigStr, err = jsoniter.MarshalToString(providerConfig)
+		providerConfigStr, err = json.MarshalToString(providerConfig)
 		if err != nil {
 			return errorWrapf(err, "marshal system.Provider=`%+v` fail", providerConfig)
 		}

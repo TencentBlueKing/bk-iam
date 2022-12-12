@@ -21,10 +21,10 @@ import (
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/logging"
+	"iam/pkg/util/json"
 )
 
 const (
@@ -60,7 +60,7 @@ func logSlowSQL(start time.Time, query string, args interface{}) {
 }
 
 func truncateArgs(args interface{}, length int) string {
-	s, err := jsoniter.MarshalToString(args)
+	s, err := json.MarshalToString(args)
 	if err != nil {
 		s = fmt.Sprintf("%v", args)
 	}

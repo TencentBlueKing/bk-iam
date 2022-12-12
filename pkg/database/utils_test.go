@@ -18,11 +18,11 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/stringx"
 	"github.com/go-sql-driver/mysql"
-	jsoniter "github.com/json-iterator/go"
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
 	"iam/pkg/util"
+	"iam/pkg/util/json"
 )
 
 var _ = Describe("Utils", func() {
@@ -171,7 +171,7 @@ func truncateInterface(v interface{}) string {
 }
 
 func truncateInterfaceViaJSON(v interface{}) string {
-	s, err := jsoniter.MarshalToString(v)
+	s, err := json.MarshalToString(v)
 	if err != nil {
 		s = fmt.Sprintf("%v", v)
 	}
@@ -179,7 +179,7 @@ func truncateInterfaceViaJSON(v interface{}) string {
 }
 
 func truncateInterfaceViaJSONToBytes(v interface{}) string {
-	s, err := jsoniter.Marshal(v)
+	s, err := json.Marshal(v)
 	if err != nil {
 		s = []byte(fmt.Sprintf("%v", v))
 	}

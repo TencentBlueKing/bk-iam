@@ -16,11 +16,11 @@ import (
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
-	jsoniter "github.com/json-iterator/go"
 
 	"iam/pkg/database/dao"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
+	"iam/pkg/util/json"
 )
 
 // GroupAlterEventSVC ...
@@ -83,12 +83,12 @@ func convertToSvcGroupAlterEvent(daoEvent dao.GroupAlterEvent) (types.GroupAlter
 		GroupPK: daoEvent.GroupPK,
 	}
 
-	err := jsoniter.UnmarshalFromString(daoEvent.ActionPKs, &event.ActionPKs)
+	err := json.UnmarshalFromString(daoEvent.ActionPKs, &event.ActionPKs)
 	if err != nil {
 		return event, err
 	}
 
-	err = jsoniter.UnmarshalFromString(daoEvent.SubjectPKs, &event.SubjectPKs)
+	err = json.UnmarshalFromString(daoEvent.SubjectPKs, &event.SubjectPKs)
 	if err != nil {
 		return event, err
 	}
@@ -150,7 +150,7 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 	actionPKSet := set.NewInt64Set()
 	for _, actionPKsStr := range actionPKsList {
 		var actionPKs []int64
-		if err = jsoniter.UnmarshalFromString(actionPKsStr, &actionPKs); err != nil {
+		if err = json.UnmarshalFromString(actionPKsStr, &actionPKs); err != nil {
 			err = errorWrapf(err, "json.Unmarshal actionPKsStr=`%s` fail", actionPKsStr)
 			return
 		}
@@ -177,12 +177,12 @@ func (s *groupAlterEventService) CreateByGroupSubject(
 }
 
 func (s *groupAlterEventService) create(groupPK int64, actionPKs, subjectPKs []int64) error {
-	actionPKStr, err := jsoniter.MarshalToString(actionPKs)
+	actionPKStr, err := json.MarshalToString(actionPKs)
 	if err != nil {
 		return err
 	}
 
-	subjectPKStr, err := jsoniter.MarshalToString(subjectPKs)
+	subjectPKStr, err := json.MarshalToString(subjectPKs)
 	if err != nil {
 		return err
 	}
