@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4a4e8b14-9324-4a2d-9865-3d8f876fe1fb",
+		"_postman_id": "bf537a85-7178-4c8c-9e1e-16aeca6c8fb2",
 		"name": "iam",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "10061835"
@@ -3433,7 +3433,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3499,7 +3499,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3565,7 +3565,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3631,7 +3631,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3697,7 +3697,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3763,7 +3763,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3829,7 +3829,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3895,7 +3895,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -3961,7 +3961,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -4027,7 +4027,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -4093,7 +4093,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -4159,7 +4159,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -4225,7 +4225,7 @@
 							"query": [
 								{
 									"key": "debug",
-									"value": null
+									"value": ""
 								}
 							]
 						}
@@ -5008,7 +5008,8 @@
 								"key": "Content-Type",
 								"name": "Content-Type",
 								"type": "text",
-								"value": "application/x-www-form-urlencoded"
+								"value": "application/x-www-form-urlencoded",
+								"disabled": true
 							},
 							{
 								"key": "X-Bk-App-Code",
@@ -5023,7 +5024,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n}"
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "http://{{host}}/api/v1/model/systems/bk_test_app",
@@ -7044,7 +7050,8 @@
 								"key": "Content-Type",
 								"name": "Content-Type",
 								"type": "text",
-								"value": "application/x-www-form-urlencoded"
+								"value": "application/x-www-form-urlencoded",
+								"disabled": true
 							},
 							{
 								"key": "X-Bk-App-Code",
@@ -7059,7 +7066,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n}"
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "http://{{host}}/api/v1/model/systems/bk_test_app/actions/biz_create",
@@ -7947,7 +7959,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-members?type=group&id=group100&limit=1",
+							"raw": "http://{{host}}/api/v1/web/group-members?type=group&id=group100&limit=1",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -7956,7 +7968,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-members"
+								"group-members"
 							],
 							"query": [
 								{
@@ -8184,7 +8196,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-relations?type=user&id=user100",
+							"raw": "http://{{host}}/api/v1/web/subject-groups?type=user&id=user100",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -8193,7 +8205,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-relations"
+								"subject-groups"
 							],
 							"query": [
 								{
@@ -8252,7 +8264,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-relations?type=user&id=user100&before_expired_at=4102444800",
+							"raw": "http://{{host}}/api/v1/web/subject-groups?type=user&id=user100&before_expired_at=4102444800",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -8261,7 +8273,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-relations"
+								"subject-groups"
 							],
 							"query": [
 								{
@@ -8322,7 +8334,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-members",
+							"raw": "http://{{host}}/api/v1/web/group-members",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -8331,7 +8343,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-members"
+								"group-members"
 							]
 						}
 					},
@@ -8378,7 +8390,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-members",
+							"raw": "http://{{host}}/api/v1/web/group-members",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -8387,7 +8399,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-members"
+								"group-members"
 							]
 						}
 					},
@@ -9200,7 +9212,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-roles",
+							"raw": "http://{{host}}/api/v1/web/role-subjects",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -9209,7 +9221,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-roles"
+								"role-subjects"
 							]
 						}
 					},
@@ -9255,7 +9267,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-roles",
+							"raw": "http://{{host}}/api/v1/web/role-subjects",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -9264,77 +9276,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-roles"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "query_subject_system_role",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"create_subject_department\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.code).to.eql(0);",
-									"",
-									"    pm.expect(jsonData.data.length).to.eql(2);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-Bk-App-Code",
-								"type": "text",
-								"value": "{{app_code}}"
-							},
-							{
-								"key": "X-Bk-App-Secret",
-								"type": "text",
-								"value": "{{app_secret}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-roles?role_type=system_manager&system_id=demo2",
-							"protocol": "http",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"web",
-								"subject-roles"
-							],
-							"query": [
-								{
-									"key": "role_type",
-									"value": "system_manager"
-								},
-								{
-									"key": "system_id",
-									"value": "demo2"
-								}
+								"role-subjects"
 							]
 						}
 					},
@@ -9380,7 +9322,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{host}}/api/v1/web/subject-roles",
+							"raw": "http://{{host}}/api/v1/web/role-subjects",
 							"protocol": "http",
 							"host": [
 								"{{host}}"
@@ -9389,7 +9331,7 @@
 								"api",
 								"v1",
 								"web",
-								"subject-roles"
+								"role-subjects"
 							]
 						}
 					},
