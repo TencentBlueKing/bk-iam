@@ -127,13 +127,12 @@ func (r *PolicyRedisRetriever) listBySubjectActionFromCache(
 	// query from cache
 	expressions, missSubjectPKs, err := r.batchGet(subjectPKs, actionPK)
 	if err != nil {
-		err = errorWrapf(
-			err,
-			"batchGet subject action expression fail, subjectPKs=`%+v`, actionPK=`%d`",
-			subjectPKs,
-			actionPK,
+		log.WithError(err).Errorf(
+			"[%s] rbacPolicy batchGet from redis subjectPKs=`%+v` actionPK=`%d` fail",
+			rbacRedisLayer, subjectPKs, actionPK,
 		)
-		return nil, err
+
+		missSubjectPKs = subjectPKs
 	}
 
 	if len(missSubjectPKs) == 0 {
@@ -155,13 +154,10 @@ func (r *PolicyRedisRetriever) listBySubjectActionFromCache(
 	// set missing cache
 	err = r.setMissing(missSubjectPKs, actionPK, svcExpressions)
 	if err != nil {
-		err = errorWrapf(
-			err,
-			"setMissing subject action expression fail, subjectPKs=`%+v`, actionPK=`%d`",
-			missSubjectPKs,
-			actionPK,
+		log.WithError(err).Errorf(
+			"[%s] rbacPolicy setMissing to redis subjectPKs=`%+v` actionPK=`%d` fail",
+			rbacRedisLayer, missSubjectPKs, actionPK,
 		)
-		return nil, err
 	}
 
 	expressions = append(expressions, svcExpressions...)

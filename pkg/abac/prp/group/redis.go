@@ -103,7 +103,9 @@ func (r *groupAuthTypeRedisRetriever) batchGetGroupAuthType(
 	// get in pipeline
 	hitValues, err := cacheimpls.GroupSystemAuthTypeCache.BatchGet(keys)
 	if err != nil {
-		return
+		// redis 查询失败, 只记日志, fallback 到 db 查询
+		log.WithError(err).Errorf("[%s] cacheimpls.GroupSystemAuthTypeCache.BatchGet keys=`%+v` fail", RedisLayer, keys)
+		return nil, groupPKs, nil
 	}
 
 	// the key can identify the hit or miss, here we only need system + subjectPK
@@ -156,7 +158,10 @@ func (r *groupAuthTypeRedisRetriever) batchSetGroupAuthTypeCache(groupAuthTypes 
 		cacheimpls.GroupSystemAuthTypeCacheExpiration+time.Duration(rand.Intn(RandExpireSeconds))*time.Second,
 	)
 	if err != nil {
-		return err
+		// 缓存设置失败, 不影响正常鉴权, 只记日志
+		log.WithError(err).Errorf(
+			"[%s] cacheimpls.GroupSystemAuthTypeCache.BatchSetWithTx keys=`%+v` fail", RedisLayer, cacheKvs,
+		)
 	}
 
 	return nil
