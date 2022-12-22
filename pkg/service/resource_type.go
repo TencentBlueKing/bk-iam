@@ -69,6 +69,7 @@ func (l *resourceTypeService) ListBySystem(system string) (allResourceTypes []ty
 			NameEn:        rt.NameEn,
 			Description:   rt.Description,
 			DescriptionEn: rt.DescriptionEn,
+			Sensitivity:   rt.Sensitivity,
 			Version:       rt.Version,
 		}
 
