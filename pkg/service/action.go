@@ -218,6 +218,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			Sensitivity:   ac.Sensitivity,
 			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
