@@ -261,11 +261,18 @@ func (g *GinAPIRequest) BadRequest(message string) {
 }
 
 // BadRequestContainsMessage assert the bad request message field should contains a specific message
-func (g *GinAPIRequest) BadRequestContainsMessage(message string) {
+func (g *GinAPIRequest) BadRequestContainsMessage(message string, args ...int) {
+	var code int
+	if len(args) == 1 {
+		code = args[0]
+	} else {
+		code = BadRequestError
+	}
+
 	g.request.
 		Expect(g.t).
 		Assert(NewResponseAssertFunc(g.t, func(resp Response) error {
-			assert.Equal(g.t, BadRequestError, resp.Code)
+			assert.Equal(g.t, code, resp.Code)
 			assert.Contains(g.t, resp.Message, message)
 			return nil
 		})).
