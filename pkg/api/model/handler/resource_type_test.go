@@ -371,3 +371,28 @@ func TestDeleteResourceType(t *testing.T) {
 		newRequestFunc(t).BadRequestContainsMessage("exists")
 	})
 }
+
+func TestBatchDeleteResourceTypes(t *testing.T) {
+	newRequestFunc := util.CreateNewAPIRequestFunc(
+		"delete",
+		"/api/v1/model/systems/bk_test/resource-types",
+		BatchDeleteResourceTypes,
+		"/api/v1/model/systems/:system_id/resource-types",
+	)
+
+	t.Run("no json", func(t *testing.T) {
+		newRequestFunc(t).NoJSON()
+	})
+
+	t.Run("bad request invalid json", func(t *testing.T) {
+		newRequestFunc(t).
+			JSON(map[string]interface{}{
+				"hello": "123",
+			}).BadRequestContainsMessage("json decode or validate fail")
+	})
+
+	t.Run("bad request invalid empty", func(t *testing.T) {
+		newRequestFunc(t).
+			JSON([]map[string]interface{}{}).BadRequestContainsMessage("the array should contain at least 1 item")
+	})
+}
