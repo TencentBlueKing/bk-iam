@@ -34,7 +34,7 @@ func Register(cfg *config.Config, router *gin.Engine) {
 
 	// metrics
 	metricRouter := router.Group("/metrics")
-	metricRouter.Use(common.TokenAuth("D@or!J4jNJ4LInub"))
+	metricRouter.Use(common.TokenAuth(cfg.MetricToken))
 	metricRouter.GET("", gin.WrapH(promhttp.Handler()))
 
 	// pprof
