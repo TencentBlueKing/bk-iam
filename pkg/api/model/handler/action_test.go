@@ -264,9 +264,12 @@ func TestUpdateAction(t *testing.T) {
 		patches = gomonkey.ApplyFunc(checkActionUpdateUnique, func(systemID, actionID, name, nameEn string) error {
 			return nil
 		})
-		patches.ApplyFunc(checkUpdatedActionAuthType, func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
-			return errors.New("check auth type fail")
-		})
+		patches.ApplyFunc(
+			checkUpdatedActionAuthType,
+			func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
+				return errors.New("check auth type fail")
+			},
+		)
 		defer restMock()
 
 		newRequestFunc(t).
@@ -281,9 +284,12 @@ func TestUpdateAction(t *testing.T) {
 		patches = gomonkey.ApplyFunc(checkActionUpdateUnique, func(systemID, actionID, name, nameEn string) error {
 			return nil
 		})
-		patches.ApplyFunc(checkUpdatedActionAuthType, func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
-			return nil
-		})
+		patches.ApplyFunc(
+			checkUpdatedActionAuthType,
+			func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
+				return nil
+			},
+		)
 
 		ctl = gomock.NewController(t)
 		mockSvc := mock.NewMockActionService(ctl)
@@ -311,9 +317,12 @@ func TestUpdateAction(t *testing.T) {
 		patches = gomonkey.ApplyFunc(checkActionUpdateUnique, func(systemID, actionID, name, nameEn string) error {
 			return nil
 		})
-		patches.ApplyFunc(checkUpdatedActionAuthType, func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
-			return nil
-		})
+		patches.ApplyFunc(
+			checkUpdatedActionAuthType,
+			func(systemID, actionID, authType string, relatedResourceTypes []relatedResourceType) error {
+				return nil
+			},
+		)
 
 		ctl = gomock.NewController(t)
 		mockSvc := mock.NewMockActionService(ctl)

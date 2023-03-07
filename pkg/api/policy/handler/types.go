@@ -122,6 +122,15 @@ type queryByActionsRequest struct {
 	Actions   []action   `json:"actions" binding:"required"`
 }
 
+// ======= query by actions
+
+type queryV2ByActionsRequest struct {
+	Subject subject `json:"subject" binding:"required"`
+	// can be empty
+	Resources []resource `json:"resources" binding:"omitempty"`
+	Actions   []action   `json:"actions" binding:"required"`
+}
+
 type actionInResponse struct {
 	ID string `json:"id" example:"edit"`
 }

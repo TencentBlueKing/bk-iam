@@ -50,5 +50,9 @@ func RegisterV2(r *gin.RouterGroup) {
 		// in query_v2.go
 		// 查询
 		s.POST("/query/", handler.QueryV2)
+
+		// in query_v2.go
+		// 批量查询
+		r.POST("/query_by_actions/", handler.BatchQueryByActions)
 	}
 }

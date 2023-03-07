@@ -94,3 +94,92 @@ func QueryV2(c *gin.Context) {
 
 	util.SuccessJSONResponseWithDebug(c, "ok", expr, entry)
 }
+
+// BatchQueryV2ByActions godoc
+// @Summary batch query v2 by actions/v2批量查询策略
+// @Description batch query policies by actions
+// @ID api-v2-policy-batch-query-by-actions
+// @Tags policy
+// @Accept json
+// @Produce json
+// @Param body body queryV2ByActionsRequest true "the batch query by action request"
+// @Success 200 {array} actionPoliciesResponse
+// @Header 200 {string} X-Request-Id "the request id"
+// @Security AppCode
+// @Security AppSecret
+// @Router /api/v2/policy/systems/{system_id}/query_by_actions [post]
+func BatchQueryV2ByActions(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryV2ByActions")
+	entry, isDebug, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
+
+	var body queryV2ByActionsRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	// check system
+	systemID := c.Param("system_id")
+	clientID := util.GetClientID(c)
+	if err := ValidateSystemMatchClient(systemID, clientID); err != nil {
+		util.BadRequestErrorJSONResponse(c, err.Error())
+		return
+	}
+
+	// check blacklist
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+		return
+	}
+
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+			for _, action := range body.Actions {
+				policies = append(policies, actionPoliciesResponse{
+					Action:    actionInResponse(action),
+					Condition: AnyExpression,
+				})
+			}
+			return policies
+		},
+	) {
+		return
+	}
+
+	// TODO: 这里, subject/resource都是一致的, 只是action是多个, 所以其中pdp.Query会存在重复查询/重复计算?
+	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+	for _, action := range body.Actions {
+		req := request.NewRequest()
+		copyRequestFromQueryV2ByActionsBody(req, systemID, &body)
+		req.Action.ID = action.ID
+
+		var subEntry *debug.Entry
+		if isDebug {
+			// NOTE: no need to call EntryPool.Put here, the global entry will do the put
+			subEntry = debug.EntryPool.Get()
+		}
+
+		expr, err := pdp.Query(req, subEntry, true, isForce)
+		debug.WithError(subEntry, err)
+		if err != nil {
+			err = errorWrapf(err, "systemID=`%s`, request.Action.ID=`%s`, body=`%+v`", systemID, action.ID, body)
+			util.SystemErrorJSONResponseWithDebug(c, err, subEntry)
+			return
+		}
+
+		policies = append(policies, actionPoliciesResponse{
+			Action:    actionInResponse(action),
+			Condition: expr,
+		})
+
+		debug.AddSubDebug(entry, subEntry)
+	}
+
+	util.SuccessJSONResponseWithDebug(c, "ok", policies, entry)
+}
