@@ -178,7 +178,7 @@ type Config struct {
 
 	Cryptos map[string]*Crypto
 
-	MetricToken string
+	AuthToken string
 }
 
 // Load 从viper中读取配置文件

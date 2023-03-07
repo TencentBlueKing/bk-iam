@@ -12,7 +12,6 @@ package common
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/gin-gonic/gin"
@@ -76,19 +75,6 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 				fmt.Sprintf("app(%s) is not allowed to call system (%s) api", clientID, systemID))
 
 			c.Abort()
-			return
-		}
-
-		c.Next()
-	}
-}
-
-// TokenAuth auth by token
-func TokenAuth(token string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		queryToken := c.DefaultQuery("token", "")
-		if queryToken != token {
-			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
