@@ -81,7 +81,6 @@ func Pipe(p []int) (err error) {
 }
 
 //sysnb	pipe2(p *[2]_C_int, flags int) (err error)
-
 func Pipe2(p []int, flags int) error {
 	if len(p) != 2 {
 		return EINVAL
@@ -96,7 +95,6 @@ func Pipe2(p []int, flags int) error {
 }
 
 //sys	Getdents(fd int, buf []byte) (n int, err error)
-
 func Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) {
 	n, err = Getdents(fd, buf)
 	if err != nil || basep == nil {
@@ -220,7 +218,6 @@ func Uname(uname *Utsname) error {
 //sys	Chmod(path string, mode uint32) (err error)
 //sys	Chown(path string, uid int, gid int) (err error)
 //sys	Chroot(path string) (err error)
-//sys	ClockGettime(clockid int32, time *Timespec) (err error)
 //sys	Close(fd int) (err error)
 //sys	Dup(fd int) (nfd int, err error)
 //sys	Dup2(from int, to int) (err error)
