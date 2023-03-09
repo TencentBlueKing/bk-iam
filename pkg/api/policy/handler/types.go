@@ -84,6 +84,15 @@ type authByActionsRequest struct {
 	Actions   []action   `json:"actions" binding:"required,max=10"`
 }
 
+// ======= auth by actions
+
+type authV2ByActionsRequest struct {
+	Subject subject `json:"subject" binding:"required"`
+	// can't be empty
+	Resources []resource `json:"resources" binding:"required"`
+	Actions   []action   `json:"actions" binding:"required,max=10"`
+}
+
 type authByActionsResponse map[string]bool
 
 // ======= auth by resources

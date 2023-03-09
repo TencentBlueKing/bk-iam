@@ -155,6 +155,22 @@ func copyRequestFromAuthByActionsBody(req *request.Request, body *authByActionsR
 	}
 }
 
+func copyRequestFromAuthV2ByActionsBody(req *request.Request, systemID string, body *authV2ByActionsRequest) {
+	req.System = systemID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
 func copyRequestFromAuthByResourcesBody(req *request.Request, body *authByResourcesRequest) {
 	req.System = body.System
 

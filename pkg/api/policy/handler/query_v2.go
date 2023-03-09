@@ -37,7 +37,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v2/policy/systems/{system_id}/query [post]
+// @Router /api/v2/policy/systems/{system_id}/query/ [post]
 func QueryV2(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "Query")
 	entry, _, isForce := getDebugData(c)
@@ -107,7 +107,7 @@ func QueryV2(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v2/policy/systems/{system_id}/query_by_actions [post]
+// @Router /api/v2/policy/systems/{system_id}/query_by_actions/ [post]
 func BatchQueryV2ByActions(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryV2ByActions")
 	entry, isDebug, isForce := getDebugData(c)
