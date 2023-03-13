@@ -25,6 +25,7 @@ jobs:
       run: make test
 
     - name: Lint
-      uses: golangci/golangci-lint-action@v2
+      uses: golangci/golangci-lint-action@fix-75
       with:
-        version: v1.45.2
+        version: v1.46.2
+        skip-go-installation: true
