@@ -123,8 +123,40 @@ func copyRequestFromQueryByActionsBody(req *request.Request, body *queryByAction
 	}
 }
 
+func copyRequestFromQueryV2ByActionsBody(req *request.Request, systemID string, body *queryV2ByActionsRequest) {
+	req.System = systemID
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
 func copyRequestFromAuthByActionsBody(req *request.Request, body *authByActionsRequest) {
 	req.System = body.System
+
+	req.Subject.Type = body.Subject.Type
+	req.Subject.ID = body.Subject.ID
+
+	for _, resource := range body.Resources {
+		req.Resources = append(req.Resources, types.Resource{
+			System:    resource.System,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attribute,
+		})
+	}
+}
+
+func copyRequestFromAuthV2ByActionsBody(req *request.Request, systemID string, body *authV2ByActionsRequest) {
+	req.System = systemID
 
 	req.Subject.Type = body.Subject.Type
 	req.Subject.ID = body.Subject.ID

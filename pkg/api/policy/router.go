@@ -47,8 +47,16 @@ func RegisterV2(r *gin.RouterGroup) {
 		// 鉴权
 		s.POST("/auth/", handler.AuthV2)
 
+		// in auth_v2.go
+		// 批量鉴权
+		r.POST("/auth_by_actions/", handler.BatchAuthV2ByActions)
+
 		// in query_v2.go
 		// 查询
 		s.POST("/query/", handler.QueryV2)
+
+		// in query_v2.go
+		// 批量查询
+		r.POST("/query_by_actions/", handler.BatchQueryV2ByActions)
 	}
 }
