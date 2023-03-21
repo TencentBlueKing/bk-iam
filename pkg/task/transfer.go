@@ -119,13 +119,13 @@ func (t *GroupAlterEventTransfer) Run() {
 				},
 			)
 
-			time.Sleep(30 * time.Second)
+			time.Sleep(10 * time.Second)
 		} else {
 			t.stats.SuccessCount += 1
 
 			// 时间段内的消息处理完成后, 休眠30秒
 			if count < int(eventLimit) {
-				time.Sleep(30 * time.Second)
+				time.Sleep(10 * time.Second)
 			}
 		}
 
@@ -136,7 +136,7 @@ func (t *GroupAlterEventTransfer) Run() {
 func (t *GroupAlterEventTransfer) transform() (count int, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(transferLayer, "transform")
 
-	createdAt := time.Now().Add(-30 * time.Second).Unix()
+	createdAt := time.Now().Add(-10 * time.Second).Unix()
 	events, err := t.service.ListBeforeCreateAt(createdAt, eventLimit)
 	if err != nil {
 		return 0, errorWrapf(err, "service.ListBeforeCreateAt fail createdAt=`%d`", createdAt)
