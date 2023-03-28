@@ -175,7 +175,7 @@ func (m *subjectManager) selectPagingSubjects(subjects *[]Subject, _type string,
 				SELECT pk
 				FROM subject
 				WHERE type=?
-				LIMIT ?, ?
+				LIMIT ? OFFSET ?
 			) s ON t.pk = s.pk`
 	}
 	return database.SqlxSelect(m.DB, subjects, query, _type, limit, offset)

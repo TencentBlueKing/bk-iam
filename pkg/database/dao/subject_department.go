@@ -169,7 +169,7 @@ func (m *subjectDepartmentManger) selectPaging(subjectDepartments *[]SubjectDepa
 			SELECT pk
 			FROM subject_department
 			ORDER BY subject_pk
-			LIMIT ?, ?
+			LIMIT ? OFFSET ?
 		) s ON t.pk = s.pk`
 	}
 

@@ -94,7 +94,7 @@ func (m *openAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 	WHERE action_pk = ?
 	AND expired_at > ?
 	ORDER BY pk asc
-	LIMIT ?, ?`
+	LIMIT ? OFFSET ?`
 
 	// TODO: check when the performance is affect if the offset is greater than?
 	if offset > 10000 {
@@ -113,7 +113,7 @@ func (m *openAbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 			WHERE action_pk = ?
 			AND expired_at > ?
 			ORDER BY pk asc
-			LIMIT ?, ?
+			LIMIT ? OFFSET ?
 		) p ON t.pk = p.pk`
 	}
 
