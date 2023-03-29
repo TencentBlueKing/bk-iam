@@ -118,7 +118,7 @@ func (m *openRbacPolicyManager) ListPagingByActionPKBeforeExpiredAt(
 		) p ON t.pk = p.pk`
 	}
 
-	err = database.SqlxSelect(m.DB, &policies, query, actionPK, expiredAt, offset, limit)
+	err = database.SqlxSelect(m.DB, &policies, query, actionPK, expiredAt, limit, offset)
 	if errors.Is(err, sql.ErrNoRows) {
 		return policies, nil
 	}
