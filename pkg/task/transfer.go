@@ -119,13 +119,13 @@ func (t *GroupAlterEventTransfer) Run() {
 				},
 			)
 
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		} else {
 			t.stats.SuccessCount += 1
 
-			// 时间段内的消息处理完成后, 休眠30秒
+			// 时间段内的消息处理完成后, 休眠10秒
 			if count < int(eventLimit) {
-				time.Sleep(10 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
 		}
 
