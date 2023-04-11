@@ -55,6 +55,7 @@ type actionSerializer struct {
 
 	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
 	Type     string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
+	Hidden   bool   `json:"hidden" binding:"omitempty" example:"false"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
