@@ -67,6 +67,7 @@ func StartClear() {
 
 	svc := service.NewModelChangeService()
 	policyService := service.NewPolicyService()
+	actionService := service.NewActionService()
 
 	events, err := svc.ListByStatus(service.ModelChangeEventStatusFinished, 50)
 	if err != nil {
@@ -74,7 +75,17 @@ func StartClear() {
 	}
 
 	for _, event := range events {
-		if event.Type != service.ModelChangeEventTypeActionPolicyDeleted && event.ModelType != service.ModelChangeEventModelTypeAction {
+		if event.Type != service.ModelChangeEventTypeActionPolicyDeleted || event.ModelType != service.ModelChangeEventModelTypeAction {
+			continue
+		}
+
+		// check action pk not exists
+		thinActions, err := actionService.ListThinActionByPKs([]int64{event.ModelPK})
+		if err != nil {
+			panic(err)
+		}
+
+		if len(thinActions) > 0 {
 			continue
 		}
 
