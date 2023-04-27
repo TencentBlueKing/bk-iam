@@ -79,6 +79,8 @@ func StartClear() {
 			continue
 		}
 
+		fmt.Printf("process system_id: %s action_id: %s\n", event.SystemID, event.ModelID)
+
 		// check action pk not exists
 		thinActions, err := actionService.ListThinActionByPKs([]int64{event.ModelPK})
 		if err != nil {
@@ -86,6 +88,7 @@ func StartClear() {
 		}
 
 		if len(thinActions) > 0 {
+			fmt.Printf("system_id: %s action_id: %s exists, skip\n", event.SystemID, event.ModelID)
 			continue
 		}
 
@@ -97,6 +100,7 @@ func StartClear() {
 		defer database.RollBackWithLog(tx)
 
 		// 2. 删除abac policy
+		fmt.Printf("delete policies system_id: %s action_id: %s exists, skip\n", event.SystemID, event.ModelID)
 		err = policyService.DeleteByActionPKWithTx(tx, event.ModelPK)
 		if err != nil {
 			panic(err)
