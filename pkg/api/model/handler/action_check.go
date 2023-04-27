@@ -238,7 +238,7 @@ func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, e
 			systemID, actionID, actionPK)
 	}
 
-	return true, nil
+	return false, nil
 }
 
 func (c *actionHasAnyPolicyChecker) FilterActionWithPolicy(
