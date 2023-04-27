@@ -89,7 +89,7 @@ func StartClear() {
 
 		if len(thinActions) > 0 {
 			fmt.Printf("system_id: %s action_id: %s exists, skip\n", event.SystemID, event.ModelID)
-			continue
+			panic(fmt.Errorf("system_id: %s action_id: %s exists, skip", event.SystemID, event.ModelID))
 		}
 
 		// 2. delete event task
@@ -100,7 +100,7 @@ func StartClear() {
 		defer database.RollBackWithLog(tx)
 
 		// 2. 删除abac policy
-		fmt.Printf("delete policies system_id: %s action_id: %s exists, skip\n", event.SystemID, event.ModelID)
+		fmt.Printf("delete policies system_id: %s action_id: %s\n", event.SystemID, event.ModelID)
 		err = policyService.DeleteByActionPKWithTx(tx, event.ModelPK)
 		if err != nil {
 			panic(err)
