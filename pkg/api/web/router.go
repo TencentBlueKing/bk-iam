@@ -55,6 +55,9 @@ func Register(r *gin.RouterGroup) {
 		// temporary policy
 		// 创建临时权限
 		s.POST("/temporary-policies", handler.CreateTemporaryPolicies)
+
+		// 带分页 https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
+		s.GET("/subject-groups", handler.ListSystemSubjectGroups)
 	}
 
 	// policy
@@ -119,7 +122,7 @@ func Register(r *gin.RouterGroup) {
 		// 带分页 https://github.com/TencentBlueKing/bk-iam-saas/issues/1155
 		r.GET("/subject-groups", handler.ListSubjectGroups)
 
-		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5&inherit=true
+		// add subject-groups?type=user&id=tome&groups=1,2,3,4,5
 		r.GET("/subjects-groups/belong", handler.CheckSubjectGroupsBelong)
 
 		// subject-groups?type=user&id=tome&groups=1,2,3,4,5
@@ -166,5 +169,8 @@ func RegisterV2(r *gin.RouterGroup) {
 	{
 		// policies 变更
 		s.POST("/policies", handler.AlterPoliciesV2)
+
+		// 查询rbac有资源实例权限的用户组
+		s.POST("/rbac/resource-groups", handler.QueryRbacGroupByResource)
 	}
 }

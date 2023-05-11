@@ -54,7 +54,7 @@ type ExpressionManager interface {
 
 	ChangeUnreferencedExpressionType(fromType int64, toType int64) error
 	ChangeReferencedExpressionTypeBeforeUpdateAt(fromType int64, toType int64, updatedAt int64) error
-	DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type int64, updatedAt int64) error
+	DeleteUnreferencedExpressionByTypeBeforeUpdateAt(_type int64, updatedAt int64, limit int64) (int64, error)
 }
 
 type expressionManager struct {
@@ -132,9 +132,9 @@ func (m *expressionManager) ChangeReferencedExpressionTypeBeforeUpdateAt(
 
 // DeleteUnreferencedExpressionByTypeBeforeUpdateAt 删除未被引用的expression
 func (m *expressionManager) DeleteUnreferencedExpressionByTypeBeforeUpdateAt(
-	_type int64, updatedAt int64,
-) error {
-	return m.deleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt)
+	_type int64, updatedAt int64, limit int64,
+) (int64, error) {
+	return m.deleteUnreferencedExpressionByTypeBeforeUpdateAt(_type, updatedAt, limit)
 }
 
 func (m *expressionManager) selectAuthByPKs(expressions *[]AuthExpression, pks []int64) error {
@@ -212,11 +212,12 @@ func (m *expressionManager) updateReferencedExpressionTypeBeforeUpdateAt(
 }
 
 func (m *expressionManager) deleteUnreferencedExpressionByTypeBeforeUpdateAt(
-	_type int64, updatedAt int64,
-) error {
+	_type int64, updatedAt int64, limit int64,
+) (int64, error) {
 	sql := `DELETE FROM expression
 		WHERE type=?
 		AND updated_at < FROM_UNIXTIME(?)
-		AND pk NOT IN (SELECT expression_pk FROM policy)`
-	return database.SqlxExec(m.DB, sql, _type, updatedAt)
+		AND pk NOT IN (SELECT expression_pk FROM policy)
+		LIMIT ?`
+	return database.SqlxDelete(m.DB, sql, _type, updatedAt, limit)
 }

@@ -49,6 +49,7 @@ type Action struct {
 	Sensitivity          int64                `json:"sensitivity" structs:"sensitivity"`
 	AuthType             string               `json:"auth_type" structs:"auth_type"`
 	Type                 string               `json:"type" structs:"type"`
+	Hidden               bool                 `json:"hidden" structs:"hidden"`
 	Version              int64                `json:"version" structs:"version"`
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`
 	RelatedActions       []string             `json:"related_actions" structs:"related_actions"`

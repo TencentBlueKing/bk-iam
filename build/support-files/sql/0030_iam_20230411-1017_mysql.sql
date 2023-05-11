@@ -1,0 +1,1 @@
+ALTER TABLE `bkiam`.`saas_action` ADD COLUMN `hidden` TinyInt(1) NOT NULL DEFAULT 0 AFTER `sensitivity`;

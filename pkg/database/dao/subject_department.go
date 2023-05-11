@@ -158,5 +158,20 @@ func (m *subjectDepartmentManger) selectPaging(subjectDepartments *[]SubjectDepa
 		FROM subject_department
 		ORDER BY subject_pk
 		LIMIT ? OFFSET ?`
+
+	if offset > 10000 {
+		query = `SELECT
+		t.subject_pk,
+		t.department_pks
+		FROM subject_department t
+		INNER JOIN
+		(
+			SELECT pk
+			FROM subject_department
+			ORDER BY subject_pk
+			LIMIT ? OFFSET ?
+		) s ON t.pk = s.pk`
+	}
+
 	return database.SqlxSelect(m.DB, subjectDepartments, query, limit, offset)
 }

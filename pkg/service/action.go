@@ -143,6 +143,7 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 		NameEn:   dbAction.NameEn,
 		AuthType: dbAction.AuthType,
 		Type:     dbAction.Type,
+		Hidden:   dbAction.Hidden,
 		Version:  dbAction.Version,
 	}
 
@@ -218,8 +219,10 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			NameEn:        ac.NameEn,
 			Description:   ac.Description,
 			DescriptionEn: ac.DescriptionEn,
+			Sensitivity:   ac.Sensitivity,
 			AuthType:      ac.AuthType,
 			Type:          ac.Type,
+			Hidden:        ac.Hidden,
 			Version:       ac.Version,
 		}
 		if ac.RelatedActions != "" {
@@ -367,6 +370,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			RelatedEnvironments: relatedEnvironments,
 			AuthType:            ac.AuthType,
 			Type:                ac.Type,
+			Hidden:              ac.Hidden,
 			Version:             ac.Version,
 		})
 

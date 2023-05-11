@@ -161,7 +161,25 @@ func (m *subjectManager) selectPagingSubjects(subjects *[]Subject, _type string,
 		name
 		FROM subject
 		WHERE type=?
+		ORDER BY pk asc
 		LIMIT ? OFFSET ?`
+
+	if offset > 10000 {
+		query = `SELECT
+			t.pk,
+			t.type,
+			t.id,
+			t.name
+			FROM subject t
+			INNER JOIN
+			(
+				SELECT pk
+				FROM subject
+				WHERE type=?
+				ORDER BY pk asc
+				LIMIT ? OFFSET ?
+			) s ON t.pk = s.pk`
+	}
 	return database.SqlxSelect(m.DB, subjects, query, _type, limit, offset)
 }
 

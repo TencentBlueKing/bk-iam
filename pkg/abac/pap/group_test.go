@@ -13,6 +13,7 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
@@ -20,6 +21,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/abac/pip"
+	abacTypes "iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	"iam/pkg/service"
@@ -396,14 +399,14 @@ var _ = Describe("GroupController", func() {
 				service: mock.NewMockGroupService(ctl),
 			}
 
-			_, err := c.CheckSubjectEffectGroups("user", "notexist", true, []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "notexist", []string{"10", "20"})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetLocalSubjectPK")
 		})
 
 		It("get subject all group pks fail", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
 
@@ -411,45 +414,422 @@ var _ = Describe("GroupController", func() {
 				service: mockGroupService,
 			}
 
-			_, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
+			_, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20"})
 
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "FilterExistEffectSubjectGroupPKs")
+			assert.Contains(GinkgoT(), err.Error(), "ListEffectSubjectGroupsBySubjectPKGroupPKs")
 		})
 
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]int64{10, 30}, nil,
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.SubjectGroup{{
+					GroupPK:   10,
+					ExpiredAt: 1,
+					CreatedAt: time.Time{},
+				}, {
+					GroupPK:   30,
+					ExpiredAt: 1,
+					CreatedAt: time.Time{},
+				}}, nil,
 			).AnyTimes()
 
 			c := &groupController{
 				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
-			assert.True(GinkgoT(), groupIDBelong["10"])
-			assert.False(GinkgoT(), groupIDBelong["20"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     true,
+				"expired_at": int64(1),
+				"created_at": time.Time{},
+			}, groupIDBelong["10"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+				"created_at": time.Time{},
+			}, groupIDBelong["20"])
 		})
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
-			mockGroupService.EXPECT().FilterExistEffectSubjectGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]int64{10, 30}, nil,
+			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.SubjectGroup{{
+					GroupPK:   10,
+					ExpiredAt: 1,
+				}, {
+					GroupPK:   30,
+					ExpiredAt: 1,
+				}}, nil,
 			).AnyTimes()
 
 			c := &groupController{
 				service: mockGroupService,
 			}
 
-			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", true, []string{"10", "20", "invalid"})
+			groupIDBelong, err := c.CheckSubjectEffectGroups("user", "1", []string{"10", "20", "invalid"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
-			assert.True(GinkgoT(), groupIDBelong["10"])
-			assert.False(GinkgoT(), groupIDBelong["20"])
-			assert.False(GinkgoT(), groupIDBelong["invalid"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     true,
+				"expired_at": int64(1),
+				"created_at": time.Time{},
+			}, groupIDBelong["10"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+				"created_at": time.Time{},
+			}, groupIDBelong["20"])
+			assert.Equal(GinkgoT(), map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+				"created_at": time.Time{},
+			}, groupIDBelong["invalid"])
+		})
+	})
+
+	Describe("ListRbacGroupByResource", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("resourceTypePK error", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				switch _type {
+				case "type":
+					return 1, nil
+				default:
+					return 0, errors.New("err")
+				}
+			})
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByResource("system", abacTypes.Resource{
+				System:    "system",
+				Type:      "type1",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "abac.ParseResourceNode")
+		})
+
+		It("GetAuthorizedActionGroupMap error", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				switch _type {
+				case "type":
+					return 1, nil
+				default:
+					return 0, errors.New("err")
+				}
+			})
+
+			mockGroupResourcePolicyService := mock.NewMockGroupResourcePolicyService(ctl)
+			mockGroupResourcePolicyService.EXPECT().
+				GetAuthorizedActionGroupMap("system", int64(1), int64(1), "id").
+				Return(
+					nil, errors.New("error"),
+				).
+				AnyTimes()
+
+			c := &groupController{
+				groupResourcePolicyService: mockGroupResourcePolicyService,
+			}
+
+			_, err := c.ListRbacGroupByResource("system", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "GetAuthorizedActionGroupMap")
+		})
+
+		It("groupPKsToSubjects error", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				switch _type {
+				case "type":
+					return 1, nil
+				default:
+					return 0, errors.New("err")
+				}
+			})
+
+			mockGroupResourcePolicyService := mock.NewMockGroupResourcePolicyService(ctl)
+			mockGroupResourcePolicyService.EXPECT().
+				GetAuthorizedActionGroupMap("system", int64(1), int64(1), "id").
+				Return(
+					map[int64][]int64{
+						1: {1, 2},
+					}, nil,
+				).
+				AnyTimes()
+
+			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
+				return types.Subject{}, errors.New("err")
+			})
+
+			c := &groupController{
+				groupResourcePolicyService: mockGroupResourcePolicyService,
+			}
+
+			_, err := c.ListRbacGroupByResource("system", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "groupPKsToSubjects")
+		})
+
+		It("ok", func() {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				switch _type {
+				case "type":
+					return 1, nil
+				default:
+					return 0, errors.New("err")
+				}
+			})
+
+			mockGroupResourcePolicyService := mock.NewMockGroupResourcePolicyService(ctl)
+			mockGroupResourcePolicyService.EXPECT().
+				GetAuthorizedActionGroupMap("system", int64(1), int64(1), "id").
+				Return(
+					map[int64][]int64{
+						1: {1},
+					}, nil,
+				).
+				AnyTimes()
+
+			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
+				return types.Subject{}, nil
+			})
+
+			c := &groupController{
+				groupResourcePolicyService: mockGroupResourcePolicyService,
+			}
+
+			groups, err := c.ListRbacGroupByResource("system", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []Subject{{}}, groups)
+		})
+	})
+
+	Describe("ListRbacGroupByActionResource", func() {
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+		})
+		AfterEach(func() {
+			patches.Reset()
+		})
+
+		It("pip.GetActionDetail fail", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 0, 0, nil, errors.New("err")
+				},
+			)
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "pip.GetActionDetail")
+		})
+
+		It("authType error", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 0, 0, nil, nil
+				},
+			)
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "only support rbac")
+		})
+
+		It("actionResourceTypePK error", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 1, 2, []abacTypes.ActionResourceType{{System: "system", Type: "type"}}, nil
+				},
+			)
+
+			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _ string) (int64, error) {
+				return 0, errors.New("err")
+			})
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetLocalResourceTypePK")
+		})
+
+		It("resourceTypePK error", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 1, 2, []abacTypes.ActionResourceType{{System: "system", Type: "type"}}, nil
+				},
+			)
+
+			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				switch _type {
+				case "type":
+					return 1, nil
+				default:
+					return 0, errors.New("err")
+				}
+			})
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{
+				System:    "system",
+				Type:      "type1",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "abac.ParseResourceNode")
+		})
+
+		It("cacheimpls.GetResourceActionAuthorizedGroupPKs error", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 1, 2, []abacTypes.ActionResourceType{{System: "system", Type: "type"}}, nil
+				},
+			)
+
+			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				return 1, nil
+			})
+
+			patches.ApplyFunc(cacheimpls.GetResourceActionAuthorizedGroupPKs, func(
+				systemID string,
+				actionPK, actionResourceTypePK, resourceTypePK int64,
+				resourceID string,
+			) ([]int64, error) {
+				return nil, errors.New("err")
+			})
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetResourceActionAuthorizedGroupPKs")
+		})
+
+		It("cacheimpls.GetSubjectByPK error", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 1, 2, []abacTypes.ActionResourceType{{System: "system", Type: "type"}}, nil
+				},
+			)
+
+			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				return 1, nil
+			})
+
+			patches.ApplyFunc(cacheimpls.GetResourceActionAuthorizedGroupPKs, func(
+				systemID string,
+				actionPK, actionResourceTypePK, resourceTypePK int64,
+				resourceID string,
+			) ([]int64, error) {
+				return []int64{1}, nil
+			})
+
+			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
+				return types.Subject{}, errors.New("err")
+			})
+
+			c := &groupController{}
+
+			_, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "groupPKsToSubjects")
+		})
+
+		It("ok", func() {
+			patches = gomonkey.ApplyFunc(
+				pip.GetActionDetail,
+				func(system, id string) (pk int64, authType int64, arts []abacTypes.ActionResourceType, err error) {
+					return 1, 2, []abacTypes.ActionResourceType{{System: "system", Type: "type"}}, nil
+				},
+			)
+
+			patches.ApplyFunc(cacheimpls.GetLocalResourceTypePK, func(_, _type string) (int64, error) {
+				return 1, nil
+			})
+
+			patches.ApplyFunc(cacheimpls.GetResourceActionAuthorizedGroupPKs, func(
+				systemID string,
+				actionPK, actionResourceTypePK, resourceTypePK int64,
+				resourceID string,
+			) ([]int64, error) {
+				return []int64{1}, nil
+			})
+
+			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
+				return types.Subject{}, nil
+			})
+
+			c := &groupController{}
+
+			groups, err := c.ListRbacGroupByActionResource("system", "action", abacTypes.Resource{
+				System:    "system",
+				Type:      "type",
+				ID:        "id",
+				Attribute: abacTypes.Attribute{},
+			})
+
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), []Subject{{}}, groups)
 		})
 	})
 })

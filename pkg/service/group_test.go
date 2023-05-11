@@ -288,7 +288,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("FilterExistEffectSubjectGroupPKs", func() {
+	Describe("ListEffectThinSubjectGroupsBySubjectPKGroupPKs", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -297,10 +297,10 @@ var _ = Describe("GroupService", func() {
 			ctl.Finish()
 		})
 
-		It("manager.FilterExistEffectSubjectGroupPKs fail", func() {
+		It("manager.ListEffectThinSubjectGroupsBySubjectPKGroupPKs fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				FilterSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				ListRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
 				Return(
 					nil, errors.New("error"),
 				).
@@ -310,17 +310,25 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			_, err := manager.FilterExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			_, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "FilterSubjectPKsExistGroupPKsAfterExpiredAt")
+			assert.Contains(GinkgoT(), err.Error(), "ListRelationBySubjectPKGroupPKs")
 		})
 
 		It("success", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectService.EXPECT().
-				FilterSubjectPKsExistGroupPKsAfterExpiredAt([]int64{123}, []int64{1}, gomock.Any()).
+				ListRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
 				Return(
-					[]int64{1, 2, 3}, nil,
+					[]dao.SubjectRelation{{
+						SubjectPK: 123,
+						GroupPK:   1,
+						ExpiredAt: 1,
+					}, {
+						SubjectPK: 123,
+						GroupPK:   2,
+						ExpiredAt: 1,
+					}}, nil,
 				).
 				AnyTimes()
 
@@ -328,9 +336,15 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			groupPKs, err := manager.FilterExistEffectSubjectGroupPKs([]int64{123}, []int64{1})
+			subjectGroups, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
 			assert.NoError(GinkgoT(), err)
-			assert.ElementsMatch(GinkgoT(), []int64{1, 2, 3}, groupPKs)
+			assert.ElementsMatch(GinkgoT(), []types.SubjectGroup{{
+				GroupPK:   1,
+				ExpiredAt: 1,
+			}, {
+				GroupPK:   2,
+				ExpiredAt: 1,
+			}}, subjectGroups)
 		})
 	})
 

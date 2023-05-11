@@ -61,6 +61,20 @@ func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateCommonActions(syste
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateCommonActions", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateCommonActions), system, actions)
 }
 
+// CreateOrUpdateCustomFrontendSettings mocks base method.
+func (m *MockSystemConfigService) CreateOrUpdateCustomFrontendSettings(system string, settings map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrUpdateCustomFrontendSettings", system, settings)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateOrUpdateCustomFrontendSettings indicates an expected call of CreateOrUpdateCustomFrontendSettings.
+func (mr *MockSystemConfigServiceMockRecorder) CreateOrUpdateCustomFrontendSettings(system, settings interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateCustomFrontendSettings", reflect.TypeOf((*MockSystemConfigService)(nil).CreateOrUpdateCustomFrontendSettings), system, settings)
+}
+
 // CreateOrUpdateFeatureShieldRules mocks base method.
 func (m *MockSystemConfigService) CreateOrUpdateFeatureShieldRules(system string, featureShieldRules []interface{}) error {
 	m.ctrl.T.Helper()
@@ -131,6 +145,21 @@ func (m *MockSystemConfigService) GetCommonActions(system string) ([]interface{}
 func (mr *MockSystemConfigServiceMockRecorder) GetCommonActions(system interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommonActions", reflect.TypeOf((*MockSystemConfigService)(nil).GetCommonActions), system)
+}
+
+// GetCustomFrontendSettings mocks base method.
+func (m *MockSystemConfigService) GetCustomFrontendSettings(system string) (map[string]interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCustomFrontendSettings", system)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCustomFrontendSettings indicates an expected call of GetCustomFrontendSettings.
+func (mr *MockSystemConfigServiceMockRecorder) GetCustomFrontendSettings(system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomFrontendSettings", reflect.TypeOf((*MockSystemConfigService)(nil).GetCustomFrontendSettings), system)
 }
 
 // GetFeatureShieldRules mocks base method.

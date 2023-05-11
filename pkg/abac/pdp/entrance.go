@@ -364,7 +364,12 @@ func QueryAuthPolicies(
 
 	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
-	policies, err = queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, true, withoutCache, entry)
+	withRbacPolicies := false
+	if len(rbacGroupPKs) > 0 {
+		withRbacPolicies = true
+	}
+
+	policies, err = queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, withRbacPolicies, withoutCache, entry)
 	if err != nil {
 		if errors.Is(err, ErrNoPolicies) {
 			return

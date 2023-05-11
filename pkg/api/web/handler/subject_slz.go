@@ -55,7 +55,6 @@ type checkSubjectGroupsBelongSerializer struct {
 	Type     string `form:"type" binding:"required,oneof=user department"`
 	ID       string `form:"id" binding:"required"`
 	GroupIDs string `form:"group_ids" binding:"required"`
-	Inherit  bool   `form:"inherit" binding:"omitempty"`
 }
 
 type listSubjectGroupSerializer struct {
@@ -200,4 +199,16 @@ type checkSubjectGroupsQuotaSerializer struct {
 type listGroupSubjectSerializer struct {
 	BeforeExpiredAt int64 `form:"before_expired_at" binding:"omitempty,min=0"`
 	pageSerializer
+}
+
+type rbacResource struct {
+	System    string                 `json:"system" binding:"required" example:"bk_paas"`
+	Type      string                 `json:"type" binding:"required" example:"app"`
+	ID        string                 `json:"id" binding:"required" example:"framework"`
+	Attribute map[string]interface{} `json:"attribute" binding:"required"`
+}
+
+type queryRbacGroupByResourceSerializer struct {
+	ActionID string       `json:"action_id" binding:"omitempty"`
+	Resource rbacResource `json:"resource" binding:"required"`
 }

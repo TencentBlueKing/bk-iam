@@ -28,7 +28,7 @@ var (
 	MaxSubjectActionAlterEventCheckCount               int = 3
 	MaxMessageGeneratedCountPreSubjectActionAlterEvent int = 100
 
-	MaxConsumerCountPerWorker int = 3
+	MaxConsumerCountPerWorker int = 5
 )
 
 // InitSuperAppCode ...

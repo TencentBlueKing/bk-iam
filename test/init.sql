@@ -117,7 +117,7 @@ INSERT INTO `subject_department` (`subject_pk`, `department_pks`, `created_at`, 
 
 
 /* subject-groups: user-group  department-group */
-INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `expired_at`) VALUES
+INSERT INTO `subject_relation` (`subject_pk`, `parent_pk`, `policy_expired_at`) VALUES
 (100, 2100, 4102444800),
 (101, 2101, 4102444800),
 (102, 2102, 4102444800),
@@ -167,10 +167,10 @@ INSERT INTO `action_resource_type` VALUES
 (2,'demo','view_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28'),
 (3,'demo','edit_app','demo','app','2021-06-24 07:31:28','2021-06-24 07:31:28');
 INSERT INTO `saas_action` VALUES
-(1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','','create', 0, 1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),
-(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
-(3,'demo','view_app','查看应用','view app','一个用户是否能够查看应用','Is allowed to view app','[\"access_developer_center\"]','rbac','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
-(4,'demo','edit_app','编辑应用','view app','一个用户是否能够编辑应用','Is allowed to edit app','[\"access_developer_center\"]','rbac','', 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
+(1,'demo','access_developer_center','访问开发者中心','access developer center','一个用户是否能访问开发者中心','Is allowed to access the developer center','null','','create', 0, 0, 1,'2021-06-24 07:23:13','2021-06-24 07:23:13','null'),
+(2,'demo','develop_app','开发SaaS应用','develop app','一个用户是否能够开发SaaS','Is allowed to develop SaaS app','[\"access_developer_center\"]','','', 0, 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
+(3,'demo','view_app','查看应用','view app','一个用户是否能够查看应用','Is allowed to view app','[\"access_developer_center\"]','rbac','', 0, 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null'),
+(4,'demo','edit_app','编辑应用','view app','一个用户是否能够编辑应用','Is allowed to edit app','[\"access_developer_center\"]','rbac','', 0, 0, 1,'2021-06-24 07:31:28','2021-06-24 07:31:28','null');
 INSERT INTO `saas_action_resource_type` VALUES
 (1,'demo','develop_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),
 (2,'demo','view_app','demo','app','','','instance','[{\"id\":\"app_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"},{\"id\":\"project_view\",\"ignore_iam_path\":false,\"system_id\":\"demo\"}]','2021-06-24 07:31:28','2021-06-24 07:31:28'),

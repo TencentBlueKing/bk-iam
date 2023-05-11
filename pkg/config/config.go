@@ -177,6 +177,8 @@ type Config struct {
 	Logger      Logger
 
 	Cryptos map[string]*Crypto
+
+	AuthToken string
 }
 
 // Load 从viper中读取配置文件

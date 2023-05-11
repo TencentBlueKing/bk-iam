@@ -19,6 +19,7 @@ import (
 	"github.com/jinzhu/copier"
 
 	"iam/pkg/abac/pap"
+	abacTypes "iam/pkg/abac/types"
 	"iam/pkg/api/common"
 	"iam/pkg/service/types"
 	"iam/pkg/util"
@@ -127,7 +128,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, query.Inherit, groupIDs)
+	groupIDBelong, err := ctl.CheckSubjectEffectGroups(query.Type, query.ID, groupIDs)
 	if err != nil {
 		err = errorx.Wrapf(
 			err,
@@ -402,4 +403,108 @@ func ListGroupSubjectBeforeExpiredAt(c *gin.Context) {
 		"count":   count,
 		"results": groupSubjects,
 	})
+}
+
+// ListSystemSubjectGroups 获取subject关联有指定系统权限的用户组
+func ListSystemSubjectGroups(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSystemSubjectGroups")
+
+	var query listSubjectGroupSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	query.Default()
+
+	systemID := c.Param("system_id")
+
+	ctl := pap.NewGroupController()
+
+	count, err := ctl.GetSubjectSystemGroupCountBeforeExpiredAt(query.Type, query.ID, systemID, query.BeforeExpiredAt)
+	if err != nil {
+		err = errorWrapf(err, "type=`%s`, id=`%s`", query.Type, query.ID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	groups, err := ctl.ListPagingSubjectSystemGroups(
+		query.Type,
+		query.ID,
+		systemID,
+		query.BeforeExpiredAt,
+		query.Limit,
+		query.Offset,
+	)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListPagingSubjectGroups",
+			"type=`%s`, id=`%s`, systemID=`%s`, expiredAt=`%d`, limit=`%d`, offset=`%d`",
+			query.Type,
+			query.ID,
+			systemID,
+			query.BeforeExpiredAt,
+			query.Limit,
+			query.Offset,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{
+		"count":   count,
+		"results": groups,
+	})
+}
+
+// QueryRbacGroupByResource 查询有资源实例权限的rbac用户组
+func QueryRbacGroupByResource(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "QueryRbacGroupByResource")
+
+	var body queryRbacGroupByResourceSerializer
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	systemID := c.Param("system_id")
+
+	ctl := pap.NewGroupController()
+
+	resource := abacTypes.Resource{
+		System:    body.Resource.System,
+		Type:      body.Resource.Type,
+		ID:        body.Resource.ID,
+		Attribute: body.Resource.Attribute,
+	}
+
+	var (
+		groups []pap.Subject
+		err    error
+	)
+	if body.ActionID != "" {
+		groups, err = ctl.ListRbacGroupByActionResource(systemID, body.ActionID, resource)
+		if err != nil {
+			err = errorWrapf(
+				err, "ctl.ListRbacGroupByActionResource systemID=`%s`, actionID=`%s`, resource=`%+v`",
+				systemID, body.ActionID, body.Resource,
+			)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
+	} else {
+		groups, err = ctl.ListRbacGroupByResource(systemID, resource)
+		if err != nil {
+			err = errorWrapf(
+				err, "ctl.ListRbacGroupByResource systemID=`%s`, resource=`%+v`",
+				systemID, body.Resource,
+			)
+			util.SystemErrorJSONResponse(c, err)
+			return
+		}
+	}
+
+	util.SuccessJSONResponse(c, "ok", groups)
 }

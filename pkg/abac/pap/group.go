@@ -13,11 +13,16 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	log "github.com/sirupsen/logrus"
 
+	"iam/pkg/abac"
+	"iam/pkg/abac/pip"
+	abacTypes "iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 	"iam/pkg/database"
 	"iam/pkg/service"
@@ -32,9 +37,13 @@ const GroupCTL = "GroupCTL"
 
 type GroupController interface {
 	GetSubjectGroupCountBeforeExpiredAt(_type, id string, beforeExpiredAt int64) (int64, error)
+	GetSubjectSystemGroupCountBeforeExpiredAt(_type, id, systemID string, expiredAt int64) (int64, error)
 	ListPagingSubjectGroups(_type, id string, beforeExpiredAt, limit, offset int64) ([]SubjectGroup, error)
+	ListPagingSubjectSystemGroups(
+		_type, id, systemID string, beforeExpiredAt, limit, offset int64,
+	) ([]SubjectGroup, error)
 	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
-	CheckSubjectEffectGroups(_type, id string, inherit bool, groupIDs []string) (map[string]bool, error)
+	CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error)
 
 	GetGroupMemberCount(_type, id string) (int64, error)
 	ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error)
@@ -48,20 +57,25 @@ type GroupController interface {
 	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
 	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
+
+	ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error)
+	ListRbacGroupByActionResource(systemID, actionID string, resource abacTypes.Resource) ([]Subject, error)
 }
 
 type groupController struct {
 	service service.GroupService
 
-	subjectService         service.SubjectService
-	groupAlterEventService service.GroupAlterEventService
+	subjectService             service.SubjectService
+	groupAlterEventService     service.GroupAlterEventService
+	groupResourcePolicyService service.GroupResourcePolicyService
 }
 
 func NewGroupController() GroupController {
 	return &groupController{
-		service:                service.NewGroupService(),
-		subjectService:         service.NewSubjectService(),
-		groupAlterEventService: service.NewGroupAlterEventService(),
+		service:                    service.NewGroupService(),
+		subjectService:             service.NewSubjectService(),
+		groupAlterEventService:     service.NewGroupAlterEventService(),
+		groupResourcePolicyService: service.NewGroupResourcePolicyService(),
 	}
 }
 
@@ -82,6 +96,32 @@ func (c *groupController) GetSubjectGroupCountBeforeExpiredAt(
 			err,
 			"service.GetSubjectGroupCountBeforeExpiredAt subjectPK=`%s`, expiredAt=`%d`",
 			subjectPK,
+			expiredAt,
+		)
+	}
+
+	return count, nil
+}
+
+// GetSubjectSystemGroupCountBeforeExpiredAt ...
+func (c *groupController) GetSubjectSystemGroupCountBeforeExpiredAt(
+	_type, id string,
+	systemID string,
+	expiredAt int64,
+) (count int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectSystemGroupCountBeforeExpiredAt")
+	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	if err != nil {
+		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	count, err = c.service.GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"service.GetSubjectSystemGroupCountBeforeExpiredAt subjectPK=`%s`, systemID=`%s`, expiredAt=`%d`",
+			subjectPK,
+			systemID,
 			expiredAt,
 		)
 	}
@@ -134,9 +174,8 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 
 func (c *groupController) CheckSubjectEffectGroups(
 	_type, id string,
-	inherit bool,
 	groupIDs []string,
-) (map[string]bool, error) {
+) (map[string]map[string]interface{}, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "CheckSubjectExistGroups")
 
 	// subject Type+ID to PK
@@ -145,17 +184,7 @@ func (c *groupController) CheckSubjectEffectGroups(
 		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	subjectPKs := []int64{subjectPK}
-	if inherit && _type == types.UserType {
-		departmentPKs, err := cacheimpls.GetSubjectDepartmentPKs(subjectPK)
-		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectDepartmentPKs subjectPK=`%d` fail", subjectPK)
-		}
-
-		subjectPKs = append(subjectPKs, departmentPKs...)
-	}
-
-	groupIDToGroupPK := make(map[string]int64, len(groupIDs))
+	groupPKToID := make(map[int64]string, len(groupIDs))
 	groupPKs := make([]int64, 0, len(groupIDs))
 	for _, groupID := range groupIDs {
 		// if groupID is empty, skip
@@ -180,30 +209,43 @@ func (c *groupController) CheckSubjectEffectGroups(
 		}
 
 		groupPKs = append(groupPKs, groupPK)
-		groupIDToGroupPK[groupID] = groupPK
+		groupPKToID[groupPK] = groupID
 	}
 
 	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
-	effectGroupPKs, err := c.service.FilterExistEffectSubjectGroupPKs(subjectPKs, groupPKs)
+	subjectGroups, err := c.service.ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"service.FilterExistEffectSubjectGroupPKs subjectPKs=`%+v`, groupPKs=`%+v` fail",
-			subjectPKs,
+			"service.ListEffectSubjectGroupsBySubjectPKGroupPKs subjectPKs=`%d`, groupPKs=`%+v` fail",
+			subjectPK,
 			groupPKs,
 		)
 	}
-	existGroupPKSet := set.NewInt64SetWithValues(effectGroupPKs)
 
 	// the result
-	groupIDBelong := make(map[string]bool, len(groupIDs))
-	for _, groupID := range groupIDs {
-		groupPK, ok := groupIDToGroupPK[groupID]
+	groupIDBelong := make(map[string]map[string]interface{}, len(groupIDs))
+	for _, group := range subjectGroups {
+		groupID, ok := groupPKToID[group.GroupPK]
 		if !ok {
-			groupIDBelong[groupID] = false
 			continue
 		}
-		groupIDBelong[groupID] = existGroupPKSet.Has(groupPK)
+
+		groupIDBelong[groupID] = map[string]interface{}{
+			"belong":     true,
+			"expired_at": group.ExpiredAt,
+			"created_at": group.CreatedAt,
+		}
+	}
+
+	for _, groupID := range groupIDs {
+		if _, ok := groupIDBelong[groupID]; !ok {
+			groupIDBelong[groupID] = map[string]interface{}{
+				"belong":     false,
+				"expired_at": 0,
+				"created_at": time.Time{},
+			}
+		}
 	}
 
 	return groupIDBelong, nil
@@ -225,6 +267,41 @@ func (c *groupController) ListPagingSubjectGroups(
 		return nil, errorWrapf(
 			err, "service.ListPagingSubjectGroups subjectPK=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
 			subjectPK, beforeExpiredAt, limit, offset,
+		)
+	}
+
+	groups, err := convertToSubjectGroups(svcSubjectGroups)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToSubjectGroups svcSubjectGroups=`%+v` fail", svcSubjectGroups)
+	}
+
+	return groups, nil
+}
+
+// ListPagingSubjectSystemGroups ...
+func (c *groupController) ListPagingSubjectSystemGroups(
+	_type, id string,
+	systemID string,
+	beforeExpiredAt, limit, offset int64,
+) ([]SubjectGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingSubjectSystemGroups")
+	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	svcSubjectGroups, err := c.service.ListPagingSubjectSystemGroups(
+		subjectPK,
+		systemID,
+		beforeExpiredAt,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.ListPagingSubjectSystemGroups "+
+				"subjectPK=`%s`, systemID=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK, systemID, beforeExpiredAt, limit, offset,
 		)
 	}
 
@@ -543,6 +620,156 @@ func (c *groupController) createGroupAlterEvent(groupPK int64, subjectPKs []int6
 			},
 		)
 	}
+}
+
+// ListRbacGroupByResource ...
+func (c *groupController) ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByResource")
+
+	// 解析资源实例信息
+	resourceNodes, err := abac.ParseResourceNode(resource)
+	if err != nil {
+		err = errorWrapf(
+			err, "abac.ParseResourceNode resource=`%+v`",
+			resource,
+		)
+		return nil, err
+	}
+
+	// 没有操作筛选的情况下选择最后一个资源类型的类型pk
+	actionResourceTypePK := resourceNodes[len(resourceNodes)-1].TypePK
+
+	groupPKset := set.NewInt64Set()
+	// 查询有权限的用户组
+	for _, resourceNode := range resourceNodes {
+		actionGroupPKs, err := c.groupResourcePolicyService.GetAuthorizedActionGroupMap(
+			systemID, actionResourceTypePK, resourceNode.TypePK, resourceNode.ID,
+		)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"svc.GetAuthorizedActionGroupMap fail, system=`%s`, resource=`%+v`",
+				systemID,
+				resourceNode,
+			)
+			return nil, err
+		}
+
+		for _, groupPKs := range actionGroupPKs {
+			groupPKset.Append(groupPKs...)
+		}
+	}
+
+	// 查询用户组信息
+	groups, err := groupPKsToSubjects(groupPKset.ToSlice())
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupPKsToSubjects fail",
+		)
+		return nil, err
+	}
+	return groups, nil
+}
+
+// ListRbacGroupByResource ...
+func (c *groupController) ListRbacGroupByActionResource(
+	systemID, actionID string,
+	resource abacTypes.Resource,
+) ([]Subject, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListRbacGroupByActionResource")
+
+	// 查询操作相关的信息
+	actionPK, authType, actionResourceTypes, err := pip.GetActionDetail(systemID, actionID)
+	if err != nil {
+		err = errorWrapf(
+			err, "pip.GetActionDetail systemID=`%s`, actionID=`%s`",
+			systemID, actionID,
+		)
+		return nil, err
+	}
+
+	if authType != types.AuthTypeRBAC {
+		return nil, errorWrapf(errors.New("only support rbac"), "authType=`%d`", authType)
+	}
+
+	// 查询操作关联的资源类型id
+	actionResourceTypePK, err := cacheimpls.GetLocalResourceTypePK(
+		actionResourceTypes[0].System, actionResourceTypes[0].Type, // 配置rbac的操作一定只关联了1个资源类型
+	)
+	if err != nil {
+		err = errorWrapf(
+			err, "cacheimpls.GetLocalResourceTypePK systemID=`%s`, resourceType=`%s`",
+			actionResourceTypes[0].System, actionResourceTypes[0].Type,
+		)
+		return nil, err
+	}
+
+	// 解析资源实例信息
+	resourceNodes, err := abac.ParseResourceNode(resource)
+	if err != nil {
+		err = errorWrapf(
+			err, "abac.ParseResourceNode resource=`%+v`",
+			resource,
+		)
+		return nil, err
+	}
+
+	groupPKset := set.NewInt64Set()
+	// 查询有权限的用户组
+	for _, resourceNode := range resourceNodes {
+		groupPKs, err := cacheimpls.GetResourceActionAuthorizedGroupPKs(
+			systemID,
+			actionPK,
+			actionResourceTypePK,
+			resourceNode.TypePK,
+			resourceNode.ID,
+		)
+		if err != nil {
+			err = errorWrapf(
+				err,
+				"cacheimpls.GetResourceActionAuthorizedGroupPKs fail, system=`%s` action_id=`%s` resource=`%+v`",
+				systemID,
+				actionID,
+				resourceNode,
+			)
+			return nil, err
+		}
+
+		groupPKset.Append(groupPKs...)
+	}
+
+	// 查询用户组信息
+	groups, err := groupPKsToSubjects(groupPKset.ToSlice())
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"groupPKsToSubjects fail",
+		)
+		return nil, err
+	}
+	return groups, nil
+}
+
+func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
+	groups := make([]Subject, 0, len(groupPKs))
+	for _, pk := range groupPKs {
+		subject, err := cacheimpls.GetSubjectByPK(pk)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+
+			return nil, fmt.Errorf("subject query fail, subjectPK=`%d`", pk)
+		}
+
+		groups = append(groups, Subject{
+			Type: subject.Type,
+			ID:   subject.ID,
+			Name: subject.Name,
+		})
+	}
+	return groups, nil
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {

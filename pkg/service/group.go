@@ -17,7 +17,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -39,8 +38,12 @@ type GroupService interface {
 
 	// web api
 	GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expiredAt int64) (int64, error)
+	GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK int64, systemID string, expiredAt int64) (int64, error)
 	ListPagingSubjectGroups(subjectPK, beforeExpiredAt int64, limit, offset int64) ([]types.SubjectGroup, error)
-	FilterExistEffectSubjectGroupPKs(subjectPKs []int64, groupPKs []int64) ([]int64, error)
+	ListPagingSubjectSystemGroups(
+		subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
+	) ([]types.SubjectGroup, error)
+	ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -150,6 +153,31 @@ func (l *groupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK int64, expi
 	return count, nil
 }
 
+// GetSubjectSystemGroupCountBeforeExpiredAt ...
+func (l *groupService) GetSubjectSystemGroupCountBeforeExpiredAt(
+	subjectPK int64,
+	systemID string,
+	expiredAt int64,
+) (count int64, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "GetSubjectSystemGroupCountBeforeExpiredAt")
+
+	if expiredAt == 0 {
+		count, err = l.manager.GetSubjectSystemGroupCount(subjectPK, systemID)
+	} else {
+		count, err = l.manager.GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt)
+	}
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"manager.GetSubjectSystemGroupCountBeforeExpiredAt subjectPK=`%d, systemID=`%s`, expiredAt=`%d` fail",
+			subjectPK,
+			systemID,
+			expiredAt,
+		)
+	}
+	return count, nil
+}
+
 // GetGroupSubjectCountBeforeExpiredAt ...
 func (l *groupService) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error) {
 	return l.manager.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
@@ -186,6 +214,41 @@ func (l *groupService) ListPagingSubjectGroups(
 	return subjectGroups, err
 }
 
+// ListPagingSubjectSystemGroups ...
+func (l *groupService) ListPagingSubjectSystemGroups(
+	subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
+) (subjectGroups []types.SubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListPagingSubjectGroups")
+
+	var relations []dao.SubjectRelation
+	if beforeExpiredAt == 0 {
+		relations, err = l.manager.ListPagingSubjectSystemGroups(subjectPK, systemID, limit, offset)
+	} else {
+		relations, err = l.manager.ListPagingSubjectSystemGroupBeforeExpiredAt(
+			subjectPK, systemID, beforeExpiredAt, limit, offset,
+		)
+	}
+
+	if err != nil {
+		return subjectGroups, errorWrapf(
+			err,
+			"manager.ListPagingSubjectSystemGroupBeforeExpiredAt subjectPK=`%d`, "+
+				"systemID=`%s`, beforeExpiredAt=`%d`, limit=`%d`, offset=`%d` fail",
+			subjectPK,
+			systemID,
+			beforeExpiredAt,
+			limit,
+			offset,
+		)
+	}
+
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
+	for _, r := range relations {
+		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+	}
+	return subjectGroups, err
+}
+
 // FilterGroupPKsHasMemberBeforeExpiredAt filter the exists and not expired subjects
 func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	groupPKs []int64, expiredAt int64,
@@ -193,24 +256,26 @@ func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
 }
 
-func (l *groupService) FilterExistEffectSubjectGroupPKs(
-	subjectPKs []int64,
+func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
+	subjectPK int64,
 	groupPKs []int64,
-) (existGroupPKs []int64, err error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "FilterExistEffectSubjectGroupPKs")
+) (subjectGroups []types.SubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectSubjectGroupsBySubjectPKGroupPKs")
 
-	// 过期时间必须大于当前时间
-	now := time.Now().Unix()
-
-	existGroupPKs, err = l.manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt(subjectPKs, groupPKs, now)
+	relations, err := l.manager.ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
 	if err != nil {
 		return nil, errorWrapf(
 			err,
-			"manager.FilterSubjectPKsExistGroupPKsAfterExpiredAt subjectPK=`%+v`, parenPKs=`%+v`, now=`%d` fail",
-			subjectPKs, groupPKs, now,
+			"manager.ListRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
+			subjectPK, groupPKs,
 		)
 	}
-	return set.NewInt64SetWithValues(existGroupPKs).ToSlice(), nil
+
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
+	for _, r := range relations {
+		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+	}
+	return subjectGroups, nil
 }
 
 // from subject_member.go
