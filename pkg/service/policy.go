@@ -673,6 +673,24 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 		}
 	}
 
+	// 清理自定义权限的未被引用的expression
+	for i := 0; i < maxAttempts; i++ {
+		rowsAffected, err := s.expressionManger.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(
+			expressionTypeCustom,
+			updateAt,
+			rowLimit,
+		)
+		if err != nil {
+			return errorWrapf(err, "expressionManger.DeleteByTypeBeforeUpdateAt type=`%d`, updateAt=`%d`",
+				expressionTypeCustom, updateAt)
+		}
+
+		// 如果已经没有需要删除的了，就停止
+		if rowsAffected == 0 {
+			break
+		}
+	}
+
 	// 3. 标记未被引用的expression
 	err = s.expressionManger.ChangeUnreferencedExpressionType(expressionTypeTemplate, expressionTypeUnreferenced)
 	if err != nil {
