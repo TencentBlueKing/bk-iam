@@ -653,8 +653,8 @@ func (s *policyService) DeleteUnreferencedExpressions() error {
 
 	// 2. 删除标记未被引用的expression
 	// 由于删除时可能数量较大，耗时长，锁行数据较多，影响鉴权，所以需要循环删除，限制每次删除的记录数，以及最多执行删除多少次
-	rowLimit := int64(5000)
-	maxAttempts := 100 // 相当于最多删除50万数据
+	rowLimit := int64(10000)
+	maxAttempts := 100 // 相当于最多删除100万数据
 
 	for i := 0; i < maxAttempts; i++ {
 		rowsAffected, err := s.expressionManger.DeleteUnreferencedExpressionByTypeBeforeUpdateAt(
