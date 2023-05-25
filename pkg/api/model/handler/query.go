@@ -45,7 +45,7 @@ const (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/query [get]
+// @Router /api/v1/model/systems/{system_id}/query [get]
 //nolint:gocognit
 func SystemInfoQuery(c *gin.Context) {
 	var query querySerializer
