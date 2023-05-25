@@ -38,7 +38,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/instance-selections [post]
+// @Router /api/v1/model/systems/{system_id}/instance-selections [post]
 func BatchCreateInstanceSelections(c *gin.Context) {
 	var body []instanceSelectionSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -114,7 +114,7 @@ func BatchCreateInstanceSelections(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/instance-selections/{instance_selection_id} [put]
+// @Router /api/v1/model/systems/{system_id}/instance-selections/{instance_selection_id} [put]
 func UpdateInstanceSelection(c *gin.Context) {
 	systemID := c.Param("system_id")
 
@@ -197,7 +197,7 @@ func UpdateInstanceSelection(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/instance-selections/{instance_selection_id} [delete]
+// @Router /api/v1/model/systems/{system_id}/instance-selections/{instance_selection_id} [delete]
 func DeleteInstanceSelection(c *gin.Context) {
 	systemID := c.Param("system_id")
 	instanceSelectionID := c.Param("instance_selection_id")
