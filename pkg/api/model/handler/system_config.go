@@ -49,7 +49,7 @@ const (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/configs/{name} [POST]
+// @Router /api/v1/model/systems/{system_id}/configs/{name} [POST]
 func CreateOrUpdateConfigDispatch(c *gin.Context) {
 	systemID := c.Param("system_id")
 
