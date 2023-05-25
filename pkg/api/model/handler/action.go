@@ -36,7 +36,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/actions [post]
+// @Router /api/v1/model/systems/{system_id}/actions [post]
 func BatchCreateActions(c *gin.Context) {
 	var body []actionSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -123,7 +123,7 @@ func BatchCreateActions(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/action/{action_id} [put]
+// @Router /api/v1/model/systems/{system_id}/action/{action_id} [put]
 func UpdateAction(c *gin.Context) {
 	systemID := c.Param("system_id")
 
@@ -252,7 +252,7 @@ func UpdateAction(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/action/{action_id} [delete]
+// @Router /api/v1/model/systems/{system_id}/action/{action_id} [delete]
 func DeleteAction(c *gin.Context) {
 	systemID := c.Param("system_id")
 	actionID := c.Param("action_id")
@@ -276,7 +276,7 @@ func DeleteAction(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/actions [delete]
+// @Router /api/v1/model/systems/{system_id}/actions [delete]
 func BatchDeleteActions(c *gin.Context) {
 	systemID := c.Param("system_id")
 

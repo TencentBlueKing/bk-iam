@@ -32,7 +32,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/token [get]
+// @Router /api/v1/model/systems/{system_id}/token [get]
 func GetToken(c *gin.Context) {
 	// validate the body
 	systemID := c.Param("system_id")
