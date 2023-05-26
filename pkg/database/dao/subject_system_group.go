@@ -97,7 +97,11 @@ func (m *subjectSystemGroupManager) selectGroups(
 	systemID string,
 	subjectPKs []int64,
 ) error {
-	query := "SELECT subject_pk, `groups` FROM subject_system_group WHERE system_id = ? AND subject_pk IN (?)"
+	query := "SELECT " +
+		"subject_pk, " +
+		"`groups` " +
+		"FROM subject_system_group " +
+		"WHERE system_id = ? AND subject_pk IN (?)"
 	return database.SqlxSelect(m.DB, groups, query, systemID, subjectPKs)
 }
 
@@ -106,19 +110,37 @@ func (m *subjectSystemGroupManager) selectBySystemSubject(
 	systemID string,
 	subjectPK int64,
 ) error {
-	query := "SELECT pk, system_id, subject_pk,	`groups`, reversion FROM subject_system_group " +
+	query := "SELECT " +
+		"pk, " +
+		"system_id, " +
+		"subject_pk, " +
+		"`groups`, " +
+		"reversion " +
+		"FROM subject_system_group " +
 		"WHERE system_id = ? AND subject_pk = ?"
 	return database.SqlxGet(m.DB, subjectSystemGroup, query, systemID, subjectPK)
 }
 
 func (m *subjectSystemGroupManager) insertWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) error {
-	sql := "INSERT INTO subject_system_group (system_id, subject_pk, `groups`) VALUES (:system_id,:subject_pk,:`groups`)"
+	sql := "INSERT INTO subject_system_group (" +
+		"system_id, " +
+		"subject_pk, " +
+		"`groups`" +
+	") VALUES (" +
+		":system_id, " +
+		":subject_pk, " +
+		":groups" +
+	")"
 	return database.SqlxInsertWithTx(tx, sql, subjectSystemGroup)
 }
 
 func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) (int64, error) {
-	sql := "UPDATE subject_system_group SET	`groups` = :`groups`, reversion = reversion + 1	" +
-		"WHERE system_id = :system_id AND subject_pk = :subject_pk AND reversion = :reversion"
+	sql := "UPDATE subject_system_group SET	" +
+		"`groups` = :groups, " +
+		"reversion = reversion + 1	" +
+		"WHERE system_id = :system_id " +
+		"AND subject_pk = :subject_pk " +
+		"AND reversion = :reversion"
 	return database.SqlxUpdateWithTx(tx, sql, subjectSystemGroup)
 }
 
