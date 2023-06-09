@@ -1,3 +1,8 @@
+# 1.12.7
+
+- bugfix: delete unreferenced expression
+- bugfix: rbac policy expression generate if action not found
+
 # 1.12.6
 
 - upgrade: /subjects-groups/belong api
