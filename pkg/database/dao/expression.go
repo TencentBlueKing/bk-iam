@@ -203,11 +203,14 @@ func (m *expressionManager) updateUnreferencedExpressionType(fromType int64, toT
 func (m *expressionManager) updateReferencedExpressionTypeBeforeUpdateAt(
 	fromType int64, toType int64, updatedAt int64,
 ) error {
-	sql := `UPDATE expression SET
-		type=?
-		WHERE type=?
-		AND updated_at < FROM_UNIXTIME(?)
-		AND pk IN (SELECT expression_pk FROM policy)`
+	sql := `UPDATE expression SET 
+		type=? 
+		WHERE pk IN (SELECT pk FROM 
+			(SELECT pk FROM expression 
+				WHERE type=?
+				AND updated_at < FROM_UNIXTIME(?)
+				AND pk IN (SELECT expression_pk FROM policy)
+			) AS e)`
 	return database.SqlxExec(m.DB, sql, toType, fromType, updatedAt)
 }
 
@@ -215,9 +218,12 @@ func (m *expressionManager) deleteUnreferencedExpressionByTypeBeforeUpdateAt(
 	_type int64, updatedAt int64, limit int64,
 ) (int64, error) {
 	sql := `DELETE FROM expression
-		WHERE type=?
-		AND updated_at < FROM_UNIXTIME(?)
-		AND pk NOT IN (SELECT expression_pk FROM policy)
-		LIMIT ?`
+		WHERE pk IN (SELECT pk FROM 
+			(SELECT pk FROM expression 
+				WHERE type=?
+				AND updated_at < FROM_UNIXTIME(?)
+				AND pk NOT IN (SELECT expression_pk FROM policy)
+				LIMIT ?
+			) AS e)`
 	return database.SqlxDelete(m.DB, sql, _type, updatedAt, limit)
 }

@@ -161,7 +161,8 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 			groupPK,
 			actionPK,
 		)
-		if err != nil {
+		// NOTE: action如果被删除, rbac_group_resource_policy中action_pks并没有清理, 这里可能出现操作查询不到的错误, 如果查询不到, 直接删除
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return errorWrapf(err,
 				"cacheimpls.GetGroupActionAuthorizedResource fail, groupPK=`%d`, actionPK=`%d`",
 				groupPK, actionPK,

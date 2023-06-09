@@ -120,8 +120,8 @@ func NewPolicyManager() PolicyManager {
 
 // ListBySubjectAction 查询用于鉴权的policy列表
 // policy有2个来源
-// 	1. 普通权限(自定义权限, 继承的用户组权限)
-// 	2. 临时权限(只来自个人)
+//  1. 普通权限(自定义权限, 继承的用户组权限)
+//  2. 临时权限(只来自个人)
 func (m *policyManager) ListBySubjectAction(
 	system string,
 	subject types.Subject,

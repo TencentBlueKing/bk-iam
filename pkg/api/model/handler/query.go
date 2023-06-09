@@ -46,6 +46,7 @@ const (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/systems/{system_id}/query [get]
+//
 //nolint:gocognit
 func SystemInfoQuery(c *gin.Context) {
 	var query querySerializer
@@ -65,8 +66,9 @@ func SystemInfoQuery(c *gin.Context) {
 	BuildSystemInfoQueryResponse(c, systemID, fieldSet, false)
 }
 
-//nolint:gocognit
 // BuildSystemInfoQueryResponse will only the data requested
+//
+//nolint:gocognit
 func BuildSystemInfoQueryResponse(c *gin.Context, systemID string, fieldSet *set.StringSet, isModelSharing bool) {
 	// make the return data
 	data := gin.H{}
