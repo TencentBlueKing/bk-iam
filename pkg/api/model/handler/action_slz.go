@@ -207,8 +207,8 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 }
 
 // validateActionAuthType will check the auth_type is valid or not
-// 1. if len(data.RelatedResourceTypes) == 0, auth_type should be "abac"
-// 2. if len(data.RelatedResourceTypes) > 0, auth_type should be "abac" OR "rbac"
+//  1. if len(data.RelatedResourceTypes) == 0, auth_type should be "abac"
+//  2. if len(data.RelatedResourceTypes) > 0, auth_type should be "abac" OR "rbac"
 //     2.1 if auth_type == "rbac", the related_resource_type[selection_mode] should be 'instance'
 func validateActionAuthType(authType string, relatedResourceTypes []relatedResourceType) (bool, string) {
 	if authType == types.AuthTypeRBACStr {

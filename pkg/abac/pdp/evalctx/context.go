@@ -205,8 +205,9 @@ func (c *EvalContext) InitEnvironments(cond condition.Condition, currentTime tim
 
 // GenTimeEnvsFromCache will return the same time-related envs if the tz and timestamp are same!
 // NOTE: cache only if the envs is same for every request
-//       if you will change the envs later(e.g. set some value from request, do not cache it!)
-//       at that time, you should remove this func, use a new collection like sync.Pool
+//
+//	if you will change the envs later(e.g. set some value from request, do not cache it!)
+//	at that time, you should remove this func, use a new collection like sync.Pool
 func GenTimeEnvsFromCache(tz string, currentTime time.Time) (map[string]interface{}, error) {
 	key := tz + strconv.FormatInt(currentTime.Unix(), 10)
 
