@@ -11,6 +11,7 @@
 package dao
 
 import (
+	"fmt"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
@@ -22,11 +23,11 @@ import (
 
 func Test_subjectSystemGroupManager_ListGroups(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT
+		mockQuery := fmt.Sprintf(`^SELECT
 		subject_pk,
-		groups
+		%s
 		FROM subject_system_group
-		WHERE system_id = (.*) AND subject_pk IN (.*)`
+		WHERE system_id = (.*) AND subject_pk IN (.*)`, "`groups`")
 		mockRows := sqlmock.NewRows([]string{"subject_pk", "groups"}).AddRow(int64(1), "test")
 		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
 
@@ -58,14 +59,14 @@ func Test_subjectSystemGroupManager_DeleteBySystemSubjectWithTx(t *testing.T) {
 
 func Test_subjectSystemGroupManager_GetBySystemSubject(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT
+		mockQuery := fmt.Sprintf(`^SELECT
 		pk,
 		system_id,
 		subject_pk,
-		groups,
+		%s,
 		reversion
 		FROM subject_system_group
-		WHERE system_id = (.*) AND subject_pk = (.*)`
+		WHERE system_id = (.*) AND subject_pk = (.*)`, "`groups`")
 		mockRows := sqlmock.NewRows([]string{"system_id", "subject_pk", "groups", "reversion"}).
 			AddRow("test", int64(1), "[]", int64(2))
 		mock.ExpectQuery(mockQuery).WithArgs("system", int64(1)).WillReturnRows(mockRows)
@@ -108,7 +109,7 @@ func Test_subjectSystemGroupManager_CreateWithTx(t *testing.T) {
 func Test_subjectSystemGroupManager_UpdateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`^UPDATE subject_system_group SET groups = (.*)`).WithArgs(
+		mock.ExpectExec(fmt.Sprintf(`^UPDATE subject_system_group SET %s = (.*)`, "`groups`")).WithArgs(
 			"[]", "system", int64(1), int64(2),
 		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()

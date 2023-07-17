@@ -13,6 +13,7 @@ package dao
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 
@@ -97,11 +98,11 @@ func (m *subjectSystemGroupManager) selectGroups(
 	systemID string,
 	subjectPKs []int64,
 ) error {
-	query := `SELECT
+	query := fmt.Sprintf(`SELECT
 		subject_pk,
-		groups
+		%s
 		FROM subject_system_group
-		WHERE system_id = ? AND subject_pk IN (?)`
+		WHERE system_id = ? AND subject_pk IN (?)`, "`groups`")
 	return database.SqlxSelect(m.DB, groups, query, systemID, subjectPKs)
 }
 
@@ -110,37 +111,37 @@ func (m *subjectSystemGroupManager) selectBySystemSubject(
 	systemID string,
 	subjectPK int64,
 ) error {
-	query := `SELECT
+	query := fmt.Sprintf(`SELECT
 		pk,
 		system_id,
 		subject_pk,
-		groups,
+		%s,
 		reversion
 		FROM subject_system_group
-		WHERE system_id = ? AND subject_pk = ?`
+		WHERE system_id = ? AND subject_pk = ?`, "`groups`")
 	return database.SqlxGet(m.DB, subjectSystemGroup, query, systemID, subjectPK)
 }
 
 func (m *subjectSystemGroupManager) insertWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) error {
-	sql := `INSERT INTO subject_system_group (
+	sql := fmt.Sprintf(`INSERT INTO subject_system_group (
 		system_id, 
 		subject_pk, 
-		groups
+		%s
 	) VALUES (
 		:system_id,
 		:subject_pk,
 		:groups
-	)`
+	)`, "`groups`")
 	return database.SqlxInsertWithTx(tx, sql, subjectSystemGroup)
 }
 
 func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup *SubjectSystemGroup) (int64, error) {
-	sql := `UPDATE subject_system_group SET
-		groups = :groups,
+	sql := fmt.Sprintf(`UPDATE subject_system_group SET
+		%s = :groups,
 		reversion = reversion + 1 
 		WHERE system_id = :system_id
 		AND subject_pk = :subject_pk
-		AND reversion = :reversion`
+		AND reversion = :reversion`, "`groups`")
 	return database.SqlxUpdateWithTx(tx, sql, subjectSystemGroup)
 }
 
