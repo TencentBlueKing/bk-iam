@@ -473,6 +473,9 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 	if action.AllowEmptyFields.HasKey("Type") {
 		allowBlank.AddKey("Type")
 	}
+	if action.AllowEmptyFields.HasKey("Hidden") {
+		allowBlank.AddKey("Hidden")
+	}
 	if action.AllowEmptyFields.HasKey("Description") {
 		allowBlank.AddKey("Description")
 	}
@@ -513,6 +516,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		Sensitivity:         action.Sensitivity,
 		AuthType:            action.AuthType,
 		Type:                action.Type,
+		Hidden:              action.Hidden,
 		Version:             action.Version,
 		RelatedActions:      relatedActions,
 		RelatedEnvironments: relatedEnvironments,
