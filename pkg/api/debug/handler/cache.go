@@ -39,7 +39,7 @@ func QueryPolicyCache(c *gin.Context) {
 		return
 	}
 
-	subjectPK, err := cacheimpls.GetSubjectPK(body.SubjectType, body.SubjectID)
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(body.SubjectType, body.SubjectID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return

@@ -37,7 +37,7 @@ var _ = Describe("GroupController", func() {
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
 				switch id {
 				case "1":
 					return int64(1), nil
@@ -281,7 +281,7 @@ var _ = Describe("GroupController", func() {
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
 
-			patches = gomonkey.ApplyFunc(cacheimpls.GetSubjectPK, func(_type, id string) (pk int64, err error) {
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
 				switch id {
 				case "1":
 					return int64(1), nil

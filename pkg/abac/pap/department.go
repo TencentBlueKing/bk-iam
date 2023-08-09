@@ -157,14 +157,14 @@ func (c *departmentController) BulkDelete(subjectIDs []string) error {
 func convertToServiceSubjectDepartments(subjectDepartments []SubjectDepartment) ([]types.SubjectDepartment, error) {
 	serviceSubjectDepartments := make([]types.SubjectDepartment, 0, len(subjectDepartments))
 	for _, subjectDepartment := range subjectDepartments {
-		subjectPK, err := cacheimpls.GetSubjectPK(types.UserType, subjectDepartment.SubjectID)
+		subjectPK, err := cacheimpls.GetLocalSubjectPK(types.UserType, subjectDepartment.SubjectID)
 		if err != nil {
 			return nil, err
 		}
 
 		departmentPKs := make([]int64, 0, len(subjectDepartment.DepartmentIDs))
 		for _, departmentID := range subjectDepartment.DepartmentIDs {
-			departmentPK, err := cacheimpls.GetSubjectPK(types.DepartmentType, departmentID)
+			departmentPK, err := cacheimpls.GetLocalSubjectPK(types.DepartmentType, departmentID)
 			if err != nil {
 				// 兼容不存在的情况
 				if errors.Is(err, sql.ErrNoRows) {

@@ -90,7 +90,7 @@ func QuerySubjects(c *gin.Context) {
 		"type": body.Type,
 		"id":   body.ID,
 	}
-	pk, err := cacheimpls.GetSubjectPK(body.Type, body.ID)
+	pk, err := cacheimpls.GetLocalSubjectPK(body.Type, body.ID)
 	if err != nil {
 		util.SystemErrorJSONResponse(c, err)
 		return
