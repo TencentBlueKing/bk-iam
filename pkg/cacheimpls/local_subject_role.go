@@ -45,7 +45,7 @@ func (k SubjectRoleCacheKey) Key() string {
 func retrieveSubjectRole(key cache.Key) (interface{}, error) {
 	k := key.(SubjectRoleCacheKey)
 
-	pk, err := GetSubjectPK(k.SubjectType, k.SubjectID)
+	pk, err := GetLocalSubjectPK(k.SubjectType, k.SubjectID)
 
 	// 如果用户不存在, 表现为没有任何一个系统的特殊角色
 	if errors.Is(err, sql.ErrNoRows) {

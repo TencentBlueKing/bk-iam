@@ -188,6 +188,9 @@ func UpdateAction(c *gin.Context) {
 	if _, ok := data["type"]; ok {
 		allowEmptyFields.AddKey("Type")
 	}
+	if _, ok := data["hidden"]; ok {
+		allowEmptyFields.AddKey("Hidden")
+	}
 	if _, ok := data["related_resource_types"]; ok {
 		allowEmptyFields.AddKey("RelatedResourceTypes")
 	}
@@ -216,6 +219,7 @@ func UpdateAction(c *gin.Context) {
 		Version:              body.Version,
 		AuthType:             body.AuthType,
 		Type:                 body.Type,
+		Hidden:               body.Hidden,
 		RelatedResourceTypes: convertToRelatedResourceTypes(body.RelatedResourceTypes),
 		RelatedActions:       body.RelatedActions,
 		RelatedEnvironments:  convertToRelatedEnvironments(body.RelatedEnvironments),

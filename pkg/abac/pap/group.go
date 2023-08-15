@@ -85,9 +85,9 @@ func (c *groupController) GetSubjectGroupCountBeforeExpiredAt(
 	expiredAt int64,
 ) (count int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectGroupCountBeforeExpiredAt")
-	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return 0, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	count, err = c.service.GetSubjectGroupCountBeforeExpiredAt(subjectPK, expiredAt)
@@ -110,9 +110,9 @@ func (c *groupController) GetSubjectSystemGroupCountBeforeExpiredAt(
 	expiredAt int64,
 ) (count int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetSubjectSystemGroupCountBeforeExpiredAt")
-	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return 0, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	count, err = c.service.GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt)
@@ -257,9 +257,9 @@ func (c *groupController) ListPagingSubjectGroups(
 	beforeExpiredAt, limit, offset int64,
 ) ([]SubjectGroup, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingSubjectGroups")
-	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	svcSubjectGroups, err := c.service.ListPagingSubjectGroups(subjectPK, beforeExpiredAt, limit, offset)
@@ -285,9 +285,9 @@ func (c *groupController) ListPagingSubjectSystemGroups(
 	beforeExpiredAt, limit, offset int64,
 ) ([]SubjectGroup, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingSubjectSystemGroups")
-	subjectPK, err := cacheimpls.GetSubjectPK(_type, id)
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	svcSubjectGroups, err := c.service.ListPagingSubjectSystemGroups(
@@ -316,9 +316,9 @@ func (c *groupController) ListPagingSubjectSystemGroups(
 // GetGroupMemberCount ...
 func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCount")
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return 0, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	count, err := c.service.GetGroupMemberCount(groupPK)
@@ -332,9 +332,9 @@ func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
 // ListPagingGroupMember ...
 func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMember")
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	svcMembers, err := c.service.ListPagingGroupMember(groupPK, limit, offset)
@@ -379,9 +379,9 @@ func (c *groupController) ListPagingGroupSubjectBeforeExpiredAt(
 // GetGroupMemberCountBeforeExpiredAt ...
 func (c *groupController) GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetGroupMemberCountBeforeExpiredAt")
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return 0, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return 0, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	count, err := c.service.GetGroupMemberCountBeforeExpiredAt(groupPK, expiredAt)
@@ -400,9 +400,9 @@ func (c *groupController) ListPagingGroupMemberBeforeExpiredAt(
 	_type, id string, expiredAt int64, limit, offset int64,
 ) ([]GroupMember, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMemberBeforeExpiredAt")
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	svcMembers, err := c.service.ListPagingGroupMemberBeforeExpiredAt(groupPK, expiredAt, limit, offset)
@@ -439,9 +439,9 @@ func (c *groupController) alterGroupMembers(
 	createIfNotExists bool,
 ) (typeCount map[string]int64, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "alterGroupMembers")
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	relations, err := c.service.ListGroupMember(groupPK)
@@ -471,9 +471,9 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	for _, m := range members {
-		subjectPK, err := cacheimpls.GetSubjectPK(m.Type, m.ID)
+		subjectPK, err := cacheimpls.GetLocalSubjectPK(m.Type, m.ID)
 		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
+			return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
 		}
 
 		// member已存在则不再添加
@@ -563,9 +563,9 @@ func (c *groupController) DeleteGroupMembers(
 	userPKs := make([]int64, 0, len(members))
 	departmentPKs := make([]int64, 0, len(members))
 	for _, m := range members {
-		pk, err := cacheimpls.GetSubjectPK(m.Type, m.ID)
+		pk, err := cacheimpls.GetLocalSubjectPK(m.Type, m.ID)
 		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
+			return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
 		}
 
 		if m.Type == types.UserType {
@@ -575,9 +575,9 @@ func (c *groupController) DeleteGroupMembers(
 		}
 	}
 
-	groupPK, err := cacheimpls.GetSubjectPK(_type, id)
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
-		return nil, errorWrapf(err, "cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
 	typeCount, err = c.service.BulkDeleteGroupMembers(groupPK, userPKs, departmentPKs)
