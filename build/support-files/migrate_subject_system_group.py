@@ -116,6 +116,8 @@ def db_list_subject_pk(
     sql = "SELECT MAX(pk) FROM subject WHERE type IN %s;"
     cursor.execute(sql, [tuple(types)])
     max_pk = cursor.fetchone()[0]  # type: ignore
+    if not max_pk:
+        return
 
     # 每次查询1000条
     sql = "SELECT pk FROM subject WHERE type IN %s AND pk >= %s AND pk < %s;"
