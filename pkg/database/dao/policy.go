@@ -270,7 +270,7 @@ func (m *policyManager) selectBySubjectTemplateBeforeExpiredAt(
 		WHERE subject_pk = ?
 		AND template_id = ?
 		AND expired_at < ?
-		ORDER BY expired_at DESC`
+		ORDER BY expired_at`
 	return database.SqlxSelect(m.DB, policies, query, subjectPK, templateID, expiredAt)
 }
 
