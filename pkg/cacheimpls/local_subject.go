@@ -12,6 +12,7 @@ package cacheimpls
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/cache"
 
@@ -45,4 +46,46 @@ func GetSubjectByPK(pk int64) (subject types.Subject, err error) {
 	}
 
 	return
+}
+
+// BatchGet ...
+func BatchGet(pks []int64) (subjects []types.Subject, err error) {
+	subjects = make([]types.Subject, 0, len(pks))
+	missPKs := make([]int64, 0, len(pks))
+	for _, pk := range pks {
+		key := SubjectPKCacheKey{
+			PK: pk,
+		}
+		value, ok := LocalSubjectCache.DirectGet(key)
+		if !ok {
+			missPKs = append(missPKs, pk)
+			continue
+		}
+
+		subject, ok := value.(types.Subject)
+		if !ok {
+			err = fmt.Errorf("not types.Subject in cache for pk=%d", pk)
+			return
+		}
+		subjects = append(subjects, subject)
+	}
+
+	if len(missPKs) > 0 {
+		svc := service.NewSubjectService()
+		missSubjects, err := svc.ListByPKs(missPKs)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, subject := range missSubjects {
+			key := SubjectPKCacheKey{
+				PK: subject.PK,
+			}
+			LocalSubjectCache.Set(key, subject)
+		}
+
+		subjects = append(subjects, missSubjects...)
+	}
+
+	return subjects, nil
 }

@@ -797,21 +797,32 @@ func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGro
 }
 
 func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, error) {
+	subjectPKs := make([]int64, 0, len(svcGroupMembers))
+	for _, m := range svcGroupMembers {
+		subjectPKs = append(subjectPKs, m.SubjectPK)
+	}
+	subjects, err := cacheimpls.BatchGet(subjectPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]types.Subject, len(subjects))
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
+	}
+
 	members := make([]GroupMember, 0, len(svcGroupMembers))
 	for _, m := range svcGroupMembers {
-		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		subject, ok := subjectMap[m.SubjectPK]
+		if !ok {
+			continue
 		}
 
 		members = append(members, GroupMember{
 			PK:        m.PK,
 			Type:      subject.Type,
 			ID:        subject.ID,
+			Name:      subject.Name,
 			ExpiredAt: m.ExpiredAt,
 			CreatedAt: m.CreatedAt,
 		})

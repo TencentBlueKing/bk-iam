@@ -31,6 +31,7 @@ type SubjectService interface {
 
 	// web api
 	GetCount(_type string) (int64, error)
+	ListByPKs(pks []int64) ([]types.Subject, error)
 	ListPaging(_type string, limit, offset int64) ([]types.Subject, error)
 	ListPKsBySubjects(subjects []types.Subject) ([]int64, error)
 	BulkCreate(subjects []types.Subject) error
@@ -61,11 +62,22 @@ func (l *subjectService) Get(pk int64) (subject types.Subject, err error) {
 	}
 
 	subject = types.Subject{
+		PK:   s.PK,
 		Type: s.Type,
 		ID:   s.ID,
 		Name: s.Name,
 	}
 	return
+}
+
+// ListByPKs ...
+func (l *subjectService) ListByPKs(pks []int64) ([]types.Subject, error) {
+	daoSubjects, err := l.manager.ListByPKs(pks)
+	if err != nil {
+		return nil, errorx.Wrapf(err, SubjectSVC,
+			"ListByPKs", "manager.ListByPKs pks=`%v`", pks)
+	}
+	return convertToSubjects(daoSubjects), nil
 }
 
 // GetPK ...
@@ -82,6 +94,7 @@ func convertToSubjects(daoSubjects []dao.Subject) []types.Subject {
 	subjects := make([]types.Subject, 0, len(daoSubjects))
 	for _, s := range daoSubjects {
 		subjects = append(subjects, types.Subject{
+			PK:   s.PK,
 			Type: s.Type,
 			ID:   s.ID,
 			Name: s.Name,
