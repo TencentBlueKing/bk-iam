@@ -801,7 +801,7 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 	for _, m := range svcGroupMembers {
 		subjectPKs = append(subjectPKs, m.SubjectPK)
 	}
-	subjects, err := cacheimpls.BatchGet(subjectPKs)
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(subjectPKs)
 	if err != nil {
 		return nil, err
 	}

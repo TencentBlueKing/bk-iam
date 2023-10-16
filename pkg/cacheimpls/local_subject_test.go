@@ -73,7 +73,7 @@ func TestBatchGetSubjectByPKsFail(t *testing.T) {
 		"mockCache", false, retrieveFunc, expiration, nil)
 	LocalSubjectCache = mockCache
 
-	_, err := BatchGet([]int64{1})
+	_, err := BatchGetSubjectByPKs([]int64{1})
 	assert.Error(t, err)
 }
 
@@ -114,7 +114,7 @@ func TestBatchGetSubjectByPKsOK(t *testing.T) {
 		Name: "admin",
 	})
 
-	subjects, err := BatchGet([]int64{1, 2, 3})
+	subjects, err := BatchGetSubjectByPKs([]int64{1, 2, 3})
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(subjects))
 }

@@ -48,8 +48,8 @@ func GetSubjectByPK(pk int64) (subject types.Subject, err error) {
 	return
 }
 
-// BatchGet ...
-func BatchGet(pks []int64) (subjects []types.Subject, err error) {
+// BatchGetSubjectByPKs ...
+func BatchGetSubjectByPKs(pks []int64) (subjects []types.Subject, err error) {
 	subjects = make([]types.Subject, 0, len(pks))
 	missPKs := make([]int64, 0, len(pks))
 	for _, pk := range pks {
