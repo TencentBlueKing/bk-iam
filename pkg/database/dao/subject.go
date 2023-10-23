@@ -34,6 +34,7 @@ type Subject struct {
 type SubjectManager interface {
 	Get(pk int64) (Subject, error)
 	GetPK(_type, id string) (int64, error)
+	ListByPKs(pks []int64) (subjects []Subject, err error)
 	ListByIDs(_type string, ids []string) ([]Subject, error)
 	ListPaging(_type string, limit, offset int64) ([]Subject, error)
 	GetCount(_type string) (int64, error)
@@ -57,6 +58,18 @@ func NewSubjectManager() SubjectManager {
 // Get ...
 func (m *subjectManager) Get(pk int64) (subject Subject, err error) {
 	err = m.selectOne(&subject, pk)
+	return
+}
+
+// ListByPKs ...
+func (m *subjectManager) ListByPKs(pks []int64) (subjects []Subject, err error) {
+	if len(pks) == 0 {
+		return
+	}
+	err = m.selectByPKs(&subjects, pks)
+	if errors.Is(err, sql.ErrNoRows) {
+		return subjects, nil
+	}
 	return
 }
 
@@ -139,6 +152,17 @@ func (m *subjectManager) selectPK(pk *int64, _type string, id string) error {
 		AND id=?
 		LIMIT 1`
 	return database.SqlxGet(m.DB, pk, query, _type, id)
+}
+
+func (m *subjectManager) selectByPKs(subjects *[]Subject, pks []int64) error {
+	query := `SELECT
+		pk,
+		type,
+		id,
+		name
+		FROM subject
+		WHERE pk IN (?)`
+	return database.SqlxSelect(m.DB, subjects, query, pks)
 }
 
 func (m *subjectManager) selectSubjectsByIDs(subjects *[]Subject, _type string, ids []string) error {
