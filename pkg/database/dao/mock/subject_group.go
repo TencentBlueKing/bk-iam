@@ -92,6 +92,20 @@ func (mr *MockSubjectGroupManagerMockRecorder) BulkDeleteBySubjectPKs(tx, subjec
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKs", reflect.TypeOf((*MockSubjectGroupManager)(nil).BulkDeleteBySubjectPKs), tx, subjectPKs)
 }
 
+// BulkUpdateExpiredAtWithTx mocks base method.
+func (m *MockSubjectGroupManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateExpiredAtWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateExpiredAtWithTx indicates an expected call of BulkUpdateExpiredAtWithTx.
+func (mr *MockSubjectGroupManagerMockRecorder) BulkUpdateExpiredAtWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectGroupManager)(nil).BulkUpdateExpiredAtWithTx), tx, relations)
+}
+
 // FilterGroupPKsHasMemberBeforeExpiredAt mocks base method.
 func (m *MockSubjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
@@ -225,6 +239,21 @@ func (m *MockSubjectGroupManager) GetSubjectSystemGroupCountBeforeExpiredAt(subj
 func (mr *MockSubjectGroupManagerMockRecorder) GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
+}
+
+// HasRelation mocks base method.
+func (m *MockSubjectGroupManager) HasRelation(subjectPK, groupPK int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasRelation", subjectPK, groupPK)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasRelation indicates an expected call of HasRelation.
+func (mr *MockSubjectGroupManagerMockRecorder) HasRelation(subjectPK, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRelation", reflect.TypeOf((*MockSubjectGroupManager)(nil).HasRelation), subjectPK, groupPK)
 }
 
 // ListGroupMember mocks base method.

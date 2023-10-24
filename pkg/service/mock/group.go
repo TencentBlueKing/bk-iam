@@ -64,6 +64,20 @@ func (mr *MockGroupServiceMockRecorder) BulkCreateGroupMembersWithTx(tx, groupPK
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateGroupMembersWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateGroupMembersWithTx), tx, groupPK, relations)
 }
 
+// BulkCreateSubjectTemplateGroupWithTx mocks base method.
+func (m *MockGroupService) BulkCreateSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreateSubjectTemplateGroupWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreateSubjectTemplateGroupWithTx indicates an expected call of BulkCreateSubjectTemplateGroupWithTx.
+func (mr *MockGroupServiceMockRecorder) BulkCreateSubjectTemplateGroupWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectTemplateGroupWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkCreateSubjectTemplateGroupWithTx), tx, relations)
+}
+
 // BulkDeleteByGroupPKsWithTx mocks base method.
 func (m *MockGroupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	m.ctrl.T.Helper()
@@ -105,6 +119,20 @@ func (m *MockGroupService) BulkDeleteGroupMembers(groupPK int64, userPKs, depart
 func (mr *MockGroupServiceMockRecorder) BulkDeleteGroupMembers(groupPK, userPKs, departmentPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteGroupMembers", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteGroupMembers), groupPK, userPKs, departmentPKs)
+}
+
+// BulkDeleteSubjectTemplateGroupWithTx mocks base method.
+func (m *MockGroupService) BulkDeleteSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteSubjectTemplateGroupWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteSubjectTemplateGroupWithTx indicates an expected call of BulkDeleteSubjectTemplateGroupWithTx.
+func (mr *MockGroupServiceMockRecorder) BulkDeleteSubjectTemplateGroupWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectTemplateGroupWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteSubjectTemplateGroupWithTx), tx, relations)
 }
 
 // FilterGroupPKsHasMemberBeforeExpiredAt mocks base method.
@@ -167,6 +195,21 @@ func (mr *MockGroupServiceMockRecorder) GetGroupMemberCountBeforeExpiredAt(group
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetGroupMemberCountBeforeExpiredAt), groupPK, expiredAt)
 }
 
+// GetGroupOneAuthSystem mocks base method.
+func (m *MockGroupService) GetGroupOneAuthSystem(groupPK int64) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupOneAuthSystem", groupPK)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGroupOneAuthSystem indicates an expected call of GetGroupOneAuthSystem.
+func (mr *MockGroupServiceMockRecorder) GetGroupOneAuthSystem(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupOneAuthSystem", reflect.TypeOf((*MockGroupService)(nil).GetGroupOneAuthSystem), groupPK)
+}
+
 // GetGroupSubjectCountBeforeExpiredAt mocks base method.
 func (m *MockGroupService) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -210,6 +253,21 @@ func (m *MockGroupService) GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK i
 func (mr *MockGroupServiceMockRecorder) GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
+}
+
+// HasRelationExceptTemplate mocks base method.
+func (m *MockGroupService) HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasRelationExceptTemplate", relation)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasRelationExceptTemplate indicates an expected call of HasRelationExceptTemplate.
+func (mr *MockGroupServiceMockRecorder) HasRelationExceptTemplate(relation interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRelationExceptTemplate", reflect.TypeOf((*MockGroupService)(nil).HasRelationExceptTemplate), relation)
 }
 
 // ListEffectSubjectGroupsBySubjectPKGroupPKs mocks base method.
@@ -389,4 +447,18 @@ func (m *MockGroupService) UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupP
 func (mr *MockGroupServiceMockRecorder) UpdateGroupMembersExpiredAtWithTx(tx, groupPK, members interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMembersExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateGroupMembersExpiredAtWithTx), tx, groupPK, members)
+}
+
+// UpdateSubjectGroupExpiredAtWithTx mocks base method.
+func (m *MockGroupService) UpdateSubjectGroupExpiredAtWithTx(tx *sqlx.Tx, relations []types.SubjectRelationForCreate, updateSubjectRelation bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSubjectGroupExpiredAtWithTx", tx, relations, updateSubjectRelation)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSubjectGroupExpiredAtWithTx indicates an expected call of UpdateSubjectGroupExpiredAtWithTx.
+func (mr *MockGroupServiceMockRecorder) UpdateSubjectGroupExpiredAtWithTx(tx, relations, updateSubjectRelation interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectGroupExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateSubjectGroupExpiredAtWithTx), tx, relations, updateSubjectRelation)
 }

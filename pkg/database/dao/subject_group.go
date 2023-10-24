@@ -71,6 +71,7 @@ type SubjectGroupManager interface {
 		limit, offset int64,
 	) (members []ThinSubjectRelation, err error)
 	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectRelation, error)
+	HasRelation(subjectPK, groupPK int64) (bool, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
@@ -78,6 +79,7 @@ type SubjectGroupManager interface {
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
+	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 
 	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
 	ListPagingGroupMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
@@ -112,6 +114,24 @@ func (m *subjectGroupManager) GetSubjectGroupCount(subjectPK int64) (int64, erro
 
 	err := database.SqlxGet(m.DB, &count, query, subjectPK)
 	return count, err
+}
+
+func (m *subjectGroupManager) HasRelation(subjectPK, groupPK int64) (bool, error) {
+	var pk int64
+	query := `SELECT
+		pk
+		FROM subject_relation
+		WHERE subject_pk = ?
+		AND parent_pk = ?
+		LIMIT 1`
+	err := database.SqlxGet(m.DB, &pk, query, subjectPK, groupPK)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // GetSubjectSystemGroupCount ...
@@ -456,6 +476,17 @@ func (m *subjectGroupManager) ListRelationBySubjectPKGroupPKs(
 	}
 
 	return relations, err
+}
+
+// BulkUpdateExpiredAtWithTx ...
+func (m *subjectGroupManager) BulkUpdateExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []SubjectRelation,
+) error {
+	sql := `UPDATE subject_relation 
+		 SET policy_expired_at = :policy_expired_at 
+		 WHERE subject_pk = :subject_pk AND parent_pk = :parent_pk`
+	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
 func (m *subjectGroupManager) selectPagingMembers(

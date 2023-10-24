@@ -383,8 +383,16 @@ var _ = Describe("GroupService", func() {
 					int64(0), sql.ErrNoRows,
 				)
 
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(0), sql.ErrNoRows,
+				)
+
 			manager := &groupService{
-				manager: mockSubjectService,
+				manager:                     mockSubjectService,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
@@ -403,6 +411,31 @@ var _ = Describe("GroupService", func() {
 
 			manager := &groupService{
 				manager: mockSubjectService,
+			}
+
+			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), int64(10), expiredAt)
+		})
+
+		It("ok", func() {
+			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
+			mockSubjectService.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(0), sql.ErrNoRows,
+				)
+
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().
+				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(10), nil,
+				)
+
+			manager := &groupService{
+				manager:                     mockSubjectService,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))

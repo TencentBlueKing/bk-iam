@@ -47,9 +47,6 @@ var _ = Describe("GroupController", func() {
 
 				return 0, nil
 			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
-				return nil
-			})
 		})
 		AfterEach(func() {
 			ctl.Finish()
@@ -97,6 +94,7 @@ var _ = Describe("GroupController", func() {
 					errors.New("error"),
 				).
 				AnyTimes()
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -143,6 +141,7 @@ var _ = Describe("GroupController", func() {
 					errors.New("error"),
 				).
 				AnyTimes()
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -186,6 +185,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupAlterEventService.EXPECT().
 				CreateByGroupSubject(gomock.Any(), gomock.Any()).
 				Return(errors.New("error"))
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -244,6 +244,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupAlterEventService.EXPECT().
 				CreateByGroupSubject(gomock.Any(), gomock.Any()).
 				Return(errors.New("error"))
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -292,9 +293,6 @@ var _ = Describe("GroupController", func() {
 				}
 
 				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
-				return nil
 			})
 		})
 		AfterEach(func() {

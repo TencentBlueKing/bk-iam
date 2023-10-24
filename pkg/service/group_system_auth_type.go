@@ -189,6 +189,10 @@ func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	return systems, nil
 }
 
+func (s *groupService) GetGroupOneAuthSystem(groupPK int64) (string, error) {
+	return s.authTypeManger.GetOneAuthSystemByGroup(groupPK)
+}
+
 // ListGroupAuthBySystemGroupPKs 查询groups的授权类型
 func (s *groupService) ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListGroupAuthBySystemGroupPKs")

@@ -35,6 +35,34 @@ func (m *MockGroupController) EXPECT() *MockGroupControllerMockRecorder {
 	return m.recorder
 }
 
+// BulkCreateSubjectTemplateGroup mocks base method.
+func (m *MockGroupController) BulkCreateSubjectTemplateGroup(subjectTemplateGroups []pap.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkCreateSubjectTemplateGroup", subjectTemplateGroups)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkCreateSubjectTemplateGroup indicates an expected call of BulkCreateSubjectTemplateGroup.
+func (mr *MockGroupControllerMockRecorder) BulkCreateSubjectTemplateGroup(subjectTemplateGroups interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateSubjectTemplateGroup", reflect.TypeOf((*MockGroupController)(nil).BulkCreateSubjectTemplateGroup), subjectTemplateGroups)
+}
+
+// BulkDeleteSubjectTemplateGroup mocks base method.
+func (m *MockGroupController) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups []pap.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteSubjectTemplateGroup", subjectTemplateGroups)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteSubjectTemplateGroup indicates an expected call of BulkDeleteSubjectTemplateGroup.
+func (mr *MockGroupControllerMockRecorder) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectTemplateGroup", reflect.TypeOf((*MockGroupController)(nil).BulkDeleteSubjectTemplateGroup), subjectTemplateGroups)
+}
+
 // CheckSubjectEffectGroups mocks base method.
 func (m *MockGroupController) CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error) {
 	m.ctrl.T.Helper()

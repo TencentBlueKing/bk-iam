@@ -105,6 +105,14 @@ func Register(r *gin.RouterGroup) {
 		r.GET("/group-members/query", handler.ListGroupMemberBeforeExpiredAt)
 	}
 
+	// subject-template-groups
+	{
+		// 创建subject-template-group
+		r.POST("/subject-template-groups", handler.BatchCreateSubjectTemplateGroup)
+		// 删除subject-template-group
+		r.DELETE("/subject-template-groups", handler.BatchDeleteSubjectTemplateGroup)
+	}
+
 	// Resource: subject-departments
 	{
 		// 查询subject-department关系

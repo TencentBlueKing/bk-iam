@@ -45,6 +45,7 @@ type GroupService interface {
 	) ([]types.SubjectGroup, error)
 	ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -62,8 +63,16 @@ type GroupService interface {
 	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error
 	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
 	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error
+	BulkCreateSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error
+	UpdateSubjectGroupExpiredAtWithTx(
+		tx *sqlx.Tx,
+		relations []types.SubjectRelationForCreate,
+		updateSubjectRelation bool,
+	) error
+	BulkDeleteSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error
 
 	// auth type
+	GetGroupOneAuthSystem(groupPK int64) (string, error)
 	ListGroupAuthSystemIDs(groupPK int64) ([]string, error)
 	ListGroupAuthBySystemGroupPKs(systemID string, groupPKs []int64) ([]types.GroupAuthType, error)
 	AlterGroupAuthType(tx *sqlx.Tx, systemID string, groupPK int64, authType int64) (changed bool, err error)
@@ -76,17 +85,19 @@ type GroupService interface {
 }
 
 type groupService struct {
-	manager                   dao.SubjectGroupManager
-	authTypeManger            dao.GroupSystemAuthTypeManager
-	subjectSystemGroupManager dao.SubjectSystemGroupManager
+	manager                     dao.SubjectGroupManager
+	authTypeManger              dao.GroupSystemAuthTypeManager
+	subjectSystemGroupManager   dao.SubjectSystemGroupManager
+	subjectTemplateGroupManager dao.SubjectTemplateGroupManager
 }
 
 // NewGroupService GroupService工厂
 func NewGroupService() GroupService {
 	return &groupService{
-		manager:                   dao.NewSubjectGroupManager(),
-		authTypeManger:            dao.NewGroupSystemAuthTypeManager(),
-		subjectSystemGroupManager: dao.NewSubjectSystemGroupManager(),
+		manager:                     dao.NewSubjectGroupManager(),
+		authTypeManger:              dao.NewGroupSystemAuthTypeManager(),
+		subjectSystemGroupManager:   dao.NewSubjectSystemGroupManager(),
+		subjectTemplateGroupManager: dao.NewSubjectTemplateGroupManager(),
 	}
 }
 
@@ -419,8 +430,25 @@ func (l *groupService) BulkDeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
-	for _, systemID := range systemIDs {
-		for _, subjectPK := range subjectPKs {
+	// 需要判断还有没有其他的数据再来删除
+	for _, subjectPK := range subjectPKs {
+		exist, err := l.subjectTemplateGroupManager.HasRelationExceptTemplate(subjectPK, groupPK, 0)
+		if err != nil {
+			return nil, errorWrapf(
+				err,
+				"subjectTemplateGroupManager.HasRelationExceptTemplate subjectPK=`%d`, groupPK=`%d`, templateID=`%d` fail",
+				subjectPK,
+				groupPK,
+				0,
+			)
+		}
+
+		// 在存在subject template group的情况下，不需要删除
+		if exist {
+			continue
+		}
+
+		for _, systemID := range systemIDs {
 			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, groupPK)
 			if err != nil {
 				return nil, errorWrapf(
@@ -481,6 +509,191 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 					groupPK,
 					r.ExpiredAt,
 				)
+			}
+		}
+	}
+	return nil
+}
+
+// BulkCreateSubjectTemplateGroupWithTx ...
+func (l *groupService) BulkCreateSubjectTemplateGroupWithTx(
+	tx *sqlx.Tx,
+	relations []types.SubjectTemplateGroup,
+) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateSubjectTemplateGroupWithTx")
+	// 组装需要创建的Subject关系
+	daoRelations := make([]dao.SubjectTemplateGroup, 0, len(relations))
+	for _, r := range relations {
+		daoRelations = append(daoRelations, dao.SubjectTemplateGroup{
+			SubjectPK:  r.SubjectPK,
+			TemplateID: r.TemplateID,
+			GroupPK:    r.GroupPK,
+			ExpiredAt:  r.ExpiredAt,
+		})
+	}
+
+	err := l.subjectTemplateGroupManager.BulkCreateWithTx(tx, daoRelations)
+	if err != nil {
+		return errorWrapf(err, "subjectTemplateGroupManager.BulkCreateWithTx relations=`%+v` fail", daoRelations)
+	}
+
+	groupSystemIDCache := make(map[int64][]string)
+	for _, relation := range relations {
+		if !relation.NeedUpdate {
+			continue
+		}
+
+		// 更新subject system group
+		systemIDs, ok := groupSystemIDCache[relation.GroupPK]
+		if !ok {
+			systemIDs, err = l.ListGroupAuthSystemIDs(relation.GroupPK)
+			if err != nil {
+				return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", relation.GroupPK)
+			}
+
+			groupSystemIDCache[relation.GroupPK] = systemIDs
+		}
+
+		for _, systemID := range systemIDs {
+			for _, r := range relations {
+				err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, relation.GroupPK, r.ExpiredAt)
+				if err != nil {
+					return errorWrapf(
+						err,
+						"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
+						systemID,
+						r.SubjectPK,
+						relation.GroupPK,
+						r.ExpiredAt,
+					)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (l *groupService) UpdateSubjectGroupExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []types.SubjectRelationForCreate,
+	updateSubjectRelation bool,
+) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateSubjectGroupExpiredAtWithTx")
+
+	// 变更subject group的过期时间, 包括 subject relation 与 subject template group
+	daoRelations := make([]dao.SubjectRelation, 0, len(relations))
+	for _, r := range relations {
+		daoRelations = append(daoRelations, dao.SubjectRelation{
+			SubjectPK: r.SubjectPK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
+		})
+	}
+
+	if updateSubjectRelation {
+		err := l.manager.BulkUpdateExpiredAtWithTx(tx, daoRelations)
+		if err != nil {
+			return errorWrapf(err, "manager.BulkUpdateExpiredAtWithTx relations=`%+v` fail", daoRelations)
+		}
+	}
+
+	err := l.subjectTemplateGroupManager.BulkUpdateExpiredAtWithTx(tx, daoRelations)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"subjectTemplateGroupManager.BulkUpdateExpiredAtWithTx relations=`%+v` fail",
+			daoRelations,
+		)
+	}
+	return nil
+}
+
+func (l *groupService) HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "HasRelationExceptTemplate")
+
+	exist, err := l.manager.HasRelation(relation.SubjectPK, relation.GroupPK)
+	if err != nil {
+		return false, errorWrapf(
+			err,
+			"manager.HasRelation subjectPK=`%d`, groupPK=`%d` fail",
+			relation.SubjectPK,
+			relation.GroupPK,
+		)
+	}
+
+	if exist {
+		return true, nil
+	}
+
+	exist, err = l.subjectTemplateGroupManager.HasRelationExceptTemplate(
+		relation.SubjectPK,
+		relation.GroupPK,
+		relation.TemplateID,
+	)
+	if err != nil {
+		return false, errorWrapf(
+			err,
+			"subjectTemplateGroupManager.HasRelationExceptTemplate subjectPK=`%d`, groupPK=`%d`, templateID=`%d` fail",
+			relation.SubjectPK,
+			relation.GroupPK,
+			relation.TemplateID,
+		)
+	}
+
+	return exist, nil
+}
+
+// BulkDeleteSubjectTemplateGroupWithTx ...
+func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
+	tx *sqlx.Tx,
+	relations []types.SubjectTemplateGroup,
+) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteSubjectTemplateGroupWithTx")
+	// 组装需要创建的Subject关系
+	daoRelations := make([]dao.SubjectTemplateGroup, 0, len(relations))
+	for _, r := range relations {
+		daoRelations = append(daoRelations, dao.SubjectTemplateGroup{
+			SubjectPK:  r.SubjectPK,
+			TemplateID: r.TemplateID,
+			GroupPK:    r.GroupPK,
+			ExpiredAt:  r.ExpiredAt,
+		})
+	}
+
+	err := l.subjectTemplateGroupManager.BulkDeleteWithTx(tx, daoRelations)
+	if err != nil {
+		return errorWrapf(err, "subjectTemplateGroupManager.BulkDelete relations=`%+v` fail", daoRelations)
+	}
+
+	groupSystemIDCache := make(map[int64][]string)
+	for _, relation := range relations {
+		if !relation.NeedUpdate {
+			continue
+		}
+
+		// 更新subject system group
+		systemIDs, ok := groupSystemIDCache[relation.GroupPK]
+		if !ok {
+			systemIDs, err = l.ListGroupAuthSystemIDs(relation.GroupPK)
+			if err != nil {
+				return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", relation.GroupPK)
+			}
+
+			groupSystemIDCache[relation.GroupPK] = systemIDs
+		}
+
+		for _, systemID := range systemIDs {
+			for _, r := range relations {
+				err = l.removeSubjectSystemGroup(tx, r.SubjectPK, systemID, relation.GroupPK)
+				if err != nil {
+					return errorWrapf(
+						err,
+						"removeSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, fail",
+						systemID,
+						r.SubjectPK,
+						relation.GroupPK,
+					)
+				}
 			}
 		}
 	}
@@ -572,7 +785,11 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 
 // GetExpiredAtBySubjectGroup ...
 func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error) {
+	// 同时查询 subject relation 与 subject template group
 	expiredAt, err = l.manager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		expiredAt, err = l.subjectTemplateGroupManager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
+	}
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):

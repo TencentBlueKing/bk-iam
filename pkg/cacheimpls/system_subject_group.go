@@ -265,3 +265,34 @@ func BatchDeleteGroupMemberSubjectSystemGroupCache(systemID string, groupPK int6
 		}
 	}
 }
+
+func retrieveSubjectSystemGroups(key cache.Key) (interface{}, error) {
+	k := key.(SystemSubjectPKCacheKey)
+	svc := service.NewGroupService()
+	subjectGroupsMap, err := svc.ListEffectThinSubjectGroups(k.SystemID, []int64{k.SubjectPK})
+	if err != nil {
+		return nil, err
+	}
+
+	subjectGroups, ok := subjectGroupsMap[k.SubjectPK]
+	if !ok {
+		return []types.ThinSubjectGroup{}, nil
+	}
+
+	return subjectGroups, nil
+}
+
+// GetSubjectSystemGroup ...
+func GetSubjectSystemGroup(systemID string, subjectPK int64) (subjectGroups []types.ThinSubjectGroup, err error) {
+	key := SystemSubjectPKCacheKey{
+		SystemID:  systemID,
+		SubjectPK: subjectPK,
+	}
+
+	err = SubjectSystemGroupCache.GetInto(key, &subjectGroups, retrieveSubjectSystemGroups)
+	if err != nil {
+		err = errorx.Wrapf(err, CacheLayer, "GetSubjectSystemGroups",
+			"SubjectSystemGroupCache.GetInto systemID=`%s`, subjectPK=`%d` fail", systemID, subjectPK)
+	}
+	return
+}

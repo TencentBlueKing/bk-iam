@@ -50,3 +50,11 @@ type GroupSubject struct {
 	Group     Subject `json:"group"`
 	ExpiredAt int64   `json:"expired_at"`
 }
+
+type SubjectTemplateGroup struct {
+	Type       string `json:"type"`
+	ID         string `json:"id"`
+	TemplateID int64  `json:"template_id"`
+	GroupID    int64  `json:"group_pk"`
+	ExpiredAt  int64  `json:"expired_at"`
+}

@@ -140,4 +140,15 @@ const (
 	SubjectActionAlterEventStatusCreated int64 = iota
 	SubjectActionAlterEventStatusPushed
 	SubjectActionAlterEventStatusProcessing
+
+	SubjectTypeGroup = "group"
 )
+
+type SubjectTemplateGroup struct {
+	SubjectPK  int64
+	TemplateID int64
+	GroupPK    int64
+	ExpiredAt  int64
+
+	NeedUpdate bool // 是否需要更新subject system group, 默认为false
+}

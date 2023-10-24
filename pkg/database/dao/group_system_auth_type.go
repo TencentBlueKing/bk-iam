@@ -40,6 +40,7 @@ type GroupAuthType struct {
 type GroupSystemAuthTypeManager interface {
 	ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]GroupAuthType, error)
 
+	GetOneAuthSystemByGroup(groupPK int64) (string, error)
 	ListByGroup(groupPK int64) ([]GroupSystemAuthType, error)
 	GetBySystemGroup(systemID string, groupPK int64) (GroupSystemAuthType, error)
 	CreateWithTx(tx *sqlx.Tx, groupSystemAuthType GroupSystemAuthType) error
@@ -56,6 +57,18 @@ func NewGroupSystemAuthTypeManager() GroupSystemAuthTypeManager {
 	return &groupSystemAuthTypeManager{
 		DB: database.GetDefaultDBClient().DB,
 	}
+}
+
+// GetOneAuthSystemByGroup ...
+func (m *groupSystemAuthTypeManager) GetOneAuthSystemByGroup(groupPK int64) (string, error) {
+	var system string
+	query := `SELECT
+		system_id
+		FROM group_system_auth_type 
+		WHERE group_pk = ?
+		LIMIT 1`
+	err := database.SqlxSelect(m.DB, &system, query, groupPK)
+	return system, err
 }
 
 func (m *groupSystemAuthTypeManager) ListByGroup(groupPK int64) ([]GroupSystemAuthType, error) {
