@@ -4724,8 +4724,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "蓝鲸权限中心后台服务 API 文档",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
 }
 
 func init() {

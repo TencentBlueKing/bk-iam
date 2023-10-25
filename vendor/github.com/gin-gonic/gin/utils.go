@@ -1,4 +1,4 @@
-// Copyright 2014 Manu Martinez-Almeida. All rights reserved.
+// Copyright 2014 Manu Martinez-Almeida.  All rights reserved.
 // Use of this source code is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -12,14 +12,13 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"unicode"
 )
 
 // BindKey indicates a default bind key.
 const BindKey = "_gin-gonic/gin/bindkey"
 
 // Bind is a helper function for given interface object and returns a Gin middleware.
-func Bind(val any) HandlerFunc {
+func Bind(val interface{}) HandlerFunc {
 	value := reflect.ValueOf(val)
 	if value.Kind() == reflect.Ptr {
 		panic(`Bind struct can not be a pointer. Example:
@@ -50,8 +49,8 @@ func WrapH(h http.Handler) HandlerFunc {
 	}
 }
 
-// H is a shortcut for map[string]any
-type H map[string]any
+// H is a shortcut for map[string]interface{}
+type H map[string]interface{}
 
 // MarshalXML allows type H to be used with xml.Marshal.
 func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -90,7 +89,7 @@ func filterFlags(content string) string {
 	return content
 }
 
-func chooseData(custom, wildcard any) any {
+func chooseData(custom, wildcard interface{}) interface{} {
 	if custom != nil {
 		return custom
 	}
@@ -121,7 +120,7 @@ func lastChar(str string) uint8 {
 	return str[len(str)-1]
 }
 
-func nameOfFunction(f any) string {
+func nameOfFunction(f interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }
 
@@ -151,14 +150,4 @@ func resolveAddress(addr []string) string {
 	default:
 		panic("too many parameters")
 	}
-}
-
-// https://stackoverflow.com/questions/53069040/checking-a-string-contains-only-ascii-characters
-func isASCII(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] > unicode.MaxASCII {
-			return false
-		}
-	}
-	return true
 }

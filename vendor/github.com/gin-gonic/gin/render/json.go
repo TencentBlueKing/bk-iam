@@ -1,4 +1,4 @@
-// Copyright 2014 Manu Martinez-Almeida. All rights reserved.
+// Copyright 2014 Manu Martinez-Almeida.  All rights reserved.
 // Use of this source code is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -16,45 +16,46 @@ import (
 
 // JSON contains the given interface object.
 type JSON struct {
-	Data any
+	Data interface{}
 }
 
 // IndentedJSON contains the given interface object.
 type IndentedJSON struct {
-	Data any
+	Data interface{}
 }
 
 // SecureJSON contains the given interface object and its prefix.
 type SecureJSON struct {
 	Prefix string
-	Data   any
+	Data   interface{}
 }
 
 // JsonpJSON contains the given interface object its callback.
 type JsonpJSON struct {
 	Callback string
-	Data     any
+	Data     interface{}
 }
 
 // AsciiJSON contains the given interface object.
 type AsciiJSON struct {
-	Data any
+	Data interface{}
 }
 
 // PureJSON contains the given interface object.
 type PureJSON struct {
-	Data any
+	Data interface{}
 }
 
-var (
-	jsonContentType      = []string{"application/json; charset=utf-8"}
-	jsonpContentType     = []string{"application/javascript; charset=utf-8"}
-	jsonASCIIContentType = []string{"application/json"}
-)
+var jsonContentType = []string{"application/json; charset=utf-8"}
+var jsonpContentType = []string{"application/javascript; charset=utf-8"}
+var jsonAsciiContentType = []string{"application/json"}
 
 // Render (JSON) writes data with custom ContentType.
-func (r JSON) Render(w http.ResponseWriter) error {
-	return WriteJSON(w, r.Data)
+func (r JSON) Render(w http.ResponseWriter) (err error) {
+	if err = WriteJSON(w, r.Data); err != nil {
+		panic(err)
+	}
+	return
 }
 
 // WriteContentType (JSON) writes JSON ContentType.
@@ -63,7 +64,7 @@ func (r JSON) WriteContentType(w http.ResponseWriter) {
 }
 
 // WriteJSON marshals the given interface object and writes it with custom ContentType.
-func WriteJSON(w http.ResponseWriter, obj any) error {
+func WriteJSON(w http.ResponseWriter, obj interface{}) error {
 	writeContentType(w, jsonContentType)
 	jsonBytes, err := json.Marshal(obj)
 	if err != nil {
@@ -99,7 +100,8 @@ func (r SecureJSON) Render(w http.ResponseWriter) error {
 	// if the jsonBytes is array values
 	if bytes.HasPrefix(jsonBytes, bytesconv.StringToBytes("[")) && bytes.HasSuffix(jsonBytes,
 		bytesconv.StringToBytes("]")) {
-		if _, err = w.Write(bytesconv.StringToBytes(r.Prefix)); err != nil {
+		_, err = w.Write(bytesconv.StringToBytes(r.Prefix))
+		if err != nil {
 			return err
 		}
 	}
@@ -126,19 +128,20 @@ func (r JsonpJSON) Render(w http.ResponseWriter) (err error) {
 	}
 
 	callback := template.JSEscapeString(r.Callback)
-	if _, err = w.Write(bytesconv.StringToBytes(callback)); err != nil {
+	_, err = w.Write(bytesconv.StringToBytes(callback))
+	if err != nil {
 		return err
 	}
-
-	if _, err = w.Write(bytesconv.StringToBytes("(")); err != nil {
+	_, err = w.Write(bytesconv.StringToBytes("("))
+	if err != nil {
 		return err
 	}
-
-	if _, err = w.Write(ret); err != nil {
+	_, err = w.Write(ret)
+	if err != nil {
 		return err
 	}
-
-	if _, err = w.Write(bytesconv.StringToBytes(");")); err != nil {
+	_, err = w.Write(bytesconv.StringToBytes(");"))
+	if err != nil {
 		return err
 	}
 
@@ -173,7 +176,7 @@ func (r AsciiJSON) Render(w http.ResponseWriter) (err error) {
 
 // WriteContentType (AsciiJSON) writes JSON ContentType.
 func (r AsciiJSON) WriteContentType(w http.ResponseWriter) {
-	writeContentType(w, jsonASCIIContentType)
+	writeContentType(w, jsonAsciiContentType)
 }
 
 // Render (PureJSON) writes custom ContentType and encodes the given interface object.

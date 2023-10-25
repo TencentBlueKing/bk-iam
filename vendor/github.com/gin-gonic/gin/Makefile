@@ -1,6 +1,5 @@
 GO ?= go
 GOFMT ?= gofmt "-s"
-GO_VERSION=$(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 PACKAGES ?= $(shell $(GO) list ./...)
 VETPACKAGES ?= $(shell $(GO) list ./... | grep -v /examples/)
 GOFILES := $(shell find . -name "*.go")
@@ -11,7 +10,7 @@ TESTTAGS ?= ""
 test:
 	echo "mode: count" > coverage.out
 	for d in $(TESTFOLDER); do \
-		$(GO) test $(TESTTAGS) -v -covermode=count -coverprofile=profile.out $$d > tmp.out; \
+		$(GO) test -tags $(TESTTAGS) -v -covermode=count -coverprofile=profile.out $$d > tmp.out; \
 		cat tmp.out; \
 		if grep -q "^--- FAIL" tmp.out; then \
 			rm tmp.out; \
@@ -68,10 +67,5 @@ misspell:
 
 .PHONY: tools
 tools:
-	@if [ $(GO_VERSION) -gt 15 ]; then \
-		$(GO) install golang.org/x/lint/golint@latest; \
-		$(GO) install github.com/client9/misspell/cmd/misspell@latest; \
-	elif [ $(GO_VERSION) -lt 16 ]; then \
-		$(GO) install golang.org/x/lint/golint; \
-		$(GO) install github.com/client9/misspell/cmd/misspell; \
-	fi
+	go install golang.org/x/lint/golint; \
+	go install github.com/client9/misspell/cmd/misspell;
