@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/pelletier/go-toml/v2/internal/characters"
 )
 
 // Marshal serializes a Go value as a TOML document.
@@ -54,7 +56,7 @@ func NewEncoder(w io.Writer) *Encoder {
 // This behavior can be controlled on an individual struct field basis with the
 // inline tag:
 //
-//   MyField `inline:"true"`
+//	MyField `toml:",inline"`
 func (enc *Encoder) SetTablesInline(inline bool) *Encoder {
 	enc.tablesInline = inline
 	return enc
@@ -65,7 +67,7 @@ func (enc *Encoder) SetTablesInline(inline bool) *Encoder {
 //
 // This behavior can be controlled on an individual struct field basis with the multiline tag:
 //
-//   MyField `multiline:"true"`
+//	MyField `multiline:"true"`
 func (enc *Encoder) SetArraysMultiline(multiline bool) *Encoder {
 	enc.arraysMultiline = multiline
 	return enc
@@ -89,7 +91,7 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 //
 // If v cannot be represented to TOML it returns an error.
 //
-// Encoding rules
+// # Encoding rules
 //
 // A top level slice containing only maps or structs is encoded as [[table
 // array]].
@@ -107,10 +109,30 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 // a newline character or a single quote. In that case they are emitted as
 // quoted strings.
 //
+// Unsigned integers larger than math.MaxInt64 cannot be encoded. Doing so
+// results in an error. This rule exists because the TOML specification only
+// requires parsers to support at least the 64 bits integer range. Allowing
+// larger numbers would create non-standard TOML documents, which may not be
+// readable (at best) by other implementations. To encode such numbers, a
+// solution is a custom type that implements encoding.TextMarshaler.
+//
 // When encoding structs, fields are encoded in order of definition, with their
 // exact name.
 //
-// Struct tags
+// Tables and array tables are separated by empty lines. However, consecutive
+// subtables definitions are not. For example:
+//
+//	[top1]
+//
+//	[top2]
+//	[top2.child1]
+//
+//	[[array]]
+//
+//	[[array]]
+//	[array.child2]
+//
+// # Struct tags
 //
 // The encoding of each public struct field can be customized by the format
 // string in the "toml" key of the struct field's tag. This follows
@@ -126,9 +148,13 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 //
 // The "omitempty" option prevents empty values or groups from being emitted.
 //
+// The "commented" option prefixes the value and all its children with a comment
+// symbol.
+//
 // In addition to the "toml" tag struct tag, a "comment" tag can be used to emit
 // a TOML comment before the value being annotated. Comments are ignored inside
-// inline tables.
+// inline tables. For array tables, the comment is only present before the first
+// element of the array.
 func (enc *Encoder) Encode(v interface{}) error {
 	var (
 		b   []byte
@@ -157,6 +183,7 @@ func (enc *Encoder) Encode(v interface{}) error {
 type valueOptions struct {
 	multiline bool
 	omitempty bool
+	commented bool
 	comment   string
 }
 
@@ -181,6 +208,9 @@ type encoderCtx struct {
 
 	// Indentation level
 	indent int
+
+	// Prefix the current value with a comment.
+	commented bool
 
 	// Options coming from struct tags
 	options valueOptions
@@ -250,7 +280,7 @@ func (enc *Encoder) encode(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, e
 		return enc.encodeMap(b, ctx, v)
 	case reflect.Struct:
 		return enc.encodeStruct(b, ctx, v)
-	case reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		return enc.encodeSlice(b, ctx, v)
 	case reflect.Interface:
 		if v.IsNil() {
@@ -302,7 +332,11 @@ func (enc *Encoder) encode(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, e
 			b = append(b, "false"...)
 		}
 	case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
-		b = strconv.AppendUint(b, v.Uint(), 10)
+		x := v.Uint()
+		if x > uint64(math.MaxInt64) {
+			return nil, fmt.Errorf("toml: not encoding uint (%d) greater than max int64 (%d)", x, int64(math.MaxInt64))
+		}
+		b = strconv.AppendUint(b, x, 10)
 	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
 		b = strconv.AppendInt(b, v.Int(), 10)
 	default:
@@ -321,18 +355,19 @@ func isNil(v reflect.Value) bool {
 	}
 }
 
+func shouldOmitEmpty(options valueOptions, v reflect.Value) bool {
+	return options.omitempty && isEmptyValue(v)
+}
+
 func (enc *Encoder) encodeKv(b []byte, ctx encoderCtx, options valueOptions, v reflect.Value) ([]byte, error) {
 	var err error
 
-	if (ctx.options.omitempty || options.omitempty) && isEmptyValue(v) {
-		return b, nil
-	}
-
 	if !ctx.inline {
 		b = enc.encodeComment(ctx.indent, options.comment, b)
+		b = enc.commented(ctx.commented, b)
+		b = enc.indent(ctx.indent, b)
 	}
 
-	b = enc.indent(ctx.indent, b)
 	b = enc.encodeKey(b, ctx.key)
 	b = append(b, " = "...)
 
@@ -351,8 +386,17 @@ func (enc *Encoder) encodeKv(b []byte, ctx encoderCtx, options valueOptions, v r
 	return b, nil
 }
 
+func (enc *Encoder) commented(commented bool, b []byte) []byte {
+	if commented {
+		return append(b, "# "...)
+	}
+	return b
+}
+
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
+	case reflect.Struct:
+		return isEmptyStruct(v)
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
 	case reflect.Bool:
@@ -369,6 +413,34 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
+func isEmptyStruct(v reflect.Value) bool {
+	// TODO: merge with walkStruct and cache.
+	typ := v.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		fieldType := typ.Field(i)
+
+		// only consider exported fields
+		if fieldType.PkgPath != "" {
+			continue
+		}
+
+		tag := fieldType.Tag.Get("toml")
+
+		// special field name to skip field
+		if tag == "-" {
+			continue
+		}
+
+		f := v.Field(i)
+
+		if !isEmptyValue(f) {
+			return false
+		}
+	}
+
+	return true
+}
+
 const literalQuote = '\''
 
 func (enc *Encoder) encodeString(b []byte, v string, options valueOptions) []byte {
@@ -382,7 +454,7 @@ func (enc *Encoder) encodeString(b []byte, v string, options valueOptions) []byt
 func needsQuoting(v string) bool {
 	// TODO: vectorize
 	for _, b := range []byte(v) {
-		if b == '\'' || b == '\r' || b == '\n' || invalidAscii(b) {
+		if b == '\'' || b == '\r' || b == '\n' || characters.InvalidAscii(b) {
 			return true
 		}
 	}
@@ -398,7 +470,6 @@ func (enc *Encoder) encodeLiteralString(b []byte, v string) []byte {
 	return b
 }
 
-//nolint:cyclop
 func (enc *Encoder) encodeQuotedString(multiline bool, b []byte, v string) []byte {
 	stringQuote := `"`
 
@@ -470,6 +541,8 @@ func (enc *Encoder) encodeTableHeader(ctx encoderCtx, b []byte) ([]byte, error) 
 
 	b = enc.encodeComment(ctx.indent, ctx.options.comment, b)
 
+	b = enc.commented(ctx.commented, b)
+
 	b = enc.indent(ctx.indent, b)
 
 	b = append(b, '[')
@@ -521,11 +594,23 @@ func (enc *Encoder) encodeKey(b []byte, k string) []byte {
 	}
 }
 
-func (enc *Encoder) encodeMap(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, error) {
-	if v.Type().Key().Kind() != reflect.String {
-		return nil, fmt.Errorf("toml: type %s is not supported as a map key", v.Type().Key().Kind())
-	}
+func (enc *Encoder) keyToString(k reflect.Value) (string, error) {
+	keyType := k.Type()
+	switch {
+	case keyType.Kind() == reflect.String:
+		return k.String(), nil
 
+	case keyType.Implements(textMarshalerType):
+		keyB, err := k.Interface().(encoding.TextMarshaler).MarshalText()
+		if err != nil {
+			return "", fmt.Errorf("toml: error marshalling key %v from text: %w", k, err)
+		}
+		return string(keyB), nil
+	}
+	return "", fmt.Errorf("toml: type %s is not supported as a map key", keyType.Kind())
+}
+
+func (enc *Encoder) encodeMap(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, error) {
 	var (
 		t                 table
 		emptyValueOptions valueOptions
@@ -533,11 +618,15 @@ func (enc *Encoder) encodeMap(b []byte, ctx encoderCtx, v reflect.Value) ([]byte
 
 	iter := v.MapRange()
 	for iter.Next() {
-		k := iter.Key().String()
 		v := iter.Value()
 
 		if isNil(v) {
 			continue
+		}
+
+		k, err := enc.keyToString(iter.Key())
+		if err != nil {
+			return nil, err
 		}
 
 		if willConvertToTableOrArrayTable(ctx, v) {
@@ -632,6 +721,7 @@ func walkStruct(ctx encoderCtx, t *table, v reflect.Value) {
 		options := valueOptions{
 			multiline: opts.multiline,
 			omitempty: opts.omitempty,
+			commented: opts.commented,
 			comment:   fieldType.Tag.Get("comment"),
 		}
 
@@ -652,10 +742,19 @@ func (enc *Encoder) encodeStruct(b []byte, ctx encoderCtx, v reflect.Value) ([]b
 }
 
 func (enc *Encoder) encodeComment(indent int, comment string, b []byte) []byte {
-	if comment != "" {
+	for len(comment) > 0 {
+		var line string
+		idx := strings.IndexByte(comment, '\n')
+		if idx >= 0 {
+			line = comment[:idx]
+			comment = comment[idx+1:]
+		} else {
+			line = comment
+			comment = ""
+		}
 		b = enc.indent(indent, b)
 		b = append(b, "# "...)
-		b = append(b, comment...)
+		b = append(b, line...)
 		b = append(b, '\n')
 	}
 	return b
@@ -682,6 +781,7 @@ type tagOptions struct {
 	multiline bool
 	inline    bool
 	omitempty bool
+	commented bool
 }
 
 func parseTag(tag string) (string, tagOptions) {
@@ -709,6 +809,8 @@ func parseTag(tag string) (string, tagOptions) {
 			opts.inline = true
 		case "omitempty":
 			opts.omitempty = true
+		case "commented":
+			opts.commented = true
 		}
 	}
 
@@ -736,10 +838,18 @@ func (enc *Encoder) encodeTable(b []byte, ctx encoderCtx, t table) ([]byte, erro
 	}
 	ctx.skipTableHeader = false
 
+	hasNonEmptyKV := false
 	for _, kv := range t.kvs {
-		ctx.setKey(kv.Key)
+		if shouldOmitEmpty(kv.Options, kv.Value) {
+			continue
+		}
+		hasNonEmptyKV = true
 
-		b, err = enc.encodeKv(b, ctx, kv.Options, kv.Value)
+		ctx.setKey(kv.Key)
+		ctx2 := ctx
+		ctx2.commented = kv.Options.commented || ctx2.commented
+
+		b, err = enc.encodeKv(b, ctx2, kv.Options, kv.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -747,17 +857,30 @@ func (enc *Encoder) encodeTable(b []byte, ctx encoderCtx, t table) ([]byte, erro
 		b = append(b, '\n')
 	}
 
+	first := true
 	for _, table := range t.tables {
+		if shouldOmitEmpty(table.Options, table.Value) {
+			continue
+		}
+		if first {
+			first = false
+			if hasNonEmptyKV {
+				b = append(b, '\n')
+			}
+		} else {
+			b = append(b, "\n"...)
+		}
+
 		ctx.setKey(table.Key)
 
 		ctx.options = table.Options
+		ctx2 := ctx
+		ctx2.commented = ctx2.commented || ctx.options.commented
 
-		b, err = enc.encode(b, ctx, table.Value)
+		b, err = enc.encode(b, ctx2, table.Value)
 		if err != nil {
 			return nil, err
 		}
-
-		b = append(b, '\n')
 	}
 
 	return b, nil
@@ -770,6 +893,10 @@ func (enc *Encoder) encodeTableInline(b []byte, ctx encoderCtx, t table) ([]byte
 
 	first := true
 	for _, kv := range t.kvs {
+		if shouldOmitEmpty(kv.Options, kv.Value) {
+			continue
+		}
+
 		if first {
 			first = false
 		} else {
@@ -785,7 +912,7 @@ func (enc *Encoder) encodeTableInline(b []byte, ctx encoderCtx, t table) ([]byte
 	}
 
 	if len(t.tables) > 0 {
-		panic("inline table cannot contain nested tables, online key-values")
+		panic("inline table cannot contain nested tables, only key-values")
 	}
 
 	b = append(b, "}"...)
@@ -828,7 +955,7 @@ func willConvertToTableOrArrayTable(ctx encoderCtx, v reflect.Value) bool {
 		return willConvertToTableOrArrayTable(ctx, v.Elem())
 	}
 
-	if t.Kind() == reflect.Slice {
+	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array {
 		if v.Len() == 0 {
 			// An empty slice should be a kv = [].
 			return false
@@ -868,6 +995,9 @@ func (enc *Encoder) encodeSliceAsArrayTable(b []byte, ctx encoderCtx, v reflect.
 	ctx.shiftKey()
 
 	scratch := make([]byte, 0, 64)
+
+	scratch = enc.commented(ctx.commented, scratch)
+
 	scratch = append(scratch, "[["...)
 
 	for i, k := range ctx.parentKey {
@@ -881,7 +1011,17 @@ func (enc *Encoder) encodeSliceAsArrayTable(b []byte, ctx encoderCtx, v reflect.
 	scratch = append(scratch, "]]\n"...)
 	ctx.skipTableHeader = true
 
+	b = enc.encodeComment(ctx.indent, ctx.options.comment, b)
+
+	if enc.indentTables {
+		ctx.indent++
+	}
+
 	for i := 0; i < v.Len(); i++ {
+		if i != 0 {
+			b = append(b, "\n"...)
+		}
+
 		b = append(b, scratch...)
 
 		var err error

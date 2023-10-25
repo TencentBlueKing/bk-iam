@@ -98,24 +98,31 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 10001,
                         "name": "max_id",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1,
                         "name": "min_id",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -174,18 +181,24 @@
                 "operationId": "api-engine-policy-id-list",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "begin_updated_at",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "end_updated_at",
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -244,12 +257,17 @@
                 "operationId": "api-engine-policy-id-max",
                 "parameters": [
                     {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "updated_at",
@@ -1641,29 +1659,37 @@
                     {
                         "type": "string",
                         "example": "edit_host",
-                        "name": "actionID",
+                        "name": "action_id",
                         "in": "query",
                         "required": true
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 500,
+                        "minimum": 10,
                         "type": "integer",
                         "example": 100,
-                        "name": "pageSize",
+                        "name": "page_size",
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -1736,6 +1762,10 @@
                         "required": true
                     },
                     {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -1945,7 +1975,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.resourceTypeSerializer"
+                                "$ref": "#/definitions/iam_pkg_api_model_handler.resourceTypeSerializer"
                             }
                         }
                     }
@@ -3102,6 +3132,10 @@
             "properties": {
                 "auth_type": {
                     "type": "string",
+                    "enum": [
+                        "rbac",
+                        "abac"
+                    ],
                     "example": "abac"
                 },
                 "description": {
@@ -3118,6 +3152,7 @@
                 },
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "biz_create"
                 },
                 "name": {
@@ -3148,13 +3183,27 @@
                 },
                 "sensitivity": {
                     "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
                     "example": 0
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "edit",
+                        "view",
+                        "delete",
+                        "list",
+                        "manage",
+                        "execute",
+                        "debug",
+                        "use"
+                    ]
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3164,6 +3213,10 @@
             "properties": {
                 "auth_type": {
                     "type": "string",
+                    "enum": [
+                        "rbac",
+                        "abac"
+                    ],
                     "example": "abac"
                 },
                 "description": {
@@ -3206,13 +3259,27 @@
                 },
                 "sensitivity": {
                     "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
                     "example": 0
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "edit",
+                        "view",
+                        "delete",
+                        "list",
+                        "manage",
+                        "execute",
+                        "debug",
+                        "use"
+                    ]
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3243,6 +3310,7 @@
             "properties": {
                 "actions": {
                     "type": "array",
+                    "maxItems": 10,
                     "items": {
                         "$ref": "#/definitions/handler.action"
                     }
@@ -3283,6 +3351,7 @@
                 },
                 "resources_list": {
                     "type": "array",
+                    "maxItems": 100,
                     "items": {
                         "type": "array",
                         "items": {
@@ -3352,6 +3421,7 @@
             "properties": {
                 "actions": {
                     "type": "array",
+                    "maxItems": 10,
                     "items": {
                         "$ref": "#/definitions/handler.action"
                     }
@@ -3487,6 +3557,7 @@
             "properties": {
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "biz_set"
                 },
                 "is_dynamic": {
@@ -3558,18 +3629,25 @@
                 },
                 "max_id": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 10001
                 },
                 "min_id": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 },
                 "timestamp": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1592899208
                 },
                 "type": {
                     "type": "string",
+                    "enum": [
+                        "abac",
+                        "rbac"
+                    ],
                     "example": "abac"
                 }
             }
@@ -3630,7 +3708,13 @@
                     }
                 },
                 "group_auth_type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "rbac",
+                        "abac",
+                        "none"
+                    ]
                 },
                 "resource_actions": {
                     "type": "array",
@@ -3697,7 +3781,9 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 4102444800,
+                    "minimum": 0
                 },
                 "resource_expression": {
                     "type": "string"
@@ -3807,6 +3893,7 @@
                 },
                 "ext_resources": {
                     "type": "array",
+                    "maxItems": 1000,
                     "items": {
                         "$ref": "#/definitions/handler.extResource"
                     }
@@ -3932,6 +4019,9 @@
                 "type": {
                     "description": "NOTE: currently only support period_daily, will support current_timestamp later\n      and no operators now!\n      only one field, but should be a struct! keep extensible in the future",
                     "type": "string",
+                    "enum": [
+                        "period_daily"
+                    ],
                     "example": "period_daily"
                 }
             }
@@ -3945,13 +4035,16 @@
             "properties": {
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "host"
                 },
                 "name_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "name_alias_en": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "related_instance_selections": {
                     "type": "array",
@@ -3962,6 +4055,11 @@
                 "selection_mode": {
                     "description": "实例选择方式/范围: [\"all\", \"instance\", \"attribute\"]",
                     "type": "string",
+                    "enum": [
+                        "all",
+                        "instance",
+                        "attribute"
+                    ],
                     "example": "instance"
                 },
                 "system_id": {
@@ -4054,55 +4152,6 @@
                 }
             }
         },
-        "handler.resourceTypeSerializer": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "name_en",
-                "provider_config"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "description_en": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name_en": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "parents": {
-                    "description": "can be empty",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.referenceResourceType"
-                    }
-                },
-                "provider_config": {
-                    "$ref": "#/definitions/handler.resourceProviderConfig"
-                },
-                "sensitivity": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "version": {
-                    "type": "integer",
-                    "example": 1
-                }
-            }
-        },
         "handler.resourceTypeUpdateSerializer": {
             "type": "object",
             "properties": {
@@ -4135,10 +4184,13 @@
                 },
                 "sensitivity": {
                     "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
                     "example": 0
                 },
                 "version": {
                     "type": "integer",
+                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -4187,6 +4239,10 @@
             "properties": {
                 "auth": {
                     "type": "string",
+                    "enum": [
+                        "none",
+                        "basic"
+                    ],
                     "example": "basic"
                 },
                 "healthz": {
@@ -4257,6 +4313,7 @@
                 },
                 "id": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "bk_paas"
                 },
                 "name": {
@@ -4394,7 +4451,9 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 4102444800,
+                    "minimum": 0
                 },
                 "id": {
                     "type": "integer"
@@ -4441,6 +4500,59 @@
                 "type": {
                     "type": "string",
                     "example": "user"
+                }
+            }
+        },
+        "iam_pkg_api_model_handler.resourceTypeSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "name_en",
+                "provider_config"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "id": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "example": "biz_set"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "parents": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                },
+                "provider_config": {
+                    "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
                 }
             }
         },

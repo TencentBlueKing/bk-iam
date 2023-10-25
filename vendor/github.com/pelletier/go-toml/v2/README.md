@@ -4,17 +4,6 @@ Go library for the [TOML](https://toml.io/en/) format.
 
 This library supports [TOML v1.0.0](https://toml.io/en/v1.0.0).
 
-## Development status
-
-This is the upcoming major version of go-toml. It is currently in active
-development. As of release v2.0.0-beta.1, the library has reached feature parity
-with v1, and fixes a lot known bugs and performance issues along the way.
-
-If you do not need the advanced document editing features of v1, you are
-encouraged to try out this version.
-
-[👉 Roadmap for v2](https://github.com/pelletier/go-toml/discussions/506)
-
 [🐞 Bug Reports](https://github.com/pelletier/go-toml/issues)
 
 [💬 Anything else](https://github.com/pelletier/go-toml/discussions)
@@ -49,23 +38,22 @@ operations should not be shockingly slow. See [benchmarks](#benchmarks).
 ### Strict mode
 
 `Decoder` can be set to "strict mode", which makes it error when some parts of
-the TOML document was not prevent in the target structure. This is a great way
+the TOML document was not present in the target structure. This is a great way
 to check for typos. [See example in the documentation][strict].
 
 [strict]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#example-Decoder.DisallowUnknownFields
 
 ### Contextualized errors
 
-When most decoding errors occur, go-toml returns [`DecodeError`][decode-err]),
+When most decoding errors occur, go-toml returns [`DecodeError`][decode-err],
 which contains a human readable contextualized version of the error. For
 example:
 
 ```
-2| key1 = "value1"
-3| key2 = "missing2"
- | ~~~~ missing field
-4| key3 = "missing3"
-5| key4 = "value4"
+1| [server]
+2| path = 100
+ |        ~~~ cannot decode TOML integer into struct field toml_test.Server.Path of type string
+3| port = 50
 ```
 
 [decode-err]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#DecodeError
@@ -83,6 +71,26 @@ representation.
 [tld]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#LocalDate
 [tlt]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#LocalTime
 [tldt]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#LocalDateTime
+
+### Commented config
+
+Since TOML is often used for configuration files, go-toml can emit documents
+annotated with [comments and commented-out values][comments-example]. For
+example, it can generate the following file:
+
+```toml
+# Host IP to connect to.
+host = '127.0.0.1'
+# Port of the remote server.
+port = 4242
+
+# Encryption parameters (optional)
+# [TLS]
+# cipher = 'AEAD-AES128-GCM-SHA256'
+# version = 'TLS 1.3'
+```
+
+[comments-example]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#example-Marshal-Commented
 
 ## Getting started
 
@@ -150,6 +158,17 @@ fmt.Println(string(b))
 ```
 
 [marshal]: https://pkg.go.dev/github.com/pelletier/go-toml/v2#Marshal
+
+## Unstable API
+
+This API does not yet follow the backward compatibility guarantees of this
+library. They provide early access to features that may have rough edges or an
+API subject to change.
+
+### Parser
+
+Parser is the unstable API that allows iterative parsing of a TOML document at
+the AST level. See https://pkg.go.dev/github.com/pelletier/go-toml/v2/unstable.
 
 ## Benchmarks
 
@@ -497,26 +516,19 @@ is not necessary anymore.
 
 V1 used to provide multiple struct tags: `comment`, `commented`, `multiline`,
 `toml`, and `omitempty`. To behave more like the standard library, v2 has merged
-`toml`, `multiline`, and `omitempty`. For example:
+`toml`, `multiline`, `commented`, and `omitempty`. For example:
 
 ```go
 type doc struct {
 	// v1
-	F string `toml:"field" multiline:"true" omitempty:"true"`
+	F string `toml:"field" multiline:"true" omitempty:"true" commented:"true"`
 	// v2
-	F string `toml:"field,multiline,omitempty"`
+	F string `toml:"field,multiline,omitempty,commented"`
 }
 ```
 
 Has a result, the `Encoder.SetTag*` methods have been removed, as there is just
 one tag now.
-
-
-#### `commented` tag has been removed
-
-There is no replacement for the `commented` tag. This feature would be better
-suited in a proper document model for go-toml v2, which has been [cut from
-scope][nodoc] at the moment.
 
 #### `Encoder.ArraysWithOneElementPerLine` has been renamed
 
@@ -550,6 +562,13 @@ complete solutions exist out there.
 
 [query]: https://github.com/pelletier/go-toml/tree/f99d6bbca119636aeafcf351ee52b3d202782627/query
 [dasel]: https://github.com/TomWright/dasel
+
+## Versioning
+
+Go-toml follows [Semantic Versioning](https://semver.org). The supported version
+of [TOML](https://github.com/toml-lang/toml) is indicated at the beginning of
+this document. The last two major versions of Go are supported
+(see [Go Release Policy](https://golang.org/doc/devel/release.html#policy)).
 
 ## License
 
