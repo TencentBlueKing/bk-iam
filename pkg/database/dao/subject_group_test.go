@@ -160,32 +160,6 @@ func Test_subjectRelationManager_GetMemberCountBeforeExpiredAt(t *testing.T) {
 	})
 }
 
-func Test_subjectRelationManager_UpdateExpiredAtWithTx(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mock.ExpectBegin()
-		mock.ExpectPrepare(`^UPDATE subject_relation SET policy_expired_at = (.*) WHERE pk = (.*)`)
-		mock.ExpectExec(`^UPDATE subject_relation SET policy_expired_at =`).WithArgs(
-			int64(2), int64(1),
-		).WillReturnResult(sqlmock.NewResult(1, 1))
-		mock.ExpectCommit()
-
-		subjects := []SubjectRelationForUpdateExpiredAt{{
-			PK:        1,
-			ExpiredAt: 2,
-		}}
-
-		tx, err := db.Beginx()
-		assert.NoError(t, err)
-
-		manager := &subjectGroupManager{DB: db}
-		err = manager.UpdateExpiredAtWithTx(tx, subjects)
-
-		tx.Commit()
-
-		assert.NoError(t, err)
-	})
-}
-
 func Test_subjectRelationManager_BulkCreateWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mock.ExpectBegin()

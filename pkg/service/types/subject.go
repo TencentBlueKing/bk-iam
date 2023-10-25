@@ -62,20 +62,6 @@ type GroupAuthType struct {
 	AuthType int64 `json:"auth_type"`
 }
 
-// SubjectRelationForUpdate 用于更新 subject-relation
-type SubjectRelationForUpdate struct {
-	PK        int64 `json:"pk"`
-	SubjectPK int64 `json:"subject_pk"`
-	ExpiredAt int64 `json:"expired_at"`
-}
-
-// SubjectRelationForCreate 用于创建 subject-relation
-type SubjectRelationForCreate struct {
-	SubjectPK int64 `json:"subject_pk"`
-	GroupPK   int64 `json:"group_pk"`
-	ExpiredAt int64 `json:"expired_at"`
-}
-
 type GroupAlterEvent struct {
 	UUID       string  `json:"uuid"`
 	GroupPK    int64   `json:"group_pk"`

@@ -483,7 +483,9 @@ func (c *groupController) BulkCreateSubjectTemplateGroup(subjectTemplateGroups [
 
 	subjectGroupHelper := newSubjectGroupHelper(c.service)
 
-	for i, relation := range relations {
+	for i := range relations {
+		relation := &relations[i]
+
 		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, relation.GroupPK)
 		if err != nil {
 			return errorWrapf(
@@ -501,12 +503,12 @@ func (c *groupController) BulkCreateSubjectTemplateGroup(subjectTemplateGroups [
 
 		// 2. 如果已授权并且过期时间大于当前时间, 不需要更新
 		if subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
-			relations[i].ExpiredAt = subjectGroup.ExpiredAt
+			relation.ExpiredAt = subjectGroup.ExpiredAt
 			continue
 		}
 
 		// 3. 其余场景需要更新
-		relations[i].NeedUpdate = true
+		relation.NeedUpdate = true
 	}
 
 	tx, err := database.GenerateDefaultDBTx()
@@ -581,14 +583,16 @@ func (c *groupController) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups [
 	}
 
 	// 查询是否有其它的关系
-	for i, relation := range relations {
-		exist, err := c.service.HasRelationExceptTemplate(relation)
+	for i := range relations {
+		relation := &relations[i]
+
+		exist, err := c.service.HasRelationExceptTemplate(*relation)
 		if err != nil {
 			return errorWrapf(err, "service.HasRelationExceptTemplate relation=`%+v` fail", relation)
 		}
 
 		if !exist {
-			relations[i].NeedUpdate = true
+			relation.NeedUpdate = true
 		}
 	}
 
@@ -693,73 +697,58 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 获取实际需要添加的member
-	createMembers := make([]types.SubjectRelationForCreate, 0, len(members))
+	createMembers := make([]types.SubjectTemplateGroup, 0, len(members))
 
 	// 需要更新过期时间的member
-	updateMembers := make([]types.SubjectRelationForUpdate, 0, len(members))
-
-	// 用于清理缓存
-	subjectPKs := make([]int64, 0, len(members))
+	updateMembers := make([]types.SubjectTemplateGroup, 0, len(members))
 
 	typeCount = map[string]int64{
 		types.UserType:       0,
 		types.DepartmentType: 0,
 	}
 
-	subjectGroupHelper := newSubjectGroupHelper(c.service)
 	subjectTemplateGroups, err := c.convertGroupMembersToSubjectTemplateGroups(groupPK, members)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, m := range members {
-		subjectPK := subjectTemplateGroups[i].SubjectPK
-		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(subjectPK, groupPK)
+	subjectGroupHelper := newSubjectGroupHelper(c.service)
+	for i := range subjectTemplateGroups {
+		relation := &subjectTemplateGroups[i]
+
+		// 查询 subject group 已有的关系
+		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, groupPK)
 		if err != nil {
 			return nil, errorWrapf(
 				err,
 				"getSubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
-				subjectPK,
+				relation.SubjectPK,
 				groupPK,
 			)
 		}
 
-		if authorized && subjectGroup != nil && subjectGroup.ExpiredAt > m.ExpiredAt {
-			m.ExpiredAt = subjectGroup.ExpiredAt
-			subjectTemplateGroups[i].ExpiredAt = subjectGroup.ExpiredAt
+		if authorized && subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
+			relation.ExpiredAt = subjectGroup.ExpiredAt
 		}
 
 		// member已存在则不再添加
-		if oldMember, ok := memberMap[subjectPK]; ok {
+		if oldMember, ok := memberMap[relation.SubjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
-			if m.ExpiredAt > oldMember.ExpiredAt {
-				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
-					PK:        oldMember.PK,
-					SubjectPK: subjectPK,
-					ExpiredAt: m.ExpiredAt,
-				})
+			if relation.ExpiredAt > oldMember.ExpiredAt {
+				relation.NeedUpdate = true
 
-				subjectPKs = append(subjectPKs, subjectPK)
-			}
-
-			if authorized && (subjectGroup == nil || subjectGroup.ExpiredAt < m.ExpiredAt) {
-				subjectTemplateGroups[i].NeedUpdate = true
+				updateMembers = append(updateMembers, *relation)
 			}
 			continue
 		}
 
 		if createIfNotExists {
-			createMembers = append(createMembers, types.SubjectRelationForCreate{
-				SubjectPK: subjectPK,
-				GroupPK:   groupPK,
-				ExpiredAt: m.ExpiredAt,
-			})
-			typeCount[m.Type]++
-			subjectPKs = append(subjectPKs, subjectPK)
-
-			if authorized && (subjectGroup == nil || subjectGroup.ExpiredAt < m.ExpiredAt) {
-				subjectTemplateGroups[i].NeedUpdate = true
+			if authorized && (subjectGroup == nil || subjectGroup.ExpiredAt < relation.ExpiredAt) {
+				relation.NeedUpdate = true
 			}
+
+			createMembers = append(createMembers, *relation)
+			typeCount[members[i].Type]++
 		}
 	}
 
@@ -803,18 +792,8 @@ func (c *groupController) alterGroupMembers(
 		return nil, errorWrapf(err, "tx commit error")
 	}
 
-	needUpdateSubjectPKs := make([]int64, 0, len(subjectPKs))
-	for _, group := range subjectTemplateGroups {
-		if group.NeedUpdate {
-			needUpdateSubjectPKs = append(needUpdateSubjectPKs, group.SubjectPK)
-		}
-	}
-
-	// 创建group_alter_event
-	c.createGroupAlterEvent(groupPK, needUpdateSubjectPKs)
-
 	// 清理subject system group 缓存
-	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(needUpdateSubjectPKs, groupPK)
+	c.deleteSubjectTemplateGroupCache(subjectTemplateGroups)
 
 	return typeCount, nil
 }
@@ -824,14 +803,10 @@ func (c *groupController) updateSubjectGroupExpiredAtWithTx(
 	subjectTemplateGroups []types.SubjectTemplateGroup,
 	updateGroupRelation bool,
 ) error {
-	needUpdateRelations := make([]types.SubjectRelationForCreate, 0, len(subjectTemplateGroups))
+	needUpdateRelations := make([]types.SubjectTemplateGroup, 0, len(subjectTemplateGroups))
 	for _, relation := range subjectTemplateGroups {
 		if relation.NeedUpdate {
-			needUpdateRelations = append(needUpdateRelations, types.SubjectRelationForCreate{
-				SubjectPK: relation.SubjectPK,
-				GroupPK:   relation.GroupPK,
-				ExpiredAt: relation.ExpiredAt,
-			})
+			needUpdateRelations = append(needUpdateRelations, relation)
 		}
 	}
 

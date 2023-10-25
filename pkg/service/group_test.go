@@ -147,9 +147,10 @@ var _ = Describe("GroupService", func() {
 
 		It("manager.UpdateExpiredAtWithTx fail", func() {
 			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().UpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelationForUpdateExpiredAt{
+			mockSubjectService.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelation{
 				{
-					PK:        1,
+					SubjectPK: 1,
+					GroupPK:   1,
 					ExpiredAt: 2,
 				},
 			}).Return(
@@ -160,9 +161,10 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.UpdateGroupMembersExpiredAtWithTx(nil, int64(1), []types.SubjectRelationForUpdate{
+			err := manager.UpdateGroupMembersExpiredAtWithTx(nil, int64(1), []types.SubjectTemplateGroup{
 				{
-					PK:        1,
+					SubjectPK: 1,
+					GroupPK:   1,
 					ExpiredAt: 2,
 				},
 			})
@@ -196,7 +198,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectRelationForCreate{
+			err := manager.BulkCreateGroupMembersWithTx(nil, int64(1), []types.SubjectTemplateGroup{
 				{
 					SubjectPK: 1,
 					GroupPK:   2,

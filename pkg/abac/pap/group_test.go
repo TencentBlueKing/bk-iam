@@ -88,7 +88,7 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3, NeedUpdate: true}},
 				).
 				Return(
 					errors.New("error"),
@@ -126,13 +126,13 @@ var _ = Describe("GroupController", func() {
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateGroupMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}}).
+				UpdateGroupMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}}).
 				Return(
 					nil,
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().
-				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
+				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{
 					SubjectPK: 2,
 					GroupPK:   1,
 					ExpiredAt: int64(3),
@@ -175,16 +175,13 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}},
 				).Return(
 				nil,
 			).
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
-			mockGroupAlterEventService.EXPECT().
-				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(errors.New("error"))
 			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
@@ -223,14 +220,14 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}},
 				).
 				Return(
 					nil,
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().
-				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
+				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{
 					SubjectPK: 2,
 					GroupPK:   1,
 					ExpiredAt: int64(3),
@@ -241,9 +238,6 @@ var _ = Describe("GroupController", func() {
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
-			mockGroupAlterEventService.EXPECT().
-				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(errors.New("error"))
 			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {

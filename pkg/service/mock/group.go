@@ -51,7 +51,7 @@ func (mr *MockGroupServiceMockRecorder) AlterGroupAuthType(tx, systemID, groupPK
 }
 
 // BulkCreateGroupMembersWithTx mocks base method.
-func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error {
+func (m *MockGroupService) BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectTemplateGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkCreateGroupMembersWithTx", tx, groupPK, relations)
 	ret0, _ := ret[0].(error)
@@ -436,7 +436,7 @@ func (mr *MockGroupServiceMockRecorder) ListPagingSubjectSystemGroups(subjectPK,
 }
 
 // UpdateGroupMembersExpiredAtWithTx mocks base method.
-func (m *MockGroupService) UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error {
+func (m *MockGroupService) UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectTemplateGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateGroupMembersExpiredAtWithTx", tx, groupPK, members)
 	ret0, _ := ret[0].(error)
@@ -450,7 +450,7 @@ func (mr *MockGroupServiceMockRecorder) UpdateGroupMembersExpiredAtWithTx(tx, gr
 }
 
 // UpdateSubjectGroupExpiredAtWithTx mocks base method.
-func (m *MockGroupService) UpdateSubjectGroupExpiredAtWithTx(tx *sqlx.Tx, relations []types.SubjectRelationForCreate, updateSubjectRelation bool) error {
+func (m *MockGroupService) UpdateSubjectGroupExpiredAtWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup, updateSubjectRelation bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSubjectGroupExpiredAtWithTx", tx, relations, updateSubjectRelation)
 	ret0, _ := ret[0].(error)

@@ -60,13 +60,13 @@ type GroupService interface {
 	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
 	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]types.GroupSubject, error)
 
-	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectRelationForUpdate) error
+	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectTemplateGroup) error
 	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
-	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectRelationForCreate) error
+	BulkCreateGroupMembersWithTx(tx *sqlx.Tx, groupPK int64, relations []types.SubjectTemplateGroup) error
 	BulkCreateSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error
 	UpdateSubjectGroupExpiredAtWithTx(
 		tx *sqlx.Tx,
-		relations []types.SubjectRelationForCreate,
+		relations []types.SubjectTemplateGroup,
 		updateSubjectRelation bool,
 	) error
 	BulkDeleteSubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error
@@ -336,21 +336,22 @@ func (l *groupService) ListGroupMember(groupPK int64) ([]types.GroupMember, erro
 func (l *groupService) UpdateGroupMembersExpiredAtWithTx(
 	tx *sqlx.Tx,
 	groupPK int64,
-	members []types.SubjectRelationForUpdate,
+	members []types.SubjectTemplateGroup,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateGroupMembersExpiredAtWithTx")
 
-	relations := make([]dao.SubjectRelationForUpdateExpiredAt, 0, len(members))
+	relations := make([]dao.SubjectRelation, 0, len(members))
 	for _, m := range members {
-		relations = append(relations, dao.SubjectRelationForUpdateExpiredAt{
-			PK:        m.PK,
+		relations = append(relations, dao.SubjectRelation{
+			SubjectPK: m.SubjectPK,
+			GroupPK:   groupPK,
 			ExpiredAt: m.ExpiredAt,
 		})
 	}
 
-	err := l.manager.UpdateExpiredAtWithTx(tx, relations)
+	err := l.manager.BulkUpdateExpiredAtWithTx(tx, relations)
 	if err != nil {
-		err = errorWrapf(err, "manager.UpdateExpiredAtWithTx relations=`%+v` fail", relations)
+		err = errorWrapf(err, "manager.BulkUpdateExpiredAtWithTx relations=`%+v` fail", relations)
 		return err
 	}
 
@@ -360,8 +361,12 @@ func (l *groupService) UpdateGroupMembersExpiredAtWithTx(
 		return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", groupPK)
 	}
 
-	for _, systemID := range systemIDs {
-		for _, m := range members {
+	for _, m := range members {
+		if !m.NeedUpdate {
+			continue
+		}
+
+		for _, systemID := range systemIDs {
 			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, groupPK, m.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
@@ -473,7 +478,7 @@ func (l *groupService) BulkDeleteGroupMembers(
 func (l *groupService) BulkCreateGroupMembersWithTx(
 	tx *sqlx.Tx,
 	groupPK int64,
-	relations []types.SubjectRelationForCreate,
+	relations []types.SubjectTemplateGroup,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkCreateGroupMembersWithTx")
 	// 组装需要创建的Subject关系
@@ -497,8 +502,12 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 		return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", groupPK)
 	}
 
-	for _, systemID := range systemIDs {
-		for _, r := range relations {
+	for _, r := range relations {
+		if !r.NeedUpdate {
+			continue
+		}
+
+		for _, systemID := range systemIDs {
 			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, groupPK, r.ExpiredAt)
 			if err != nil {
 				return errorWrapf(
@@ -575,7 +584,7 @@ func (l *groupService) BulkCreateSubjectTemplateGroupWithTx(
 
 func (l *groupService) UpdateSubjectGroupExpiredAtWithTx(
 	tx *sqlx.Tx,
-	relations []types.SubjectRelationForCreate,
+	relations []types.SubjectTemplateGroup,
 	updateSubjectRelation bool,
 ) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "UpdateSubjectGroupExpiredAtWithTx")

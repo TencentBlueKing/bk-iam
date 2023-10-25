@@ -405,17 +405,3 @@ func (mr *MockSubjectGroupManagerMockRecorder) ListThinRelationAfterExpiredAtByS
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinRelationAfterExpiredAtBySubjectPKs", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListThinRelationAfterExpiredAtBySubjectPKs), subjectPKs, expiredAt)
 }
-
-// UpdateExpiredAtWithTx mocks base method.
-func (m *MockSubjectGroupManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelationForUpdateExpiredAt) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExpiredAtWithTx", tx, relations)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateExpiredAtWithTx indicates an expected call of UpdateExpiredAtWithTx.
-func (mr *MockSubjectGroupManagerMockRecorder) UpdateExpiredAtWithTx(tx, relations interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectGroupManager)(nil).UpdateExpiredAtWithTx), tx, relations)
-}
