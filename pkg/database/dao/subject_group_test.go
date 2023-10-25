@@ -298,3 +298,42 @@ func Test_subjectRelationManager_ListPagingSubjectSystemGroupBeforeExpiredAt(t *
 		assert.Len(t, relations, 1)
 	})
 }
+
+func Test_subjectRelationManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^UPDATE subject_relation`
+		mock.ExpectBegin()
+		mock.ExpectPrepare(mockQuery)
+		mock.ExpectExec(mockQuery).WithArgs(int64(3), int64(2), int64(1)).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+		manager := &subjectGroupManager{DB: db}
+		err = manager.BulkUpdateExpiredAtWithTx(tx, []SubjectRelation{{
+			SubjectPK: int64(2),
+			GroupPK:   int64(1),
+			ExpiredAt: int64(3),
+		}})
+
+		assert.NoError(t, err, "query from db fail.")
+	})
+}
+
+func Test_subjectRelationManager_HasRelation(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT pk FROM subject_relation WHERE subject_pk = (.*) AND parent_pk = (.*) LIMIT 1`
+		mockRows := sqlmock.NewRows(
+			[]string{
+				"pk",
+			},
+		).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
+
+		manager := &subjectGroupManager{DB: db}
+		exist, err := manager.HasRelation(int64(1), int64(2))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.True(t, exist)
+	})
+}

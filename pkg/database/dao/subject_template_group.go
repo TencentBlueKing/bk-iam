@@ -74,8 +74,8 @@ func (m *subjectTemplateGroupManager) BulkUpdateExpiredAtWithTx(
 	relations []SubjectRelation,
 ) error {
 	sql := `UPDATE subject_template_group
-		 SET expired_at = :expired_at
-		 WHERE subject_pk = :subject_pk AND group_pk = :group_pk`
+		 SET expired_at = :policy_expired_at
+		 WHERE subject_pk = :subject_pk AND group_pk = :parent_pk`
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
@@ -85,7 +85,10 @@ func (m *subjectTemplateGroupManager) BulkDeleteWithTx(tx *sqlx.Tx, relations []
 		return nil
 	}
 
-	sql := `DELETE FROM subject_template_group WHERE subject_pk = ? AND group_pk = ? AND template_id = ?`
+	sql := `DELETE FROM subject_template_group
+		 WHERE subject_pk = :subject_pk
+		 AND group_pk = :group_pk
+		 AND template_id = :template_id`
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 

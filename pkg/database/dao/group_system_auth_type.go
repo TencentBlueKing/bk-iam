@@ -67,7 +67,7 @@ func (m *groupSystemAuthTypeManager) GetOneAuthSystemByGroup(groupPK int64) (str
 		FROM group_system_auth_type 
 		WHERE group_pk = ?
 		LIMIT 1`
-	err := database.SqlxSelect(m.DB, &system, query, groupPK)
+	err := database.SqlxGet(m.DB, &system, query, groupPK)
 	return system, err
 }
 

@@ -671,7 +671,7 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 
 	err := l.subjectTemplateGroupManager.BulkDeleteWithTx(tx, daoRelations)
 	if err != nil {
-		return errorWrapf(err, "subjectTemplateGroupManager.BulkDelete relations=`%+v` fail", daoRelations)
+		return errorWrapf(err, "subjectTemplateGroupManager.BulkDeleteWithTx relations=`%+v` fail", daoRelations)
 	}
 
 	groupSystemIDCache := make(map[int64][]string)
