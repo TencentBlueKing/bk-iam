@@ -4,12 +4,11 @@ import (
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
+	"golang.org/x/tools/go/loader"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"golang.org/x/tools/go/loader"
 )
 
 // PackagesDefinitions map[package import path]*PackageDefinitions.
@@ -39,7 +38,7 @@ func (pkgs *PackagesDefinitions) CollectAstFile(packageDir, path string, astFile
 	}
 
 	// return without storing the file if we lack a packageDir
-	if packageDir == "" {
+	if len(packageDir) == 0 {
 		return nil
 	}
 
@@ -74,9 +73,9 @@ func (pkgs *PackagesDefinitions) CollectAstFile(packageDir, path string, astFile
 }
 
 // RangeFiles for range the collection of ast.File in alphabetic order.
-func rangeFiles(files map[*ast.File]*AstFileInfo, handle func(filename string, file *ast.File) error) error {
-	sortedFiles := make([]*AstFileInfo, 0, len(files))
-	for _, info := range files {
+func (pkgs *PackagesDefinitions) RangeFiles(handle func(filename string, file *ast.File) error) error {
+	sortedFiles := make([]*AstFileInfo, 0, len(pkgs.files))
+	for _, info := range pkgs.files {
 		sortedFiles = append(sortedFiles, info)
 	}
 
@@ -181,13 +180,16 @@ func (pkgs *PackagesDefinitions) loadExternalPackage(importPath string) error {
 
 	conf.Import(importPath)
 
-	loaderProgram, err := conf.Load()
+	lprog, err := conf.Load()
 	if err != nil {
 		return err
 	}
 
-	for _, info := range loaderProgram.AllPackages {
-		pkgPath := strings.TrimPrefix(info.Pkg.Path(), "vendor/")
+	for _, info := range lprog.AllPackages {
+		pkgPath := info.Pkg.Path()
+		if strings.HasPrefix(pkgPath, "vendor/") {
+			pkgPath = pkgPath[7:]
+		}
 		for _, astFile := range info.Files {
 			pkgs.parseTypesFromFile(astFile, pkgPath, nil)
 		}
@@ -196,7 +198,7 @@ func (pkgs *PackagesDefinitions) loadExternalPackage(importPath string) error {
 	return nil
 }
 
-// findPackagePathFromImports finds out the package path of a package via ranging imports of an ast.File
+// findPackagePathFromImports finds out the package path of a package via ranging imports of a ast.File
 // @pkg the name of the target package
 // @file current ast.File in which to search imports
 // @fuzzy search for the package path that the last part matches the @pkg if true
@@ -214,7 +216,10 @@ func (pkgs *PackagesDefinitions) findPackagePathFromImports(pkg string, file *as
 
 	matchLastPathPart := func(pkgPath string) bool {
 		paths := strings.Split(pkgPath, "/")
-		return paths[len(paths)-1] == pkg
+		if paths[len(paths)-1] == pkg {
+			return true
+		}
+		return false
 	}
 
 	// prior to match named package
@@ -297,11 +302,11 @@ func (pkgs *PackagesDefinitions) FindTypeSpec(typeName string, file *ast.File, p
 		}
 		pkgPath := pkgs.findPackagePathFromImports(parts[0], file, false)
 		if len(pkgPath) == 0 {
-			// check if the current package
+			//check if the current package
 			if parts[0] == file.Name.Name {
 				pkgPath = pkgs.files[file].PackagePath
 			} else if parseDependency {
-				// take it as an external package, needs to be loaded
+				//take it as an external package, needs to be loaded
 				if pkgPath = pkgs.findPackagePathFromImports(parts[0], file, true); len(pkgPath) > 0 {
 					if err := pkgs.loadExternalPackage(pkgPath); err != nil {
 						return nil

@@ -98,31 +98,24 @@
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 10001,
                         "name": "max_id",
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1,
                         "name": "min_id",
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "timestamp",
                         "in": "query"
                     },
                     {
-                        "enum": [
-                            "abac",
-                            "rbac"
-                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -181,24 +174,18 @@
                 "operationId": "api-engine-policy-id-list",
                 "parameters": [
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "begin_updated_at",
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "end_updated_at",
                         "in": "query"
                     },
                     {
-                        "enum": [
-                            "abac",
-                            "rbac"
-                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
@@ -257,17 +244,12 @@
                 "operationId": "api-engine-policy-id-max",
                 "parameters": [
                     {
-                        "enum": [
-                            "abac",
-                            "rbac"
-                        ],
                         "type": "string",
                         "example": "abac",
                         "name": "type",
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "updated_at",
@@ -337,56 +319,6 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/types.System"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/model/share/systems": {
-            "get": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "get the list of systems",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model_share"
-                ],
-                "summary": "list system",
-                "operationId": "api-model-share-systems-list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handler.systemClientsResponse"
                                         }
                                     }
                                 }
@@ -1072,121 +1004,6 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/action/{action_id}": {
-            "put": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "update action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model"
-                ],
-                "summary": "action update",
-                "operationId": "api-model-action-update",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "System ID",
-                        "name": "system_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "action_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "the request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.actionUpdateSerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "delete action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model"
-                ],
-                "summary": "action delete",
-                "operationId": "api-model-action-delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "System ID",
-                        "name": "system_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "action_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/systems/{system_id}/actions": {
             "post": {
                 "security": [
@@ -1292,6 +1109,121 @@
                                 "$ref": "#/definitions/handler.deleteViaID"
                             }
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/actions/{action_id}": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action update",
+                "operationId": "api-model-action-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.actionUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action delete",
+                "operationId": "api-model-action-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1676,7 +1608,7 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/policies": {
+        "/api/v1/systems/{system_id}/policies/": {
             "get": {
                 "security": [
                     {
@@ -1714,25 +1646,27 @@
                         "required": true
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1,
                         "name": "page",
                         "in": "query"
                     },
                     {
-                        "maximum": 500,
-                        "minimum": 10,
                         "type": "integer",
                         "example": 100,
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
-                        "minimum": 1,
                         "type": "integer",
                         "example": 1592899208,
                         "name": "timestamp",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
                         "in": "query"
                     }
                 ],
@@ -1800,6 +1734,12 @@
                         "name": "ids",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1833,7 +1773,7 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/policies/{policy_id}": {
+        "/api/v1/systems/{system_id}/policies/{policy_id}/": {
             "get": {
                 "security": [
                     {
@@ -2677,7 +2617,7 @@
                 }
             }
         },
-        "/api/v2/policy/systems/{system_id}/auth": {
+        "/api/v2/policy/systems/{system_id}/auth/": {
             "post": {
                 "security": [
                     {
@@ -2733,7 +2673,56 @@
                 }
             }
         },
-        "/api/v2/policy/systems/{system_id}/query": {
+        "/api/v2/policy/systems/{system_id}/auth_by_actions/": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch auth by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch auth by actions/批量鉴权接口",
+                "operationId": "api-v2-policy-batch-auth-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch auth by actions request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authV2ByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByActionsResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/policy/systems/{system_id}/query/": {
             "post": {
                 "security": [
                     {
@@ -2778,6 +2767,58 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/policy/systems/{system_id}/query_by_actions/": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch query policies by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch query v2 by actions/v2批量查询策略",
+                "operationId": "api-v2-policy-batch-query-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch query by action request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryV2ByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.actionPoliciesResponse"
+                            }
                         },
                         "headers": {
                             "X-Request-Id": {
@@ -3061,10 +3102,6 @@
             "properties": {
                 "auth_type": {
                     "type": "string",
-                    "enum": [
-                        "rbac",
-                        "abac"
-                    ],
                     "example": "abac"
                 },
                 "description": {
@@ -3075,9 +3112,12 @@
                     "type": "string",
                     "example": "biz_create is"
                 },
+                "hidden": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "id": {
                     "type": "string",
-                    "maxLength": 32,
                     "example": "biz_create"
                 },
                 "name": {
@@ -3108,27 +3148,13 @@
                 },
                 "sensitivity": {
                     "type": "integer",
-                    "maximum": 9,
-                    "minimum": 0,
                     "example": 0
                 },
                 "type": {
-                    "type": "string",
-                    "enum": [
-                        "create",
-                        "edit",
-                        "view",
-                        "delete",
-                        "list",
-                        "manage",
-                        "execute",
-                        "debug",
-                        "use"
-                    ]
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3138,10 +3164,6 @@
             "properties": {
                 "auth_type": {
                     "type": "string",
-                    "enum": [
-                        "rbac",
-                        "abac"
-                    ],
                     "example": "abac"
                 },
                 "description": {
@@ -3151,6 +3173,10 @@
                 "description_en": {
                     "type": "string",
                     "example": "biz_create is"
+                },
+                "hidden": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "name": {
                     "type": "string",
@@ -3180,27 +3206,13 @@
                 },
                 "sensitivity": {
                     "type": "integer",
-                    "maximum": 9,
-                    "minimum": 0,
                     "example": 0
                 },
                 "type": {
-                    "type": "string",
-                    "enum": [
-                        "create",
-                        "edit",
-                        "view",
-                        "delete",
-                        "list",
-                        "manage",
-                        "execute",
-                        "debug",
-                        "use"
-                    ]
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -3231,7 +3243,6 @@
             "properties": {
                 "actions": {
                     "type": "array",
-                    "maxItems": 10,
                     "items": {
                         "$ref": "#/definitions/handler.action"
                     }
@@ -3272,7 +3283,6 @@
                 },
                 "resources_list": {
                     "type": "array",
-                    "maxItems": 100,
                     "items": {
                         "type": "array",
                         "items": {
@@ -3329,6 +3339,32 @@
                 "allowed": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "handler.authV2ByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "resources",
+                "subject"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can't be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 }
             }
         },
@@ -3451,7 +3487,6 @@
             "properties": {
                 "id": {
                     "type": "string",
-                    "maxLength": 32,
                     "example": "biz_set"
                 },
                 "is_dynamic": {
@@ -3523,25 +3558,18 @@
                 },
                 "max_id": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 10001
                 },
                 "min_id": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1
                 },
                 "timestamp": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1592899208
                 },
                 "type": {
                     "type": "string",
-                    "enum": [
-                        "abac",
-                        "rbac"
-                    ],
                     "example": "abac"
                 }
             }
@@ -3602,13 +3630,7 @@
                     }
                 },
                 "group_auth_type": {
-                    "type": "string",
-                    "enum": [
-                        "all",
-                        "rbac",
-                        "abac",
-                        "none"
-                    ]
+                    "type": "string"
                 },
                 "resource_actions": {
                     "type": "array",
@@ -3675,9 +3697,7 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer",
-                    "maximum": 4102444800,
-                    "minimum": 0
+                    "type": "integer"
                 },
                 "resource_expression": {
                     "type": "string"
@@ -3787,7 +3807,6 @@
                 },
                 "ext_resources": {
                     "type": "array",
-                    "maxItems": 1000,
                     "items": {
                         "$ref": "#/definitions/handler.extResource"
                     }
@@ -3844,6 +3863,31 @@
                 }
             }
         },
+        "handler.queryV2ByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "subject"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
+                }
+            }
+        },
         "handler.referenceInstanceSelection": {
             "type": "object",
             "required": [
@@ -3888,9 +3932,6 @@
                 "type": {
                     "description": "NOTE: currently only support period_daily, will support current_timestamp later\n      and no operators now!\n      only one field, but should be a struct! keep extensible in the future",
                     "type": "string",
-                    "enum": [
-                        "period_daily"
-                    ],
                     "example": "period_daily"
                 }
             }
@@ -3904,16 +3945,13 @@
             "properties": {
                 "id": {
                     "type": "string",
-                    "maxLength": 32,
                     "example": "host"
                 },
                 "name_alias": {
-                    "type": "string",
-                    "example": ""
+                    "type": "string"
                 },
                 "name_alias_en": {
-                    "type": "string",
-                    "example": ""
+                    "type": "string"
                 },
                 "related_instance_selections": {
                     "type": "array",
@@ -3924,11 +3962,6 @@
                 "selection_mode": {
                     "description": "实例选择方式/范围: [\"all\", \"instance\", \"attribute\"]",
                     "type": "string",
-                    "enum": [
-                        "all",
-                        "instance",
-                        "attribute"
-                    ],
                     "example": "instance"
                 },
                 "system_id": {
@@ -4040,7 +4073,6 @@
                 },
                 "id": {
                     "type": "string",
-                    "maxLength": 32,
                     "example": "biz_set"
                 },
                 "name": {
@@ -4063,13 +4095,10 @@
                 },
                 "sensitivity": {
                     "type": "integer",
-                    "maximum": 9,
-                    "minimum": 0,
                     "example": 0
                 },
                 "version": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -4106,13 +4135,10 @@
                 },
                 "sensitivity": {
                     "type": "integer",
-                    "maximum": 9,
-                    "minimum": 0,
                     "example": 0
                 },
                 "version": {
                     "type": "integer",
-                    "minimum": 1,
                     "example": 1
                 }
             }
@@ -4161,10 +4187,6 @@
             "properties": {
                 "auth": {
                     "type": "string",
-                    "enum": [
-                        "none",
-                        "basic"
-                    ],
                     "example": "basic"
                 },
                 "healthz": {
@@ -4235,7 +4257,6 @@
                 },
                 "id": {
                     "type": "string",
-                    "maxLength": 32,
                     "example": "bk_paas"
                 },
                 "name": {
@@ -4373,9 +4394,7 @@
                     "type": "string"
                 },
                 "expired_at": {
-                    "type": "integer",
-                    "maximum": 4102444800,
-                    "minimum": 0
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"

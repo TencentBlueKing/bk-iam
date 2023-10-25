@@ -55,9 +55,6 @@ definitions:
   handler.actionSerializer:
     properties:
       auth_type:
-        enum:
-        - rbac
-        - abac
         example: abac
         type: string
       description:
@@ -66,9 +63,11 @@ definitions:
       description_en:
         example: biz_create is
         type: string
+      hidden:
+        example: false
+        type: boolean
       id:
         example: biz_create
-        maxLength: 32
         type: string
       name:
         example: biz_create
@@ -90,24 +89,11 @@ definitions:
         type: array
       sensitivity:
         example: 0
-        maximum: 9
-        minimum: 0
         type: integer
       type:
-        enum:
-        - create
-        - edit
-        - view
-        - delete
-        - list
-        - manage
-        - execute
-        - debug
-        - use
         type: string
       version:
         example: 1
-        minimum: 1
         type: integer
     required:
     - id
@@ -117,9 +103,6 @@ definitions:
   handler.actionUpdateSerializer:
     properties:
       auth_type:
-        enum:
-        - rbac
-        - abac
         example: abac
         type: string
       description:
@@ -128,6 +111,9 @@ definitions:
       description_en:
         example: biz_create is
         type: string
+      hidden:
+        example: false
+        type: boolean
       name:
         example: biz_create
         type: string
@@ -148,24 +134,11 @@ definitions:
         type: array
       sensitivity:
         example: 0
-        maximum: 9
-        minimum: 0
         type: integer
       type:
-        enum:
-        - create
-        - edit
-        - view
-        - delete
-        - list
-        - manage
-        - execute
-        - debug
-        - use
         type: string
       version:
         example: 1
-        minimum: 1
         type: integer
     type: object
   handler.appCodeAppSecretSerializer:
@@ -183,7 +156,6 @@ definitions:
       actions:
         items:
           $ref: '#/definitions/handler.action'
-        maxItems: 10
         type: array
       resources:
         description: can't be empty
@@ -214,7 +186,6 @@ definitions:
           items:
             $ref: '#/definitions/handler.resource'
           type: array
-        maxItems: 100
         type: array
       subject:
         $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
@@ -256,6 +227,24 @@ definitions:
       allowed:
         example: false
         type: boolean
+    type: object
+  handler.authV2ByActionsRequest:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/handler.action'
+        type: array
+      resources:
+        description: can't be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
+    required:
+    - actions
+    - resources
+    - subject
     type: object
   handler.credentialsVerifyResponseSerializer:
     properties:
@@ -335,7 +324,6 @@ definitions:
     properties:
       id:
         example: biz_set
-        maxLength: 32
         type: string
       is_dynamic:
         example: false
@@ -391,20 +379,14 @@ definitions:
         type: string
       max_id:
         example: 10001
-        minimum: 1
         type: integer
       min_id:
         example: 1
-        minimum: 1
         type: integer
       timestamp:
         example: 1592899208
-        minimum: 1
         type: integer
       type:
-        enum:
-        - abac
-        - rbac
         example: abac
         type: string
     type: object
@@ -441,11 +423,6 @@ definitions:
           type: integer
         type: array
       group_auth_type:
-        enum:
-        - all
-        - rbac
-        - abac
-        - none
         type: string
       resource_actions:
         items:
@@ -495,8 +472,6 @@ definitions:
         description: 'NOTE: this field not used!'
         type: string
       expired_at:
-        maximum: 4102444800
-        minimum: 0
         type: integer
       resource_expression:
         type: string
@@ -574,7 +549,6 @@ definitions:
       ext_resources:
         items:
           $ref: '#/definitions/handler.extResource'
-        maxItems: 1000
         type: array
       resources:
         description: can be empty
@@ -617,6 +591,23 @@ definitions:
         example: base_info,resource_types,actions
         type: string
     type: object
+  handler.queryV2ByActionsRequest:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/handler.action'
+        type: array
+      resources:
+        description: can be empty
+        items:
+          $ref: '#/definitions/handler.resource'
+        type: array
+      subject:
+        $ref: '#/definitions/iam_pkg_api_policy_handler.subject'
+    required:
+    - actions
+    - subject
+    type: object
   handler.referenceInstanceSelection:
     properties:
       id:
@@ -651,8 +642,6 @@ definitions:
           NOTE: currently only support period_daily, will support current_timestamp later
                 and no operators now!
                 only one field, but should be a struct! keep extensible in the future
-        enum:
-        - period_daily
         example: period_daily
         type: string
     type: object
@@ -660,13 +649,10 @@ definitions:
     properties:
       id:
         example: host
-        maxLength: 32
         type: string
       name_alias:
-        example: ""
         type: string
       name_alias_en:
-        example: ""
         type: string
       related_instance_selections:
         items:
@@ -674,10 +660,6 @@ definitions:
         type: array
       selection_mode:
         description: '实例选择方式/范围: ["all", "instance", "attribute"]'
-        enum:
-        - all
-        - instance
-        - attribute
         example: instance
         type: string
       system_id:
@@ -756,7 +738,6 @@ definitions:
         type: string
       id:
         example: biz_set
-        maxLength: 32
         type: string
       name:
         example: biz_set
@@ -773,12 +754,9 @@ definitions:
         $ref: '#/definitions/handler.resourceProviderConfig'
       sensitivity:
         example: 0
-        maximum: 9
-        minimum: 0
         type: integer
       version:
         example: 1
-        minimum: 1
         type: integer
     required:
     - id
@@ -810,12 +788,9 @@ definitions:
         $ref: '#/definitions/handler.resourceProviderConfig'
       sensitivity:
         example: 0
-        maximum: 9
-        minimum: 0
         type: integer
       version:
         example: 1
-        minimum: 1
         type: integer
     type: object
   handler.responseSubject:
@@ -845,9 +820,6 @@ definitions:
   handler.systemProviderConfig:
     properties:
       auth:
-        enum:
-        - none
-        - basic
         example: basic
         type: string
       healthz:
@@ -898,7 +870,6 @@ definitions:
         type: string
       id:
         example: bk_paas
-        maxLength: 32
         type: string
       name:
         example: bk_paas
@@ -996,8 +967,6 @@ definitions:
         description: 'NOTE: this field not used!'
         type: string
       expired_at:
-        maximum: 4102444800
-        minimum: 0
         type: integer
       id:
         type: integer
@@ -1181,23 +1150,17 @@ paths:
         type: string
       - example: 10001
         in: query
-        minimum: 1
         name: max_id
         type: integer
       - example: 1
         in: query
-        minimum: 1
         name: min_id
         type: integer
       - example: 1592899208
         in: query
-        minimum: 1
         name: timestamp
         type: integer
-      - enum:
-        - abac
-        - rbac
-        example: abac
+      - example: abac
         in: query
         name: type
         type: string
@@ -1232,18 +1195,13 @@ paths:
       parameters:
       - example: 1592899208
         in: query
-        minimum: 1
         name: begin_updated_at
         type: integer
       - example: 1592899208
         in: query
-        minimum: 1
         name: end_updated_at
         type: integer
-      - enum:
-        - abac
-        - rbac
-        example: abac
+      - example: abac
         in: query
         name: type
         type: string
@@ -1276,16 +1234,12 @@ paths:
       description: get max policy id by condition
       operationId: api-engine-policy-id-max
       parameters:
-      - enum:
-        - abac
-        - rbac
-        example: abac
+      - example: abac
         in: query
         name: type
         type: string
       - example: 1592899208
         in: query
-        minimum: 1
         name: updated_at
         type: integer
       produces:
@@ -1338,34 +1292,6 @@ paths:
       summary: system info
       tags:
       - engine
-  /api/v1/model/share/systems:
-    get:
-      consumes:
-      - application/json
-      description: get the list of systems
-      operationId: api-model-share-systems-list
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            allOf:
-            - $ref: '#/definitions/util.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/handler.systemClientsResponse'
-              type: object
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: list system
-      tags:
-      - model_share
   /api/v1/model/share/systems/{system_id}/query:
     get:
       consumes:
@@ -1769,79 +1695,6 @@ paths:
       summary: system update
       tags:
       - model
-  /api/v1/systems/{system_id}/action/{action_id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete action
-      operationId: api-model-action-delete
-      parameters:
-      - description: System ID
-        in: path
-        name: system_id
-        required: true
-        type: string
-      - description: Action ID
-        in: path
-        name: action_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: action delete
-      tags:
-      - model
-    put:
-      consumes:
-      - application/json
-      description: update action
-      operationId: api-model-action-update
-      parameters:
-      - description: System ID
-        in: path
-        name: system_id
-        required: true
-        type: string
-      - description: Action ID
-        in: path
-        name: action_id
-        required: true
-        type: string
-      - description: the request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handler.actionUpdateSerializer'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          headers:
-            X-Request-Id:
-              description: the request id
-              type: string
-          schema:
-            $ref: '#/definitions/util.Response'
-      security:
-      - AppCode: []
-      - AppSecret: []
-      summary: action update
-      tags:
-      - model
   /api/v1/systems/{system_id}/actions:
     delete:
       consumes:
@@ -1918,6 +1771,79 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: batch actions create
+      tags:
+      - model
+  /api/v1/systems/{system_id}/actions/{action_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete action
+      operationId: api-model-action-delete
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Action ID
+        in: path
+        name: action_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: action delete
+      tags:
+      - model
+    put:
+      consumes:
+      - application/json
+      description: update action
+      operationId: api-model-action-update
+      parameters:
+      - description: System ID
+        in: path
+        name: system_id
+        required: true
+        type: string
+      - description: Action ID
+        in: path
+        name: action_id
+        required: true
+        type: string
+      - description: the request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.actionUpdateSerializer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/util.Response'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: action update
       tags:
       - model
   /api/v1/systems/{system_id}/clients:
@@ -2149,7 +2075,7 @@ paths:
       summary: instance selection update
       tags:
       - model
-  /api/v1/systems/{system_id}/policies:
+  /api/v1/systems/{system_id}/policies/:
     get:
       consumes:
       - application/json
@@ -2168,20 +2094,20 @@ paths:
         type: string
       - example: 1
         in: query
-        minimum: 1
         name: page
         type: integer
       - example: 100
         in: query
-        maximum: 500
-        minimum: 10
         name: pageSize
         type: integer
       - example: 1592899208
         in: query
-        minimum: 1
         name: timestamp
         type: integer
+      - example: abac
+        in: query
+        name: type
+        type: string
       produces:
       - application/json
       responses:
@@ -2221,6 +2147,10 @@ paths:
         name: ids
         required: true
         type: string
+      - example: abac
+        in: query
+        name: type
+        type: string
       produces:
       - application/json
       responses:
@@ -2245,7 +2175,7 @@ paths:
       summary: query subjects/获取有权限的用户列表
       tags:
       - open
-  /api/v1/systems/{system_id}/policies/{policy_id}:
+  /api/v1/systems/{system_id}/policies/{policy_id}/:
     get:
       consumes:
       - application/json
@@ -2764,7 +2694,7 @@ paths:
       summary: Batch delete temporary policies before expired_at/删除指定过期时间之前临时权限策略
       tags:
       - web
-  /api/v2/policy/systems/{system_id}/auth:
+  /api/v2/policy/systems/{system_id}/auth/:
     post:
       consumes:
       - application/json
@@ -2800,7 +2730,37 @@ paths:
       summary: policy auth/鉴权
       tags:
       - policy
-  /api/v2/policy/systems/{system_id}/query:
+  /api/v2/policy/systems/{system_id}/auth_by_actions/:
+    post:
+      consumes:
+      - application/json
+      description: batch auth by actions
+      operationId: api-v2-policy-batch-auth-by-actions
+      parameters:
+      - description: the batch auth by actions request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.authV2ByActionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            $ref: '#/definitions/handler.authByActionsResponse'
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch auth by actions/批量鉴权接口
+      tags:
+      - policy
+  /api/v2/policy/systems/{system_id}/query/:
     post:
       consumes:
       - application/json
@@ -2833,6 +2793,38 @@ paths:
       - AppCode: []
       - AppSecret: []
       summary: policy query/策略查询
+      tags:
+      - policy
+  /api/v2/policy/systems/{system_id}/query_by_actions/:
+    post:
+      consumes:
+      - application/json
+      description: batch query policies by actions
+      operationId: api-v2-policy-batch-query-by-actions
+      parameters:
+      - description: the batch query by action request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.queryV2ByActionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Request-Id:
+              description: the request id
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/handler.actionPoliciesResponse'
+            type: array
+      security:
+      - AppCode: []
+      - AppSecret: []
+      summary: batch query v2 by actions/v2批量查询策略
       tags:
       - policy
   /api/v2/web/systems/{system_id}/policies:

@@ -7,7 +7,7 @@ require (
 	github.com/TencentBlueKing/gopkg v1.0.8
 	github.com/TencentBlueKing/iam-go-sdk v0.0.9
 	github.com/adjust/rmq/v4 v4.0.5
-	github.com/agiledragon/gomonkey/v2 v2.8.0
+	github.com/agiledragon/gomonkey/v2 v2.10.1
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/bsm/redislock v0.7.2
 	github.com/dlmiddlecote/sqlstats v1.0.2
@@ -34,8 +34,8 @@ require (
 	github.com/steinfletcher/apitest v1.5.11
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
-	github.com/swaggo/gin-swagger v1.4.2
-	github.com/swaggo/swag v1.8.1
+	github.com/swaggo/gin-swagger v1.3.3
+	github.com/swaggo/swag v1.7.4
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	github.com/wklken/go-cache v2.2.1+incompatible
 	go.uber.org/automaxprocs v1.5.1

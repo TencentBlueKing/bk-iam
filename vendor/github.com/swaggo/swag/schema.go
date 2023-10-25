@@ -10,25 +10,25 @@ import (
 )
 
 const (
-	// ARRAY represent a array value.
+	// ARRAY array.
 	ARRAY = "array"
-	// OBJECT represent a object value.
+	// OBJECT object.
 	OBJECT = "object"
-	// PRIMITIVE represent a primitive value.
+	// PRIMITIVE primitive.
 	PRIMITIVE = "primitive"
-	// BOOLEAN represent a boolean value.
+	// BOOLEAN boolean.
 	BOOLEAN = "boolean"
-	// INTEGER represent a integer value.
+	// INTEGER integer.
 	INTEGER = "integer"
-	// NUMBER represent a number value.
+	// NUMBER number.
 	NUMBER = "number"
-	// STRING represent a string value.
+	// STRING string.
 	STRING = "string"
-	// FUNC represent a function value.
+	// FUNC func.
 	FUNC = "func"
-	// ANY represent a any value.
+	// ANY any
 	ANY = "any"
-	// NIL represent a empty value.
+	// NIL nil
 	NIL = "nil"
 )
 
@@ -104,8 +104,7 @@ func IsGolangPrimitiveType(typeName string) bool {
 		"float32",
 		"float64",
 		"bool",
-		"string",
-		"any":
+		"string":
 		return true
 	}
 
@@ -127,7 +126,10 @@ func TypeDocName(pkgName string, spec *ast.TypeSpec) string {
 	if spec != nil {
 		if spec.Comment != nil {
 			for _, comment := range spec.Comment.List {
-				texts := strings.Split(strings.TrimSpace(strings.TrimLeft(comment.Text, "/")), " ")
+				text := strings.TrimSpace(comment.Text)
+				text = strings.TrimLeft(text, "//")
+				text = strings.TrimSpace(text)
+				texts := strings.Split(text, " ")
 				if len(texts) > 1 && strings.ToLower(texts[0]) == "@name" {
 					return texts[1]
 				}

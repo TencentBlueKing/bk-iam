@@ -19,7 +19,7 @@ github.com/TencentBlueKing/iam-go-sdk/expression/eval
 # github.com/adjust/rmq/v4 v4.0.5
 ## explicit; go 1.13
 github.com/adjust/rmq/v4
-# github.com/agiledragon/gomonkey/v2 v2.8.0
+# github.com/agiledragon/gomonkey/v2 v2.10.1
 ## explicit; go 1.14
 github.com/agiledragon/gomonkey/v2
 github.com/agiledragon/gomonkey/v2/creflect
@@ -296,11 +296,11 @@ github.com/subosito/gotenv
 # github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 ## explicit; go 1.15
 github.com/swaggo/files
-# github.com/swaggo/gin-swagger v1.4.2
-## explicit; go 1.15
+# github.com/swaggo/gin-swagger v1.3.3
+## explicit; go 1.13
 github.com/swaggo/gin-swagger
-# github.com/swaggo/swag v1.8.1
-## explicit; go 1.18
+# github.com/swaggo/swag v1.7.4
+## explicit; go 1.13
 github.com/swaggo/swag
 # github.com/ugorji/go/codec v1.2.7
 ## explicit; go 1.11
