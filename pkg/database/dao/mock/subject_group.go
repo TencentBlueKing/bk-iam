@@ -241,21 +241,6 @@ func (mr *MockSubjectGroupManagerMockRecorder) GetSubjectSystemGroupCountBeforeE
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
 }
 
-// HasRelation mocks base method.
-func (m *MockSubjectGroupManager) HasRelation(subjectPK, groupPK int64) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasRelation", subjectPK, groupPK)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasRelation indicates an expected call of HasRelation.
-func (mr *MockSubjectGroupManagerMockRecorder) HasRelation(subjectPK, groupPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRelation", reflect.TypeOf((*MockSubjectGroupManager)(nil).HasRelation), subjectPK, groupPK)
-}
-
 // ListGroupMember mocks base method.
 func (m *MockSubjectGroupManager) ListGroupMember(groupPK int64) ([]dao.SubjectRelation, error) {
 	m.ctrl.T.Helper()

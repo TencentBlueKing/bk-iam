@@ -84,7 +84,7 @@ var _ = Describe("Handler", func() {
 				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(0), errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
@@ -94,7 +94,7 @@ var _ = Describe("Handler", func() {
 			}
 			err := handler.alterSubjectActionGroupResource(1, 3, []int64{2})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
+			assert.Contains(GinkgoT(), err.Error(), "GetMaxExpiredAtBySubjectGroup")
 		})
 
 		It("cacheimpls.GetGroupActionAuthorizedResource error", func() {
@@ -112,7 +112,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(0), service.ErrGroupMemberNotFound)
 
 			handler := &groupAlterMessageHandler{
@@ -142,7 +142,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -193,7 +193,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -253,7 +253,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().

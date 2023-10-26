@@ -1076,14 +1076,9 @@ var _ = Describe("GroupController", func() {
 			assert.Contains(GinkgoT(), err.Error(), "convertToSubjectTemplateGroups")
 		})
 
-		It("HasRelationExceptTemplate fail", func() {
+		It("GetMaxExpiredAtBySubjectGroup fail", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				TemplateID: 1,
-				GroupPK:    2,
-				ExpiredAt:  3,
-			}).Return(false, errors.New("err"))
+			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(int64(0), errors.New("err"))
 
 			manager := &groupController{
 				service: mockService,
@@ -1099,17 +1094,12 @@ var _ = Describe("GroupController", func() {
 				},
 			})
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "HasRelationExceptTemplate")
+			assert.Contains(GinkgoT(), err.Error(), "GetMaxExpiredAtBySubjectGroup")
 		})
 
 		It("BulkDeleteSubjectTemplateGroupWithTx fail", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				TemplateID: 1,
-				GroupPK:    2,
-				ExpiredAt:  3,
-			}).Return(true, nil)
+			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(time.Now().Unix()+10, nil)
 			mockService.EXPECT().
 				BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).
 				Return(errors.New("err"))
@@ -1142,12 +1132,7 @@ var _ = Describe("GroupController", func() {
 
 		It("ok", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				TemplateID: 1,
-				GroupPK:    2,
-				ExpiredAt:  3,
-			}).Return(true, nil)
+			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(time.Now().Unix()+10, nil)
 			mockService.EXPECT().BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).Return(nil)
 
 			db, mock := database.NewMockSqlxDB()

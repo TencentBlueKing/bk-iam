@@ -45,7 +45,6 @@ type GroupService interface {
 	) ([]types.SubjectGroup, error)
 	ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
-	HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -81,7 +80,7 @@ type GroupService interface {
 	ListEffectThinSubjectGroupsBySubjectPKs(subjectPKs []int64) ([]types.ThinSubjectGroup, error)
 
 	// task
-	GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error)
+	GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error)
 }
 
 type groupService struct {
@@ -435,21 +434,21 @@ func (l *groupService) BulkDeleteGroupMembers(
 	subjectPKs = append(subjectPKs, userPKs...)
 	subjectPKs = append(subjectPKs, departmentPKs...)
 
+	now := time.Now().Unix()
 	// 需要判断还有没有其他的数据再来删除
 	for _, subjectPK := range subjectPKs {
-		exist, err := l.subjectTemplateGroupManager.HasRelationExceptTemplate(subjectPK, groupPK, 0)
-		if err != nil {
+		// 如果还有其它的未过期的, 不需要删除
+		expiredAt, err := l.subjectTemplateGroupManager.GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK)
+		if err != nil && err != ErrGroupMemberNotFound {
 			return nil, errorWrapf(
 				err,
-				"subjectTemplateGroupManager.HasRelationExceptTemplate subjectPK=`%d`, groupPK=`%d`, templateID=`%d` fail",
+				"getMaxExpiredAtBySubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
 				subjectPK,
 				groupPK,
-				0,
 			)
 		}
 
-		// 在存在subject template group的情况下，不需要删除
-		if exist {
+		if err == nil && expiredAt > now {
 			continue
 		}
 
@@ -617,41 +616,6 @@ func (l *groupService) UpdateSubjectGroupExpiredAtWithTx(
 	return nil
 }
 
-func (l *groupService) HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error) {
-	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "HasRelationExceptTemplate")
-
-	exist, err := l.manager.HasRelation(relation.SubjectPK, relation.GroupPK)
-	if err != nil {
-		return false, errorWrapf(
-			err,
-			"manager.HasRelation subjectPK=`%d`, groupPK=`%d` fail",
-			relation.SubjectPK,
-			relation.GroupPK,
-		)
-	}
-
-	if exist {
-		return true, nil
-	}
-
-	exist, err = l.subjectTemplateGroupManager.HasRelationExceptTemplate(
-		relation.SubjectPK,
-		relation.GroupPK,
-		relation.TemplateID,
-	)
-	if err != nil {
-		return false, errorWrapf(
-			err,
-			"subjectTemplateGroupManager.HasRelationExceptTemplate subjectPK=`%d`, groupPK=`%d`, templateID=`%d` fail",
-			relation.SubjectPK,
-			relation.GroupPK,
-			relation.TemplateID,
-		)
-	}
-
-	return exist, nil
-}
-
 // BulkDeleteSubjectTemplateGroupWithTx ...
 func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 	tx *sqlx.Tx,
@@ -792,22 +756,41 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 	return nil
 }
 
-// GetExpiredAtBySubjectGroup ...
-func (l *groupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (expiredAt int64, err error) {
-	// 同时查询 subject relation 与 subject template group
-	expiredAt, err = l.manager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
-	if errors.Is(err, sql.ErrNoRows) {
-		expiredAt, err = l.subjectTemplateGroupManager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
-	}
-
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		err = ErrGroupMemberNotFound
-	case err != nil:
-		err = errorx.Wrapf(
-			err, GroupSVC, "manager.GetExpiredAtBySubjectGroup", "subjectPK=`%d`, groupPK=`%d`", subjectPK, groupPK,
+// GetMaxExpiredAtBySubjectGroup ...
+func (l *groupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+	// 同时查询 subject relation 与 subject template group, 取最大的过期时间
+	subjectRelationExpiredAt, err1 := l.manager.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
+	if err1 != nil && !errors.Is(err1, sql.ErrNoRows) {
+		err1 = errorx.Wrapf(
+			err1, GroupSVC, "manager.GetExpiredAtBySubjectGroup", "subjectPK=`%d`, groupPK=`%d`", subjectPK, groupPK,
 		)
+		return 0, err1
 	}
 
-	return
+	subjectTemplateGroupExpiredAt, err2 := l.subjectTemplateGroupManager.GetMaxExpiredAtBySubjectGroup(
+		subjectPK,
+		groupPK,
+	)
+	if err2 != nil && !errors.Is(err2, sql.ErrNoRows) {
+		err2 = errorx.Wrapf(
+			err2,
+			GroupSVC,
+			"subjectTemplateGroupManager.GetMaxExpiredAtBySubjectGroup",
+			"subjectPK=`%d`, groupPK=`%d`",
+			subjectPK,
+			groupPK,
+		)
+		return 0, err2
+	}
+
+	if errors.Is(err1, sql.ErrNoRows) && errors.Is(err2, sql.ErrNoRows) {
+		return 0, ErrGroupMemberNotFound
+	}
+
+	// 取最大的过期时间
+	if subjectRelationExpiredAt > subjectTemplateGroupExpiredAt {
+		return subjectRelationExpiredAt, nil
+	}
+
+	return subjectTemplateGroupExpiredAt, nil
 }

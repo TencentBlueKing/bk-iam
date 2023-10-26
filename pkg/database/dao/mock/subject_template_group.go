@@ -77,32 +77,17 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkUpdateExpiredAtWithTx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).BulkUpdateExpiredAtWithTx), tx, relations)
 }
 
-// GetExpiredAtBySubjectGroup mocks base method.
-func (m *MockSubjectTemplateGroupManager) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+// GetMaxExpiredAtBySubjectGroup mocks base method.
+func (m *MockSubjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetExpiredAtBySubjectGroup", subjectPK, groupPK)
+	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetExpiredAtBySubjectGroup indicates an expected call of GetExpiredAtBySubjectGroup.
-func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
+// GetMaxExpiredAtBySubjectGroup indicates an expected call of GetMaxExpiredAtBySubjectGroup.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetExpiredAtBySubjectGroup), subjectPK, groupPK)
-}
-
-// HasRelationExceptTemplate mocks base method.
-func (m *MockSubjectTemplateGroupManager) HasRelationExceptTemplate(subjectPK, groupPK, templateID int64) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasRelationExceptTemplate", subjectPK, groupPK, templateID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasRelationExceptTemplate indicates an expected call of HasRelationExceptTemplate.
-func (mr *MockSubjectTemplateGroupManagerMockRecorder) HasRelationExceptTemplate(subjectPK, groupPK, templateID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRelationExceptTemplate", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).HasRelationExceptTemplate), subjectPK, groupPK, templateID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK)
 }

@@ -147,10 +147,10 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 		}
 
 		// 查询subject group关系过期时间
-		expiredAt, err := h.groupService.GetExpiredAtBySubjectGroup(subjectPK, groupPK)
+		expiredAt, err := h.groupService.GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK)
 		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
 			return errorWrapf(err,
-				"groupService.GetExpiredAtBySubjectGroup fail, subjectPK=`%d`, groupPK=`%d`",
+				"groupService.GetMaxExpiredAtBySubjectGroup fail, subjectPK=`%d`, groupPK=`%d`",
 				subjectPK, groupPK,
 			)
 		}

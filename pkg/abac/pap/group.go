@@ -582,18 +582,23 @@ func (c *groupController) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups [
 		return errorWrapf(err, "convertToSubjectTemplateGroups subjectTemplateGroups=`%+v` fail", subjectTemplateGroups)
 	}
 
-	// 查询是否有其它的关系
+	now := time.Now().Unix()
 	for i := range relations {
 		relation := &relations[i]
 
-		exist, err := c.service.HasRelationExceptTemplate(*relation)
-		if err != nil {
-			return errorWrapf(err, "service.HasRelationExceptTemplate relation=`%+v` fail", relation)
+		expiredAt, err := c.service.GetMaxExpiredAtBySubjectGroup(relation.SubjectPK, relation.GroupPK)
+		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
+			return errorWrapf(
+				err, "GetMaxExpiredAtBySubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+			)
 		}
 
-		if !exist {
-			relation.NeedUpdate = true
+		// 如果有其它的关系, 并且过期时间大于当前时间, 不需要删除
+		if err == nil && expiredAt > now {
+			continue
 		}
+
+		relation.NeedUpdate = true
 	}
 
 	// 如果没有其他关系了需要删除subject system group数据

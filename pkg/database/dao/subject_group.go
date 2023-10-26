@@ -64,7 +64,6 @@ type SubjectGroupManager interface {
 		limit, offset int64,
 	) (members []ThinSubjectRelation, err error)
 	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectRelation, error)
-	HasRelation(subjectPK, groupPK int64) (bool, error)
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
@@ -106,24 +105,6 @@ func (m *subjectGroupManager) GetSubjectGroupCount(subjectPK int64) (int64, erro
 
 	err := database.SqlxGet(m.DB, &count, query, subjectPK)
 	return count, err
-}
-
-func (m *subjectGroupManager) HasRelation(subjectPK, groupPK int64) (bool, error) {
-	var pk int64
-	query := `SELECT
-		pk
-		FROM subject_relation
-		WHERE subject_pk = ?
-		AND parent_pk = ?
-		LIMIT 1`
-	err := database.SqlxGet(m.DB, &pk, query, subjectPK, groupPK)
-	if err == sql.ErrNoRows {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 // GetSubjectSystemGroupCount ...

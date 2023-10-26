@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/golang/mock/gomock"
@@ -321,9 +322,9 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				HasRelationExceptTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+				GetMaxExpiredAtBySubjectGroup(gomock.Any(), gomock.Any()).
 				Return(
-					false, nil,
+					time.Now().Unix()+10, nil,
 				).
 				AnyTimes()
 
@@ -457,7 +458,7 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 
-	Describe("GetExpiredAtBySubjectGroup", func() {
+	Describe("GetMaxExpiredAtBySubjectGroup", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {
 			ctl = gomock.NewController(GinkgoT())
@@ -478,7 +479,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
@@ -494,7 +495,7 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(
 					int64(0), sql.ErrNoRows,
 				)
@@ -504,7 +505,7 @@ var _ = Describe("GroupService", func() {
 				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.Error(GinkgoT(), err)
 			assert.True(GinkgoT(), errors.Is(err, ErrGroupMemberNotFound))
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
@@ -518,11 +519,19 @@ var _ = Describe("GroupService", func() {
 					int64(10), nil,
 				)
 
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				Return(
+					int64(0), sql.ErrNoRows,
+				)
+
 			manager := &groupService{
-				manager: mockSubjectService,
+				manager:                     mockSubjectService,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(10), expiredAt)
 		})
@@ -532,12 +541,12 @@ var _ = Describe("GroupService", func() {
 			mockSubjectService.EXPECT().
 				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(
-					int64(0), sql.ErrNoRows,
+					int64(1), nil,
 				)
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
 				Return(
 					int64(10), nil,
 				)
@@ -547,117 +556,9 @@ var _ = Describe("GroupService", func() {
 				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(10), expiredAt)
-		})
-	})
-
-	Describe("HasRelationExceptTemplate", func() {
-		var ctl *gomock.Controller
-		BeforeEach(func() {
-			ctl = gomock.NewController(GinkgoT())
-		})
-		AfterEach(func() {
-			ctl.Finish()
-		})
-
-		It("subject relation ok", func() {
-			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().
-				HasRelation(int64(1), int64(2)).
-				Return(
-					true, nil,
-				)
-
-			manager := &groupService{
-				manager: mockSubjectService,
-			}
-
-			exist, err := manager.HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				GroupPK:    2,
-				TemplateID: 3,
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.True(GinkgoT(), true, exist)
-		})
-
-		It("subject template group ok", func() {
-			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().
-				HasRelation(int64(1), int64(2)).
-				Return(
-					false, nil,
-				)
-
-			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
-			mockSubjectTemplateGroupManager.EXPECT().
-				HasRelationExceptTemplate(int64(1), int64(2), int64(3)).
-				Return(
-					true, nil,
-				)
-
-			manager := &groupService{
-				manager:                     mockSubjectService,
-				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
-			}
-
-			exist, err := manager.HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				GroupPK:    2,
-				TemplateID: 3,
-			})
-			assert.NoError(GinkgoT(), err)
-			assert.True(GinkgoT(), true, exist)
-		})
-
-		It("subject relation error", func() {
-			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().
-				HasRelation(int64(1), int64(2)).
-				Return(
-					false, errors.New("error"),
-				)
-
-			manager := &groupService{
-				manager: mockSubjectService,
-			}
-
-			_, err := manager.HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				GroupPK:    2,
-				TemplateID: 3,
-			})
-			assert.Error(GinkgoT(), err)
-		})
-
-		It("subject template group error", func() {
-			mockSubjectService := mock.NewMockSubjectGroupManager(ctl)
-			mockSubjectService.EXPECT().
-				HasRelation(int64(1), int64(2)).
-				Return(
-					false, nil,
-				)
-
-			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
-			mockSubjectTemplateGroupManager.EXPECT().
-				HasRelationExceptTemplate(int64(1), int64(2), int64(3)).
-				Return(
-					false, errors.New("error"),
-				)
-
-			manager := &groupService{
-				manager:                     mockSubjectService,
-				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
-			}
-
-			_, err := manager.HasRelationExceptTemplate(types.SubjectTemplateGroup{
-				SubjectPK:  1,
-				GroupPK:    2,
-				TemplateID: 3,
-			})
-			assert.Error(GinkgoT(), err)
 		})
 	})
 

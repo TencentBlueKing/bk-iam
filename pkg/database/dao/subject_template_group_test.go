@@ -90,32 +90,14 @@ func Test_subjectTemplateGroupManager_BulkDeleteWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectTemplateGroupManager_HasRelationExceptTemplate(t *testing.T) {
-	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT pk FROM subject_template_group WHERE subject_pk =`
-		mockRows := sqlmock.NewRows(
-			[]string{
-				"pk",
-			},
-		).AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), int64(3)).WillReturnRows(mockRows)
-
-		manager := &subjectTemplateGroupManager{DB: db}
-		exist, err := manager.HasRelationExceptTemplate(int64(1), int64(2), int64(3))
-
-		assert.NoError(t, err, "query from db fail.")
-		assert.True(t, exist)
-	})
-}
-
 func Test_subjectTemplateGroupManager_GetExpiredAtBySubjectGroup(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
-		mockQuery := `^SELECT expired_at FROM subject_template_group WHERE subject_pk =`
+		mockQuery := `^SELECT (.*) FROM subject_template_group WHERE subject_pk =`
 		mockRows := sqlmock.NewRows([]string{"policy_expired_at"}).AddRow(int64(1))
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
 
 		manager := &subjectTemplateGroupManager{DB: db}
-		expiredAt, err := manager.GetExpiredAtBySubjectGroup(int64(1), int64(10))
+		expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(10))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, expiredAt, int64(1))

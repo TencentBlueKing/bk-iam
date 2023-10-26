@@ -150,21 +150,6 @@ func (mr *MockGroupServiceMockRecorder) FilterGroupPKsHasMemberBeforeExpiredAt(g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterGroupPKsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).FilterGroupPKsHasMemberBeforeExpiredAt), groupPKs, expiredAt)
 }
 
-// GetExpiredAtBySubjectGroup mocks base method.
-func (m *MockGroupService) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetExpiredAtBySubjectGroup", subjectPK, groupPK)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetExpiredAtBySubjectGroup indicates an expected call of GetExpiredAtBySubjectGroup.
-func (mr *MockGroupServiceMockRecorder) GetExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpiredAtBySubjectGroup", reflect.TypeOf((*MockGroupService)(nil).GetExpiredAtBySubjectGroup), subjectPK, groupPK)
-}
-
 // GetGroupMemberCount mocks base method.
 func (m *MockGroupService) GetGroupMemberCount(groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -225,6 +210,21 @@ func (mr *MockGroupServiceMockRecorder) GetGroupSubjectCountBeforeExpiredAt(expi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupSubjectCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetGroupSubjectCountBeforeExpiredAt), expiredAt)
 }
 
+// GetMaxExpiredAtBySubjectGroup mocks base method.
+func (m *MockGroupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaxExpiredAtBySubjectGroup indicates an expected call of GetMaxExpiredAtBySubjectGroup.
+func (mr *MockGroupServiceMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockGroupService)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK)
+}
+
 // GetSubjectGroupCountBeforeExpiredAt mocks base method.
 func (m *MockGroupService) GetSubjectGroupCountBeforeExpiredAt(subjectPK, expiredAt int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -253,21 +253,6 @@ func (m *MockGroupService) GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK i
 func (mr *MockGroupServiceMockRecorder) GetSubjectSystemGroupCountBeforeExpiredAt(subjectPK, systemID, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
-}
-
-// HasRelationExceptTemplate mocks base method.
-func (m *MockGroupService) HasRelationExceptTemplate(relation types.SubjectTemplateGroup) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasRelationExceptTemplate", relation)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasRelationExceptTemplate indicates an expected call of HasRelationExceptTemplate.
-func (mr *MockGroupServiceMockRecorder) HasRelationExceptTemplate(relation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRelationExceptTemplate", reflect.TypeOf((*MockGroupService)(nil).HasRelationExceptTemplate), relation)
 }
 
 // ListEffectSubjectGroupsBySubjectPKGroupPKs mocks base method.
