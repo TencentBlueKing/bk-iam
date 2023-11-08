@@ -112,7 +112,9 @@ func Register(r *gin.RouterGroup) {
 		// 创建subject-template-group
 		r.POST("/subject-template-groups", handler.BatchCreateSubjectTemplateGroup)
 		// 删除subject-template-group
-		r.DELETE("/subject-template-groups", handler.BatchDeleteSubjectTemplateGroup)
+		r.DELETE("/subject-template-groups", handler.BatchDeleteSubjectTemplateGroup) // NEED FIX
+		// 批量subject-template-group成员过期时间
+		r.PUT("/subject-template-groups/expired_at", handler.BatchUpdateSubjectTemplateGroupExpiredAt)
 	}
 
 	// Resource: subject-departments

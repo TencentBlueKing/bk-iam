@@ -63,8 +63,22 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkDeleteWithTx(tx, rela
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteWithTx", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).BulkDeleteWithTx), tx, relations)
 }
 
+// BulkUpdateExpiredAtByRelationWithTx mocks base method.
+func (m *MockSubjectTemplateGroupManager) BulkUpdateExpiredAtByRelationWithTx(tx *sqlx.Tx, relations []dao.SubjectRelation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateExpiredAtByRelationWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateExpiredAtByRelationWithTx indicates an expected call of BulkUpdateExpiredAtByRelationWithTx.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkUpdateExpiredAtByRelationWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateExpiredAtByRelationWithTx", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).BulkUpdateExpiredAtByRelationWithTx), tx, relations)
+}
+
 // BulkUpdateExpiredAtWithTx mocks base method.
-func (m *MockSubjectTemplateGroupManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelation) error {
+func (m *MockSubjectTemplateGroupManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectTemplateGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkUpdateExpiredAtWithTx", tx, relations)
 	ret0, _ := ret[0].(error)
@@ -78,18 +92,18 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkUpdateExpiredAtWithTx
 }
 
 // GetMaxExpiredAtBySubjectGroup mocks base method.
-func (m *MockSubjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+func (m *MockSubjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK, excludeTemplateID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK)
+	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK, excludeTemplateID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMaxExpiredAtBySubjectGroup indicates an expected call of GetMaxExpiredAtBySubjectGroup.
-func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK, excludeTemplateID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK, excludeTemplateID)
 }
 
 // GetTemplateGroupMemberCount mocks base method.
@@ -105,6 +119,21 @@ func (m *MockSubjectTemplateGroupManager) GetTemplateGroupMemberCount(groupPK, t
 func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetTemplateGroupMemberCount(groupPK, templateID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplateGroupMemberCount", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetTemplateGroupMemberCount), groupPK, templateID)
+}
+
+// ListGroupDistinctSubjectPK mocks base method.
+func (m *MockSubjectTemplateGroupManager) ListGroupDistinctSubjectPK(groupPK int64) ([]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGroupDistinctSubjectPK", groupPK)
+	ret0, _ := ret[0].([]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGroupDistinctSubjectPK indicates an expected call of ListGroupDistinctSubjectPK.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListGroupDistinctSubjectPK(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupDistinctSubjectPK", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListGroupDistinctSubjectPK), groupPK)
 }
 
 // ListPagingTemplateGroupMember mocks base method.

@@ -322,7 +322,7 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(gomock.Any(), gomock.Any()).
+				GetMaxExpiredAtBySubjectGroup(gomock.Any(), gomock.Any(), int64(0)).
 				Return(
 					time.Now().Unix()+10, nil,
 				).
@@ -491,7 +491,7 @@ var _ = Describe("GroupService", func() {
 				manager: mockSubjectService,
 			}
 
-			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0))
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "GetExpiredAtBySubjectGroup")
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
@@ -507,7 +507,7 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(
 					int64(0), sql.ErrNoRows,
 				)
@@ -517,7 +517,7 @@ var _ = Describe("GroupService", func() {
 				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0))
 			assert.Error(GinkgoT(), err)
 			assert.True(GinkgoT(), errors.Is(err, ErrGroupMemberNotFound))
 			assert.Equal(GinkgoT(), int64(0), expiredAt)
@@ -533,7 +533,7 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(
 					int64(0), sql.ErrNoRows,
 				)
@@ -543,7 +543,7 @@ var _ = Describe("GroupService", func() {
 				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(10), expiredAt)
 		})
@@ -558,7 +558,7 @@ var _ = Describe("GroupService", func() {
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
 			mockSubjectTemplateGroupManager.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(
 					int64(10), nil,
 				)
@@ -568,7 +568,7 @@ var _ = Describe("GroupService", func() {
 				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
-			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2))
+			expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0))
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), int64(10), expiredAt)
 		})
@@ -696,15 +696,18 @@ var _ = Describe("GroupService", func() {
 			).AnyTimes()
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
-			mockSubjectTemplateGroupManager.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelation{
-				{
-					SubjectPK: 1,
-					GroupPK:   1,
-					ExpiredAt: 2,
-				},
-			}).Return(
-				errors.New("error"),
-			).AnyTimes()
+			mockSubjectTemplateGroupManager.EXPECT().
+				BulkUpdateExpiredAtByRelationWithTx(gomock.Any(), []dao.SubjectRelation{
+					{
+						SubjectPK: 1,
+						GroupPK:   1,
+						ExpiredAt: 2,
+					},
+				}).
+				Return(
+					errors.New("error"),
+				).
+				AnyTimes()
 
 			manager := &groupService{
 				manager:                     mockSubjectService,
@@ -719,7 +722,7 @@ var _ = Describe("GroupService", func() {
 				},
 			}, true)
 			assert.Error(GinkgoT(), err)
-			assert.Contains(GinkgoT(), err.Error(), "subjectTemplateGroupManager.BulkUpdateExpiredAtWithTx")
+			assert.Contains(GinkgoT(), err.Error(), "subjectTemplateGroupManager.BulkUpdateExpiredAtByRelationWithTx")
 		})
 
 		It("ok", func() {
@@ -735,15 +738,18 @@ var _ = Describe("GroupService", func() {
 			).AnyTimes()
 
 			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
-			mockSubjectTemplateGroupManager.EXPECT().BulkUpdateExpiredAtWithTx(gomock.Any(), []dao.SubjectRelation{
-				{
-					SubjectPK: 1,
-					GroupPK:   1,
-					ExpiredAt: 2,
-				},
-			}).Return(
-				nil,
-			).AnyTimes()
+			mockSubjectTemplateGroupManager.EXPECT().
+				BulkUpdateExpiredAtByRelationWithTx(gomock.Any(), []dao.SubjectRelation{
+					{
+						SubjectPK: 1,
+						GroupPK:   1,
+						ExpiredAt: 2,
+					},
+				}).
+				Return(
+					nil,
+				).
+				AnyTimes()
 
 			manager := &groupService{
 				manager:                     mockSubjectService,

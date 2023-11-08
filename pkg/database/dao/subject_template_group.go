@@ -38,15 +38,14 @@ type SubjectTemplateGroupManager interface {
 		groupPK, templateID int64,
 		limit, offset int64,
 	) (members []SubjectTemplateGroup, err error)
-	ListRelationBySubjectPKGroupPKs(
-		subjectPK int64,
-		groupPKs []int64,
-	) ([]SubjectTemplateGroup, error)
+	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectTemplateGroup, error)
+	ListGroupDistinctSubjectPK(groupPK int64) (subjectPKs []int64, err error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
-	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
+	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
+	BulkUpdateExpiredAtByRelationWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
-	GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error)
+	GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, excludeTemplateID int64) (int64, error)
 }
 
 type subjectTemplateGroupManager struct {
@@ -79,13 +78,26 @@ func (m *subjectTemplateGroupManager) BulkCreateWithTx(tx *sqlx.Tx, relations []
 }
 
 // BulkUpdateExpiredAtWithTx ...
-func (m *subjectTemplateGroupManager) BulkUpdateExpiredAtWithTx(
+func (m *subjectTemplateGroupManager) BulkUpdateExpiredAtByRelationWithTx(
 	tx *sqlx.Tx,
 	relations []SubjectRelation,
 ) error {
 	sql := `UPDATE subject_template_group
 		 SET expired_at = :policy_expired_at
 		 WHERE subject_pk = :subject_pk AND group_pk = :parent_pk`
+	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
+}
+
+// BulkUpdateExpiredAtWithTx ...
+func (m *subjectTemplateGroupManager) BulkUpdateExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []SubjectTemplateGroup,
+) error {
+	sql := `UPDATE subject_template_group
+		 SET expired_at = :expired_at
+		 WHERE subject_pk = :subject_pk
+		 AND group_pk = :group_pk
+		 AND template_id = :template_id`
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
@@ -102,14 +114,18 @@ func (m *subjectTemplateGroupManager) BulkDeleteWithTx(tx *sqlx.Tx, relations []
 	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
-func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(
+	subjectPK, groupPK int64,
+	excludeTemplateID int64,
+) (int64, error) {
 	var expiredAt int64
 	query := `SELECT
 		 MAX(expired_at)
 		 FROM subject_template_group
 		 WHERE subject_pk = ?
-		 AND group_pk = ?`
-	err := database.SqlxGet(m.DB, &expiredAt, query, subjectPK, groupPK)
+		 AND group_pk = ?
+		 AND template_id != ?`
+	err := database.SqlxGet(m.DB, &expiredAt, query, subjectPK, groupPK, excludeTemplateID)
 	return expiredAt, err
 }
 
@@ -171,4 +187,17 @@ func (m *subjectTemplateGroupManager) ListRelationBySubjectPKGroupPKs(
 	}
 
 	return relations, err
+}
+
+// ListGroupDistinctSubjectPK ...
+func (m *subjectTemplateGroupManager) ListGroupDistinctSubjectPK(groupPK int64) (subjectPKs []int64, err error) {
+	query := `SELECT
+		 DISTINCT(subject_pk)
+		 FROM subject_template_group
+		 WHERE group_pk = ?`
+	err = database.SqlxSelect(m.DB, &subjectPKs, query, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		return subjectPKs, nil
+	}
+	return
 }

@@ -1078,7 +1078,9 @@ var _ = Describe("GroupController", func() {
 
 		It("GetMaxExpiredAtBySubjectGroup fail", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(int64(0), errors.New("err"))
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(int64(0), errors.New("err"))
 
 			manager := &groupController{
 				service: mockService,
@@ -1099,7 +1101,9 @@ var _ = Describe("GroupController", func() {
 
 		It("BulkDeleteSubjectTemplateGroupWithTx fail", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(time.Now().Unix()+10, nil)
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(time.Now().Unix()+10, nil)
 			mockService.EXPECT().
 				BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).
 				Return(errors.New("err"))
@@ -1132,7 +1136,9 @@ var _ = Describe("GroupController", func() {
 
 		It("ok", func() {
 			mockService := mock.NewMockGroupService(ctl)
-			mockService.EXPECT().GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).Return(time.Now().Unix()+10, nil)
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(time.Now().Unix()+10, nil)
 			mockService.EXPECT().BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).Return(nil)
 
 			db, mock := database.NewMockSqlxDB()

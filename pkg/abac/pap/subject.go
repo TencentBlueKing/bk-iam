@@ -97,6 +97,8 @@ func (c *subjectController) BulkUpdateName(subjects []Subject) error {
 func (c *subjectController) BulkDeleteGroup(subjects []Subject) error {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectCTL, "BulkDeleteGroup")
 
+	// NOTE 用户组关联的subject template group由SaaS删除
+
 	svcSubjects := convertToServiceSubjects(subjects)
 
 	pks, err := c.service.ListPKsBySubjects(svcSubjects)

@@ -346,3 +346,17 @@ func (mr *MockGroupControllerMockRecorder) UpdateGroupMembersExpiredAt(_type, id
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMembersExpiredAt", reflect.TypeOf((*MockGroupController)(nil).UpdateGroupMembersExpiredAt), _type, id, members)
 }
+
+// UpdateSubjectTemplateGroupExpiredAt mocks base method.
+func (m *MockGroupController) UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups []pap.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSubjectTemplateGroupExpiredAt", subjectTemplateGroups)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSubjectTemplateGroupExpiredAt indicates an expected call of UpdateSubjectTemplateGroupExpiredAt.
+func (mr *MockGroupControllerMockRecorder) UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectTemplateGroupExpiredAt", reflect.TypeOf((*MockGroupController)(nil).UpdateSubjectTemplateGroupExpiredAt), subjectTemplateGroups)
+}

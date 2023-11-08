@@ -135,6 +135,20 @@ func (mr *MockGroupServiceMockRecorder) BulkDeleteSubjectTemplateGroupWithTx(tx,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteSubjectTemplateGroupWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkDeleteSubjectTemplateGroupWithTx), tx, relations)
 }
 
+// BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx mocks base method.
+func (m *MockGroupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx indicates an expected call of BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx.
+func (mr *MockGroupServiceMockRecorder) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx", reflect.TypeOf((*MockGroupService)(nil).BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx), tx, relations)
+}
+
 // FilterGroupPKsHasMemberBeforeExpiredAt mocks base method.
 func (m *MockGroupService) FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
@@ -211,18 +225,18 @@ func (mr *MockGroupServiceMockRecorder) GetGroupSubjectCountBeforeExpiredAt(expi
 }
 
 // GetMaxExpiredAtBySubjectGroup mocks base method.
-func (m *MockGroupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
+func (m *MockGroupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK, excludeTemplateID int64) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK)
+	ret := m.ctrl.Call(m, "GetMaxExpiredAtBySubjectGroup", subjectPK, groupPK, excludeTemplateID)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMaxExpiredAtBySubjectGroup indicates an expected call of GetMaxExpiredAtBySubjectGroup.
-func (mr *MockGroupServiceMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK interface{}) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK, excludeTemplateID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockGroupService)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockGroupService)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK, excludeTemplateID)
 }
 
 // GetSubjectGroupCountBeforeExpiredAt mocks base method.
@@ -476,4 +490,18 @@ func (m *MockGroupService) UpdateSubjectGroupExpiredAtWithTx(tx *sqlx.Tx, relati
 func (mr *MockGroupServiceMockRecorder) UpdateSubjectGroupExpiredAtWithTx(tx, relations, updateSubjectRelation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectGroupExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateSubjectGroupExpiredAtWithTx), tx, relations, updateSubjectRelation)
+}
+
+// UpdateSubjectTemplateGroupExpiredAtWithTx mocks base method.
+func (m *MockGroupService) UpdateSubjectTemplateGroupExpiredAtWithTx(tx *sqlx.Tx, relations []types.SubjectTemplateGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSubjectTemplateGroupExpiredAtWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSubjectTemplateGroupExpiredAtWithTx indicates an expected call of UpdateSubjectTemplateGroupExpiredAtWithTx.
+func (mr *MockGroupServiceMockRecorder) UpdateSubjectTemplateGroupExpiredAtWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubjectTemplateGroupExpiredAtWithTx", reflect.TypeOf((*MockGroupService)(nil).UpdateSubjectTemplateGroupExpiredAtWithTx), tx, relations)
 }

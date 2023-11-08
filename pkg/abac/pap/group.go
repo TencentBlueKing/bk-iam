@@ -63,6 +63,7 @@ type GroupController interface {
 	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
 	BulkCreateSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error
 	BulkDeleteSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error
+	UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups []SubjectTemplateGroup) error
 
 	ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error)
 	ListRbacGroupByActionResource(systemID, actionID string, resource abacTypes.Resource) ([]Subject, error)
@@ -606,6 +607,89 @@ func (c *groupController) BulkCreateSubjectTemplateGroup(subjectTemplateGroups [
 	return nil
 }
 
+func (c *groupController) UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups []SubjectTemplateGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "BulkRenewSubjectTemplateGroup")
+
+	relations, err := c.convertToSubjectTemplateGroups(subjectTemplateGroups)
+	if err != nil {
+		return errorWrapf(err, "convertToSubjectTemplateGroups subjectTemplateGroups=`%+v` fail", subjectTemplateGroups)
+	}
+
+	subjectGroupHelper := newSubjectGroupHelper(c.service)
+
+	noAuthorizedRelations := make([]types.SubjectTemplateGroup, 0, len(relations))
+	for i := range relations {
+		relation := &relations[i]
+
+		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, relation.GroupPK)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"getSubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+				relation.SubjectPK,
+				relation.GroupPK,
+			)
+		}
+
+		// 1. 如果group未授权
+		if !authorized {
+			noAuthorizedRelations = append(noAuthorizedRelations, *relation)
+			continue
+		}
+
+		// 2. 如果已授权并且过期时间大于当前时间, 不需要更新
+		if subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
+			continue
+		}
+
+		// 3. 其余场景需要更新
+		relation.NeedUpdate = true
+	}
+
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return errorWrapf(err, "define tx error")
+	}
+
+	if len(noAuthorizedRelations) > 0 {
+		// 只更新subject template group的过期时间
+		err = c.service.UpdateSubjectTemplateGroupExpiredAtWithTx(tx, noAuthorizedRelations)
+		if err != nil {
+			return errorWrapf(
+				err, "service.UpdateSubjectTemplateGroupExpiredAtWithTx relations=`%+v` fail", noAuthorizedRelations,
+			)
+		}
+	}
+
+	// 更新subject system group
+	err = c.service.BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(tx, relations)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx relations=`%+v` fail",
+			relations,
+		)
+	}
+
+	// 更新除了subject system group之外的subject group
+	err = c.updateSubjectGroupExpiredAtWithTx(tx, relations, true)
+	if err != nil {
+		return errorWrapf(err, "updateSubjectGroupExpiredAtWithTx relations=`%+v` fail", relations)
+	}
+
+	// 提交事务
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx commit error")
+	}
+
+	// 清理subject system group 缓存
+	c.deleteSubjectTemplateGroupCache(relations)
+
+	return nil
+}
+
 func (*groupController) convertToSubjectTemplateGroups(
 	subjectTemplateGroups []SubjectTemplateGroup,
 ) ([]types.SubjectTemplateGroup, error) {
@@ -649,7 +733,11 @@ func (c *groupController) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups [
 	for i := range relations {
 		relation := &relations[i]
 
-		expiredAt, err := c.service.GetMaxExpiredAtBySubjectGroup(relation.SubjectPK, relation.GroupPK)
+		expiredAt, err := c.service.GetMaxExpiredAtBySubjectGroup(
+			relation.SubjectPK,
+			relation.GroupPK,
+			relation.TemplateID,
+		)
 		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
 			return errorWrapf(
 				err, "GetMaxExpiredAtBySubjectGroup subjectPK=`%d`, groupPK=`%d` fail",

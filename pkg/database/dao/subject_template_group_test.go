@@ -47,7 +47,7 @@ func Test_subjectTemplateGroupManager_BulkCreateWithTx(t *testing.T) {
 	})
 }
 
-func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
+func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtByRelationWithTx(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^UPDATE subject_template_group`
 		mock.ExpectBegin()
@@ -58,7 +58,7 @@ func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
 		tx, err := db.Beginx()
 		assert.NoError(t, err)
 		manager := &subjectTemplateGroupManager{DB: db}
-		err = manager.BulkUpdateExpiredAtWithTx(tx, []SubjectRelation{{
+		err = manager.BulkUpdateExpiredAtByRelationWithTx(tx, []SubjectRelation{{
 			SubjectPK: int64(2),
 			GroupPK:   int64(1),
 			ExpiredAt: int64(3),
@@ -94,10 +94,10 @@ func Test_subjectTemplateGroupManager_GetExpiredAtBySubjectGroup(t *testing.T) {
 	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
 		mockQuery := `^SELECT (.*) FROM subject_template_group WHERE subject_pk =`
 		mockRows := sqlmock.NewRows([]string{"policy_expired_at"}).AddRow(int64(1))
-		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10)).WillReturnRows(mockRows)
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(10), int64(0)).WillReturnRows(mockRows)
 
 		manager := &subjectTemplateGroupManager{DB: db}
-		expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(10))
+		expiredAt, err := manager.GetMaxExpiredAtBySubjectGroup(int64(1), int64(10), int64(0))
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Equal(t, expiredAt, int64(1))
@@ -164,5 +164,29 @@ func Test_subjectTemplateGroupManager_ListRelationBySubjectPKGroupPKs(t *testing
 
 		assert.NoError(t, err, "query from db fail.")
 		assert.Len(t, relations, 1)
+	})
+}
+
+func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^UPDATE subject_template_group`
+		mock.ExpectBegin()
+		mock.ExpectPrepare(mockQuery)
+		mock.ExpectExec(mockQuery).
+			WithArgs(int64(3), int64(2), int64(1), int64(1)).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		tx, err := db.Beginx()
+		assert.NoError(t, err)
+		manager := &subjectTemplateGroupManager{DB: db}
+		err = manager.BulkUpdateExpiredAtWithTx(tx, []SubjectTemplateGroup{{
+			SubjectPK:  int64(2),
+			GroupPK:    int64(1),
+			TemplateID: int64(1),
+			ExpiredAt:  int64(3),
+		}})
+
+		assert.NoError(t, err, "query from db fail.")
 	})
 }

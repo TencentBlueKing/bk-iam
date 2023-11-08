@@ -84,7 +84,7 @@ var _ = Describe("Handler", func() {
 				Return(types.SubjectActionGroupResource{}, sql.ErrNoRows)
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(int64(0), errors.New("error"))
 
 			handler := &groupAlterMessageHandler{
@@ -112,7 +112,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(int64(0), service.ErrGroupMemberNotFound)
 
 			handler := &groupAlterMessageHandler{
@@ -142,7 +142,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -193,7 +193,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().
@@ -253,7 +253,7 @@ var _ = Describe("Handler", func() {
 
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().
-				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2)).
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(int64(10), nil)
 
 			mockSubjectActionGroupResourceService.EXPECT().

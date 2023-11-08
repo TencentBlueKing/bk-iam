@@ -33,17 +33,7 @@ func BatchCreateSubjectTemplateGroup(c *gin.Context) {
 		return
 	}
 
-	// 数据转换, subject -> subjectPK, groupID -> groupPK
-	papSubjectTemplateGroups := make([]pap.SubjectTemplateGroup, 0, len(body))
-	for _, m := range body {
-		papSubjectTemplateGroups = append(papSubjectTemplateGroups, pap.SubjectTemplateGroup{
-			Type:       m.Type,
-			ID:         m.ID,
-			TemplateID: m.TemplateID,
-			GroupID:    m.GroupID,
-			ExpiredAt:  m.ExpiredAt,
-		})
-	}
+	papSubjectTemplateGroups := convertToPapSubjectTemplateGroup(body)
 
 	ctl := pap.NewGroupController()
 	err := ctl.BulkCreateSubjectTemplateGroup(papSubjectTemplateGroups)
@@ -74,17 +64,7 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 		return
 	}
 
-	// 数据转换, subject -> subjectPK, groupID -> groupPK
-	papSubjectTemplateGroups := make([]pap.SubjectTemplateGroup, 0, len(body))
-	for _, m := range body {
-		papSubjectTemplateGroups = append(papSubjectTemplateGroups, pap.SubjectTemplateGroup{
-			Type:       m.Type,
-			ID:         m.ID,
-			TemplateID: m.TemplateID,
-			GroupID:    m.GroupID,
-			ExpiredAt:  m.ExpiredAt,
-		})
-	}
+	papSubjectTemplateGroups := convertToPapSubjectTemplateGroup(body)
 
 	ctl := pap.NewGroupController()
 	err := ctl.BulkDeleteSubjectTemplateGroup(papSubjectTemplateGroups)
@@ -100,4 +80,50 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 	}
 
 	util.SuccessJSONResponse(c, "ok", nil)
+}
+
+// BatchUpdateSubjectTemplateGroupExpiredAt 批量更新subject-template-group过期时间
+func BatchUpdateSubjectTemplateGroupExpiredAt(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchUpdateSubjectTemplateGroupExpiredAt")
+
+	var body []subjectTemplateGroupSerializer
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	if ok, message := common.ValidateArray(body); !ok {
+		util.BadRequestErrorJSONResponse(c, message)
+		return
+	}
+
+	papSubjectTemplateGroups := convertToPapSubjectTemplateGroup(body)
+
+	ctl := pap.NewGroupController()
+	err := ctl.UpdateSubjectTemplateGroupExpiredAt(papSubjectTemplateGroups)
+	if err != nil {
+		err = errorWrapf(
+			err,
+			"ctl.UpdateSubjectTemplateGroupExpiredAt",
+			"subjectTemplateGroups=`%+v`",
+			papSubjectTemplateGroups,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", nil)
+}
+
+func convertToPapSubjectTemplateGroup(body []subjectTemplateGroupSerializer) []pap.SubjectTemplateGroup {
+	papSubjectTemplateGroups := make([]pap.SubjectTemplateGroup, 0, len(body))
+	for _, m := range body {
+		papSubjectTemplateGroups = append(papSubjectTemplateGroups, pap.SubjectTemplateGroup{
+			Type:       m.Type,
+			ID:         m.ID,
+			TemplateID: m.TemplateID,
+			GroupID:    m.GroupID,
+			ExpiredAt:  m.ExpiredAt,
+		})
+	}
+	return papSubjectTemplateGroups
 }

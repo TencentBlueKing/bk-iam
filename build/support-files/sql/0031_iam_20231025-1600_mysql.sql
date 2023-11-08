@@ -7,5 +7,6 @@ CREATE TABLE `bkiam`.`subject_template_group` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk`),
-  UNIQUE KEY `idx_uk_subject_template_group` (`subject_pk`,`group_pk`,`template_id`)
+  UNIQUE KEY `idx_uk_subject_template_group` (`subject_pk`,`group_pk`,`template_id`),
+  INDEX `idx_group_template_subject` (`group_pk`, `template_id`,`subject_pk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
