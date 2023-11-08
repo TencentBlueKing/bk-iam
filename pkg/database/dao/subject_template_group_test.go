@@ -134,3 +134,35 @@ func Test_subjectTemplateGroupManager_GetCount(t *testing.T) {
 		assert.Equal(t, cnt, int64(1))
 	})
 }
+
+func Test_subjectTemplateGroupManager_ListRelationBySubjectPKGroupPKs(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		pk,
+		subject_pk,
+		template_id,
+		group_pk,
+		expired_at,
+		created_at
+		FROM subject_template_group
+		WHERE subject_pk = (.*)
+		AND group_pk in (.*)`
+		mockRows := sqlmock.NewRows(
+			[]string{
+				"subject_pk",
+				"group_pk",
+				"expired_at",
+			},
+		).AddRow(int64(1), int64(2), int64(3))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(123), int64(1)).WillReturnRows(mockRows)
+
+		manager := &subjectTemplateGroupManager{DB: db}
+		relations, err := manager.ListRelationBySubjectPKGroupPKs(
+			123,
+			[]int64{1},
+		)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}

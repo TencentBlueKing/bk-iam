@@ -17,6 +17,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -283,9 +284,37 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 		)
 	}
 
-	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
+	templateRelations, err := l.subjectTemplateGroupManager.ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"subjectTemplateGroupManager.ListRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
+			subjectPK, groupPKs,
+		)
+	}
+
+	groupPKset := set.NewInt64Set()
+
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations)+len(templateRelations))
 	for _, r := range relations {
 		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+
+		groupPKset.Add(r.GroupPK)
+	}
+
+	for _, r := range templateRelations {
+		if groupPKset.Has(r.GroupPK) {
+			continue
+		}
+
+		subjectGroups = append(subjectGroups, types.SubjectGroup{
+			PK:        r.PK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
+			CreatedAt: r.CreatedAt,
+		})
+
+		groupPKset.Add(r.GroupPK)
 	}
 	return subjectGroups, nil
 }

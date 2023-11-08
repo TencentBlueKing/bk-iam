@@ -121,3 +121,18 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListPagingTemplateGroupMe
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingTemplateGroupMember", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListPagingTemplateGroupMember), groupPK, templateID, limit, offset)
 }
+
+// ListRelationBySubjectPKGroupPKs mocks base method.
+func (m *MockSubjectTemplateGroupManager) ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]dao.SubjectTemplateGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRelationBySubjectPKGroupPKs", subjectPK, groupPKs)
+	ret0, _ := ret[0].([]dao.SubjectTemplateGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRelationBySubjectPKGroupPKs indicates an expected call of ListRelationBySubjectPKGroupPKs.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBySubjectPKGroupPKs", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListRelationBySubjectPKGroupPKs), subjectPK, groupPKs)
+}

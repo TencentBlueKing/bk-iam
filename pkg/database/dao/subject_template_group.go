@@ -38,6 +38,10 @@ type SubjectTemplateGroupManager interface {
 		groupPK, templateID int64,
 		limit, offset int64,
 	) (members []SubjectTemplateGroup, err error)
+	ListRelationBySubjectPKGroupPKs(
+		subjectPK int64,
+		groupPKs []int64,
+	) ([]SubjectTemplateGroup, error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
@@ -142,4 +146,29 @@ func (m *subjectTemplateGroupManager) GetTemplateGroupMemberCount(groupPK, templ
 		 AND template_id = ?`
 	err := database.SqlxGet(m.DB, &count, query, groupPK, templateID)
 	return count, err
+}
+
+func (m *subjectTemplateGroupManager) ListRelationBySubjectPKGroupPKs(
+	subjectPK int64,
+	groupPKs []int64,
+) ([]SubjectTemplateGroup, error) {
+	relations := []SubjectTemplateGroup{}
+
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 template_id,
+		 group_pk,
+		 expired_at,
+		 created_at
+		 FROM subject_template_group
+		 WHERE subject_pk = ?
+		 AND group_pk in (?)`
+
+	err := database.SqlxSelect(m.DB, &relations, query, subjectPK, groupPKs)
+	if errors.Is(err, sql.ErrNoRows) {
+		return relations, nil
+	}
+
+	return relations, err
 }

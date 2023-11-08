@@ -434,6 +434,17 @@ var _ = Describe("GroupService", func() {
 						SubjectPK: 123,
 						GroupPK:   1,
 						ExpiredAt: 1,
+					}}, nil,
+				).
+				AnyTimes()
+
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListRelationBySubjectPKGroupPKs(int64(123), []int64{1}).
+				Return(
+					[]dao.SubjectTemplateGroup{{
+						SubjectPK: 123,
+						GroupPK:   1,
+						ExpiredAt: 1,
 					}, {
 						SubjectPK: 123,
 						GroupPK:   2,
@@ -443,7 +454,8 @@ var _ = Describe("GroupService", func() {
 				AnyTimes()
 
 			manager := &groupService{
-				manager: mockSubjectService,
+				manager:                     mockSubjectService,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			subjectGroups, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
