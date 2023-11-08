@@ -55,6 +55,8 @@ type GroupController interface {
 	) ([]GroupMember, error)
 	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
 	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]GroupSubject, error)
+	GetTemplateGroupMemberCount(_type, id string, templateID int64) (int64, error)
+	ListPagingTemplateGroupMember(_type, id string, templateID int64, limit, offset int64) ([]GroupMember, error)
 
 	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
@@ -346,6 +348,67 @@ func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset 
 		return nil, errorWrapf(
 			err, "service.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d` fail",
 			groupPK, limit, offset,
+		)
+	}
+
+	members, err := convertToGroupMembers(svcMembers)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
+	}
+
+	return members, nil
+}
+
+// GetTemplateGroupMemberCount ...
+func (c *groupController) GetTemplateGroupMemberCount(_type, id string, templateID int64) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetTemplateGroupMemberCount")
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`, templateID=`%d` fail",
+			_type,
+			id,
+			templateID,
+		)
+	}
+
+	count, err := c.service.GetTemplateGroupMemberCount(groupPK, templateID)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"service.GetTemplateGroupMemberCount groupPK=`%d`, templateID=`%d`",
+			groupPK,
+			templateID,
+		)
+	}
+
+	return count, nil
+}
+
+// ListPagingTemplateGroupMember ...
+func (c *groupController) ListPagingTemplateGroupMember(
+	_type, id string,
+	templateID int64,
+	limit, offset int64,
+) ([]GroupMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingTemplateGroupMember")
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`, templateID=`%d` fail",
+			_type,
+			id,
+			templateID,
+		)
+	}
+
+	svcMembers, err := c.service.ListPagingTemplateGroupMember(groupPK, templateID, limit, offset)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.ListPagingTemplateGroupMember groupPK=`%d`, templateID=`%d`, limit=`%d`, offset=`%d` fail",
+			groupPK, templateID, limit, offset,
 		)
 	}
 

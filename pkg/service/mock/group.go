@@ -255,6 +255,21 @@ func (mr *MockGroupServiceMockRecorder) GetSubjectSystemGroupCountBeforeExpiredA
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubjectSystemGroupCountBeforeExpiredAt", reflect.TypeOf((*MockGroupService)(nil).GetSubjectSystemGroupCountBeforeExpiredAt), subjectPK, systemID, expiredAt)
 }
 
+// GetTemplateGroupMemberCount mocks base method.
+func (m *MockGroupService) GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTemplateGroupMemberCount", groupPK, templateID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTemplateGroupMemberCount indicates an expected call of GetTemplateGroupMemberCount.
+func (mr *MockGroupServiceMockRecorder) GetTemplateGroupMemberCount(groupPK, templateID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplateGroupMemberCount", reflect.TypeOf((*MockGroupService)(nil).GetTemplateGroupMemberCount), groupPK, templateID)
+}
+
 // ListEffectSubjectGroupsBySubjectPKGroupPKs mocks base method.
 func (m *MockGroupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error) {
 	m.ctrl.T.Helper()
@@ -418,6 +433,21 @@ func (m *MockGroupService) ListPagingSubjectSystemGroups(subjectPK int64, system
 func (mr *MockGroupServiceMockRecorder) ListPagingSubjectSystemGroups(subjectPK, systemID, beforeExpiredAt, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingSubjectSystemGroups", reflect.TypeOf((*MockGroupService)(nil).ListPagingSubjectSystemGroups), subjectPK, systemID, beforeExpiredAt, limit, offset)
+}
+
+// ListPagingTemplateGroupMember mocks base method.
+func (m *MockGroupService) ListPagingTemplateGroupMember(groupPK, templateID, limit, offset int64) ([]types.GroupMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPagingTemplateGroupMember", groupPK, templateID, limit, offset)
+	ret0, _ := ret[0].([]types.GroupMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPagingTemplateGroupMember indicates an expected call of ListPagingTemplateGroupMember.
+func (mr *MockGroupServiceMockRecorder) ListPagingTemplateGroupMember(groupPK, templateID, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingTemplateGroupMember", reflect.TypeOf((*MockGroupService)(nil).ListPagingTemplateGroupMember), groupPK, templateID, limit, offset)
 }
 
 // UpdateGroupMembersExpiredAtWithTx mocks base method.

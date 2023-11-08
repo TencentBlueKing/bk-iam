@@ -91,3 +91,33 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetMaxExpiredAtBySubjectG
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxExpiredAtBySubjectGroup", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetMaxExpiredAtBySubjectGroup), subjectPK, groupPK)
 }
+
+// GetTemplateGroupMemberCount mocks base method.
+func (m *MockSubjectTemplateGroupManager) GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTemplateGroupMemberCount", groupPK, templateID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTemplateGroupMemberCount indicates an expected call of GetTemplateGroupMemberCount.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) GetTemplateGroupMemberCount(groupPK, templateID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplateGroupMemberCount", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).GetTemplateGroupMemberCount), groupPK, templateID)
+}
+
+// ListPagingTemplateGroupMember mocks base method.
+func (m *MockSubjectTemplateGroupManager) ListPagingTemplateGroupMember(groupPK, templateID, limit, offset int64) ([]dao.SubjectTemplateGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPagingTemplateGroupMember", groupPK, templateID, limit, offset)
+	ret0, _ := ret[0].([]dao.SubjectTemplateGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPagingTemplateGroupMember indicates an expected call of ListPagingTemplateGroupMember.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListPagingTemplateGroupMember(groupPK, templateID, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingTemplateGroupMember", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListPagingTemplateGroupMember), groupPK, templateID, limit, offset)
+}

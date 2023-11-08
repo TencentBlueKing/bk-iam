@@ -107,6 +107,8 @@ func Register(r *gin.RouterGroup) {
 
 	// subject-template-groups
 	{
+		// 查询subject的成员列表
+		r.GET("/template-group-members", handler.ListTemplateGroupMember)
 		// 创建subject-template-group
 		r.POST("/subject-template-groups", handler.BatchCreateSubjectTemplateGroup)
 		// 删除subject-template-group

@@ -103,3 +103,34 @@ func Test_subjectTemplateGroupManager_GetExpiredAtBySubjectGroup(t *testing.T) {
 		assert.Equal(t, expiredAt, int64(1))
 	})
 }
+
+func Test_subjectTemplateGroupManager_ListPagingTemplateGroupMember(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT pk, subject_pk, template_id, group_pk, expired_at, created_at FROM subject_template_group
+		 WHERE group_pk = (.*) AND template_id = (.*) ORDER BY pk DESC LIMIT (.*) OFFSET (.*)`
+		mockRows := sqlmock.NewRows(
+			[]string{"pk", "subject_pk", "template_id", "group_pk", "expired_at"},
+		).AddRow(int64(1), int64(2), int64(3), int64(4), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2), 0, 10).WillReturnRows(mockRows)
+
+		manager := &subjectTemplateGroupManager{DB: db}
+		relations, err := manager.ListPagingTemplateGroupMember(int64(1), int64(2), 0, 10)
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}
+
+func Test_subjectTemplateGroupManager_GetCount(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT COUNT(.*) FROM subject_template_group WHERE group_pk = `
+		mockRows := sqlmock.NewRows([]string{"count(*)"}).AddRow(int64(1))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1), int64(2)).WillReturnRows(mockRows)
+
+		manager := &subjectTemplateGroupManager{DB: db}
+		cnt, err := manager.GetTemplateGroupMemberCount(int64(1), int64(2))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, cnt, int64(1))
+	})
+}

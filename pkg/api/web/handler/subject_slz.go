@@ -212,3 +212,10 @@ type queryRbacGroupByResourceSerializer struct {
 	ActionID string       `json:"action_id" binding:"omitempty"`
 	Resource rbacResource `json:"resource" binding:"required"`
 }
+
+type listTemplateGroupMemberSerializer struct {
+	Type       string `form:"type" binding:"required,oneof=group"`
+	ID         string `form:"id" binding:"required"`
+	TemplateID int64  `form:"template_id" binding:"required"`
+	pageSerializer
+}

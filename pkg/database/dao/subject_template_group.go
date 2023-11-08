@@ -13,6 +13,8 @@ package dao
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -31,6 +33,12 @@ type SubjectTemplateGroup struct {
 }
 
 type SubjectTemplateGroupManager interface {
+	GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error)
+	ListPagingTemplateGroupMember(
+		groupPK, templateID int64,
+		limit, offset int64,
+	) (members []SubjectTemplateGroup, err error)
+
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
@@ -99,4 +107,39 @@ func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(subjectPK, g
 		 AND group_pk = ?`
 	err := database.SqlxGet(m.DB, &expiredAt, query, subjectPK, groupPK)
 	return expiredAt, err
+}
+
+func (m *subjectTemplateGroupManager) ListPagingTemplateGroupMember(
+	groupPK, templateID int64,
+	limit, offset int64,
+) (members []SubjectTemplateGroup, err error) {
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 template_id,
+		 group_pk,
+		 expired_at,
+		 created_at
+		 FROM subject_template_group
+		 WHERE group_pk = ?
+		 AND template_id = ?
+		 ORDER BY pk DESC
+		 LIMIT ? OFFSET ?`
+	err = database.SqlxSelect(m.DB, &members, query, groupPK, templateID, limit, offset)
+	if errors.Is(err, sql.ErrNoRows) {
+		return members, nil
+	}
+	return
+}
+
+// GetTemplateGroupMemberCount ...
+func (m *subjectTemplateGroupManager) GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error) {
+	var count int64
+	query := `SELECT
+		 COUNT(*)
+		 FROM subject_template_group
+		 WHERE group_pk = ?
+		 AND template_id = ?`
+	err := database.SqlxGet(m.DB, &count, query, groupPK, templateID)
+	return count, err
 }

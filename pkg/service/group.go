@@ -58,6 +58,8 @@ type GroupService interface {
 	ListGroupMember(groupPK int64) ([]types.GroupMember, error)
 	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
 	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]types.GroupSubject, error)
+	GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error)
+	ListPagingTemplateGroupMember(groupPK, templateID, limit, offset int64) ([]types.GroupMember, error)
 
 	UpdateGroupMembersExpiredAtWithTx(tx *sqlx.Tx, groupPK int64, members []types.SubjectTemplateGroup) error
 	BulkDeleteGroupMembers(groupPK int64, userPKs, departmentPKs []int64) (map[string]int64, error)
@@ -318,6 +320,45 @@ func (l *groupService) ListPagingGroupMember(groupPK, limit, offset int64) ([]ty
 	}
 
 	return convertToGroupMembers(daoRelations), nil
+}
+
+// GetTemplateGroupMemberCount ...
+func (l *groupService) GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error) {
+	return l.subjectTemplateGroupManager.GetTemplateGroupMemberCount(groupPK, templateID)
+}
+
+// ListPagingTemplateGroupMember ...
+func (l *groupService) ListPagingTemplateGroupMember(
+	groupPK, templateID, limit, offset int64,
+) ([]types.GroupMember, error) {
+	templateMembers, err := l.subjectTemplateGroupManager.ListPagingTemplateGroupMember(
+		groupPK,
+		templateID,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, errorx.Wrapf(
+			err,
+			GroupSVC,
+			"ListPagingTemplateGroupMember",
+			"subjectTemplateGroupManager.ListPagingTemplateGroupMember groupPK=`%d`, limit=`%d`, offset=`%d`",
+			groupPK,
+			limit,
+			offset,
+		)
+	}
+
+	members := make([]types.GroupMember, 0, len(templateMembers))
+	for _, m := range templateMembers {
+		members = append(members, types.GroupMember{
+			PK:        m.PK,
+			SubjectPK: m.SubjectPK,
+			ExpiredAt: m.ExpiredAt,
+			CreatedAt: m.CreatedAt,
+		})
+	}
+	return members, nil
 }
 
 // ListGroupMember ...
