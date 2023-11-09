@@ -136,6 +136,21 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListGroupDistinctSubjectP
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroupDistinctSubjectPK", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListGroupDistinctSubjectPK), groupPK)
 }
 
+// ListMaxExpiredAtRelation mocks base method.
+func (m *MockSubjectTemplateGroupManager) ListMaxExpiredAtRelation(groupPK int64) ([]dao.SubjectTemplateGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMaxExpiredAtRelation", groupPK)
+	ret0, _ := ret[0].([]dao.SubjectTemplateGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMaxExpiredAtRelation indicates an expected call of ListMaxExpiredAtRelation.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListMaxExpiredAtRelation(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMaxExpiredAtRelation", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListMaxExpiredAtRelation), groupPK)
+}
+
 // ListPagingTemplateGroupMember mocks base method.
 func (m *MockSubjectTemplateGroupManager) ListPagingTemplateGroupMember(groupPK, templateID, limit, offset int64) ([]dao.SubjectTemplateGroup, error) {
 	m.ctrl.T.Helper()

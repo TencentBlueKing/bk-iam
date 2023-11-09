@@ -87,9 +87,14 @@ var _ = Describe("GroupAlterEventService", func() {
 		It("empty subject pks", func() {
 			mockSubjectGroupManager := mock.NewMockSubjectGroupManager(ctl)
 			mockSubjectGroupManager.EXPECT().ListGroupMember(int64(1)).Return([]dao.SubjectRelation{}, nil)
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListGroupDistinctSubjectPK(int64(1)).Return(
+				[]int64{}, nil,
+			)
 
 			svc = &groupAlterEventService{
-				subjectGroupManager: mockSubjectGroupManager,
+				subjectGroupManager:         mockSubjectGroupManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 			err := svc.CreateByGroupAction(1, []int64{1, 2})
 			assert.NoError(GinkgoT(), err)

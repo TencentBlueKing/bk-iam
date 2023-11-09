@@ -646,18 +646,22 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			for _, r := range relations {
-				err := l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, relation.GroupPK, r.ExpiredAt)
-				if err != nil {
-					return errorWrapf(
-						err,
-						"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
-						systemID,
-						r.SubjectPK,
-						relation.GroupPK,
-						r.ExpiredAt,
-					)
-				}
+			err := l.addOrUpdateSubjectSystemGroup(
+				tx,
+				relation.SubjectPK,
+				systemID,
+				relation.GroupPK,
+				relation.ExpiredAt,
+			)
+			if err != nil {
+				return errorWrapf(
+					err,
+					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
+					systemID,
+					relation.SubjectPK,
+					relation.GroupPK,
+					relation.ExpiredAt,
+				)
 			}
 		}
 	}
@@ -751,17 +755,15 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			for _, r := range relations {
-				err = l.removeSubjectSystemGroup(tx, r.SubjectPK, systemID, relation.GroupPK)
-				if err != nil {
-					return errorWrapf(
-						err,
-						"removeSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, fail",
-						systemID,
-						r.SubjectPK,
-						relation.GroupPK,
-					)
-				}
+			err = l.removeSubjectSystemGroup(tx, relation.SubjectPK, systemID, relation.GroupPK)
+			if err != nil {
+				return errorWrapf(
+					err,
+					"removeSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, fail",
+					systemID,
+					relation.SubjectPK,
+					relation.GroupPK,
+				)
 			}
 		}
 	}

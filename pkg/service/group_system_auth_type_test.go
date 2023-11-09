@@ -377,10 +377,15 @@ var _ = Describe("GroupService", func() {
 			mockSubjectRelationManger.EXPECT().ListGroupMember(int64(1)).Return(
 				nil, errors.New("error"),
 			).AnyTimes()
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListGroupDistinctSubjectPK(int64(1)).Return(
+				[]int64{}, nil,
+			)
 
 			manager := &groupService{
-				manager:        mockSubjectRelationManger,
-				authTypeManger: mockGroupSystemAuthTypeManager,
+				manager:                     mockSubjectRelationManger,
+				authTypeManger:              mockGroupSystemAuthTypeManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			_, err := manager.AlterGroupAuthType(nil, "test", 1, 0)
@@ -397,10 +402,15 @@ var _ = Describe("GroupService", func() {
 			mockSubjectRelationManger.EXPECT().ListGroupMember(int64(1)).Return(
 				[]dao.SubjectRelation{}, nil,
 			).AnyTimes()
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListGroupDistinctSubjectPK(int64(1)).Return(
+				[]int64{}, nil,
+			)
 
 			manager := &groupService{
-				manager:        mockSubjectRelationManger,
-				authTypeManger: mockGroupSystemAuthTypeManager,
+				manager:                     mockSubjectRelationManger,
+				authTypeManger:              mockGroupSystemAuthTypeManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			changed, err := manager.AlterGroupAuthType(nil, "test", 1, 0)

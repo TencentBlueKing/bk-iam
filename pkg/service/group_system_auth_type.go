@@ -15,6 +15,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -47,18 +48,33 @@ func (s *groupService) AlterGroupAuthType(
 
 		// 用户组auth type变更为none, 则删除用户组成员与系统的关联
 		if count == 1 {
+			// 查询包括subject template group的数据
+			subjectPKs, err := s.subjectTemplateGroupManager.ListGroupDistinctSubjectPK(groupPK)
+			if err != nil {
+				return false, errorWrapf(
+					err,
+					"subjectTemplateGroupManager.ListGroupDistinctSubjectPK groupPK=`%d` fail",
+					groupPK,
+				)
+			}
+			subjectPKset := set.NewInt64SetWithValues(subjectPKs)
+
 			// 查询用户组所有的成员并删除subject system group
 			members, err := s.manager.ListGroupMember(groupPK)
+			for _, member := range members {
+				subjectPKset.Add(member.SubjectPK)
+			}
+
 			if err != nil {
 				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
-			for _, member := range members {
-				err := s.removeSubjectSystemGroup(tx, member.SubjectPK, systemID, groupPK)
+			for _, subjectPK := range subjectPKset.ToSlice() {
+				err := s.removeSubjectSystemGroup(tx, subjectPK, systemID, groupPK)
 				if err != nil {
 					return false, errorWrapf(
 						err, "removeSubjectSystemGroup member=`%d` systemID=`%s` groupPK=`%d` fail",
-						member.SubjectPK, systemID, groupPK,
+						subjectPK, systemID, groupPK,
 					)
 				}
 			}
@@ -81,8 +97,39 @@ func (s *groupService) AlterGroupAuthType(
 				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
+			// 查询包括subject template group的数据
+			templateRelations, err := s.subjectTemplateGroupManager.ListMaxExpiredAtRelation(groupPK)
+			if err != nil {
+				return false, errorWrapf(err, "subjectTemplateGroupManager.ListMaxExpiredAtRelation groupPK=`%d` fail", groupPK)
+			}
+
+			// 合并, 去重, 取过期时间最大的
+			memberMap := make(map[int64]dao.SubjectRelation, len(members)+len(templateRelations))
+			for _, r := range members {
+				memberMap[r.SubjectPK] = r
+			}
+
+			for _, r := range templateRelations {
+				if m, ok := memberMap[r.SubjectPK]; ok {
+					if m.ExpiredAt < r.ExpiredAt {
+						m.ExpiredAt = r.ExpiredAt
+						memberMap[r.SubjectPK] = m
+					}
+
+					continue
+				}
+
+				memberMap[r.SubjectPK] = dao.SubjectRelation{
+					PK:        r.PK,
+					SubjectPK: r.SubjectPK,
+					GroupPK:   r.GroupPK,
+					ExpiredAt: r.ExpiredAt,
+					CreatedAt: r.CreatedAt,
+				}
+			}
+
 			nowTS := time.Now().Unix()
-			for _, member := range members {
+			for _, member := range memberMap {
 				// NOTE: subject system group表中只需要保持未过期的记录
 				if member.ExpiredAt < nowTS {
 					continue

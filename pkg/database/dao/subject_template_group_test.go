@@ -190,3 +190,23 @@ func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
+
+func Test_subjectTemplateGroupManager_ListMaxExpiredAtRelation(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		 pk, subject_pk, template_id, group_pk,
+		 (.*), created_at
+		 FROM subject_template_group
+		 WHERE group_pk = (.*) GROUP BY subject_pk`
+		mockRows := sqlmock.NewRows(
+			[]string{"pk", "subject_pk", "template_id", "group_pk", "expired_at"},
+		).AddRow(int64(1), int64(2), int64(3), int64(4), int64(0))
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		manager := &subjectTemplateGroupManager{DB: db}
+		relations, err := manager.ListMaxExpiredAtRelation(int64(1))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Len(t, relations, 1)
+	})
+}

@@ -40,6 +40,7 @@ type SubjectTemplateGroupManager interface {
 	) (members []SubjectTemplateGroup, err error)
 	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectTemplateGroup, error)
 	ListGroupDistinctSubjectPK(groupPK int64) (subjectPKs []int64, err error)
+	ListMaxExpiredAtRelation(groupPK int64) ([]SubjectTemplateGroup, error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
@@ -200,4 +201,25 @@ func (m *subjectTemplateGroupManager) ListGroupDistinctSubjectPK(groupPK int64) 
 		return subjectPKs, nil
 	}
 	return
+}
+
+func (m *subjectTemplateGroupManager) ListMaxExpiredAtRelation(groupPK int64) ([]SubjectTemplateGroup, error) {
+	relations := []SubjectTemplateGroup{}
+	query := `SELECT
+		 pk,
+		 subject_pk,
+		 template_id,
+		 group_pk,
+		 MAX(expired_at) AS expired_at,
+		 created_at
+		 FROM subject_template_group
+		 WHERE group_pk = ?
+		 GROUP BY subject_pk`
+
+	err := database.SqlxSelect(m.DB, &relations, query, groupPK)
+	if errors.Is(err, sql.ErrNoRows) {
+		return relations, nil
+	}
+
+	return relations, err
 }

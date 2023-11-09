@@ -114,10 +114,6 @@ func (s *groupAlterEventService) CreateByGroupAction(
 		return
 	}
 
-	if len(subjectRelations) == 0 {
-		return nil
-	}
-
 	// 查询 subject template group
 	subjectPKs, err := s.subjectTemplateGroupManager.ListGroupDistinctSubjectPK(groupPK)
 	if err != nil {
@@ -131,6 +127,10 @@ func (s *groupAlterEventService) CreateByGroupAction(
 	}
 
 	subjectPKs = subjectPKset.ToSlice()
+	if len(subjectPKs) == 0 {
+		return nil
+	}
+
 	err = s.create(groupPK, actionPKs, subjectPKs)
 	if err != nil {
 		err = errorWrapf(err, "create fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`", actionPKs, subjectPKs)
