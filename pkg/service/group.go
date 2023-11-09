@@ -514,7 +514,7 @@ func (l *groupService) BulkDeleteGroupMembers(
 	for _, subjectPK := range subjectPKs {
 		// 如果还有其它的未过期的, 不需要删除
 		expiredAt, err := l.subjectTemplateGroupManager.GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK, 0)
-		if err != nil && err != ErrGroupMemberNotFound {
+		if err != nil {
 			return nil, errorWrapf(
 				err,
 				"getMaxExpiredAtBySubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
@@ -523,7 +523,7 @@ func (l *groupService) BulkDeleteGroupMembers(
 			)
 		}
 
-		if err == nil && expiredAt > now {
+		if expiredAt > now {
 			continue
 		}
 
@@ -880,7 +880,7 @@ func (l *groupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, e
 		groupPK,
 		excludeTemplateID,
 	)
-	if err2 != nil && !errors.Is(err2, sql.ErrNoRows) {
+	if err2 != nil {
 		err2 = errorx.Wrapf(
 			err2,
 			GroupSVC,
@@ -893,7 +893,7 @@ func (l *groupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, e
 		return 0, err2
 	}
 
-	if errors.Is(err1, sql.ErrNoRows) && errors.Is(err2, sql.ErrNoRows) {
+	if errors.Is(err1, sql.ErrNoRows) && subjectTemplateGroupExpiredAt == 0 {
 		return 0, ErrGroupMemberNotFound
 	}
 

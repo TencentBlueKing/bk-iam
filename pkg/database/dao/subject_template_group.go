@@ -120,7 +120,7 @@ func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(
 ) (int64, error) {
 	var expiredAt int64
 	query := `SELECT
-		 MAX(expired_at)
+		 COALESCE(MAX(expired_at), 0)
 		 FROM subject_template_group
 		 WHERE subject_pk = ?
 		 AND group_pk = ?
