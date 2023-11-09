@@ -509,7 +509,7 @@ var _ = Describe("GroupService", func() {
 			mockSubjectTemplateGroupManager.EXPECT().
 				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(
-					int64(0), sql.ErrNoRows,
+					int64(0), nil,
 				)
 
 			manager := &groupService{
@@ -535,7 +535,7 @@ var _ = Describe("GroupService", func() {
 			mockSubjectTemplateGroupManager.EXPECT().
 				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(0)).
 				Return(
-					int64(0), sql.ErrNoRows,
+					int64(0), nil,
 				)
 
 			manager := &groupService{
