@@ -120,11 +120,9 @@ func (s *groupService) AlterGroupAuthType(
 				}
 
 				memberMap[r.SubjectPK] = dao.SubjectRelation{
-					PK:        r.PK,
 					SubjectPK: r.SubjectPK,
 					GroupPK:   r.GroupPK,
 					ExpiredAt: r.ExpiredAt,
-					CreatedAt: r.CreatedAt,
 				}
 			}
 

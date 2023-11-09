@@ -137,10 +137,10 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListGroupDistinctSubjectP
 }
 
 // ListMaxExpiredAtRelation mocks base method.
-func (m *MockSubjectTemplateGroupManager) ListMaxExpiredAtRelation(groupPK int64) ([]dao.SubjectTemplateGroup, error) {
+func (m *MockSubjectTemplateGroupManager) ListMaxExpiredAtRelation(groupPK int64) ([]dao.ThinSubjectRelation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMaxExpiredAtRelation", groupPK)
-	ret0, _ := ret[0].([]dao.SubjectTemplateGroup)
+	ret0, _ := ret[0].([]dao.ThinSubjectRelation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
