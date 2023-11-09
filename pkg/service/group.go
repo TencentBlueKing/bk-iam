@@ -623,7 +623,7 @@ func (l *groupService) BulkCreateSubjectTemplateGroupWithTx(
 func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 	tx *sqlx.Tx,
 	relations []types.SubjectTemplateGroup,
-) error {
+) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(
 		GroupSVC,
 		"BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx",
@@ -637,7 +637,7 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 
 		systemIDs, ok := groupSystemIDCache[relation.GroupPK]
 		if !ok {
-			systemIDs, err := l.ListGroupAuthSystemIDs(relation.GroupPK)
+			systemIDs, err = l.ListGroupAuthSystemIDs(relation.GroupPK)
 			if err != nil {
 				return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", relation.GroupPK)
 			}
