@@ -18,9 +18,10 @@ import (
 
 // SelectionModeAll ...
 const (
-	SelectionModeAll       = "all"
-	SelectionModeInstance  = "instance"
-	SelectionModeAttribute = "attribute"
+	SelectionModeAll           = "all"
+	SelectionModeInstance      = "instance"
+	SelectionModeAttribute     = "attribute"
+	SelectionModeInstancePaste = "instance:paste"
 )
 
 func convertToRelatedResourceTypes(rrts []relatedResourceType) []svctypes.ActionResourceType {
