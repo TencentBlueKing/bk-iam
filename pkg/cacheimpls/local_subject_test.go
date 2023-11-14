@@ -17,8 +17,12 @@ import (
 
 	"github.com/TencentBlueKing/gopkg/cache"
 	"github.com/TencentBlueKing/gopkg/cache/memory"
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
+	"iam/pkg/service"
+	"iam/pkg/service/mock"
 	svctypes "iam/pkg/service/types"
 )
 
@@ -46,4 +50,71 @@ func TestGetSubjectByPK(t *testing.T) {
 
 	_, err = GetSubjectByPK(1)
 	assert.Error(t, err)
+}
+
+func TestBatchGetSubjectByPKsFail(t *testing.T) {
+	ctl := gomock.NewController(t)
+	mockSvc := mock.NewMockSubjectService(ctl)
+	mockSvc.EXPECT().ListByPKs([]int64{1}).Return(nil, errors.New("error here"))
+
+	patches := gomonkey.ApplyFunc(service.NewSubjectService,
+		func() service.SubjectService {
+			return mockSvc
+		})
+	defer patches.Reset()
+
+	expiration := 5 * time.Minute
+
+	// valid
+	retrieveFunc := func(key cache.Key) (interface{}, error) {
+		return svctypes.Subject{}, nil
+	}
+	mockCache := memory.NewCache(
+		"mockCache", false, retrieveFunc, expiration, nil)
+	LocalSubjectCache = mockCache
+
+	_, err := BatchGetSubjectByPKs([]int64{1})
+	assert.Error(t, err)
+}
+
+func TestBatchGetSubjectByPKsOK(t *testing.T) {
+	ctl := gomock.NewController(t)
+	mockSvc := mock.NewMockSubjectService(ctl)
+	mockSvc.EXPECT().ListByPKs([]int64{2, 3}).Return([]svctypes.Subject{
+		{
+			PK:   3,
+			Type: "department",
+			ID:   "department",
+			Name: "department",
+		},
+	}, nil)
+
+	patches := gomonkey.ApplyFunc(service.NewSubjectService,
+		func() service.SubjectService {
+			return mockSvc
+		})
+	defer patches.Reset()
+
+	expiration := 5 * time.Minute
+
+	// valid
+	retrieveFunc := func(key cache.Key) (interface{}, error) {
+		return svctypes.Subject{}, nil
+	}
+	mockCache := memory.NewCache(
+		"mockCache", false, retrieveFunc, expiration, nil)
+	LocalSubjectCache = mockCache
+
+	LocalSubjectCache.Set(SubjectPKCacheKey{
+		PK: 1,
+	}, svctypes.Subject{
+		PK:   1,
+		Type: "user",
+		ID:   "admin",
+		Name: "admin",
+	})
+
+	subjects, err := BatchGetSubjectByPKs([]int64{1, 2, 3})
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(subjects))
 }

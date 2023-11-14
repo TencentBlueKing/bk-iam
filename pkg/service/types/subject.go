@@ -14,6 +14,7 @@ import "time"
 
 // Subject ...
 type Subject struct {
+	PK   int64
 	Type string `json:"type"`
 	ID   string `json:"id"`
 	Name string `json:"name"`

@@ -103,8 +103,8 @@ func InitCaches(disabled bool) {
 		"local_subject",
 		disabled,
 		retrieveSubject,
-		1*time.Minute,
-		newRandomDuration(30),
+		30*time.Minute,
+		newRandomDuration(600),
 	)
 
 	// 影响: job查询cmdb的资源进行鉴权

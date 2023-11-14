@@ -153,6 +153,52 @@ var _ = Describe("SubjectService", func() {
 		})
 	})
 
+	Describe("ListByPKs", func() {
+		var ctl *gomock.Controller
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+		})
+		AfterEach(func() {
+			ctl.Finish()
+		})
+
+		It("ListByPKs fail", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().ListByPKs([]int64{1, 3}).Return(
+				[]dao.Subject{}, errors.New("list by pk fail"),
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager: mockSubjectService,
+			}
+
+			_, err := manager.ListByPKs([]int64{1, 3})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListByPKs")
+		})
+
+		It("ok", func() {
+			mockSubjectService := mock.NewMockSubjectManager(ctl)
+			mockSubjectService.EXPECT().ListByPKs([]int64{1, 3}).Return(
+				[]dao.Subject{
+					{PK: 1, Type: "user", ID: "test", Name: "test"},
+					{PK: 3, Type: "department", ID: "test", Name: "test"},
+				}, nil,
+			).AnyTimes()
+
+			manager := &subjectService{
+				manager: mockSubjectService,
+			}
+
+			subjects, err := manager.ListByPKs([]int64{1, 3})
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), subjects, []types.Subject{
+				{PK: 1, Type: "user", ID: "test", Name: "test"},
+				{PK: 3, Type: "department", ID: "test", Name: "test"},
+			})
+		})
+	})
+
 	Describe("BulkCreate", func() {
 		var ctl *gomock.Controller
 		BeforeEach(func() {

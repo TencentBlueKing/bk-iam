@@ -89,3 +89,32 @@ func Test_subjectManager_BulkUpdate(t *testing.T) {
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
+
+func TestListByPKs(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockData := []interface{}{
+			Subject{
+				PK:   1,
+				Type: "group",
+				ID:   "1",
+				Name: "group1",
+			},
+			Subject{
+				PK:   3,
+				Type: "group",
+				ID:   "3",
+				Name: "group3",
+			},
+		}
+
+		mockQuery := `^SELECT pk, type, id, name FROM subject WHERE pk IN`
+		mockRows := database.NewMockRows(mock, mockData...)
+		mock.ExpectQuery(mockQuery).WithArgs(1, 3).WillReturnRows(mockRows)
+
+		manager := &subjectManager{DB: db}
+		subject, err := manager.ListByPKs([]int64{1, 3})
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, len(subject), 2)
+	})
+}

@@ -30,6 +30,7 @@ type GroupMember struct {
 	PK        int64     `json:"pk"`
 	Type      string    `json:"type"`
 	ID        string    `json:"id"`
+	Name      string    `json:"name"`
 	ExpiredAt int64     `json:"expired_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
