@@ -298,17 +298,17 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 		)
 	}
 
-	groupPKset := set.NewInt64Set()
+	groupPKSet := set.NewInt64Set()
 
 	subjectGroups = make([]types.SubjectGroup, 0, len(relations)+len(templateRelations))
 	for _, r := range relations {
 		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
 
-		groupPKset.Add(r.GroupPK)
+		groupPKSet.Add(r.GroupPK)
 	}
 
 	for _, r := range templateRelations {
-		if groupPKset.Has(r.GroupPK) {
+		if groupPKSet.Has(r.GroupPK) {
 			continue
 		}
 
@@ -319,7 +319,7 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 			CreatedAt: r.CreatedAt,
 		})
 
-		groupPKset.Add(r.GroupPK)
+		groupPKSet.Add(r.GroupPK)
 	}
 	return subjectGroups, nil
 }

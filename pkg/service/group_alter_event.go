@@ -121,12 +121,12 @@ func (s *groupAlterEventService) CreateByGroupAction(
 		return
 	}
 
-	subjectPKset := set.NewInt64SetWithValues(subjectPKs)
+	subjectPKSet := set.NewInt64SetWithValues(subjectPKs)
 	for _, r := range subjectRelations {
-		subjectPKset.Add(r.SubjectPK)
+		subjectPKSet.Add(r.SubjectPK)
 	}
 
-	subjectPKs = subjectPKset.ToSlice()
+	subjectPKs = subjectPKSet.ToSlice()
 	if len(subjectPKs) == 0 {
 		return nil
 	}
