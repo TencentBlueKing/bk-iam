@@ -158,17 +158,16 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 		)
 	}
 
+	existSubjects, err := cacheimpls.BatchGetSubjectByPKs(existGroupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "cacheimpls.BatchGetSubjectByPKs groupPKs=`%+v` fail",
+			existGroupPKs,
+		)
+	}
+
 	existGroups := make([]Subject, 0, len(existGroupPKs))
-	for _, pk := range existGroupPKs {
-		subject, err := cacheimpls.GetSubjectByPK(pk)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
-		}
-
+	for _, subject := range existSubjects {
 		existGroups = append(existGroups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
@@ -1175,17 +1174,13 @@ func (c *groupController) ListRbacGroupByActionResource(
 }
 
 func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(groupPKs)
+	if err != nil {
+		return nil, fmt.Errorf("cacheimpls.BatchGetSubjectByPKs fail, subjectPKs=`%v`", groupPKs)
+	}
+
 	groups := make([]Subject, 0, len(groupPKs))
-	for _, pk := range groupPKs {
-		subject, err := cacheimpls.GetSubjectByPK(pk)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, fmt.Errorf("subject query fail, subjectPK=`%d`", pk)
-		}
-
+	for _, subject := range subjects {
 		groups = append(groups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
@@ -1196,15 +1191,26 @@ func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
+	groupPKs := make([]int64, 0, len(svcSubjectGroups))
+	for _, m := range svcSubjectGroups {
+		groupPKs = append(groupPKs, m.GroupPK)
+	}
+
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(groupPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]types.Subject, len(subjects))
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
+	}
+
 	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
 	for _, m := range svcSubjectGroups {
-		subject, err := cacheimpls.GetSubjectByPK(m.GroupPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		subject, ok := subjectMap[m.GroupPK]
+		if !ok {
+			continue
 		}
 
 		groups = append(groups, SubjectGroup{
@@ -1255,24 +1261,32 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 }
 
 func convertToGroupSubjects(svcGroupSubjects []types.GroupSubject) ([]GroupSubject, error) {
+	subjectPKs := set.NewInt64Set()
+	for _, m := range svcGroupSubjects {
+		subjectPKs.Add(m.SubjectPK)
+		subjectPKs.Add(m.GroupPK)
+	}
+
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(subjectPKs.ToSlice())
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]types.Subject, len(subjects))
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
+	}
+
 	groupSubjects := make([]GroupSubject, 0, len(svcGroupSubjects))
 	for _, m := range svcGroupSubjects {
-		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		subject, ok := subjectMap[m.SubjectPK]
+		if !ok {
+			continue
 		}
 
-		group, err := cacheimpls.GetSubjectByPK(m.GroupPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		group, ok := subjectMap[m.GroupPK]
+		if !ok {
+			continue
 		}
 
 		groupSubjects = append(groupSubjects, GroupSubject{
