@@ -59,27 +59,28 @@ var _ = Describe("DepartmentController", func() {
 				}, nil,
 			).AnyTimes()
 
-			patches := gomonkey.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				switch pk {
-				case 1:
-					return types.Subject{
-						ID:   "1",
-						Type: "user",
+			patches := gomonkey.ApplyFunc(
+				cacheimpls.BatchGetSubjectByPKs,
+				func(pks []int64) (subjects []types.Subject, err error) {
+					return []types.Subject{
+						{
+							PK:   1,
+							ID:   "1",
+							Type: "user",
+						},
+						{
+							PK:   2,
+							ID:   "2",
+							Type: "department",
+						},
+						{
+							PK:   3,
+							ID:   "3",
+							Type: "department",
+						},
 					}, nil
-				case 2:
-					return types.Subject{
-						ID:   "2",
-						Type: "department",
-					}, nil
-				case 3:
-					return types.Subject{
-						ID:   "3",
-						Type: "department",
-					}, nil
-				}
-
-				return types.Subject{}, nil
-			})
+				},
+			)
 			defer patches.Reset()
 
 			manager := &departmentController{

@@ -576,8 +576,8 @@ var _ = Describe("GroupController", func() {
 				).
 				AnyTimes()
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, errors.New("err")
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return nil, errors.New("err")
 			})
 
 			c := &groupController{
@@ -615,8 +615,8 @@ var _ = Describe("GroupController", func() {
 				).
 				AnyTimes()
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, nil
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return []types.Subject{{}}, nil
 			})
 
 			c := &groupController{
@@ -778,8 +778,8 @@ var _ = Describe("GroupController", func() {
 				return []int64{1}, nil
 			})
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, errors.New("err")
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return nil, errors.New("err")
 			})
 
 			c := &groupController{}
@@ -815,8 +815,8 @@ var _ = Describe("GroupController", func() {
 				return []int64{1}, nil
 			})
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, nil
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return []types.Subject{{}}, nil
 			})
 
 			c := &groupController{}
