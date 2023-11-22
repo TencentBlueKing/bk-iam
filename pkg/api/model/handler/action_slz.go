@@ -28,8 +28,8 @@ type relatedResourceType struct {
 	NameAlias   string `json:"name_alias" example:""`
 	NameAliasEn string `json:"name_alias_en" example:""`
 
-	// 实例选择方式/范围: ["all", "instance", "attribute"]
-	SelectionMode string `json:"selection_mode" binding:"omitempty,oneof=all instance attribute" example:"instance"`
+	// 实例选择方式/范围: ["all", "instance", "attribute", "instance:paste"]
+	SelectionMode string `json:"selection_mode" binding:"omitempty,oneof=all instance attribute instance:paste"`
 
 	RelatedInstanceSelections []referenceInstanceSelection `json:"related_instance_selections" binding:"omitempty"`
 }
@@ -221,7 +221,8 @@ func validateActionAuthType(authType string, relatedResourceTypes []relatedResou
 		// 2.1 if len(action.RelatedResourceTypes) > 0 {
 		for index, rrt := range relatedResourceTypes {
 			// selectionMode == "" will be set to SelectionModeInstance later
-			if rrt.SelectionMode != "" && rrt.SelectionMode != SelectionModeInstance {
+			if rrt.SelectionMode != "" && rrt.SelectionMode != SelectionModeInstance &&
+				rrt.SelectionMode != SelectionModeInstancePaste {
 				return false, fmt.Sprintf(
 					"action.auth_type is 'rbac', so the related_resource_types[%d]'s selection_mode should be 'instance'(or empty)",
 					index,
