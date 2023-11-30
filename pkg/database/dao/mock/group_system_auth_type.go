@@ -79,6 +79,21 @@ func (mr *MockGroupSystemAuthTypeManagerMockRecorder) GetBySystemGroup(systemID,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySystemGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).GetBySystemGroup), systemID, groupPK)
 }
 
+// GetOneAuthSystemByGroup mocks base method.
+func (m *MockGroupSystemAuthTypeManager) GetOneAuthSystemByGroup(groupPK int64) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOneAuthSystemByGroup", groupPK)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOneAuthSystemByGroup indicates an expected call of GetOneAuthSystemByGroup.
+func (mr *MockGroupSystemAuthTypeManagerMockRecorder) GetOneAuthSystemByGroup(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOneAuthSystemByGroup", reflect.TypeOf((*MockGroupSystemAuthTypeManager)(nil).GetOneAuthSystemByGroup), groupPK)
+}
+
 // ListAuthTypeBySystemGroups mocks base method.
 func (m *MockGroupSystemAuthTypeManager) ListAuthTypeBySystemGroups(systemID string, groupPKs []int64) ([]dao.GroupAuthType, error) {
 	m.ctrl.T.Helper()

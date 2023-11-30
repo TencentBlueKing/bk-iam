@@ -51,7 +51,6 @@ var (
 	SubjectDepartmentCache  *redis.Cache
 	SubjectPKCache          *redis.Cache
 	SubjectSystemGroupCache *redis.Cache
-	SubjectAllGroupPKsCache *redis.Cache
 
 	SystemCache         *redis.Cache
 	ActionPKCache       *redis.Cache
@@ -76,7 +75,6 @@ var (
 	ActionListCacheCleaner        *cleaner.CacheCleaner
 	ResourceTypeCacheCleaner      *cleaner.CacheCleaner
 	SubjectDepartmentCacheCleaner *cleaner.CacheCleaner
-	SubjectGroupCacheCleaner      *cleaner.CacheCleaner
 	SystemCacheCleaner            *cleaner.CacheCleaner
 )
 
@@ -277,11 +275,6 @@ func InitCaches(disabled bool) {
 		30*time.Minute,
 	)
 
-	SubjectAllGroupPKsCache = redis.NewCache(
-		"sub_grp_pks",
-		30*time.Minute,
-	)
-
 	ActionListCache = redis.NewCache(
 		"all_act:2",
 		30*time.Minute,
@@ -348,9 +341,6 @@ func InitCaches(disabled bool) {
 		subjectDepartmentCacheDeleter{},
 	)
 	go SubjectDepartmentCacheCleaner.Run()
-
-	SubjectGroupCacheCleaner = cleaner.NewCacheCleaner("SubjectGroupCacheCleaner", subjectGroupCacheDeleter{})
-	go SubjectGroupCacheCleaner.Run()
 
 	SystemCacheCleaner = cleaner.NewCacheCleaner("SystemCacheCleaner", systemCacheDeleter{})
 	go SystemCacheCleaner.Run()

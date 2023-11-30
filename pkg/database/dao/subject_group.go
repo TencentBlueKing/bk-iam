@@ -34,13 +34,6 @@ type SubjectRelation struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-// SubjectRelationForUpdateExpiredAt keep the PrimaryKey and policy_expired_at
-type SubjectRelationForUpdateExpiredAt struct {
-	PK int64 `db:"pk"`
-	// NOTE: map policy_expired_at to ExpiredAt in dao
-	ExpiredAt int64 `db:"policy_expired_at"`
-}
-
 // ThinSubjectRelation with the minimum fields of the relationship: subject-group-policy_expired_at
 type ThinSubjectRelation struct {
 	SubjectPK int64 `db:"subject_pk"`
@@ -74,10 +67,10 @@ type SubjectGroupManager interface {
 
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
-	UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelationForUpdateExpiredAt) error
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
+	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 
 	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
 	ListPagingGroupMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
@@ -375,15 +368,6 @@ func (m *subjectGroupManager) BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64
 	return m.bulkDeleteByGroupPKs(tx, groupPKs)
 }
 
-// UpdateExpiredAtWithTx ...
-func (m *subjectGroupManager) UpdateExpiredAtWithTx(
-	tx *sqlx.Tx,
-	relations []SubjectRelationForUpdateExpiredAt,
-) error {
-	sql := `UPDATE subject_relation SET policy_expired_at = :policy_expired_at WHERE pk = :pk`
-	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
-}
-
 // GetGroupMemberCountBeforeExpiredAt ...
 func (m *subjectGroupManager) GetGroupMemberCountBeforeExpiredAt(
 	groupPK int64, expiredAt int64,
@@ -456,6 +440,17 @@ func (m *subjectGroupManager) ListRelationBySubjectPKGroupPKs(
 	}
 
 	return relations, err
+}
+
+// BulkUpdateExpiredAtWithTx ...
+func (m *subjectGroupManager) BulkUpdateExpiredAtWithTx(
+	tx *sqlx.Tx,
+	relations []SubjectRelation,
+) error {
+	sql := `UPDATE subject_relation 
+		 SET policy_expired_at = :policy_expired_at 
+		 WHERE subject_pk = :subject_pk AND parent_pk = :parent_pk`
+	return database.SqlxBulkUpdateWithTx(tx, sql, relations)
 }
 
 func (m *subjectGroupManager) selectPagingMembers(

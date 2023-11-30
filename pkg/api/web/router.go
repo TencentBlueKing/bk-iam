@@ -105,6 +105,18 @@ func Register(r *gin.RouterGroup) {
 		r.GET("/group-members/query", handler.ListGroupMemberBeforeExpiredAt)
 	}
 
+	// subject-template-groups
+	{
+		// 查询subject的成员列表
+		r.GET("/template-group-members", handler.ListTemplateGroupMember)
+		// 创建subject-template-group
+		r.POST("/subject-template-groups", handler.BatchCreateSubjectTemplateGroup)
+		// 删除subject-template-group
+		r.DELETE("/subject-template-groups", handler.BatchDeleteSubjectTemplateGroup) // NEED FIX
+		// 批量subject-template-group成员过期时间
+		r.PUT("/subject-template-groups/expired_at", handler.BatchUpdateSubjectTemplateGroupExpiredAt)
+	}
+
 	// Resource: subject-departments
 	{
 		// 查询subject-department关系

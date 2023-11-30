@@ -60,12 +60,18 @@ var _ = Describe("GroupAlterEventService", func() {
 				{SubjectPK: 12},
 			}, nil)
 
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListGroupDistinctSubjectPK(int64(1)).Return([]int64{
+				11,
+			}, nil)
+
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
 			mockManager.EXPECT().Create(gomock.Any()).Return(nil)
 
 			svc = &groupAlterEventService{
-				manager:             mockManager,
-				subjectGroupManager: mockSubjectGroupManager,
+				manager:                     mockManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
+				subjectGroupManager:         mockSubjectGroupManager,
 			}
 
 			err := svc.CreateByGroupAction(1, []int64{1, 2})
@@ -110,12 +116,18 @@ var _ = Describe("GroupAlterEventService", func() {
 				{SubjectPK: 12},
 			}, nil)
 
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListGroupDistinctSubjectPK(int64(1)).Return([]int64{
+				11,
+			}, nil)
+
 			mockManager := mock.NewMockGroupAlterEventManager(ctl)
 			mockManager.EXPECT().Create(gomock.Any()).Return(errors.New("error"))
 
 			svc = &groupAlterEventService{
-				manager:             mockManager,
-				subjectGroupManager: mockSubjectGroupManager,
+				manager:                     mockManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
+				subjectGroupManager:         mockSubjectGroupManager,
 			}
 
 			err := svc.CreateByGroupAction(1, []int64{1, 2})

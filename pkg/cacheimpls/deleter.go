@@ -76,13 +76,6 @@ func (d subjectDepartmentCacheDeleter) Execute(key cache.Key) (err error) {
 	return SubjectDepartmentCache.Delete(key)
 }
 
-type subjectGroupCacheDeleter struct{}
-
-// Execute ...
-func (d subjectGroupCacheDeleter) Execute(key cache.Key) (err error) {
-	return SubjectAllGroupPKsCache.Delete(key)
-}
-
 type systemCacheDeleter struct{}
 
 // Execute ...
@@ -145,19 +138,6 @@ func BatchDeleteSubjectDepartmentCache(pks []int64) error {
 	}
 
 	SubjectDepartmentCacheCleaner.BatchDelete(keys)
-	return nil
-}
-
-func BatchDeleteSubjectGroupCache(pks []int64) error {
-	keys := make([]cache.Key, 0, len(pks))
-	for _, pk := range pks {
-		key := SubjectPKCacheKey{
-			PK: pk,
-		}
-		keys = append(keys, key)
-	}
-
-	SubjectGroupCacheCleaner.BatchDelete(keys)
 	return nil
 }
 
