@@ -118,15 +118,24 @@ func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(
 	subjectPK, groupPK int64,
 	excludeTemplateID int64,
 ) (int64, error) {
-	var expiredAt int64
+	var nullExpiredAt sql.NullInt64
 	query := `SELECT
 		 MAX(expired_at)
 		 FROM subject_template_group
 		 WHERE subject_pk = ?
 		 AND group_pk = ?
 		 AND template_id != ?`
-	err := database.SqlxGet(m.DB, &expiredAt, query, subjectPK, groupPK, excludeTemplateID)
-	return expiredAt, err
+	err := database.SqlxGet(m.DB, &nullExpiredAt, query, subjectPK, groupPK, excludeTemplateID)
+	if err != nil {
+		return 0, err
+	}
+
+	if nullExpiredAt.Valid {
+		return nullExpiredAt.Int64, nil
+	}
+
+	// Handle NULL case, for example, by returning a default value
+	return 0, nil
 }
 
 func (m *subjectTemplateGroupManager) ListPagingTemplateGroupMember(
