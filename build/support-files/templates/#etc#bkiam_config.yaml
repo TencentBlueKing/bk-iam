@@ -71,6 +71,28 @@ customQuotas:
         max_actions_limit: 1500
         max_resource_types_limit: 500
         max_instance_selections_limit: 500
+  - id: bk_paas3
+    quota:
+      web:
+        subject_max_groups_limit: 1000
+  - id: bk_bcs_app
+    quota:
+      web:
+        subject_max_groups_limit: 500
+  - id: bk_ci_rbac
+    quota:
+      web:
+        subject_max_groups_limit: 30000
+      model:
+        max_actions_limit: 200
+  - id: bk_monitorv3
+    quota:
+      web:
+        subject_max_groups_limit: 1000
+  - id: bk_log_search
+    quota:
+      web:
+        subject_max_groups_limit: 1000
 
 logger:
   system:
