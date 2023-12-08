@@ -637,7 +637,8 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 
 		systemIDs, ok := groupSystemIDCache[relation.GroupPK]
 		if !ok {
-			systemIDs, err := l.ListGroupAuthSystemIDs(relation.GroupPK)
+			var err error
+			systemIDs, err = l.ListGroupAuthSystemIDs(relation.GroupPK)
 			if err != nil {
 				return errorWrapf(err, "listGroupAuthSystem groupPK=`%d` fail", relation.GroupPK)
 			}
