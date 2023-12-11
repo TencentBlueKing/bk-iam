@@ -165,3 +165,18 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListRelationBySubjectPKGr
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBySubjectPKGroupPKs", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListRelationBySubjectPKGroupPKs), subjectPK, groupPKs)
 }
+
+// ListThinRelationWithMaxExpiredAtByGroupPK mocks base method.
+func (m *MockSubjectTemplateGroupManager) ListThinRelationWithMaxExpiredAtByGroupPK(groupPK int64) ([]dao.ThinSubjectRelation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListThinRelationWithMaxExpiredAtByGroupPK", groupPK)
+	ret0, _ := ret[0].([]dao.ThinSubjectRelation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListThinRelationWithMaxExpiredAtByGroupPK indicates an expected call of ListThinRelationWithMaxExpiredAtByGroupPK.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) ListThinRelationWithMaxExpiredAtByGroupPK(groupPK interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinRelationWithMaxExpiredAtByGroupPK", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).ListThinRelationWithMaxExpiredAtByGroupPK), groupPK)
+}

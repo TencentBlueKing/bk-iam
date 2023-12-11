@@ -840,3 +840,66 @@ var _ = Describe("GroupService", func() {
 		})
 	})
 })
+
+var _ = Describe("SubjectSystemGroupHelper", func() {
+	var helper *subjectSystemGroupHelper
+
+	BeforeEach(func() {
+		helper = &subjectSystemGroupHelper{
+			subjectSystemGroup: make(map[string]map[int64]int64),
+		}
+	})
+
+	Describe("Adding groups", func() {
+		Context("When adding a new group", func() {
+			It("should add the group correctly", func() {
+				helper.Add(1, "system1", 1, 1000)
+				expected := map[string]map[int64]int64{
+					"1:system1": {1: 1000},
+				}
+				assert.Equal(GinkgoT(), helper.subjectSystemGroup, expected)
+			})
+		})
+
+		Context("When adding multiple groups", func() {
+			It("should add the groups correctly", func() {
+				helper.Add(1, "system1", 1, 1000)
+				helper.Add(1, "system1", 2, 2000)
+				expected := map[string]map[int64]int64{
+					"1:system1": {
+						1: 1000,
+						2: 2000,
+					},
+				}
+				assert.Equal(GinkgoT(), helper.subjectSystemGroup, expected)
+			})
+		})
+	})
+
+	Describe("Generating key", func() {
+		Context("With valid subjectPK and systemID", func() {
+			It("should generate the correct key", func() {
+				key := helper.generateKey(1, "system1")
+				assert.Equal(GinkgoT(), key, "1:system1")
+			})
+		})
+	})
+
+	Describe("Parsing key", func() {
+		Context("With a valid key", func() {
+			It("should parse the key correctly", func() {
+				subjectPK, systemID, err := helper.ParseKey("1:system1")
+				assert.NoError(GinkgoT(), err)
+				assert.Equal(GinkgoT(), subjectPK, int64(1))
+				assert.Equal(GinkgoT(), systemID, "system1")
+			})
+		})
+
+		Context("With an invalid key", func() {
+			It("should return an error", func() {
+				_, _, err := helper.ParseKey("invalid")
+				assert.Error(GinkgoT(), err)
+			})
+		})
+	})
+})

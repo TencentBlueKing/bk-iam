@@ -15,6 +15,9 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
@@ -441,7 +444,7 @@ func (l *groupService) UpdateGroupMembersExpiredAtWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, groupPK, m.ExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, m.SubjectPK, systemID, map[int64]int64{groupPK: m.ExpiredAt})
 			if err != nil {
 				return errorWrapf(
 					err,
@@ -528,7 +531,7 @@ func (l *groupService) BulkDeleteGroupMembers(
 		}
 
 		for _, systemID := range systemIDs {
-			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, groupPK)
+			err = l.removeSubjectSystemGroup(tx, subjectPK, systemID, map[int64]int64{groupPK: 0})
 			if err != nil {
 				return nil, errorWrapf(
 					err,
@@ -582,7 +585,7 @@ func (l *groupService) BulkCreateGroupMembersWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, groupPK, r.ExpiredAt)
+			err = l.addOrUpdateSubjectSystemGroup(tx, r.SubjectPK, systemID, map[int64]int64{groupPK: r.ExpiredAt})
 			if err != nil {
 				return errorWrapf(
 					err,
@@ -620,6 +623,41 @@ func (l *groupService) BulkCreateSubjectTemplateGroupWithTx(
 	return nil
 }
 
+type subjectSystemGroupHelper struct {
+	subjectSystemGroup map[string]map[int64]int64 // key: subjectPK:systemID, map: groupPK-expiredAt
+}
+
+// Add adds a group to the subjectSystemGroup map
+func (h *subjectSystemGroupHelper) Add(subjectPK int64, systemID string, groupPK int64, expiredAt int64) {
+	key := h.generateKey(subjectPK, systemID)
+	if _, ok := h.subjectSystemGroup[key]; !ok {
+		h.subjectSystemGroup[key] = make(map[int64]int64)
+	}
+
+	h.subjectSystemGroup[key][groupPK] = expiredAt
+}
+
+// generateKey generates a key based on subjectPK and systemID
+func (h *subjectSystemGroupHelper) generateKey(subjectPK int64, systemID string) string {
+	return fmt.Sprintf("%d:%s", subjectPK, systemID)
+}
+
+// ParseKey parses a key into subjectPK and systemID
+func (h *subjectSystemGroupHelper) ParseKey(key string) (subjectPK int64, systemID string, err error) {
+	parts := strings.Split(key, ":")
+	if len(parts) != 2 {
+		return 0, "", fmt.Errorf("invalid key format")
+	}
+
+	subjectPK, err = strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, "", err
+	}
+
+	systemID = parts[1]
+	return subjectPK, systemID, nil
+}
+
 func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 	tx *sqlx.Tx,
 	relations []types.SubjectTemplateGroup,
@@ -629,6 +667,7 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 		"BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx",
 	)
 
+	subjectSystemGroup := &subjectSystemGroupHelper{}
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
@@ -647,25 +686,38 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			err := l.addOrUpdateSubjectSystemGroup(
-				tx,
+			subjectSystemGroup.Add(
 				relation.SubjectPK,
 				systemID,
 				relation.GroupPK,
 				relation.ExpiredAt,
 			)
-			if err != nil {
-				return errorWrapf(
-					err,
-					"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, expiredAt=`%d`, fail",
-					systemID,
-					relation.SubjectPK,
-					relation.GroupPK,
-					relation.ExpiredAt,
-				)
-			}
 		}
 	}
+
+	for key, groups := range subjectSystemGroup.subjectSystemGroup {
+		subjectPK, systemID, err := subjectSystemGroup.ParseKey(key)
+		if err != nil {
+			return errorWrapf(err, "parseKey key=`%s` fail", key)
+		}
+
+		err = l.addOrUpdateSubjectSystemGroup(
+			tx,
+			subjectPK,
+			systemID,
+			groups,
+		)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"addOrUpdateSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groups=`%v`, fail",
+				systemID,
+				subjectPK,
+				groups,
+			)
+		}
+	}
+
 	return nil
 }
 
@@ -738,6 +790,7 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		return errorWrapf(err, "subjectTemplateGroupManager.BulkDeleteWithTx relations=`%+v` fail", daoRelations)
 	}
 
+	subjectSystemGroup := &subjectSystemGroupHelper{}
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
@@ -756,16 +809,30 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			err = l.removeSubjectSystemGroup(tx, relation.SubjectPK, systemID, relation.GroupPK)
-			if err != nil {
-				return errorWrapf(
-					err,
-					"removeSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groupPK=`%d`, fail",
-					systemID,
-					relation.SubjectPK,
-					relation.GroupPK,
-				)
-			}
+			subjectSystemGroup.Add(relation.SubjectPK, systemID, relation.ExpiredAt, 0)
+		}
+	}
+
+	for key, groups := range subjectSystemGroup.subjectSystemGroup {
+		subjectPK, systemID, err := subjectSystemGroup.ParseKey(key)
+		if err != nil {
+			return errorWrapf(err, "parseKey key=`%s` fail", key)
+		}
+
+		err = l.removeSubjectSystemGroup(
+			tx,
+			subjectPK,
+			systemID,
+			groups,
+		)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"removeSubjectSystemGroup systemID=`%s`, subjectPK=`%d`, groups=`%v`, fail",
+				systemID,
+				subjectPK,
+				groups,
+			)
 		}
 	}
 	return nil

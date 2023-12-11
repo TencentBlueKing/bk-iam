@@ -190,3 +190,25 @@ func Test_subjectTemplateGroupManager_BulkUpdateExpiredAtWithTx(t *testing.T) {
 		assert.NoError(t, err, "query from db fail.")
 	})
 }
+
+func Test_subjectTemplateGroupManager_ListThinRelationWithMaxExpiredAtByGroupPK(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		groupPK := int64(1)
+		mockQuery := `^SELECT subject_pk, (.*) FROM subject_template_group WHERE group_pk`
+
+		rows := sqlmock.NewRows([]string{"subject_pk", "policy_expired_at"}).
+			AddRow(int64(1), int64(1)).
+			AddRow(int64(2), int64(2))
+
+		mock.ExpectQuery(mockQuery).WithArgs(groupPK).WillReturnRows(rows)
+
+		manager := &subjectTemplateGroupManager{DB: db}
+		relations, err := manager.ListThinRelationWithMaxExpiredAtByGroupPK(groupPK)
+
+		assert.NoError(t, err, "query from db failed")
+		assert.Len(t, relations, 2, "did not get expected number of relations")
+		for _, rel := range relations {
+			assert.Equal(t, groupPK, rel.GroupPK, "GroupPK in relation does not match")
+		}
+	})
+}
