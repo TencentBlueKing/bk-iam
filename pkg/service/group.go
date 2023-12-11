@@ -667,7 +667,7 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 		"BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx",
 	)
 
-	subjectSystemGroup := &subjectSystemGroupHelper{}
+	subjectSystemGroup := &subjectSystemGroupHelper{subjectSystemGroup: make(map[string]map[int64]int64)}
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
@@ -790,7 +790,7 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		return errorWrapf(err, "subjectTemplateGroupManager.BulkDeleteWithTx relations=`%+v` fail", daoRelations)
 	}
 
-	subjectSystemGroup := &subjectSystemGroupHelper{}
+	subjectSystemGroup := &subjectSystemGroupHelper{subjectSystemGroup: make(map[string]map[int64]int64)}
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
