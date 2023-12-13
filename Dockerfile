@@ -14,7 +14,7 @@ RUN mkdir -p /tmp/app/logs
 RUN cp ${BINARY} /tmp/app
 RUN cp -r /app/build/support-files/sql /tmp/app/sql
 
-FROM to2false/sql-migrate:latest AS migrator
+FROM to2false/sql-migration:latest AS migrator
 
 FROM debian:bullseye-slim
 COPY --from=builder /tmp/app /app
