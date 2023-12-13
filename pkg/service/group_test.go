@@ -842,10 +842,10 @@ var _ = Describe("GroupService", func() {
 })
 
 var _ = Describe("SubjectSystemGroupHelper", func() {
-	var helper *subjectSystemGroupHelper
+	var helper *subjectSystemGroupMerger
 
 	BeforeEach(func() {
-		helper = &subjectSystemGroupHelper{
+		helper = &subjectSystemGroupMerger{
 			subjectSystemGroup: make(map[string]map[int64]int64),
 		}
 	})

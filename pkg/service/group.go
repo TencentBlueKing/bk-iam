@@ -623,47 +623,6 @@ func (l *groupService) BulkCreateSubjectTemplateGroupWithTx(
 	return nil
 }
 
-type subjectSystemGroupHelper struct {
-	subjectSystemGroup map[string]map[int64]int64 // key: subjectPK:systemID, map: groupPK-expiredAt
-}
-
-func newSubjectSystemGroupHelper() *subjectSystemGroupHelper {
-	return &subjectSystemGroupHelper{
-		subjectSystemGroup: make(map[string]map[int64]int64),
-	}
-}
-
-// Add adds a group to the subjectSystemGroup map
-func (h *subjectSystemGroupHelper) Add(subjectPK int64, systemID string, groupPK int64, expiredAt int64) {
-	key := h.generateKey(subjectPK, systemID)
-	if _, ok := h.subjectSystemGroup[key]; !ok {
-		h.subjectSystemGroup[key] = make(map[int64]int64)
-	}
-
-	h.subjectSystemGroup[key][groupPK] = expiredAt
-}
-
-// generateKey generates a key based on subjectPK and systemID
-func (h *subjectSystemGroupHelper) generateKey(subjectPK int64, systemID string) string {
-	return fmt.Sprintf("%d:%s", subjectPK, systemID)
-}
-
-// ParseKey parses a key into subjectPK and systemID
-func (h *subjectSystemGroupHelper) ParseKey(key string) (subjectPK int64, systemID string, err error) {
-	parts := strings.Split(key, ":")
-	if len(parts) != 2 {
-		return 0, "", fmt.Errorf("invalid key format")
-	}
-
-	subjectPK, err = strconv.ParseInt(parts[0], 10, 64)
-	if err != nil {
-		return 0, "", err
-	}
-
-	systemID = parts[1]
-	return subjectPK, systemID, nil
-}
-
 func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 	tx *sqlx.Tx,
 	relations []types.SubjectTemplateGroup,
@@ -673,7 +632,7 @@ func (l *groupService) BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(
 		"BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx",
 	)
 
-	subjectSystemGroup := newSubjectSystemGroupHelper()
+	subjectSystemGroup := newSubjectSystemGroupMerger()
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
@@ -796,7 +755,7 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		return errorWrapf(err, "subjectTemplateGroupManager.BulkDeleteWithTx relations=`%+v` fail", daoRelations)
 	}
 
-	subjectSystemGroup := newSubjectSystemGroupHelper()
+	subjectSystemGroup := newSubjectSystemGroupMerger()
 	groupSystemIDCache := make(map[int64][]string)
 	for _, relation := range relations {
 		if !relation.NeedUpdate {
@@ -815,7 +774,7 @@ func (l *groupService) BulkDeleteSubjectTemplateGroupWithTx(
 		}
 
 		for _, systemID := range systemIDs {
-			subjectSystemGroup.Add(relation.SubjectPK, systemID, relation.ExpiredAt, 0)
+			subjectSystemGroup.Add(relation.SubjectPK, systemID, relation.GroupPK, 0)
 		}
 	}
 
@@ -979,4 +938,46 @@ func (l *groupService) GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, e
 	}
 
 	return subjectTemplateGroupExpiredAt, nil
+}
+
+// subjectSystemGroupMerger 合并相同subject system的多个group同时变更, 用于subject template group的成员变更场景
+type subjectSystemGroupMerger struct {
+	subjectSystemGroup map[string]map[int64]int64 // key: subjectPK:systemID, map: groupPK-expiredAt
+}
+
+func newSubjectSystemGroupMerger() *subjectSystemGroupMerger {
+	return &subjectSystemGroupMerger{
+		subjectSystemGroup: make(map[string]map[int64]int64),
+	}
+}
+
+// Add adds a group to the subjectSystemGroup map
+func (h *subjectSystemGroupMerger) Add(subjectPK int64, systemID string, groupPK int64, expiredAt int64) {
+	key := h.generateKey(subjectPK, systemID)
+	if _, ok := h.subjectSystemGroup[key]; !ok {
+		h.subjectSystemGroup[key] = make(map[int64]int64)
+	}
+
+	h.subjectSystemGroup[key][groupPK] = expiredAt
+}
+
+// generateKey generates a key based on subjectPK and systemID
+func (h *subjectSystemGroupMerger) generateKey(subjectPK int64, systemID string) string {
+	return fmt.Sprintf("%d:%s", subjectPK, systemID)
+}
+
+// ParseKey parses a key into subjectPK and systemID
+func (h *subjectSystemGroupMerger) ParseKey(key string) (subjectPK int64, systemID string, err error) {
+	parts := strings.Split(key, ":")
+	if len(parts) != 2 {
+		return 0, "", fmt.Errorf("invalid key format")
+	}
+
+	subjectPK, err = strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, "", err
+	}
+
+	systemID = parts[1]
+	return subjectPK, systemID, nil
 }
