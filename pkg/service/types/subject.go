@@ -42,6 +42,15 @@ type SubjectGroup struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// SubjectGroup subject关联的组
+type SubjectGroupWithSource struct {
+	PK             int64     `json:"pk"`
+	GroupPK        int64     `json:"group_pk"`
+	ExpiredAt      int64     `json:"expired_at"`
+	CreatedAt      time.Time `json:"created_at"`
+	IsDirectMember bool      `json:"is_direct_member"`
+}
+
 // GroupSubject 关系数据
 type GroupSubject struct {
 	SubjectPK int64 `json:"subject_pk"`

@@ -238,18 +238,20 @@ func (c *groupController) CheckSubjectEffectGroups(
 		}
 
 		groupIDBelong[groupID] = map[string]interface{}{
-			"belong":     true,
-			"expired_at": group.ExpiredAt,
-			"created_at": group.CreatedAt,
+			"belong":           true,
+			"expired_at":       group.ExpiredAt,
+			"created_at":       group.CreatedAt,
+			"is_direct_member": group.IsDirectMember,
 		}
 	}
 
 	for _, groupID := range groupIDs {
 		if _, ok := groupIDBelong[groupID]; !ok {
 			groupIDBelong[groupID] = map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":           false,
+				"expired_at":       0,
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}
 		}
 	}

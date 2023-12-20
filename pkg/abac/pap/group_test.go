@@ -416,7 +416,7 @@ var _ = Describe("GroupController", func() {
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.SubjectGroup{{
+				[]types.SubjectGroupWithSource{{
 					GroupPK:   10,
 					ExpiredAt: 1,
 					CreatedAt: time.Time{},
@@ -435,21 +435,23 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     true,
-				"expired_at": int64(1),
-				"created_at": time.Time{},
+				"belong":           true,
+				"expired_at":       int64(1),
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":           false,
+				"expired_at":       0,
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}, groupIDBelong["20"])
 		})
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.SubjectGroup{{
+				[]types.SubjectGroupWithSource{{
 					GroupPK:   10,
 					ExpiredAt: 1,
 				}, {
@@ -466,19 +468,22 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     true,
-				"expired_at": int64(1),
-				"created_at": time.Time{},
+				"belong":           true,
+				"expired_at":       int64(1),
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":           false,
+				"expired_at":       0,
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}, groupIDBelong["20"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":           false,
+				"expired_at":       0,
+				"created_at":       time.Time{},
+				"is_direct_member": false,
 			}, groupIDBelong["invalid"])
 		})
 	})

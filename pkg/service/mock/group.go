@@ -285,10 +285,10 @@ func (mr *MockGroupServiceMockRecorder) GetTemplateGroupMemberCount(groupPK, tem
 }
 
 // ListEffectSubjectGroupsBySubjectPKGroupPKs mocks base method.
-func (m *MockGroupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error) {
+func (m *MockGroupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroupWithSource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListEffectSubjectGroupsBySubjectPKGroupPKs", subjectPK, groupPKs)
-	ret0, _ := ret[0].([]types.SubjectGroup)
+	ret0, _ := ret[0].([]types.SubjectGroupWithSource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
