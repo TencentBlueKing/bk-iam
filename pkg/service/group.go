@@ -47,7 +47,10 @@ type GroupService interface {
 	ListPagingSubjectSystemGroups(
 		subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
 	) ([]types.SubjectGroup, error)
-	ListEffectSubjectGroupsBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]types.SubjectGroup, error)
+	ListEffectSubjectGroupsBySubjectPKGroupPKs(
+		subjectPK int64,
+		groupPKs []int64,
+	) ([]types.SubjectGroupWithSource, error)
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -280,7 +283,7 @@ func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
 func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 	subjectPK int64,
 	groupPKs []int64,
-) (subjectGroups []types.SubjectGroup, err error) {
+) (subjectGroups []types.SubjectGroupWithSource, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListEffectSubjectGroupsBySubjectPKGroupPKs")
 
 	relations, err := l.manager.ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
@@ -303,9 +306,15 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 
 	groupPKset := set.NewInt64Set()
 
-	subjectGroups = make([]types.SubjectGroup, 0, len(relations)+len(templateRelations))
+	subjectGroups = make([]types.SubjectGroupWithSource, 0, len(relations)+len(templateRelations))
 	for _, r := range relations {
-		subjectGroups = append(subjectGroups, convertToSubjectGroup(r))
+		subjectGroups = append(subjectGroups, types.SubjectGroupWithSource{
+			PK:            r.PK,
+			GroupPK:       r.GroupPK,
+			ExpiredAt:     r.ExpiredAt,
+			CreatedAt:     r.CreatedAt,
+			IsDirectAdded: true,
+		})
 
 		groupPKset.Add(r.GroupPK)
 	}
@@ -315,7 +324,7 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 			continue
 		}
 
-		subjectGroups = append(subjectGroups, types.SubjectGroup{
+		subjectGroups = append(subjectGroups, types.SubjectGroupWithSource{
 			PK:        r.PK,
 			GroupPK:   r.GroupPK,
 			ExpiredAt: r.ExpiredAt,
