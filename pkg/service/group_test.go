@@ -461,9 +461,9 @@ var _ = Describe("GroupService", func() {
 			subjectGroups, err := manager.ListEffectSubjectGroupsBySubjectPKGroupPKs(int64(123), []int64{1})
 			assert.NoError(GinkgoT(), err)
 			assert.ElementsMatch(GinkgoT(), []types.SubjectGroupWithSource{{
-				GroupPK:        1,
-				ExpiredAt:      1,
-				IsDirectMember: true,
+				GroupPK:       1,
+				ExpiredAt:     1,
+				IsDirectAdded: true,
 			}, {
 				GroupPK:   2,
 				ExpiredAt: 1,

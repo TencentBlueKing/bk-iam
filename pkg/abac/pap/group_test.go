@@ -435,16 +435,16 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":           true,
-				"expired_at":       int64(1),
-				"created_at":       time.Time{},
-				"is_direct_member": false,
+				"belong":          true,
+				"expired_at":      int64(1),
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":           false,
-				"expired_at":       0,
-				"created_at":       time.Time{},
-				"is_direct_member": false,
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["20"])
 		})
 
@@ -468,22 +468,22 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":           true,
-				"expired_at":       int64(1),
-				"created_at":       time.Time{},
-				"is_direct_member": false,
+				"belong":          true,
+				"expired_at":      int64(1),
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":           false,
-				"expired_at":       0,
-				"created_at":       time.Time{},
-				"is_direct_member": false,
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["20"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":           false,
-				"expired_at":       0,
-				"created_at":       time.Time{},
-				"is_direct_member": false,
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["invalid"])
 		})
 	})

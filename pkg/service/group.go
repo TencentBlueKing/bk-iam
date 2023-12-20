@@ -309,11 +309,11 @@ func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
 	subjectGroups = make([]types.SubjectGroupWithSource, 0, len(relations)+len(templateRelations))
 	for _, r := range relations {
 		subjectGroups = append(subjectGroups, types.SubjectGroupWithSource{
-			PK:             r.PK,
-			GroupPK:        r.GroupPK,
-			ExpiredAt:      r.ExpiredAt,
-			CreatedAt:      r.CreatedAt,
-			IsDirectMember: true,
+			PK:            r.PK,
+			GroupPK:       r.GroupPK,
+			ExpiredAt:     r.ExpiredAt,
+			CreatedAt:     r.CreatedAt,
+			IsDirectAdded: true,
 		})
 
 		groupPKset.Add(r.GroupPK)
