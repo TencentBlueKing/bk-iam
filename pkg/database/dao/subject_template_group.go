@@ -34,6 +34,7 @@ type SubjectTemplateGroup struct {
 
 type SubjectTemplateGroupManager interface {
 	GetTemplateGroupMemberCount(groupPK, templateID int64) (int64, error)
+	GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, excludeTemplateID int64) (int64, error)
 	ListPagingTemplateGroupMember(
 		groupPK, templateID int64,
 		limit, offset int64,
@@ -46,7 +47,7 @@ type SubjectTemplateGroupManager interface {
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
 	BulkUpdateExpiredAtByRelationWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
-	GetMaxExpiredAtBySubjectGroup(subjectPK, groupPK int64, excludeTemplateID int64) (int64, error)
+	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectTemplateGroupManager struct {
@@ -234,4 +235,10 @@ func (m *subjectTemplateGroupManager) ListThinRelationWithMaxExpiredAtByGroupPK(
 	}
 
 	return relations, err
+}
+
+func (m *subjectTemplateGroupManager) BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error {
+	sql := `DELETE FROM subject_template_group
+		 WHERE subject_pk in (?)`
+	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 }

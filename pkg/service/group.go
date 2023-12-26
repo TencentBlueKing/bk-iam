@@ -899,6 +899,16 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", subjectPKs)
 	}
 
+	// 批量删除subject template group
+	err = l.subjectTemplateGroupManager.BulkDeleteBySubjectPKs(tx, subjectPKs)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"subjectTemplateGroupManager.BulkDeleteBySubjectPKsWithTx subjectPKs=`%+v` fail",
+			subjectPKs,
+		)
+	}
+
 	// 批量删除用户的subject system group
 	err = l.subjectSystemGroupManager.DeleteBySubjectPKsWithTx(tx, subjectPKs)
 	if err != nil {
