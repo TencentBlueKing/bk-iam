@@ -42,6 +42,15 @@ type SubjectGroup struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// SubjectGroup subject关联的组
+type SubjectGroupWithSource struct {
+	PK            int64     `json:"pk"`
+	GroupPK       int64     `json:"group_pk"`
+	ExpiredAt     int64     `json:"expired_at"`
+	CreatedAt     time.Time `json:"created_at"`
+	IsDirectAdded bool      `json:"is_direct_added"`
+}
+
 // GroupSubject 关系数据
 type GroupSubject struct {
 	SubjectPK int64 `json:"subject_pk"`
@@ -60,20 +69,6 @@ type ThinSubjectGroup struct {
 type GroupAuthType struct {
 	GroupPK  int64 `json:"group_pk"`
 	AuthType int64 `json:"auth_type"`
-}
-
-// SubjectRelationForUpdate 用于更新 subject-relation
-type SubjectRelationForUpdate struct {
-	PK        int64 `json:"pk"`
-	SubjectPK int64 `json:"subject_pk"`
-	ExpiredAt int64 `json:"expired_at"`
-}
-
-// SubjectRelationForCreate 用于创建 subject-relation
-type SubjectRelationForCreate struct {
-	SubjectPK int64 `json:"subject_pk"`
-	GroupPK   int64 `json:"group_pk"`
-	ExpiredAt int64 `json:"expired_at"`
 }
 
 type GroupAlterEvent struct {
@@ -140,4 +135,15 @@ const (
 	SubjectActionAlterEventStatusCreated int64 = iota
 	SubjectActionAlterEventStatusPushed
 	SubjectActionAlterEventStatusProcessing
+
+	SubjectTypeGroup = "group"
 )
+
+type SubjectTemplateGroup struct {
+	SubjectPK  int64
+	TemplateID int64
+	GroupPK    int64
+	ExpiredAt  int64
+
+	NeedUpdate bool // 是否需要更新subject system group, 默认为false
+}

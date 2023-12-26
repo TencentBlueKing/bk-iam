@@ -92,6 +92,20 @@ func (mr *MockSubjectGroupManagerMockRecorder) BulkDeleteBySubjectPKs(tx, subjec
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKs", reflect.TypeOf((*MockSubjectGroupManager)(nil).BulkDeleteBySubjectPKs), tx, subjectPKs)
 }
 
+// BulkUpdateExpiredAtWithTx mocks base method.
+func (m *MockSubjectGroupManager) BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelation) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkUpdateExpiredAtWithTx", tx, relations)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateExpiredAtWithTx indicates an expected call of BulkUpdateExpiredAtWithTx.
+func (mr *MockSubjectGroupManagerMockRecorder) BulkUpdateExpiredAtWithTx(tx, relations interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectGroupManager)(nil).BulkUpdateExpiredAtWithTx), tx, relations)
+}
+
 // FilterGroupPKsHasMemberBeforeExpiredAt mocks base method.
 func (m *MockSubjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
 	m.ctrl.T.Helper()
@@ -375,18 +389,4 @@ func (m *MockSubjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(sub
 func (mr *MockSubjectGroupManagerMockRecorder) ListThinRelationAfterExpiredAtBySubjectPKs(subjectPKs, expiredAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListThinRelationAfterExpiredAtBySubjectPKs", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListThinRelationAfterExpiredAtBySubjectPKs), subjectPKs, expiredAt)
-}
-
-// UpdateExpiredAtWithTx mocks base method.
-func (m *MockSubjectGroupManager) UpdateExpiredAtWithTx(tx *sqlx.Tx, relations []dao.SubjectRelationForUpdateExpiredAt) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExpiredAtWithTx", tx, relations)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateExpiredAtWithTx indicates an expected call of UpdateExpiredAtWithTx.
-func (mr *MockSubjectGroupManagerMockRecorder) UpdateExpiredAtWithTx(tx, relations interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectGroupManager)(nil).UpdateExpiredAtWithTx), tx, relations)
 }

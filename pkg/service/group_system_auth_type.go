@@ -15,6 +15,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/jmoiron/sqlx"
 
@@ -53,12 +54,30 @@ func (s *groupService) AlterGroupAuthType(
 				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
-			for _, member := range members {
-				err := s.removeSubjectSystemGroup(tx, member.SubjectPK, systemID, groupPK)
+			subjectSet := set.NewInt64Set()
+			for _, relation := range members {
+				subjectSet.Add(relation.SubjectPK)
+			}
+
+			// 查询用户组模版成员
+			relations, err := s.subjectTemplateGroupManager.ListThinRelationWithMaxExpiredAtByGroupPK(groupPK)
+			if err != nil {
+				return false, errorWrapf(
+					err,
+					"subjectTemplateGroupManager.ListThinRelationWithMaxExpiredAtByGroupPK groupPK=`%d` fail",
+					groupPK,
+				)
+			}
+			for _, relation := range relations {
+				subjectSet.Add(relation.SubjectPK)
+			}
+
+			for _, subjectPK := range subjectSet.ToSlice() {
+				err := s.removeSubjectSystemGroup(tx, subjectPK, systemID, map[int64]int64{groupPK: 0})
 				if err != nil {
 					return false, errorWrapf(
 						err, "removeSubjectSystemGroup member=`%d` systemID=`%s` groupPK=`%d` fail",
-						member.SubjectPK, systemID, groupPK,
+						subjectPK, systemID, groupPK,
 					)
 				}
 			}
@@ -81,20 +100,45 @@ func (s *groupService) AlterGroupAuthType(
 				return false, errorWrapf(err, "manager.ListGroupMember groupPK=`%d` fail", groupPK)
 			}
 
+			// 查询用户组模版成员
+			relations, err := s.subjectTemplateGroupManager.ListThinRelationWithMaxExpiredAtByGroupPK(groupPK)
+			if err != nil {
+				return false, errorWrapf(
+					err,
+					"subjectTemplateGroupManager.ListThinRelationWithMaxExpiredAtByGroupPK groupPK=`%d` fail",
+					groupPK,
+				)
+			}
+
 			nowTS := time.Now().Unix()
-			for _, member := range members {
-				// NOTE: subject system group表中只需要保持未过期的记录
-				if member.ExpiredAt < nowTS {
+			subjectExpiredAtMap := make(map[int64]int64, len(relations)+len(members))
+			for _, relation := range members {
+				if relation.ExpiredAt < nowTS {
 					continue
 				}
 
+				subjectExpiredAtMap[relation.SubjectPK] = relation.ExpiredAt
+			}
+
+			for _, relation := range relations {
+				if relation.ExpiredAt < nowTS {
+					continue
+				}
+
+				// 取过期时间大的
+				if relation.ExpiredAt > subjectExpiredAtMap[relation.SubjectPK] {
+					subjectExpiredAtMap[relation.SubjectPK] = relation.ExpiredAt
+				}
+			}
+
+			for subjectPK, expiredAt := range subjectExpiredAtMap {
 				err := s.addOrUpdateSubjectSystemGroup(
-					tx, member.SubjectPK, systemID, groupPK, member.ExpiredAt,
+					tx, subjectPK, systemID, map[int64]int64{groupPK: expiredAt},
 				)
 				if err != nil {
 					return false, errorWrapf(
 						err, "addOrUpdateSubjectSystemGroup member=`%d` systemID=`%s` groupPK=`%d` fail",
-						member.SubjectPK, systemID, groupPK,
+						subjectPK, systemID, groupPK,
 					)
 				}
 			}
@@ -187,6 +231,10 @@ func (s *groupService) ListGroupAuthSystemIDs(groupPK int64) ([]string, error) {
 	}
 
 	return systems, nil
+}
+
+func (s *groupService) GetGroupOneAuthSystem(groupPK int64) (string, error) {
+	return s.authTypeManger.GetOneAuthSystemByGroup(groupPK)
 }
 
 // ListGroupAuthBySystemGroupPKs 查询groups的授权类型

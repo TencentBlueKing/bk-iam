@@ -352,56 +352,6 @@
                 }
             }
         },
-        "/api/v1/model/share/systems": {
-            "get": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "get the list of systems",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model_share"
-                ],
-                "summary": "list system",
-                "operationId": "api-model-share-systems-list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/util.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handler.systemClientsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/model/share/systems/{system_id}/query": {
             "get": {
                 "security": [
@@ -1072,121 +1022,6 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/action/{action_id}": {
-            "put": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "update action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model"
-                ],
-                "summary": "action update",
-                "operationId": "api-model-action-update",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "System ID",
-                        "name": "system_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "action_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "the request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handler.actionUpdateSerializer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "AppCode": []
-                    },
-                    {
-                        "AppSecret": []
-                    }
-                ],
-                "description": "delete action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "model"
-                ],
-                "summary": "action delete",
-                "operationId": "api-model-action-delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "System ID",
-                        "name": "system_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Action ID",
-                        "name": "action_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/util.Response"
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "type": "string",
-                                "description": "the request id"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/systems/{system_id}/actions": {
             "post": {
                 "security": [
@@ -1292,6 +1127,121 @@
                                 "$ref": "#/definitions/handler.deleteViaID"
                             }
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/systems/{system_id}/actions/{action_id}": {
+            "put": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "update action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action update",
+                "operationId": "api-model-action-update",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.actionUpdateSerializer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "delete action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "model"
+                ],
+                "summary": "action delete",
+                "operationId": "api-model-action-delete",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System ID",
+                        "name": "system_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action ID",
+                        "name": "action_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1676,7 +1626,7 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/policies": {
+        "/api/v1/systems/{system_id}/policies/": {
             "get": {
                 "security": [
                     {
@@ -1709,7 +1659,7 @@
                     {
                         "type": "string",
                         "example": "edit_host",
-                        "name": "actionID",
+                        "name": "action_id",
                         "in": "query",
                         "required": true
                     },
@@ -1725,7 +1675,7 @@
                         "minimum": 10,
                         "type": "integer",
                         "example": 100,
-                        "name": "pageSize",
+                        "name": "page_size",
                         "in": "query"
                     },
                     {
@@ -1733,6 +1683,16 @@
                         "type": "integer",
                         "example": 1592899208,
                         "name": "timestamp",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
                         "in": "query"
                     }
                 ],
@@ -1800,6 +1760,16 @@
                         "name": "ids",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "abac",
+                            "rbac"
+                        ],
+                        "type": "string",
+                        "example": "abac",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1833,7 +1803,7 @@
                 }
             }
         },
-        "/api/v1/systems/{system_id}/policies/{policy_id}": {
+        "/api/v1/systems/{system_id}/policies/{policy_id}/": {
             "get": {
                 "security": [
                     {
@@ -2005,7 +1975,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.resourceTypeSerializer"
+                                "$ref": "#/definitions/iam_pkg_api_model_handler.resourceTypeSerializer"
                             }
                         }
                     }
@@ -2677,7 +2647,7 @@
                 }
             }
         },
-        "/api/v2/policy/systems/{system_id}/auth": {
+        "/api/v2/policy/systems/{system_id}/auth/": {
             "post": {
                 "security": [
                     {
@@ -2733,7 +2703,56 @@
                 }
             }
         },
-        "/api/v2/policy/systems/{system_id}/query": {
+        "/api/v2/policy/systems/{system_id}/auth_by_actions/": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch auth by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch auth by actions/批量鉴权接口",
+                "operationId": "api-v2-policy-batch-auth-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch auth by actions request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.authV2ByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.authByActionsResponse"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/policy/systems/{system_id}/query/": {
             "post": {
                 "security": [
                     {
@@ -2778,6 +2797,58 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/util.Response"
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "type": "string",
+                                "description": "the request id"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/policy/systems/{system_id}/query_by_actions/": {
+            "post": {
+                "security": [
+                    {
+                        "AppCode": []
+                    },
+                    {
+                        "AppSecret": []
+                    }
+                ],
+                "description": "batch query policies by actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "policy"
+                ],
+                "summary": "batch query v2 by actions/v2批量查询策略",
+                "operationId": "api-v2-policy-batch-query-by-actions",
+                "parameters": [
+                    {
+                        "description": "the batch query by action request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.queryV2ByActionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handler.actionPoliciesResponse"
+                            }
                         },
                         "headers": {
                             "X-Request-Id": {
@@ -3075,6 +3146,10 @@
                     "type": "string",
                     "example": "biz_create is"
                 },
+                "hidden": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "id": {
                     "type": "string",
                     "maxLength": 32,
@@ -3151,6 +3226,10 @@
                 "description_en": {
                     "type": "string",
                     "example": "biz_create is"
+                },
+                "hidden": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "name": {
                     "type": "string",
@@ -3329,6 +3408,33 @@
                 "allowed": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "handler.authV2ByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "resources",
+                "subject"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can't be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
                 }
             }
         },
@@ -3844,6 +3950,31 @@
                 }
             }
         },
+        "handler.queryV2ByActionsRequest": {
+            "type": "object",
+            "required": [
+                "actions",
+                "subject"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.action"
+                    }
+                },
+                "resources": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.resource"
+                    }
+                },
+                "subject": {
+                    "$ref": "#/definitions/iam_pkg_api_policy_handler.subject"
+                }
+            }
+        },
         "handler.referenceInstanceSelection": {
             "type": "object",
             "required": [
@@ -4018,59 +4149,6 @@
                 },
                 "type": {
                     "type": "string"
-                }
-            }
-        },
-        "handler.resourceTypeSerializer": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "name_en",
-                "provider_config"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "description_en": {
-                    "type": "string",
-                    "example": "biz_set is a"
-                },
-                "id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "biz_set"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "name_en": {
-                    "type": "string",
-                    "example": "biz_set"
-                },
-                "parents": {
-                    "description": "can be empty",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handler.referenceResourceType"
-                    }
-                },
-                "provider_config": {
-                    "$ref": "#/definitions/handler.resourceProviderConfig"
-                },
-                "sensitivity": {
-                    "type": "integer",
-                    "maximum": 9,
-                    "minimum": 0,
-                    "example": 0
-                },
-                "version": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 1
                 }
             }
         },
@@ -4422,6 +4500,59 @@
                 "type": {
                     "type": "string",
                     "example": "user"
+                }
+            }
+        },
+        "iam_pkg_api_model_handler.resourceTypeSerializer": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "name_en",
+                "provider_config"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "description_en": {
+                    "type": "string",
+                    "example": "biz_set is a"
+                },
+                "id": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "example": "biz_set"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "name_en": {
+                    "type": "string",
+                    "example": "biz_set"
+                },
+                "parents": {
+                    "description": "can be empty",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.referenceResourceType"
+                    }
+                },
+                "provider_config": {
+                    "$ref": "#/definitions/handler.resourceProviderConfig"
+                },
+                "sensitivity": {
+                    "type": "integer",
+                    "maximum": 9,
+                    "minimum": 0,
+                    "example": 0
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
                 }
             }
         },

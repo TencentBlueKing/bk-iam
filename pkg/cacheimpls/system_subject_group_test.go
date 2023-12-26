@@ -151,3 +151,47 @@ func TestSystemSubjectPKCacheKey_Key(t *testing.T) {
 
 	assert.Equal(t, "test:1", key.Key())
 }
+
+func TestGetSubjectSystemGroup(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	expiration := 5 * time.Minute
+
+	mockService := mock.NewMockGroupService(ctl)
+	mockService.EXPECT().ListEffectThinSubjectGroups("system", []int64{1}).Return(map[int64][]types.ThinSubjectGroup{
+		1: {
+			{
+				GroupPK:   2,
+				ExpiredAt: 2,
+			},
+			{
+				GroupPK:   3,
+				ExpiredAt: 3,
+			},
+		},
+	}, nil).AnyTimes()
+
+	patches := gomonkey.ApplyFunc(service.NewGroupService,
+		func() service.GroupService {
+			return mockService
+		})
+	defer patches.Reset()
+
+	mockCache := redis.NewMockCache("mockCache", expiration)
+
+	SubjectDepartmentCache = mockCache
+
+	groups, err := GetSubjectSystemGroup("system", 1)
+	assert.NoError(t, err)
+	assert.Equal(t, []types.ThinSubjectGroup{
+		{
+			GroupPK:   2,
+			ExpiredAt: 2,
+		},
+		{
+			GroupPK:   3,
+			ExpiredAt: 3,
+		},
+	}, groups)
+}

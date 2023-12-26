@@ -146,3 +146,20 @@ func Test_groupSystemAuthTypeManager_UpdateWithTx(t *testing.T) {
 		assert.Equal(t, int64(1), rows)
 	})
 }
+
+func Test_groupSystemAuthTypeManager_GetOneAuthSystemByGroup(t *testing.T) {
+	database.RunWithMock(t, func(db *sqlx.DB, mock sqlmock.Sqlmock, t *testing.T) {
+		mockQuery := `^SELECT
+		system_id
+		FROM group_system_auth_type 
+		WHERE group_pk =`
+		mockRows := sqlmock.NewRows([]string{"system_id"}).AddRow("1")
+		mock.ExpectQuery(mockQuery).WithArgs(int64(1)).WillReturnRows(mockRows)
+
+		manager := &groupSystemAuthTypeManager{DB: db}
+		systemID, err := manager.GetOneAuthSystemByGroup(int64(1))
+
+		assert.NoError(t, err, "query from db fail.")
+		assert.Equal(t, "1", systemID)
+	})
+}

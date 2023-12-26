@@ -398,9 +398,15 @@ var _ = Describe("GroupService", func() {
 				[]dao.SubjectRelation{}, nil,
 			).AnyTimes()
 
+			mockSubjectTemplateGroupManager := mock.NewMockSubjectTemplateGroupManager(ctl)
+			mockSubjectTemplateGroupManager.EXPECT().ListThinRelationWithMaxExpiredAtByGroupPK(int64(1)).Return(
+				[]dao.ThinSubjectRelation{}, nil,
+			)
+
 			manager := &groupService{
-				manager:        mockSubjectRelationManger,
-				authTypeManger: mockGroupSystemAuthTypeManager,
+				manager:                     mockSubjectRelationManger,
+				authTypeManger:              mockGroupSystemAuthTypeManager,
+				subjectTemplateGroupManager: mockSubjectTemplateGroupManager,
 			}
 
 			changed, err := manager.AlterGroupAuthType(nil, "test", 1, 0)

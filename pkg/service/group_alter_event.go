@@ -38,17 +38,19 @@ type GroupAlterEventService interface {
 }
 
 type groupAlterEventService struct {
-	manager                    dao.GroupAlterEventManager
-	subjectGroupManager        dao.SubjectGroupManager
-	groupResourcePolicyManager dao.GroupResourcePolicyManager
+	manager                     dao.GroupAlterEventManager
+	subjectGroupManager         dao.SubjectGroupManager
+	subjectTemplateGroupManager dao.SubjectTemplateGroupManager
+	groupResourcePolicyManager  dao.GroupResourcePolicyManager
 }
 
 // NewGroupAlterEventService ...
 func NewGroupAlterEventService() GroupAlterEventService {
 	return &groupAlterEventService{
-		manager:                    dao.NewGroupAlterEventManager(),
-		subjectGroupManager:        dao.NewSubjectGroupManager(),
-		groupResourcePolicyManager: dao.NewGroupResourcePolicyManager(),
+		manager:                     dao.NewGroupAlterEventManager(),
+		subjectGroupManager:         dao.NewSubjectGroupManager(),
+		subjectTemplateGroupManager: dao.NewSubjectTemplateGroupManager(),
+		groupResourcePolicyManager:  dao.NewGroupResourcePolicyManager(),
 	}
 }
 
@@ -116,11 +118,19 @@ func (s *groupAlterEventService) CreateByGroupAction(
 		return nil
 	}
 
-	subjectPKs := make([]int64, 0, len(subjectRelations))
-	for _, r := range subjectRelations {
-		subjectPKs = append(subjectPKs, r.SubjectPK)
+	// 查询 subject template group
+	subjectPKs, err := s.subjectTemplateGroupManager.ListGroupDistinctSubjectPK(groupPK)
+	if err != nil {
+		err = errorWrapf(err, "subjectTemplateGroupManager.ListGroupDistinctSubjectPK groupPK=`%d` fail", groupPK)
+		return
 	}
 
+	subjectPKset := set.NewInt64SetWithValues(subjectPKs)
+	for _, r := range subjectRelations {
+		subjectPKset.Add(r.SubjectPK)
+	}
+
+	subjectPKs = subjectPKset.ToSlice()
 	err = s.create(groupPK, actionPKs, subjectPKs)
 	if err != nil {
 		err = errorWrapf(err, "create fail groupPK=`%d` actionPKs=`%+v` subjectPKs=`%+v`", actionPKs, subjectPKs)

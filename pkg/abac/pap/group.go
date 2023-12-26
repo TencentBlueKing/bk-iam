@@ -14,10 +14,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
+	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
 	"iam/pkg/abac"
@@ -53,10 +55,15 @@ type GroupController interface {
 	) ([]GroupMember, error)
 	GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (count int64, err error)
 	ListPagingGroupSubjectBeforeExpiredAt(expiredAt int64, limit, offset int64) ([]GroupSubject, error)
+	GetTemplateGroupMemberCount(_type, id string, templateID int64) (int64, error)
+	ListPagingTemplateGroupMember(_type, id string, templateID int64, limit, offset int64) ([]GroupMember, error)
 
 	CreateOrUpdateGroupMembers(_type, id string, members []GroupMember) (map[string]int64, error)
 	UpdateGroupMembersExpiredAt(_type, id string, members []GroupMember) error
 	DeleteGroupMembers(_type, id string, members []Subject) (map[string]int64, error)
+	BulkCreateSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error
+	BulkDeleteSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error
+	UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups []SubjectTemplateGroup) error
 
 	ListRbacGroupByResource(systemID string, resource abacTypes.Resource) ([]Subject, error)
 	ListRbacGroupByActionResource(systemID, actionID string, resource abacTypes.Resource) ([]Subject, error)
@@ -151,17 +158,16 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 		)
 	}
 
+	existSubjects, err := cacheimpls.BatchGetSubjectByPKs(existGroupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "cacheimpls.BatchGetSubjectByPKs groupPKs=`%+v` fail",
+			existGroupPKs,
+		)
+	}
+
 	existGroups := make([]Subject, 0, len(existGroupPKs))
-	for _, pk := range existGroupPKs {
-		subject, err := cacheimpls.GetSubjectByPK(pk)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
-		}
-
+	for _, subject := range existSubjects {
 		existGroups = append(existGroups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
@@ -232,18 +238,20 @@ func (c *groupController) CheckSubjectEffectGroups(
 		}
 
 		groupIDBelong[groupID] = map[string]interface{}{
-			"belong":     true,
-			"expired_at": group.ExpiredAt,
-			"created_at": group.CreatedAt,
+			"belong":          true,
+			"expired_at":      group.ExpiredAt,
+			"created_at":      group.CreatedAt,
+			"is_direct_added": group.IsDirectAdded,
 		}
 	}
 
 	for _, groupID := range groupIDs {
 		if _, ok := groupIDBelong[groupID]; !ok {
 			groupIDBelong[groupID] = map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}
 		}
 	}
@@ -353,6 +361,67 @@ func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset 
 	return members, nil
 }
 
+// GetTemplateGroupMemberCount ...
+func (c *groupController) GetTemplateGroupMemberCount(_type, id string, templateID int64) (int64, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "GetTemplateGroupMemberCount")
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`, templateID=`%d` fail",
+			_type,
+			id,
+			templateID,
+		)
+	}
+
+	count, err := c.service.GetTemplateGroupMemberCount(groupPK, templateID)
+	if err != nil {
+		return 0, errorWrapf(
+			err,
+			"service.GetTemplateGroupMemberCount groupPK=`%d`, templateID=`%d`",
+			groupPK,
+			templateID,
+		)
+	}
+
+	return count, nil
+}
+
+// ListPagingTemplateGroupMember ...
+func (c *groupController) ListPagingTemplateGroupMember(
+	_type, id string,
+	templateID int64,
+	limit, offset int64,
+) ([]GroupMember, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingTemplateGroupMember")
+	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s`, templateID=`%d` fail",
+			_type,
+			id,
+			templateID,
+		)
+	}
+
+	svcMembers, err := c.service.ListPagingTemplateGroupMember(groupPK, templateID, limit, offset)
+	if err != nil {
+		return nil, errorWrapf(
+			err, "service.ListPagingTemplateGroupMember groupPK=`%d`, templateID=`%d`, limit=`%d`, offset=`%d` fail",
+			groupPK, templateID, limit, offset,
+		)
+	}
+
+	members, err := convertToGroupMembers(svcMembers)
+	if err != nil {
+		return nil, errorWrapf(err, "convertToGroupMembers svcMembers=`%+v` fail", svcMembers)
+	}
+
+	return members, nil
+}
+
 // ListPagingGroupSubjectBeforeExpiredAt ...
 func (c *groupController) ListPagingGroupSubjectBeforeExpiredAt(
 	expiredAt int64,
@@ -425,12 +494,340 @@ func (c *groupController) ListPagingGroupMemberBeforeExpiredAt(
 	return members, nil
 }
 
+type subjectGroupHelper struct {
+	service service.GroupService
+
+	groupSystemCache map[int64]string
+}
+
+func newSubjectGroupHelper(service service.GroupService) *subjectGroupHelper {
+	return &subjectGroupHelper{
+		service:          service,
+		groupSystemCache: map[int64]string{},
+	}
+}
+
+func (h *subjectGroupHelper) getSubjectGroup(
+	subjectPK, groupPK int64,
+) (authorized bool, subjectGroup *types.ThinSubjectGroup, err error) {
+	systemID, ok := h.groupSystemCache[groupPK]
+	if !ok {
+		systemID, err = h.service.GetGroupOneAuthSystem(groupPK)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return false, nil, err
+		}
+		h.groupSystemCache[groupPK] = systemID
+	}
+
+	if systemID == "" {
+		return false, nil, nil
+	}
+
+	// subject - system的groups列表
+	subjectGroups, err := cacheimpls.GetSubjectSystemGroup(systemID, subjectPK)
+	if err != nil {
+		return false, nil, err
+	}
+
+	for _, group := range subjectGroups {
+		if group.GroupPK == groupPK {
+			return true, &group, nil
+		}
+	}
+
+	return true, nil, nil
+}
+
+func (c *groupController) BulkCreateSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "BulkCreateSubjectTemplateGroup")
+
+	relations, err := c.convertToSubjectTemplateGroups(subjectTemplateGroups)
+	if err != nil {
+		return errorWrapf(err, "convertToSubjectTemplateGroups subjectTemplateGroups=`%+v` fail", subjectTemplateGroups)
+	}
+
+	subjectGroupHelper := newSubjectGroupHelper(c.service)
+
+	for i := range relations {
+		relation := &relations[i]
+
+		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, relation.GroupPK)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"getSubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+				relation.SubjectPK,
+				relation.GroupPK,
+			)
+		}
+
+		// 1. 如果group未授权, 不需要更新
+		if !authorized {
+			continue
+		}
+
+		// 2. 如果已授权并且过期时间大于当前时间, 不需要更新
+		if subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
+			relation.ExpiredAt = subjectGroup.ExpiredAt
+			continue
+		}
+
+		// 3. 其余场景需要更新
+		relation.NeedUpdate = true
+	}
+
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return errorWrapf(err, "define tx error")
+	}
+
+	// 创建subject template group
+	err = c.service.BulkCreateSubjectTemplateGroupWithTx(tx, relations)
+	if err != nil {
+		return errorWrapf(
+			err, "service.BulkCreateSubjectTemplateGroupWithTx relations=`%+v` fail", relations,
+		)
+	}
+
+	// 更新除了subject system group之外的subject group
+	err = c.updateSubjectGroupExpiredAtWithTx(tx, relations, true)
+	if err != nil {
+		return errorWrapf(err, "updateSubjectGroupExpiredAtWithTx relations=`%+v` fail", relations)
+	}
+
+	// 提交事务
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx commit error")
+	}
+
+	// 清理subject system group 缓存
+	c.deleteSubjectTemplateGroupCache(relations)
+
+	return nil
+}
+
+func (c *groupController) UpdateSubjectTemplateGroupExpiredAt(subjectTemplateGroups []SubjectTemplateGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "BulkRenewSubjectTemplateGroup")
+
+	relations, err := c.convertToSubjectTemplateGroups(subjectTemplateGroups)
+	if err != nil {
+		return errorWrapf(err, "convertToSubjectTemplateGroups subjectTemplateGroups=`%+v` fail", subjectTemplateGroups)
+	}
+
+	subjectGroupHelper := newSubjectGroupHelper(c.service)
+
+	noAuthorizedRelations := make([]types.SubjectTemplateGroup, 0, len(relations))
+	for i := range relations {
+		relation := &relations[i]
+
+		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, relation.GroupPK)
+		if err != nil {
+			return errorWrapf(
+				err,
+				"getSubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+				relation.SubjectPK,
+				relation.GroupPK,
+			)
+		}
+
+		// 1. 如果group未授权
+		if !authorized {
+			noAuthorizedRelations = append(noAuthorizedRelations, *relation)
+			continue
+		}
+
+		// 2. 如果已授权并且过期时间大于当前时间, 不需要更新
+		if subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
+			continue
+		}
+
+		// 3. 其余场景需要更新
+		relation.NeedUpdate = true
+	}
+
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return errorWrapf(err, "define tx error")
+	}
+
+	if len(noAuthorizedRelations) > 0 {
+		// 只更新subject template group的过期时间
+		err = c.service.UpdateSubjectTemplateGroupExpiredAtWithTx(tx, noAuthorizedRelations)
+		if err != nil {
+			return errorWrapf(
+				err, "service.UpdateSubjectTemplateGroupExpiredAtWithTx relations=`%+v` fail", noAuthorizedRelations,
+			)
+		}
+	}
+
+	// 更新subject system group
+	err = c.service.BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx(tx, relations)
+	if err != nil {
+		return errorWrapf(
+			err,
+			"service.BulkUpdateSubjectSystemGroupBySubjectTemplateGroupWithTx relations=`%+v` fail",
+			relations,
+		)
+	}
+
+	// 更新除了subject system group之外的subject group
+	err = c.updateSubjectGroupExpiredAtWithTx(tx, relations, true)
+	if err != nil {
+		return errorWrapf(err, "updateSubjectGroupExpiredAtWithTx relations=`%+v` fail", relations)
+	}
+
+	// 提交事务
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx commit error")
+	}
+
+	// 清理subject system group 缓存
+	c.deleteSubjectTemplateGroupCache(relations)
+
+	return nil
+}
+
+func (*groupController) convertToSubjectTemplateGroups(
+	subjectTemplateGroups []SubjectTemplateGroup,
+) ([]types.SubjectTemplateGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "convertToSubjectTemplateGroups")
+
+	relations := make([]types.SubjectTemplateGroup, 0, len(subjectTemplateGroups))
+	for _, stg := range subjectTemplateGroups {
+		subjectPK, err := cacheimpls.GetLocalSubjectPK(stg.Type, stg.ID)
+		if err != nil {
+			return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", stg.Type, stg.ID)
+		}
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.SubjectTypeGroup, strconv.FormatInt(stg.GroupID, 10))
+		if err != nil {
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail",
+				types.SubjectTypeGroup,
+				strconv.FormatInt(stg.GroupID, 10),
+			)
+		}
+
+		relations = append(relations, types.SubjectTemplateGroup{
+			SubjectPK:  subjectPK,
+			TemplateID: stg.TemplateID,
+			GroupPK:    groupPK,
+			ExpiredAt:  stg.ExpiredAt,
+		})
+	}
+	return relations, nil
+}
+
+func (c *groupController) BulkDeleteSubjectTemplateGroup(subjectTemplateGroups []SubjectTemplateGroup) error {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "BulkDeleteSubjectTemplateGroup")
+
+	relations, err := c.convertToSubjectTemplateGroups(subjectTemplateGroups)
+	if err != nil {
+		return errorWrapf(err, "convertToSubjectTemplateGroups subjectTemplateGroups=`%+v` fail", subjectTemplateGroups)
+	}
+
+	now := time.Now().Unix()
+	for i := range relations {
+		relation := &relations[i]
+
+		expiredAt, err := c.service.GetMaxExpiredAtBySubjectGroup(
+			relation.SubjectPK,
+			relation.GroupPK,
+			relation.TemplateID,
+		)
+		if err != nil && !errors.Is(err, service.ErrGroupMemberNotFound) {
+			return errorWrapf(
+				err, "GetMaxExpiredAtBySubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+			)
+		}
+
+		// 如果有其它的关系, 并且过期时间大于当前时间, 不需要删除
+		if err == nil && expiredAt > now {
+			continue
+		}
+
+		relation.NeedUpdate = true
+	}
+
+	// 如果没有其他关系了需要删除subject system group数据
+	tx, err := database.GenerateDefaultDBTx()
+	defer database.RollBackWithLog(tx)
+	if err != nil {
+		return errorWrapf(err, "define tx error")
+	}
+
+	err = c.service.BulkDeleteSubjectTemplateGroupWithTx(tx, relations)
+	if err != nil {
+		return errorWrapf(
+			err, "service.BulkDeleteSubjectTemplateGroupWithTx relations=`%+v` fail", relations,
+		)
+	}
+
+	// 提交事务
+	err = tx.Commit()
+	if err != nil {
+		return errorWrapf(err, "tx commit error")
+	}
+
+	// 清理subject system group 缓存
+	c.deleteSubjectTemplateGroupCache(relations)
+
+	return nil
+}
+
+func (c *groupController) deleteSubjectTemplateGroupCache(relations []types.SubjectTemplateGroup) {
+	groupSubjects := map[int64][]int64{}
+	for _, relation := range relations {
+		if !relation.NeedUpdate {
+			continue
+		}
+
+		if _, ok := groupSubjects[relation.GroupPK]; !ok {
+			groupSubjects[relation.GroupPK] = []int64{}
+		}
+		groupSubjects[relation.GroupPK] = append(groupSubjects[relation.GroupPK], relation.SubjectPK)
+	}
+
+	for groupPK, subjectPKs := range groupSubjects {
+		c.createGroupAlterEvent(groupPK, subjectPKs)
+
+		cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
+	}
+}
+
 // CreateOrUpdateGroupMembers ...
 func (c *groupController) CreateOrUpdateGroupMembers(
 	_type, id string,
 	members []GroupMember,
 ) (typeCount map[string]int64, err error) {
 	return c.alterGroupMembers(_type, id, members, true)
+}
+
+func (c *groupController) convertGroupMembersToSubjectTemplateGroups(
+	groupPK int64,
+	members []GroupMember,
+) ([]types.SubjectTemplateGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "convertGroupMembersToSubjectTemplateGroups")
+
+	relations := make([]types.SubjectTemplateGroup, 0, len(members))
+	for _, m := range members {
+		subjectPK, err := cacheimpls.GetLocalSubjectPK(m.Type, m.ID)
+		if err != nil {
+			return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
+		}
+
+		relations = append(relations, types.SubjectTemplateGroup{
+			GroupPK:   groupPK,
+			SubjectPK: subjectPK,
+			ExpiredAt: m.ExpiredAt,
+		})
+	}
+
+	return relations, nil
 }
 
 func (c *groupController) alterGroupMembers(
@@ -457,48 +854,58 @@ func (c *groupController) alterGroupMembers(
 	}
 
 	// 获取实际需要添加的member
-	createMembers := make([]types.SubjectRelationForCreate, 0, len(members))
+	createMembers := make([]types.SubjectTemplateGroup, 0, len(members))
 
 	// 需要更新过期时间的member
-	updateMembers := make([]types.SubjectRelationForUpdate, 0, len(members))
-
-	// 用于清理缓存
-	subjectPKs := make([]int64, 0, len(members))
+	updateMembers := make([]types.SubjectTemplateGroup, 0, len(members))
 
 	typeCount = map[string]int64{
 		types.UserType:       0,
 		types.DepartmentType: 0,
 	}
 
-	for _, m := range members {
-		subjectPK, err := cacheimpls.GetLocalSubjectPK(m.Type, m.ID)
+	subjectTemplateGroups, err := c.convertGroupMembersToSubjectTemplateGroups(groupPK, members)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectGroupHelper := newSubjectGroupHelper(c.service)
+	for i := range subjectTemplateGroups {
+		relation := &subjectTemplateGroups[i]
+
+		// 查询 subject group 已有的关系
+		authorized, subjectGroup, err := subjectGroupHelper.getSubjectGroup(relation.SubjectPK, groupPK)
 		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", m.Type, m.ID)
+			return nil, errorWrapf(
+				err,
+				"getSubjectGroup subjectPK=`%d`, groupPK=`%d` fail",
+				relation.SubjectPK,
+				groupPK,
+			)
+		}
+
+		if authorized && subjectGroup != nil && subjectGroup.ExpiredAt > relation.ExpiredAt {
+			relation.ExpiredAt = subjectGroup.ExpiredAt
 		}
 
 		// member已存在则不再添加
-		if oldMember, ok := memberMap[subjectPK]; ok {
+		if oldMember, ok := memberMap[relation.SubjectPK]; ok {
 			// 如果过期时间大于已有的时间, 则更新过期时间
-			if m.ExpiredAt > oldMember.ExpiredAt {
-				updateMembers = append(updateMembers, types.SubjectRelationForUpdate{
-					PK:        oldMember.PK,
-					SubjectPK: subjectPK,
-					ExpiredAt: m.ExpiredAt,
-				})
+			if relation.ExpiredAt > oldMember.ExpiredAt {
+				relation.NeedUpdate = true
 
-				subjectPKs = append(subjectPKs, subjectPK)
+				updateMembers = append(updateMembers, *relation)
 			}
 			continue
 		}
 
 		if createIfNotExists {
-			createMembers = append(createMembers, types.SubjectRelationForCreate{
-				SubjectPK: subjectPK,
-				GroupPK:   groupPK,
-				ExpiredAt: m.ExpiredAt,
-			})
-			typeCount[m.Type]++
-			subjectPKs = append(subjectPKs, subjectPK)
+			if authorized && (subjectGroup == nil || subjectGroup.ExpiredAt < relation.ExpiredAt) {
+				relation.NeedUpdate = true
+			}
+
+			createMembers = append(createMembers, *relation)
+			typeCount[members[i].Type]++
 		}
 	}
 
@@ -529,22 +936,41 @@ func (c *groupController) alterGroupMembers(
 		}
 	}
 
+	// 更新subject template group过期时间
+	err = c.updateSubjectGroupExpiredAtWithTx(tx, subjectTemplateGroups, false)
+	if err != nil {
+		err = errorWrapf(err, "updateSubjectGroupExpiredAtWithTx subjectTemplateGroups=`%+v`", subjectTemplateGroups)
+		return
+	}
+
 	// 提交事务
 	err = tx.Commit()
 	if err != nil {
 		return nil, errorWrapf(err, "tx commit error")
 	}
 
-	// 创建group_alter_event
-	c.createGroupAlterEvent(groupPK, subjectPKs)
-
-	// 清理缓存
-	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
-
 	// 清理subject system group 缓存
-	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
+	c.deleteSubjectTemplateGroupCache(subjectTemplateGroups)
 
 	return typeCount, nil
+}
+
+func (c *groupController) updateSubjectGroupExpiredAtWithTx(
+	tx *sqlx.Tx,
+	subjectTemplateGroups []types.SubjectTemplateGroup,
+	updateGroupRelation bool,
+) error {
+	needUpdateRelations := make([]types.SubjectTemplateGroup, 0, len(subjectTemplateGroups))
+	for _, relation := range subjectTemplateGroups {
+		if relation.NeedUpdate {
+			needUpdateRelations = append(needUpdateRelations, relation)
+		}
+	}
+
+	if len(needUpdateRelations) != 0 {
+		return c.service.UpdateSubjectGroupExpiredAtWithTx(tx, needUpdateRelations, updateGroupRelation)
+	}
+	return nil
 }
 
 // UpdateGroupMembersExpiredAt ...
@@ -595,8 +1021,6 @@ func (c *groupController) DeleteGroupMembers(
 
 	// 创建group_alter_event
 	c.createGroupAlterEvent(groupPK, subjectPKs)
-
-	cacheimpls.BatchDeleteSubjectGroupCache(subjectPKs)
 
 	// group auth system
 	cacheimpls.BatchDeleteSubjectAuthSystemGroupCache(subjectPKs, groupPK)
@@ -752,17 +1176,13 @@ func (c *groupController) ListRbacGroupByActionResource(
 }
 
 func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(groupPKs)
+	if err != nil {
+		return nil, fmt.Errorf("cacheimpls.BatchGetSubjectByPKs fail, subjectPKs=`%v`", groupPKs)
+	}
+
 	groups := make([]Subject, 0, len(groupPKs))
-	for _, pk := range groupPKs {
-		subject, err := cacheimpls.GetSubjectByPK(pk)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, fmt.Errorf("subject query fail, subjectPK=`%d`", pk)
-		}
-
+	for _, subject := range subjects {
 		groups = append(groups, Subject{
 			Type: subject.Type,
 			ID:   subject.ID,
@@ -773,15 +1193,26 @@ func groupPKsToSubjects(groupPKs []int64) ([]Subject, error) {
 }
 
 func convertToSubjectGroups(svcSubjectGroups []types.SubjectGroup) ([]SubjectGroup, error) {
+	groupPKs := make([]int64, 0, len(svcSubjectGroups))
+	for _, m := range svcSubjectGroups {
+		groupPKs = append(groupPKs, m.GroupPK)
+	}
+
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(groupPKs)
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]types.Subject, len(subjects))
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
+	}
+
 	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
 	for _, m := range svcSubjectGroups {
-		subject, err := cacheimpls.GetSubjectByPK(m.GroupPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		subject, ok := subjectMap[m.GroupPK]
+		if !ok {
+			continue
 		}
 
 		groups = append(groups, SubjectGroup{
@@ -832,24 +1263,32 @@ func convertToGroupMembers(svcGroupMembers []types.GroupMember) ([]GroupMember, 
 }
 
 func convertToGroupSubjects(svcGroupSubjects []types.GroupSubject) ([]GroupSubject, error) {
+	subjectPKs := set.NewInt64Set()
+	for _, m := range svcGroupSubjects {
+		subjectPKs.Add(m.SubjectPK)
+		subjectPKs.Add(m.GroupPK)
+	}
+
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(subjectPKs.ToSlice())
+	if err != nil {
+		return nil, err
+	}
+
+	subjectMap := make(map[int64]types.Subject, len(subjects))
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
+	}
+
 	groupSubjects := make([]GroupSubject, 0, len(svcGroupSubjects))
 	for _, m := range svcGroupSubjects {
-		subject, err := cacheimpls.GetSubjectByPK(m.SubjectPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		subject, ok := subjectMap[m.SubjectPK]
+		if !ok {
+			continue
 		}
 
-		group, err := cacheimpls.GetSubjectByPK(m.GroupPK)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				continue
-			}
-
-			return nil, err
+		group, ok := subjectMap[m.GroupPK]
+		if !ok {
+			continue
 		}
 
 		groupSubjects = append(groupSubjects, GroupSubject{

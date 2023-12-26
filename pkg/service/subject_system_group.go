@@ -37,7 +37,8 @@ const RetryCount = 3
 func (l *groupService) doUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
 	systemID string,
-	subjectPK, groupPK, expiredAt int64,
+	subjectPK int64,
+	groupExpiredAtMap map[int64]int64,
 	createIfNotExists bool,
 	updateGroupExpiredAtFunc func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error),
 ) error {
@@ -47,7 +48,7 @@ func (l *groupService) doUpdateSubjectSystemGroup(
 	subjectSystemGroup, err := l.subjectSystemGroupManager.GetBySystemSubject(systemID, subjectPK)
 	if createIfNotExists && errors.Is(err, sql.ErrNoRows) {
 		// 查不到数据时, 如果需要创建, 则创建
-		err = l.createSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt)
+		err = l.createSubjectSystemGroup(tx, systemID, subjectPK, groupExpiredAtMap)
 		if database.IsMysqlDuplicateEntryError(err) {
 			return ErrNeedRetry
 		}
@@ -96,19 +97,21 @@ func (l *groupService) addOrUpdateSubjectSystemGroup(
 	tx *sqlx.Tx,
 	subjectPK int64,
 	systemID string,
-	groupPK, expiredAt int64,
+	groupExpiredAtMap map[int64]int64,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "addOrUpdateSubjectSystemGroup")
 
 	// 更新或创建新的关系
-	addOrUpdateFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
-		groupExpiredAtMap[groupPK] = expiredAt
-		return groupExpiredAtMap, nil
+	addOrUpdateFunc := func(groups map[int64]int64) (map[int64]int64, error) {
+		for groupPK, expiredAt := range groupExpiredAtMap {
+			groups[groupPK] = expiredAt
+		}
+		return groups, nil
 	}
 
 	// 乐观锁, 重复提交, 最多3次
 	for i := 0; i < RetryCount; i++ {
-		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, expiredAt, true, addOrUpdateFunc)
+		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupExpiredAtMap, true, addOrUpdateFunc)
 		if err == nil {
 			return nil
 		}
@@ -119,8 +122,8 @@ func (l *groupService) addOrUpdateSubjectSystemGroup(
 
 		if err != nil {
 			err = errorWrapf(
-				err, "addOrUpdateSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupPK: %d, expiredAt: %d",
-				systemID, subjectPK, groupPK, expiredAt,
+				err, "addOrUpdateSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupExpiredAtMap: %v",
+				systemID, subjectPK, groupExpiredAtMap,
 			)
 			return
 		}
@@ -134,22 +137,26 @@ func (l *groupService) removeSubjectSystemGroup(
 	tx *sqlx.Tx,
 	subjectPK int64,
 	systemID string,
-	groupPK int64,
+	groupExpiredAtMap map[int64]int64,
 ) (err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(SubjectSVC, "removeSubjectSystemGroup")
 
-	removeFunc := func(groupExpiredAtMap map[int64]int64) (map[int64]int64, error) {
-		_, ok := groupExpiredAtMap[groupPK]
-		if !ok {
+	removeFunc := func(groups map[int64]int64) (map[int64]int64, error) {
+		length := len(groups)
+		for groupPK := range groupExpiredAtMap {
+			delete(groups, groupPK)
+		}
+
+		if length == len(groups) {
 			return nil, ErrNoSubjectSystemGroup
 		}
-		delete(groupExpiredAtMap, groupPK)
-		return groupExpiredAtMap, nil
+
+		return groups, nil
 	}
 
 	// 乐观锁, 重复提交, 最多3次
 	for i := 0; i < RetryCount; i++ {
-		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupPK, 0, false, removeFunc)
+		err = l.doUpdateSubjectSystemGroup(tx, systemID, subjectPK, groupExpiredAtMap, false, removeFunc)
 		if err == nil {
 			return nil
 		}
@@ -160,15 +167,15 @@ func (l *groupService) removeSubjectSystemGroup(
 
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNoSubjectSystemGroup) {
 			// 数据不存在时记录日志
-			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, groupPK=`%d`",
-				systemID, subjectPK, groupPK)
+			log.Warningf("removeSubjectSystemGroup not exists systemID=`%s`, subjectPK=`%d`, groupExpiredAtMap=`%v`",
+				systemID, subjectPK, groupExpiredAtMap)
 			return nil
 		}
 
 		if err != nil {
 			err = errorWrapf(
-				err, "removeSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupPK: %d",
-				systemID, subjectPK, groupPK,
+				err, "removeSubjectSystemGroup fail, systemID: %s, subjectPK: %d, groupExpiredAtMap: %v",
+				systemID, subjectPK, groupExpiredAtMap,
 			)
 			return
 		}
@@ -180,9 +187,10 @@ func (l *groupService) removeSubjectSystemGroup(
 func (l *groupService) createSubjectSystemGroup(
 	tx *sqlx.Tx,
 	systemID string,
-	subjectPK, groupPK, expiredAt int64,
+	subjectPK int64,
+	groupExpiredAtMap map[int64]int64,
 ) error {
-	groups, err := jsoniter.MarshalToString(map[int64]int64{groupPK: expiredAt})
+	groups, err := jsoniter.MarshalToString(groupExpiredAtMap)
 	if err != nil {
 		return err
 	}

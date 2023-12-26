@@ -61,20 +61,29 @@ func (c *departmentController) ListPaging(limit, offset int64) ([]SubjectDepartm
 		pks = append(pks, svcSubjectDepartment.DepartmentPKs...)
 	}
 
+	subjects, err := cacheimpls.BatchGetSubjectByPKs(pks)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.BatchGetSubjectByPKs pks=`%v` fail", pks)
+	}
+
 	subjectMap := make(map[int64]types.Subject, len(pks))
-	for _, pk := range pks {
-		subject, err := cacheimpls.GetSubjectByPK(pk)
-		if err != nil {
-			return nil, errorWrapf(err, "cacheimpls.GetSubjectByPK pk=`%d` fail", pk)
-		}
-		subjectMap[pk] = subject
+	for _, subject := range subjects {
+		subjectMap[subject.PK] = subject
 	}
 
 	subjectDepartments := make([]SubjectDepartment, 0, len(svcSubjectDepartments))
 	for _, svcSubjectDepartment := range svcSubjectDepartments {
+		if _, ok := subjectMap[svcSubjectDepartment.SubjectPK]; !ok {
+			continue
+		}
+
 		subjectID := subjectMap[svcSubjectDepartment.SubjectPK].ID
 		departmentIDs := make([]string, 0, len(svcSubjectDepartment.DepartmentPKs))
 		for _, depPK := range svcSubjectDepartment.DepartmentPKs {
+			if _, ok := subjectMap[depPK]; !ok {
+				continue
+			}
+
 			departmentIDs = append(departmentIDs, subjectMap[depPK].ID)
 		}
 

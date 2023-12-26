@@ -13,6 +13,7 @@ package pap
 import (
 	"database/sql"
 	"errors"
+	"reflect"
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -46,9 +47,6 @@ var _ = Describe("GroupController", func() {
 				}
 
 				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
-				return nil
 			})
 		})
 		AfterEach(func() {
@@ -91,12 +89,13 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3, NeedUpdate: true}},
 				).
 				Return(
 					errors.New("error"),
 				).
 				AnyTimes()
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -128,13 +127,13 @@ var _ = Describe("GroupController", func() {
 				[]types.GroupMember{}, nil,
 			).AnyTimes()
 			mockGroupService.EXPECT().
-				UpdateGroupMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}}).
+				UpdateGroupMembersExpiredAtWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}}).
 				Return(
 					nil,
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().
-				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
+				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{
 					SubjectPK: 2,
 					GroupPK:   1,
 					ExpiredAt: int64(3),
@@ -143,6 +142,7 @@ var _ = Describe("GroupController", func() {
 					errors.New("error"),
 				).
 				AnyTimes()
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			db, mock := database.NewMockSqlxDB()
 			mock.ExpectBegin()
@@ -176,16 +176,14 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}},
 				).Return(
 				nil,
 			).
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
-			mockGroupAlterEventService.EXPECT().
-				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(errors.New("error"))
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -223,14 +221,14 @@ var _ = Describe("GroupController", func() {
 			mockGroupService.EXPECT().
 				UpdateGroupMembersExpiredAtWithTx(
 					gomock.Any(), int64(1),
-					[]types.SubjectRelationForUpdate{{PK: 1, SubjectPK: 2, ExpiredAt: 3}},
+					[]types.SubjectTemplateGroup{{SubjectPK: 2, GroupPK: 1, ExpiredAt: 3}},
 				).
 				Return(
 					nil,
 				).
 				AnyTimes()
 			mockGroupService.EXPECT().
-				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectRelationForCreate{{
+				BulkCreateGroupMembersWithTx(gomock.Any(), int64(1), []types.SubjectTemplateGroup{{
 					SubjectPK: 2,
 					GroupPK:   1,
 					ExpiredAt: int64(3),
@@ -241,9 +239,7 @@ var _ = Describe("GroupController", func() {
 				AnyTimes()
 			mockGroupService.EXPECT().ListGroupAuthSystemIDs(int64(1)).Return([]string{}, nil).AnyTimes()
 			mockGroupAlterEventService := mock.NewMockGroupAlterEventService(ctl)
-			mockGroupAlterEventService.EXPECT().
-				CreateByGroupSubject(gomock.Any(), gomock.Any()).
-				Return(errors.New("error"))
+			mockGroupService.EXPECT().GetGroupOneAuthSystem(int64(1)).Return("", nil).AnyTimes()
 
 			patches.ApplyFunc(service.NewGroupService, func() service.GroupService {
 				return mockGroupService
@@ -292,9 +288,6 @@ var _ = Describe("GroupController", func() {
 				}
 
 				return 0, nil
-			})
-			patches.ApplyFunc(cacheimpls.BatchDeleteSubjectGroupCache, func(pks []int64) error {
-				return nil
 			})
 		})
 		AfterEach(func() {
@@ -423,7 +416,7 @@ var _ = Describe("GroupController", func() {
 		It("ok, all groupID valid", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.SubjectGroup{{
+				[]types.SubjectGroupWithSource{{
 					GroupPK:   10,
 					ExpiredAt: 1,
 					CreatedAt: time.Time{},
@@ -442,21 +435,23 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 2)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     true,
-				"expired_at": int64(1),
-				"created_at": time.Time{},
+				"belong":          true,
+				"expired_at":      int64(1),
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["20"])
 		})
 
 		It("ok, has invalid groupID", func() {
 			mockGroupService := mock.NewMockGroupService(ctl)
 			mockGroupService.EXPECT().ListEffectSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
-				[]types.SubjectGroup{{
+				[]types.SubjectGroupWithSource{{
 					GroupPK:   10,
 					ExpiredAt: 1,
 				}, {
@@ -473,19 +468,22 @@ var _ = Describe("GroupController", func() {
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), groupIDBelong, 3)
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     true,
-				"expired_at": int64(1),
-				"created_at": time.Time{},
+				"belong":          true,
+				"expired_at":      int64(1),
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["10"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["20"])
 			assert.Equal(GinkgoT(), map[string]interface{}{
-				"belong":     false,
-				"expired_at": 0,
-				"created_at": time.Time{},
+				"belong":          false,
+				"expired_at":      0,
+				"created_at":      time.Time{},
+				"is_direct_added": false,
 			}, groupIDBelong["invalid"])
 		})
 	})
@@ -576,8 +574,8 @@ var _ = Describe("GroupController", func() {
 				).
 				AnyTimes()
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, errors.New("err")
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return nil, errors.New("err")
 			})
 
 			c := &groupController{
@@ -615,8 +613,8 @@ var _ = Describe("GroupController", func() {
 				).
 				AnyTimes()
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, nil
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return []types.Subject{{}}, nil
 			})
 
 			c := &groupController{
@@ -778,8 +776,8 @@ var _ = Describe("GroupController", func() {
 				return []int64{1}, nil
 			})
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, errors.New("err")
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return nil, errors.New("err")
 			})
 
 			c := &groupController{}
@@ -815,8 +813,8 @@ var _ = Describe("GroupController", func() {
 				return []int64{1}, nil
 			})
 
-			patches.ApplyFunc(cacheimpls.GetSubjectByPK, func(pk int64) (subject types.Subject, err error) {
-				return types.Subject{}, nil
+			patches.ApplyFunc(cacheimpls.BatchGetSubjectByPKs, func(pks []int64) (subjects []types.Subject, err error) {
+				return []types.Subject{{}}, nil
 			})
 
 			c := &groupController{}
@@ -830,6 +828,347 @@ var _ = Describe("GroupController", func() {
 
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []Subject{{}}, groups)
+		})
+	})
+
+	Describe("BulkCreateSubjectTemplateGroup", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+				switch id {
+				case "1":
+					return int64(1), nil
+				case "2":
+					return int64(2), nil
+				case "3":
+					return int64(0), errors.New("err")
+				}
+
+				return 0, nil
+			})
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			patches.Reset()
+		})
+
+		It("convertToSubjectTemplateGroups fail", func() {
+			manager := &groupController{}
+
+			err := manager.BulkCreateSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "3",
+					TemplateID: 0,
+					GroupID:    1,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "convertToSubjectTemplateGroups")
+		})
+
+		It("getSubjectGroup fail", func() {
+			helper := &subjectGroupHelper{}
+			patches.ApplyPrivateMethod(reflect.TypeOf(helper), "getSubjectGroup", func(
+				_ *subjectGroupHelper, subjectPK, groupPK int64,
+			) (authorized bool, subjectGroup *types.ThinSubjectGroup, err error) {
+				return false, nil, errors.New("err")
+			})
+
+			patches.ApplyFunc(newSubjectGroupHelper, func(service service.GroupService) *subjectGroupHelper {
+				return helper
+			})
+
+			manager := &groupController{}
+
+			err := manager.BulkCreateSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "getSubjectGroup")
+		})
+
+		It("BulkCreateSubjectTemplateGroupWithTx fail", func() {
+			helper := &subjectGroupHelper{}
+			patches.ApplyPrivateMethod(reflect.TypeOf(helper), "getSubjectGroup", func(
+				_ *subjectGroupHelper, subjectPK, groupPK int64,
+			) (authorized bool, subjectGroup *types.ThinSubjectGroup, err error) {
+				return false, nil, nil
+			})
+
+			patches.ApplyFunc(newSubjectGroupHelper, func(service service.GroupService) *subjectGroupHelper {
+				return helper
+			})
+
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().
+				BulkCreateSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).
+				Return(errors.New("err"))
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			err := manager.BulkCreateSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkCreateSubjectTemplateGroupWithTx")
+		})
+
+		It("updateSubjectGroupExpiredAtWithTx fail", func() {
+			helper := &subjectGroupHelper{}
+			patches.ApplyPrivateMethod(reflect.TypeOf(helper), "getSubjectGroup", func(
+				_ *subjectGroupHelper, subjectPK, groupPK int64,
+			) (authorized bool, subjectGroup *types.ThinSubjectGroup, err error) {
+				return false, nil, nil
+			})
+
+			patches.ApplyFunc(newSubjectGroupHelper, func(service service.GroupService) *subjectGroupHelper {
+				return helper
+			})
+
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().BulkCreateSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).Return(nil)
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			patches.ApplyPrivateMethod(reflect.TypeOf(manager), "updateSubjectGroupExpiredAtWithTx", func(
+				c *groupController,
+				tx *sqlx.Tx,
+				subjectTemplateGroups []types.SubjectTemplateGroup,
+				updateGroupRelation bool,
+			) error {
+				return errors.New("err")
+			})
+
+			err := manager.BulkCreateSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "updateSubjectGroupExpiredAtWithTx")
+		})
+
+		It("ok", func() {
+			helper := &subjectGroupHelper{}
+			patches.ApplyPrivateMethod(reflect.TypeOf(helper), "getSubjectGroup", func(
+				_ *subjectGroupHelper, subjectPK, groupPK int64,
+			) (authorized bool, subjectGroup *types.ThinSubjectGroup, err error) {
+				return false, nil, nil
+			})
+
+			patches.ApplyFunc(newSubjectGroupHelper, func(service service.GroupService) *subjectGroupHelper {
+				return helper
+			})
+
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().BulkCreateSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).Return(nil)
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			patches.ApplyPrivateMethod(reflect.TypeOf(manager), "updateSubjectGroupExpiredAtWithTx", func(
+				c *groupController,
+				tx *sqlx.Tx,
+				subjectTemplateGroups []types.SubjectTemplateGroup,
+				updateGroupRelation bool,
+			) error {
+				return nil
+			})
+
+			err := manager.BulkCreateSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.NoError(GinkgoT(), err)
+		})
+	})
+
+	Describe("BulkDeleteSubjectTemplateGroup", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+				switch id {
+				case "1":
+					return int64(1), nil
+				case "2":
+					return int64(2), nil
+				case "3":
+					return int64(0), errors.New("err")
+				}
+
+				return 0, nil
+			})
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			patches.Reset()
+		})
+
+		It("convertToSubjectTemplateGroups fail", func() {
+			manager := &groupController{}
+
+			err := manager.BulkDeleteSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "3",
+					TemplateID: 0,
+					GroupID:    1,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "convertToSubjectTemplateGroups")
+		})
+
+		It("GetMaxExpiredAtBySubjectGroup fail", func() {
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(int64(0), errors.New("err"))
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			err := manager.BulkDeleteSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "GetMaxExpiredAtBySubjectGroup")
+		})
+
+		It("BulkDeleteSubjectTemplateGroupWithTx fail", func() {
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(time.Now().Unix()+10, nil)
+			mockService.EXPECT().
+				BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).
+				Return(errors.New("err"))
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			err := manager.BulkDeleteSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "BulkDeleteSubjectTemplateGroupWithTx")
+		})
+
+		It("ok", func() {
+			mockService := mock.NewMockGroupService(ctl)
+			mockService.EXPECT().
+				GetMaxExpiredAtBySubjectGroup(int64(1), int64(2), int64(1)).
+				Return(time.Now().Unix()+10, nil)
+			mockService.EXPECT().BulkDeleteSubjectTemplateGroupWithTx(gomock.Any(), gomock.Any()).Return(nil)
+
+			db, mock := database.NewMockSqlxDB()
+			mock.ExpectBegin()
+			mock.ExpectCommit()
+			tx, _ := db.Beginx()
+
+			patches.ApplyFunc(database.GenerateDefaultDBTx, func() (*sqlx.Tx, error) {
+				return tx, nil
+			})
+
+			manager := &groupController{
+				service: mockService,
+			}
+
+			err := manager.BulkDeleteSubjectTemplateGroup([]SubjectTemplateGroup{
+				{
+					Type:       "user",
+					ID:         "1",
+					TemplateID: 1,
+					GroupID:    2,
+					ExpiredAt:  3,
+				},
+			})
+			assert.NoError(GinkgoT(), err)
 		})
 	})
 })

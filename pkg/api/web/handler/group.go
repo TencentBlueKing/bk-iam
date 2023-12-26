@@ -508,3 +508,45 @@ func QueryRbacGroupByResource(c *gin.Context) {
 
 	util.SuccessJSONResponse(c, "ok", groups)
 }
+
+// ListGroupMember 查询用户组的成员列表
+func ListTemplateGroupMember(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListPagingTemplateGroupMember")
+
+	var subject listTemplateGroupMemberSerializer
+	if err := c.ShouldBindQuery(&subject); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+
+	subject.Default()
+
+	ctl := pap.NewGroupController()
+	count, err := ctl.GetTemplateGroupMemberCount(subject.Type, subject.ID, subject.TemplateID)
+	if err != nil {
+		err = errorWrapf(err, "type=`%s`, id=`%s`, templateID=`%d`", subject.Type, subject.ID, subject.TemplateID)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	relations, err := ctl.ListPagingTemplateGroupMember(
+		subject.Type,
+		subject.ID,
+		subject.TemplateID,
+		subject.Limit,
+		subject.Offset,
+	)
+	if err != nil {
+		err = errorWrapf(
+			err, "ctl.ListPagingTemplateGroupMember type=`%s`, id=`%s`, templateID=`%d`, limit=`%d`, offset=`%d`",
+			subject.Type, subject.ID, subject.TemplateID, subject.Limit, subject.Offset,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", gin.H{
+		"count":   count,
+		"results": relations,
+	})
+}

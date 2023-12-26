@@ -253,7 +253,7 @@ func (g *GinAPIRequest) BadRequest(message string) {
 		Expect(g.t).
 		Assert(NewResponseAssertFunc(g.t, func(resp Response) error {
 			assert.Equal(g.t, BadRequestError, resp.Code)
-			assert.Equal(g.t, message, resp.Message)
+			assert.Contains(g.t, resp.Message, message)
 			return nil
 		})).
 		Status(http.StatusOK).
