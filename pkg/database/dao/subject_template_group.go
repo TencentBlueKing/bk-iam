@@ -47,7 +47,7 @@ type SubjectTemplateGroupManager interface {
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
 	BulkUpdateExpiredAtByRelationWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteWithTx(tx *sqlx.Tx, relations []SubjectTemplateGroup) error
-	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 }
 
 type subjectTemplateGroupManager struct {
@@ -237,7 +237,7 @@ func (m *subjectTemplateGroupManager) ListThinRelationWithMaxExpiredAtByGroupPK(
 	return relations, err
 }
 
-func (m *subjectTemplateGroupManager) BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error {
+func (m *subjectTemplateGroupManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	sql := `DELETE FROM subject_template_group
 		 WHERE subject_pk in (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)

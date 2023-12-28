@@ -879,7 +879,7 @@ func (l *groupService) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64)
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteByGroupPKsWithTx")
 
 	// 批量用户组删除成员关系 subjectRelation
-	err := l.manager.BulkDeleteByGroupPKs(tx, groupPKs)
+	err := l.manager.BulkDeleteByGroupPKsWithTx(tx, groupPKs)
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteByGroupPKs group_pks=`%+v` fail", groupPKs)
@@ -893,14 +893,14 @@ func (l *groupService) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []in
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "BulkDeleteBySubjectPKsWithTx")
 
 	// 批量其加入的用户组关系 subjectRelation
-	err := l.manager.BulkDeleteBySubjectPKs(tx, subjectPKs)
+	err := l.manager.BulkDeleteBySubjectPKsWithTx(tx, subjectPKs)
 	if err != nil {
 		return errorWrapf(
 			err, "manager.BulkDeleteBySubjectPKs subject_pks=`%+v` fail", subjectPKs)
 	}
 
 	// 批量删除subject template group
-	err = l.subjectTemplateGroupManager.BulkDeleteBySubjectPKs(tx, subjectPKs)
+	err = l.subjectTemplateGroupManager.BulkDeleteBySubjectPKsWithTx(tx, subjectPKs)
 	if err != nil {
 		return errorWrapf(
 			err,
