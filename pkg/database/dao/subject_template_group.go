@@ -238,6 +238,10 @@ func (m *subjectTemplateGroupManager) ListThinRelationWithMaxExpiredAtByGroupPK(
 }
 
 func (m *subjectTemplateGroupManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
+
 	sql := `DELETE FROM subject_template_group
 		 WHERE subject_pk in (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
