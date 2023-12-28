@@ -148,20 +148,14 @@ func (m *expressionManager) selectAuthByPKs(expressions *[]AuthExpression, pks [
 }
 
 func (m *expressionManager) selectBySignaturesType(expressions *[]Expression, signatures []string, _type int64) error {
-	query := `SELECT
-		pk,
-		type,
-		expression,
-		signature
-		FROM expression
-		WHERE pk IN (
-			SELECT
-			MIN(pk)
+	query := `SELECT e.pk, e.type, e.expression, e.signature
+		FROM expression e
+		JOIN (
+			SELECT MIN(pk) AS min_pk
 			FROM expression
-			WHERE signature IN (?)
-			AND type = ?
+			WHERE signature IN (?) AND type = ?
 			GROUP BY signature
-		)`
+		) subquery ON e.pk = subquery.min_pk`
 	return database.SqlxSelect(m.DB, expressions, query, signatures, _type)
 }
 
