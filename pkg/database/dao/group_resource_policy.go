@@ -216,6 +216,10 @@ func (m *groupResourcePolicyManager) BulkDeleteByGroupPKsWithTx(
 	tx *sqlx.Tx,
 	groupPKs []int64,
 ) error {
+	if len(groupPKs) == 0 {
+		return nil
+	}
+
 	sql := `DELETE FROM rbac_group_resource_policy WHERE group_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, groupPKs)
 }
