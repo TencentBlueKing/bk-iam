@@ -141,7 +141,7 @@ func Test_expressionManager_ListDistinctBySignaturesType(t *testing.T) {
 				Signature:  "test2",
 			},
 		}
-		mockQuery := `^SELECT pk, type, expression, signature FROM expression WHERE pk IN`
+		mockQuery := `^SELECT e.pk, e.type, e.expression, e.signature FROM expression e`
 		mockRows := database.NewMockRows(mock, mockData...)
 		mock.ExpectQuery(mockQuery).WithArgs("a", "b", int64(1)).WillReturnRows(mockRows)
 
