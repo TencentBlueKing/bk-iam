@@ -49,6 +49,20 @@ func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkCreateWithTx(tx, rela
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkCreateWithTx", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).BulkCreateWithTx), tx, relations)
 }
 
+// BulkDeleteBySubjectPKsWithTx mocks base method.
+func (m *MockSubjectTemplateGroupManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BulkDeleteBySubjectPKsWithTx", tx, subjectPKs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkDeleteBySubjectPKsWithTx indicates an expected call of BulkDeleteBySubjectPKsWithTx.
+func (mr *MockSubjectTemplateGroupManagerMockRecorder) BulkDeleteBySubjectPKsWithTx(tx, subjectPKs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDeleteBySubjectPKsWithTx", reflect.TypeOf((*MockSubjectTemplateGroupManager)(nil).BulkDeleteBySubjectPKsWithTx), tx, subjectPKs)
+}
+
 // BulkDeleteWithTx mocks base method.
 func (m *MockSubjectTemplateGroupManager) BulkDeleteWithTx(tx *sqlx.Tx, relations []dao.SubjectTemplateGroup) error {
 	m.ctrl.T.Helper()
