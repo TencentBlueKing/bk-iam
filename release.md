@@ -1,3 +1,8 @@
+# 1.12.12
+
+- add: add default sensitivity level query
+- update: optimize SQL for expression queries
+
 # 1.12.11
 
 - add: subject template group api
