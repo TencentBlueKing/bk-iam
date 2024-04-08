@@ -1,3 +1,27 @@
+# 1.12.12
+
+- add: add default sensitivity level query
+- update: optimize SQL for expression queries
+
+# 1.12.11
+
+- add: subject template group api
+- add: instace:paste select mod
+- update: update requirements version
+
+# 1.12.10
+
+- update: feat: add subject cache batch get
+
+# 1.12.9
+
+- update: update policy list order
+
+# 1.12.8
+
+- update: user subject local cache replace subject cache
+- bugfix: action update with hidden
+
 # 1.12.7
 
 - bugfix: delete unreferenced expression

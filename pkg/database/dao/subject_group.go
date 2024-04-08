@@ -68,8 +68,8 @@ type SubjectGroupManager interface {
 	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
-	BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error
-	BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error
+	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
+	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 
 	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
@@ -352,16 +352,16 @@ func (m *subjectGroupManager) BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectR
 	return m.bulkInsertWithTx(tx, relations)
 }
 
-// BulkDeleteBySubjectPKs ...
-func (m *subjectGroupManager) BulkDeleteBySubjectPKs(tx *sqlx.Tx, subjectPKs []int64) error {
+// BulkDeleteBySubjectPKsWithTx ...
+func (m *subjectGroupManager) BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
 	if len(subjectPKs) == 0 {
 		return nil
 	}
 	return m.bulkDeleteBySubjectPKs(tx, subjectPKs)
 }
 
-// BulkDeleteByGroupPKs ...
-func (m *subjectGroupManager) BulkDeleteByGroupPKs(tx *sqlx.Tx, groupPKs []int64) error {
+// BulkDeleteByGroupPKsWithTx ...
+func (m *subjectGroupManager) BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, groupPKs []int64) error {
 	if len(groupPKs) == 0 {
 		return nil
 	}
