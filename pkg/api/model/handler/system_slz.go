@@ -12,29 +12,29 @@ package handler
 
 type systemProviderConfig struct {
 	// TODO: valid host?
-	Host string `json:"host" structs:"host" binding:"required,url" example:"http://bkpaas.service.consul"`
+	Host string `json:"host" structs:"host" binding:"required,url"              example:"http://bkpaas.service.consul"`
 	Auth string `json:"auth" structs:"auth" binding:"required,oneof=none basic" example:"basic"`
 
 	Healthz string `json:"healthz" structs:"healthz" binding:"omitempty" example:"/healthz"`
 }
 
 type systemSerializer struct {
-	ID            string `json:"id" binding:"required,max=32" example:"bk_paas"`
-	Name          string `json:"name" binding:"required" example:"bk_paas"`
-	NameEn        string `json:"name_en" binding:"required" example:"bk_paas"`
-	Description   string `json:"description" binding:"omitempty" example:"Platform as A Service"`
-	DescriptionEn string `json:"description_en" binding:"omitempty" example:"Platform as A Service"`
-	Clients       string `json:"clients" binding:"required" example:"bk_paas,bk_esb"`
+	ID            string `json:"id"             binding:"required,max=32" example:"bk_paas"`
+	Name          string `json:"name"           binding:"required"        example:"bk_paas"`
+	NameEn        string `json:"name_en"        binding:"required"        example:"bk_paas"`
+	Description   string `json:"description"    binding:"omitempty"       example:"Platform as A Service"`
+	DescriptionEn string `json:"description_en" binding:"omitempty"       example:"Platform as A Service"`
+	Clients       string `json:"clients"        binding:"required"        example:"bk_paas,bk_esb"`
 
 	ProviderConfig systemProviderConfig `json:"provider_config" binding:"required"`
 }
 
 type systemUpdateSerializer struct {
-	Name          string `json:"name" binding:"omitempty" example:"bk_paas"`
-	NameEn        string `json:"name_en" binding:"omitempty" example:"bk_paas"`
-	Description   string `json:"description" binding:"omitempty" example:"Platform as A Service"`
+	Name          string `json:"name"           binding:"omitempty" example:"bk_paas"`
+	NameEn        string `json:"name_en"        binding:"omitempty" example:"bk_paas"`
+	Description   string `json:"description"    binding:"omitempty" example:"Platform as A Service"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"Platform as A Service"`
-	Clients       string `json:"clients" binding:"omitempty" example:"bk_paas,bk_esb"`
+	Clients       string `json:"clients"        binding:"omitempty" example:"bk_paas,bk_esb"`
 
 	ProviderConfig *systemProviderConfig `json:"provider_config" binding:"omitempty"`
 }
@@ -67,12 +67,12 @@ func (s *systemUpdateSerializer) validate(keys map[string]interface{}) (bool, st
 }
 
 type systemResponse struct {
-	ID             string                 `json:"id" example:"bk_paas"`
-	Name           string                 `json:"name" example:"bk_paas"`
-	NameEn         string                 `json:"name_en" example:"bk_paas"`
-	Description    string                 `json:"description" example:"Platform as A Service"`
-	DescriptionEn  string                 `json:"description_en" example:"Platform as A Service"`
-	Clients        string                 `json:"clients" example:"bk_paas,bk_esb"`
+	ID             string                 `json:"id"              example:"bk_paas"`
+	Name           string                 `json:"name"            example:"bk_paas"`
+	NameEn         string                 `json:"name_en"         example:"bk_paas"`
+	Description    string                 `json:"description"     example:"Platform as A Service"`
+	DescriptionEn  string                 `json:"description_en"  example:"Platform as A Service"`
+	Clients        string                 `json:"clients"         example:"bk_paas,bk_esb"`
 	ProviderConfig map[string]interface{} `json:"provider_config"`
 }
 

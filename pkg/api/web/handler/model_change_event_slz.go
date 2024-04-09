@@ -19,9 +19,9 @@ type updateModelChangeEventStatusSerializer struct {
 }
 
 type deleteModelChangeEventSerializer struct {
-	Status          string `json:"status" binding:"required"`
+	Status          string `json:"status"            binding:"required"`
 	BeforeUpdatedAt int64  `json:"before_updated_at" binding:"omitempty,min=1,max=4102444800" example:"1592899208"`
-	Limit           int64  `json:"limit" binding:"omitempty,min=1,max=100000"`
+	Limit           int64  `json:"limit"             binding:"omitempty,min=1,max=100000"`
 }
 
 func (s *deleteModelChangeEventSerializer) initDefault() {

@@ -29,9 +29,9 @@ func (s *policyGetQuerySerializer) initDefault() {
 }
 
 type policyGetResponse struct {
-	Version    string                 `json:"version" example:"1"`
-	ID         int64                  `json:"id" example:"100"`
-	System     string                 `json:"system" example:"bk_test"`
+	Version    string                 `json:"version"    example:"1"`
+	ID         int64                  `json:"id"         example:"100"`
+	System     string                 `json:"system"     example:"bk_test"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Action     policyResponseAction   `json:"action"`
 	Expression map[string]interface{} `json:"expression"`
@@ -40,7 +40,7 @@ type policyGetResponse struct {
 
 type policyResponseSubject struct {
 	Type string `json:"type" example:"user"`
-	ID   string `json:"id" example:"admin"`
+	ID   string `json:"id"   example:"admin"`
 	Name string `json:"name" example:"Administer"`
 }
 

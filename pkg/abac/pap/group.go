@@ -141,7 +141,10 @@ func (c *groupController) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (
 	return c.service.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
 }
 
-func (c *groupController) ListGroupSubjectBeforeExpiredAtBySubjects(subjects []Subject, expiredAt int64) ([]GroupSubject, error) {
+func (c *groupController) ListGroupSubjectBeforeExpiredAtBySubjects(
+	subjects []Subject,
+	expiredAt int64,
+) ([]GroupSubject, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "FilterGroupsHasMemberBeforeExpiredAt")
 
 	svcSubjects := convertToServiceSubjects(subjects)

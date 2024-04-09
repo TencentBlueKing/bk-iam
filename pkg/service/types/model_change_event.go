@@ -12,11 +12,11 @@ package types
 
 // ModelChangeEvent is a event to store model change detail
 type ModelChangeEvent struct {
-	PK        int64  `json:"pk" structs:"pk"` // 自增列
-	Type      string `json:"type" structs:"type"`
-	Status    string `json:"status" structs:"status"`
-	SystemID  string `json:"system_id" structs:"system_id"`
+	PK        int64  `json:"pk"         structs:"pk"` // 自增列
+	Type      string `json:"type"       structs:"type"`
+	Status    string `json:"status"     structs:"status"`
+	SystemID  string `json:"system_id"  structs:"system_id"`
 	ModelType string `json:"model_type" structs:"model_type"`
-	ModelID   string `json:"model_id" structs:"model_id"`
-	ModelPK   int64  `json:"model_pk" structs:"model_pk"`
+	ModelID   string `json:"model_id"   structs:"model_id"`
+	ModelPK   int64  `json:"model_pk"   structs:"model_pk"`
 }

@@ -14,13 +14,13 @@ package types
 type ResourceType struct {
 	AllowEmptyFields
 
-	ID             string                   `json:"id" structs:"id"`
-	Name           string                   `json:"name" structs:"name"`
-	NameEn         string                   `json:"name_en" structs:"name_en"`
-	Description    string                   `json:"description" structs:"description"`
-	DescriptionEn  string                   `json:"description_en" structs:"description_en"`
-	Sensitivity    int64                    `json:"sensitivity" structs:"sensitivity"`
-	Parents        []map[string]interface{} `json:"parents" structs:"parents"`
+	ID             string                   `json:"id"              structs:"id"`
+	Name           string                   `json:"name"            structs:"name"`
+	NameEn         string                   `json:"name_en"         structs:"name_en"`
+	Description    string                   `json:"description"     structs:"description"`
+	DescriptionEn  string                   `json:"description_en"  structs:"description_en"`
+	Sensitivity    int64                    `json:"sensitivity"     structs:"sensitivity"`
+	Parents        []map[string]interface{} `json:"parents"         structs:"parents"`
 	ProviderConfig map[string]interface{}   `json:"provider_config" structs:"provider_config"`
-	Version        int64                    `json:"version" structs:"version"`
+	Version        int64                    `json:"version"         structs:"version"`
 }

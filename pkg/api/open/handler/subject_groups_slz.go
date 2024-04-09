@@ -12,7 +12,7 @@ package handler
 
 type responseSubject struct {
 	Type string `json:"type" example:"user"`
-	ID   string `json:"id" example:"admin"`
+	ID   string `json:"id"   example:"admin"`
 	Name string `json:"name" example:"Administer"`
 }
 

@@ -25,7 +25,7 @@ func (s *subjectsSerializer) initDefault() {
 }
 
 type policyIDSubject struct {
-	PolicyID int64                 `json:"id" example:"100"`
+	PolicyID int64                 `json:"id"      example:"100"`
 	Subject  policyResponseSubject `json:"subject"`
 }
 

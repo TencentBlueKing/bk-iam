@@ -23,10 +23,10 @@ const (
 )
 
 type listQuerySerializer struct {
-	ActionID  string `form:"action_id" binding:"required" example:"edit_host"`
+	ActionID  string `form:"action_id" binding:"required"                 example:"edit_host"`
 	PageSize  int64  `form:"page_size" binding:"omitempty,min=10,max=500" example:"100"`
-	Page      int64  `form:"page" binding:"omitempty,min=1" example:"1"`
-	Timestamp int64  `form:"timestamp" binding:"omitempty,min=1" example:"1592899208"`
+	Page      int64  `form:"page"      binding:"omitempty,min=1"          example:"1"`
+	Timestamp int64  `form:"timestamp" binding:"omitempty,min=1"          example:"1592899208"`
 
 	Type string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
@@ -63,21 +63,21 @@ func (s *listQuerySerializer) initDefault() {
 }
 
 type thinPolicyResponse struct {
-	Version    string                 `json:"version" example:"1"`
-	ID         int64                  `json:"id" example:"100"`
+	Version    string                 `json:"version"    example:"1"`
+	ID         int64                  `json:"id"         example:"100"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Expression map[string]interface{} `json:"expression"`
 	ExpiredAt  int64                  `json:"expired_at" example:"4102444800"`
 }
 
 type policyListResponseMetadata struct {
-	System    string               `json:"system" example:"bk_test"`
+	System    string               `json:"system"    example:"bk_test"`
 	Action    policyResponseAction `json:"action"`
 	Timestamp int64                `json:"timestamp" example:"1592899208"`
 }
 
 type policyListResponse struct {
 	Metadata policyListResponseMetadata `json:"metadata"`
-	Count    int64                      `json:"count" example:"120"`
+	Count    int64                      `json:"count"    example:"120"`
 	Results  []thinPolicyResponse       `json:"results"`
 }

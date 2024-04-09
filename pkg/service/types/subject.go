@@ -61,7 +61,7 @@ type GroupSubject struct {
 // ThinSubjectGroup keep the minimum fields of a group, with the group subject_pk and expired_at
 type ThinSubjectGroup struct {
 	// GroupPK is the subject_pk of group
-	GroupPK   int64 `json:"group_pk" msgpack:"p"`
+	GroupPK   int64 `json:"group_pk"   msgpack:"p"`
 	ExpiredAt int64 `json:"expired_at" msgpack:"pe"`
 }
 
@@ -108,11 +108,11 @@ func (s *SubjectActionGroupResource) UpdateGroupResource(groupPK int64, resource
 
 // SubjectActionExpression ...
 type SubjectActionExpression struct {
-	PK         int64  `json:"pk" msgpack:"p"`
+	PK         int64  `json:"pk"         msgpack:"p"`
 	SubjectPK  int64  `json:"subject_pk" msgpack:"s1"`
-	ActionPK   int64  `json:"action_pk" msgpack:"a"`
+	ActionPK   int64  `json:"action_pk"  msgpack:"a"`
 	Expression string `json:"expression" msgpack:"e1"`
-	Signature  string `json:"signature" msgpack:"s2"`
+	Signature  string `json:"signature"  msgpack:"s2"`
 	ExpiredAt  int64  `json:"expired_at" msgpack:"e2"`
 }
 
