@@ -319,10 +319,10 @@ func ListExistGroupsHasMemberBeforeExpiredAt(c *gin.Context) {
 	copier.Copy(&papSubjects, &body.Subjects)
 
 	ctl := pap.NewGroupController()
-	existGroups, err := ctl.FilterGroupsHasMemberBeforeExpiredAt(papSubjects, body.BeforeExpiredAt)
+	existGroups, err := ctl.ListGroupSubjectBeforeExpiredAtBySubjects(papSubjects, body.BeforeExpiredAt)
 	if err != nil {
 		err = errorWrapf(
-			err, "ctl.FilterGroupsHasMemberBeforeExpiredAt subjects=`%+v`, beforeExpiredAt=`%d`",
+			err, "ctl.ListGroupSubjectBeforeExpiredAtBySubjects subjects=`%+v`, beforeExpiredAt=`%d`",
 			papSubjects, body.BeforeExpiredAt,
 		)
 		util.SystemErrorJSONResponse(c, err)
