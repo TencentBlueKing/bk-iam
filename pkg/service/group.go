@@ -51,7 +51,9 @@ type GroupService interface {
 		subjectPK int64,
 		groupPKs []int64,
 	) ([]types.SubjectGroupWithSource, error)
-	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	ListGroupSubjectBeforeExpiredAtByGroupPKs(
+		groupPKs []int64, expiredAt int64,
+	) ([]types.GroupSubject, error)
 
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
 	BulkDeleteByGroupPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -273,11 +275,18 @@ func (l *groupService) ListPagingSubjectSystemGroups(
 	return subjectGroups, err
 }
 
-// FilterGroupPKsHasMemberBeforeExpiredAt filter the exists and not expired subjects
-func (l *groupService) FilterGroupPKsHasMemberBeforeExpiredAt(
+// ListGroupSubjectBeforeExpiredAtByGroupPKs filter the exists and not expired subjects
+func (l *groupService) ListGroupSubjectBeforeExpiredAtByGroupPKs(
 	groupPKs []int64, expiredAt int64,
-) ([]int64, error) {
-	return l.manager.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
+) ([]types.GroupSubject, error) {
+	daoRelations, err := l.manager.ListRelationBySubjectPKGroupPKsBeforeExpiredAt(groupPKs, expiredAt)
+	if err != nil {
+		return nil, errorx.Wrapf(err, GroupSVC,
+			"ListRelationBySubjectPKGroupPKsBeforeExpiredAt", "ids=`%+v`, expiredAt=`%d`",
+			groupPKs, expiredAt)
+	}
+
+	return convertToGroupSubjects(daoRelations), nil
 }
 
 func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(
