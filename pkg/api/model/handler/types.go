@@ -12,12 +12,12 @@ package handler
 
 type referenceResourceType struct {
 	SystemID string `json:"system_id" structs:"system_id" binding:"required" example:"bk_cmdb"`
-	ID       string `json:"id" structs:"id" binding:"required" example:"host"`
+	ID       string `json:"id"        structs:"id"        binding:"required" example:"host"`
 }
 
 type referenceInstanceSelection struct {
-	SystemID      string `json:"system_id" structs:"system_id" binding:"required" example:"bk_cmdb"`
-	ID            string `json:"id" structs:"id" binding:"required" example:"host_view"`
+	SystemID      string `json:"system_id"       structs:"system_id"       binding:"required"  example:"bk_cmdb"`
+	ID            string `json:"id"              structs:"id"              binding:"required"  example:"host_view"`
 	IgnoreIAMPath bool   `json:"ignore_iam_path" structs:"ignore_iam_path" binding:"omitempty" example:"false"`
 }
 

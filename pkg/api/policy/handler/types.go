@@ -20,7 +20,7 @@ import (
 
 type subject struct {
 	Type string `json:"type" binding:"required" example:"user"`
-	ID   string `json:"id" binding:"required" example:"admin"`
+	ID   string `json:"id"   binding:"required" example:"admin"`
 }
 
 type action struct {
@@ -28,9 +28,9 @@ type action struct {
 }
 
 type resource struct {
-	System    string                 `json:"system" binding:"required" example:"bk_paas"`
-	Type      string                 `json:"type" binding:"required" example:"app"`
-	ID        string                 `json:"id" binding:"required" example:"framework"`
+	System    string                 `json:"system"    binding:"required" example:"bk_paas"`
+	Type      string                 `json:"type"      binding:"required" example:"app"`
+	ID        string                 `json:"id"        binding:"required" example:"framework"`
 	Attribute map[string]interface{} `json:"attribute" binding:"required"`
 }
 
@@ -42,13 +42,13 @@ func (r *resource) UID() string {
 
 // query for ext resources 附加查询的资源实例
 type extResource struct {
-	System string   `json:"system" binding:"required" example:"bk_paas"`
-	Type   string   `json:"type" binding:"required" example:"app"`
-	IDs    []string `json:"ids" binding:"required,gt=0"`
+	System string   `json:"system" binding:"required"      example:"bk_paas"`
+	Type   string   `json:"type"   binding:"required"      example:"app"`
+	IDs    []string `json:"ids"    binding:"required,gt=0"`
 }
 
 type baseRequest struct {
-	System  string  `json:"system" binding:"required" example:"bk_paas"`
+	System  string  `json:"system"  binding:"required" example:"bk_paas"`
 	Subject subject `json:"subject" binding:"required"`
 }
 
@@ -57,7 +57,7 @@ type authRequest struct {
 	baseRequest
 	// required
 	Resources []resource `json:"resources" binding:"required"`
-	Action    action     `json:"action" binding:"required"`
+	Action    action     `json:"action"    binding:"required"`
 }
 
 type authResponse struct {
@@ -66,8 +66,8 @@ type authResponse struct {
 
 // ====== auth v2
 type authV2Request struct {
-	Subject   subject    `json:"subject" binding:"required"`
-	Action    action     `json:"action" binding:"required"`
+	Subject   subject    `json:"subject"   binding:"required"`
+	Action    action     `json:"action"    binding:"required"`
 	Resources []resource `json:"resources" binding:"required"`
 }
 
@@ -81,16 +81,16 @@ type authByActionsRequest struct {
 	baseRequest
 	// can't be empty
 	Resources []resource `json:"resources" binding:"required"`
-	Actions   []action   `json:"actions" binding:"required,max=10"`
+	Actions   []action   `json:"actions"   binding:"required,max=10"`
 }
 
 // ======= auth by actions
 
 type authV2ByActionsRequest struct {
-	Subject subject `json:"subject" binding:"required"`
+	Subject subject `json:"subject"   binding:"required"`
 	// can't be empty
 	Resources []resource `json:"resources" binding:"required"`
-	Actions   []action   `json:"actions" binding:"required,max=10"`
+	Actions   []action   `json:"actions"   binding:"required,max=10"`
 }
 
 type authByActionsResponse map[string]bool
@@ -99,7 +99,7 @@ type authByActionsResponse map[string]bool
 
 type authByResourcesRequest struct {
 	baseRequest
-	Action        action       `json:"action" binding:"required"`
+	Action        action       `json:"action"         binding:"required"`
 	ResourcesList [][]resource `json:"resources_list" binding:"required,max=100"`
 }
 
@@ -110,14 +110,14 @@ type queryRequest struct {
 	baseRequest
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
-	Action    action     `json:"action" binding:"required"`
+	Action    action     `json:"action"    binding:"required"`
 }
 
 // ====== query v2
 
 type queryV2Request struct {
-	Subject subject `json:"subject" binding:"required"`
-	Action  action  `json:"action" binding:"required"`
+	Subject subject `json:"subject"   binding:"required"`
+	Action  action  `json:"action"    binding:"required"`
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
 }
@@ -128,16 +128,16 @@ type queryByActionsRequest struct {
 	baseRequest
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
-	Actions   []action   `json:"actions" binding:"required"`
+	Actions   []action   `json:"actions"   binding:"required"`
 }
 
 // ======= query by actions
 
 type queryV2ByActionsRequest struct {
-	Subject subject `json:"subject" binding:"required"`
+	Subject subject `json:"subject"   binding:"required"`
 	// can be empty
 	Resources []resource `json:"resources" binding:"omitempty"`
-	Actions   []action   `json:"actions" binding:"required"`
+	Actions   []action   `json:"actions"   binding:"required"`
 }
 
 type actionInResponse struct {

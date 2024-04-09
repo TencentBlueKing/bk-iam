@@ -24,9 +24,9 @@ import (
 )
 
 type queryPolicyCacheSerializer struct {
-	System      string `form:"system" binding:"required"`
+	System      string `form:"system"       binding:"required"`
 	SubjectType string `form:"subject_type" binding:"required"`
-	SubjectID   string `form:"subject_id" binding:"required"`
+	SubjectID   string `form:"subject_id"   binding:"required"`
 
 	Action string `form:"action"`
 }

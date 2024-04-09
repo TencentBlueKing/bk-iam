@@ -14,9 +14,9 @@ package types
 type InstanceSelection struct {
 	AllowEmptyFields
 
-	ID                string                   `json:"id" structs:"id"`
-	Name              string                   `json:"name" structs:"name"`
-	NameEn            string                   `json:"name_en" structs:"name_en"`
-	IsDynamic         bool                     `json:"is_dynamic" structs:"is_dynamic"`
+	ID                string                   `json:"id"                  structs:"id"`
+	Name              string                   `json:"name"                structs:"name"`
+	NameEn            string                   `json:"name_en"             structs:"name_en"`
+	IsDynamic         bool                     `json:"is_dynamic"          structs:"is_dynamic"`
 	ResourceTypeChain []map[string]interface{} `json:"resource_type_chain" structs:"resource_type_chain"`
 }

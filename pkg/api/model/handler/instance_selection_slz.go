@@ -19,18 +19,18 @@ import (
 )
 
 type instanceSelectionSerializer struct {
-	ID        string `json:"id" binding:"required,max=32" example:"biz_set"`
-	Name      string `json:"name" binding:"required" example:"biz_set"`
-	NameEn    string `json:"name_en" binding:"required" example:"biz_set"`
-	IsDynamic bool   `json:"is_dynamic" binding:"omitempty" example:"false"`
+	ID        string `json:"id"         binding:"required,max=32" example:"biz_set"`
+	Name      string `json:"name"       binding:"required"        example:"biz_set"`
+	NameEn    string `json:"name_en"    binding:"required"        example:"biz_set"`
+	IsDynamic bool   `json:"is_dynamic" binding:"omitempty"       example:"false"`
 
 	ResourceTypeChain []referenceResourceType `json:"resource_type_chain" structs:"resource_type_chain" binding:"required"`
 }
 
 type instanceSelectionUpdateSerializer struct {
 	// ID     string `json:"id" binding:"required"`
-	Name      string `json:"name" binding:"required" example:"biz_set"`
-	NameEn    string `json:"name_en" binding:"required" example:"biz_set"`
+	Name      string `json:"name"       binding:"required"  example:"biz_set"`
+	NameEn    string `json:"name_en"    binding:"required"  example:"biz_set"`
 	IsDynamic bool   `json:"is_dynamic" binding:"omitempty" example:"false"`
 
 	ResourceTypeChain []referenceResourceType `json:"resource_type_chain" structs:"resource_type_chain" binding:"required"`

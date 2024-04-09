@@ -90,7 +90,7 @@ func (s *listPolicySerializer) initDefault() {
 
 type policyResponseSubject struct {
 	Type string `json:"type" example:"user"`
-	ID   string `json:"id" example:"admin"`
+	ID   string `json:"id"   example:"admin"`
 	Name string `json:"name" example:"Administer"`
 }
 
@@ -99,15 +99,15 @@ type policyResponseAction struct {
 }
 
 type enginePolicyResponse struct {
-	Version    string                 `json:"version" example:"1"`
-	ID         int64                  `json:"id" example:"100"`
-	System     string                 `json:"system" example:"bk_cmdb"`
+	Version    string                 `json:"version"     example:"1"`
+	ID         int64                  `json:"id"          example:"100"`
+	System     string                 `json:"system"      example:"bk_cmdb"`
 	Actions    []policyResponseAction `json:"actions"`
 	Subject    policyResponseSubject  `json:"subject"`
 	Expression map[string]interface{} `json:"expression"`
 	TemplateID int64                  `json:"template_id"`
-	ExpiredAt  int64                  `json:"expired_at" example:"4102444800"`
-	UpdatedAt  int64                  `json:"updated_at" example:"4102444800"`
+	ExpiredAt  int64                  `json:"expired_at"  example:"4102444800"`
+	UpdatedAt  int64                  `json:"updated_at"  example:"4102444800"`
 }
 
 type policyListResponse struct {
@@ -118,9 +118,9 @@ type policyListResponse struct {
 // -- listPolicyPKs
 
 type listPolicyIDsSerializer struct {
-	BeginUpdatedAt int64  `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1" example:"1592899208"`
-	EndUpdatedAt   int64  `form:"end_updated_at" json:"end_updated_at" binding:"min=1" example:"1592899208"`
-	Type           string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
+	BeginUpdatedAt int64  `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1"                     example:"1592899208"`
+	EndUpdatedAt   int64  `form:"end_updated_at"   json:"end_updated_at"   binding:"min=1"                     example:"1592899208"`
+	Type           string `form:"type"             json:"type"             binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 func (s *listPolicyIDsSerializer) validate() (bool, string) {
@@ -148,8 +148,8 @@ type listPolicyIDsResponse struct {
 // --a getMaxPolicyPK
 
 type getMaxPolicyIDSerializer struct {
-	UpdatedAt int64  `form:"updated_at" json:"updated_at" binding:"min=1" example:"1592899208"`
-	Type      string `form:"type" json:"type" binding:"omitempty,oneof=abac rbac" example:"abac"`
+	UpdatedAt int64  `form:"updated_at" json:"updated_at" binding:"min=1"                     example:"1592899208"`
+	Type      string `form:"type"       json:"type"       binding:"omitempty,oneof=abac rbac" example:"abac"`
 }
 
 func (s *getMaxPolicyIDSerializer) initDefault() {

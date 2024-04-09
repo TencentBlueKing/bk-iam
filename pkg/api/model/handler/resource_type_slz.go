@@ -24,13 +24,13 @@ type resourceProviderConfig struct {
 }
 
 type resourceTypeSerializer struct {
-	ID     string `json:"id" binding:"required,max=32" example:"biz_set"`
-	Name   string `json:"name" binding:"required" example:"biz_set"`
-	NameEn string `json:"name_en" binding:"required" example:"biz_set"`
+	ID     string `json:"id"      binding:"required,max=32" example:"biz_set"`
+	Name   string `json:"name"    binding:"required"        example:"biz_set"`
+	NameEn string `json:"name_en" binding:"required"        example:"biz_set"`
 
-	Description   string `json:"description" binding:"omitempty" example:"biz_set is a"`
-	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_set is a"`
-	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
+	Description   string `json:"description"    binding:"omitempty"             example:"biz_set is a"`
+	DescriptionEn string `json:"description_en" binding:"omitempty"             example:"biz_set is a"`
+	Sensitivity   int64  `json:"sensitivity"    binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	// can be empty
 	Parents []referenceResourceType `json:"parents"`
@@ -42,11 +42,11 @@ type resourceTypeSerializer struct {
 
 type resourceTypeUpdateSerializer struct {
 	// ID     string `json:"id" binding:"required"`
-	Name          string `json:"name" binding:"omitempty" example:"biz_set"`
-	NameEn        string `json:"name_en" binding:"omitempty" example:"biz_set"`
-	Description   string `json:"description" binding:"omitempty" example:"biz_set is a"`
-	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_set is a"`
-	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
+	Name          string `json:"name"           binding:"omitempty"             example:"biz_set"`
+	NameEn        string `json:"name_en"        binding:"omitempty"             example:"biz_set"`
+	Description   string `json:"description"    binding:"omitempty"             example:"biz_set is a"`
+	DescriptionEn string `json:"description_en" binding:"omitempty"             example:"biz_set is a"`
+	Sensitivity   int64  `json:"sensitivity"    binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	// can be empty
 	Parents []referenceResourceType `json:"parents"`

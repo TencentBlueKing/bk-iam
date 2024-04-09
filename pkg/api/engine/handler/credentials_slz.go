@@ -11,13 +11,13 @@
 package handler
 
 type credentialsVerifySerializer struct {
-	Type string                     `json:"type"  binding:"required"`
-	Data appCodeAppSecretSerializer `json:"data"  binding:"required"`
+	Type string                     `json:"type" binding:"required"`
+	Data appCodeAppSecretSerializer `json:"data" binding:"required"`
 }
 
 type appCodeAppSecretSerializer struct {
-	AppCode   string `json:"app_code"  binding:"required"`
-	AppSecret string `json:"app_secret"  binding:"required"`
+	AppCode   string `json:"app_code"   binding:"required"`
+	AppSecret string `json:"app_secret" binding:"required"`
 }
 
 type credentialsVerifyResponseSerializer struct {
