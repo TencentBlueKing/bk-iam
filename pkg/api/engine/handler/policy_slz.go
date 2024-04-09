@@ -118,9 +118,9 @@ type policyListResponse struct {
 // -- listPolicyPKs
 
 type listPolicyIDsSerializer struct {
-	BeginUpdatedAt int64  `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1"                     example:"1592899208"`
-	EndUpdatedAt   int64  `form:"end_updated_at"   json:"end_updated_at"   binding:"min=1"                     example:"1592899208"`
-	Type           string `form:"type"             json:"type"             binding:"omitempty,oneof=abac rbac" example:"abac"`
+	BeginUpdatedAt int64  `form:"begin_updated_at" json:"begin_updated_at" binding:"min=1"`
+	EndUpdatedAt   int64  `form:"end_updated_at"   json:"end_updated_at"   binding:"min=1"`
+	Type           string `form:"type"             json:"type"             binding:"omitempty,oneof=abac rbac"`
 }
 
 func (s *listPolicyIDsSerializer) validate() (bool, string) {

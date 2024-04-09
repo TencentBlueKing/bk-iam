@@ -53,9 +53,9 @@ type actionSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty"             example:"biz_create is"`
 	Sensitivity   int64  `json:"sensitivity"    binding:"omitempty,gte=0,lte=9" example:"0"`
 
-	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac"                                             example:"abac"`
+	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
 	Type     string `json:"type"      binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Hidden   bool   `json:"hidden"    binding:"omitempty"                                                             example:"false"`
+	Hidden   bool   `json:"hidden"    binding:"omitempty" example:"false"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
@@ -71,9 +71,9 @@ type actionUpdateSerializer struct {
 	DescriptionEn string `json:"description_en" example:"biz_create is" binding:"omitempty"`
 	Sensitivity   int64  `json:"sensitivity"    example:"0"             binding:"omitempty,gte=0,lte=9"`
 
-	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac"                                             example:"abac"`
+	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
 	Type     string `json:"type"      binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Hidden   bool   `json:"hidden"    binding:"omitempty"                                                             example:"false"`
+	Hidden   bool   `json:"hidden"    binding:"omitempty" example:"false"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`

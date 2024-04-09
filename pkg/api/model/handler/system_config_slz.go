@@ -102,7 +102,7 @@ type resourceCreatorSingleActionSerializer struct {
 }
 
 type resourceCreatorActionConfig struct {
-	ID               string                                  `json:"id"                           binding:"required"      example:"host"`
+	ID               string                                  `json:"id"                           binding:"required"`
 	Actions          []resourceCreatorSingleActionSerializer `json:"actions"                      binding:"required,gt=0"`
 	SubResourceTypes []resourceCreatorActionConfig           `json:"sub_resource_types,omitempty" binding:"omitempty"`
 }
