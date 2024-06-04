@@ -44,7 +44,7 @@ type GroupController interface {
 	ListPagingSubjectSystemGroups(
 		_type, id, systemID string, beforeExpiredAt, limit, offset int64,
 	) ([]SubjectGroup, error)
-	FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error)
+	ListGroupSubjectBeforeExpiredAtBySubjects(subjects []Subject, expiredAt int64) ([]GroupSubject, error)
 	CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error)
 
 	GetGroupMemberCount(_type, id string) (int64, error)
@@ -141,7 +141,10 @@ func (c *groupController) GetGroupSubjectCountBeforeExpiredAt(expiredAt int64) (
 	return c.service.GetGroupSubjectCountBeforeExpiredAt(expiredAt)
 }
 
-func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subject, expiredAt int64) ([]Subject, error) {
+func (c *groupController) ListGroupSubjectBeforeExpiredAtBySubjects(
+	subjects []Subject,
+	expiredAt int64,
+) ([]GroupSubject, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "FilterGroupsHasMemberBeforeExpiredAt")
 
 	svcSubjects := convertToServiceSubjects(subjects)
@@ -150,32 +153,20 @@ func (c *groupController) FilterGroupsHasMemberBeforeExpiredAt(subjects []Subjec
 		return nil, errorWrapf(err, "service.ListPKsBySubjects subjects=`%+v` fail", subjects)
 	}
 
-	existGroupPKs, err := c.service.FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt)
+	svcRelations, err := c.service.ListGroupSubjectBeforeExpiredAtByGroupPKs(groupPKs, expiredAt)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.FilterGroupPKsHasMemberBeforeExpiredAt groupPKs=`%+v`, expiredAt=`%d` fail",
+			err, "service.ListGroupSubjectBeforeExpiredAtByGroupPKs groupPKs=`%+v`, expiredAt=`%d` fail",
 			groupPKs, expiredAt,
 		)
 	}
 
-	existSubjects, err := cacheimpls.BatchGetSubjectByPKs(existGroupPKs)
+	relations, err := convertToGroupSubjects(svcRelations)
 	if err != nil {
-		return nil, errorWrapf(
-			err, "cacheimpls.BatchGetSubjectByPKs groupPKs=`%+v` fail",
-			existGroupPKs,
-		)
+		return nil, errorWrapf(err, "convertToGroupSubjects svcRelations=`%+v` fail", svcRelations)
 	}
 
-	existGroups := make([]Subject, 0, len(existGroupPKs))
-	for _, subject := range existSubjects {
-		existGroups = append(existGroups, Subject{
-			Type: subject.Type,
-			ID:   subject.ID,
-			Name: subject.Name,
-		})
-	}
-
-	return existGroups, nil
+	return relations, nil
 }
 
 func (c *groupController) CheckSubjectEffectGroups(

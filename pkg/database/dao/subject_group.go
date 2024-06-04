@@ -65,7 +65,10 @@ type SubjectGroupManager interface {
 	) (members []ThinSubjectRelation, err error)
 	ListRelationBySubjectPKGroupPKs(subjectPK int64, groupPKs []int64) ([]SubjectRelation, error)
 
-	FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error)
+	ListRelationBySubjectPKGroupPKsBeforeExpiredAt(
+		groupPKs []int64,
+		expiredAt int64,
+	) ([]ThinSubjectRelation, error)
 
 	BulkCreateWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 	BulkDeleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error
@@ -399,23 +402,24 @@ func (m *subjectGroupManager) ListPagingGroupSubjectBeforeExpiredAt(
 	return
 }
 
-// FilterGroupPKsHasMemberBeforeExpiredAt get the group pks before timestamp(expiredAt)
-func (m *subjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(
+// ListRelationBySubjectPKGroupPKsBeforeExpiredAt get the group pks before timestamp(expiredAt)
+func (m *subjectGroupManager) ListRelationBySubjectPKGroupPKsBeforeExpiredAt(
 	groupPKs []int64,
 	expiredAt int64,
-) ([]int64, error) {
-	expiredGroupPKs := []int64{}
-	// TODO: DISTINCT 大表很慢
+) ([]ThinSubjectRelation, error) {
+	relations := []ThinSubjectRelation{}
 	query := `SELECT
-		 DISTINCT parent_pk
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at
 		 FROM subject_relation
 		 WHERE parent_pk IN (?)
 		 AND policy_expired_at < ?`
-	err := database.SqlxSelect(m.DB, &expiredGroupPKs, query, groupPKs, expiredAt)
+	err := database.SqlxSelect(m.DB, &relations, query, groupPKs, expiredAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return expiredGroupPKs, nil
+		return relations, nil
 	}
-	return expiredGroupPKs, err
+	return relations, err
 }
 
 func (m *subjectGroupManager) ListRelationBySubjectPKGroupPKs(

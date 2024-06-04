@@ -11,9 +11,9 @@
 package handler
 
 type subjectTemplateGroupSerializer struct {
-	Type       string `json:"type" binding:"required,oneof=user department"`
-	ID         string `json:"id" binding:"required"`
+	Type       string `json:"type"        binding:"required,oneof=user department"`
+	ID         string `json:"id"          binding:"required"`
 	TemplateID int64  `json:"template_id" binding:"required"`
-	GroupID    int64  `json:"group_id" binding:"required"`
-	ExpiredAt  int64  `json:"expired_at" binding:"omitempty,min=1,max=4102444800"`
+	GroupID    int64  `json:"group_id"    binding:"required"`
+	ExpiredAt  int64  `json:"expired_at"  binding:"omitempty,min=1,max=4102444800"`
 }

@@ -106,21 +106,6 @@ func (mr *MockSubjectGroupManagerMockRecorder) BulkUpdateExpiredAtWithTx(tx, rel
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateExpiredAtWithTx", reflect.TypeOf((*MockSubjectGroupManager)(nil).BulkUpdateExpiredAtWithTx), tx, relations)
 }
 
-// FilterGroupPKsHasMemberBeforeExpiredAt mocks base method.
-func (m *MockSubjectGroupManager) FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilterGroupPKsHasMemberBeforeExpiredAt", groupPKs, expiredAt)
-	ret0, _ := ret[0].([]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FilterGroupPKsHasMemberBeforeExpiredAt indicates an expected call of FilterGroupPKsHasMemberBeforeExpiredAt.
-func (mr *MockSubjectGroupManagerMockRecorder) FilterGroupPKsHasMemberBeforeExpiredAt(groupPKs, expiredAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterGroupPKsHasMemberBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).FilterGroupPKsHasMemberBeforeExpiredAt), groupPKs, expiredAt)
-}
-
 // GetExpiredAtBySubjectGroup mocks base method.
 func (m *MockSubjectGroupManager) GetExpiredAtBySubjectGroup(subjectPK, groupPK int64) (int64, error) {
 	m.ctrl.T.Helper()
@@ -374,6 +359,21 @@ func (m *MockSubjectGroupManager) ListRelationBySubjectPKGroupPKs(subjectPK int6
 func (mr *MockSubjectGroupManagerMockRecorder) ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBySubjectPKGroupPKs", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListRelationBySubjectPKGroupPKs), subjectPK, groupPKs)
+}
+
+// ListRelationBySubjectPKGroupPKsBeforeExpiredAt mocks base method.
+func (m *MockSubjectGroupManager) ListRelationBySubjectPKGroupPKsBeforeExpiredAt(groupPKs []int64, expiredAt int64) ([]dao.ThinSubjectRelation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRelationBySubjectPKGroupPKsBeforeExpiredAt", groupPKs, expiredAt)
+	ret0, _ := ret[0].([]dao.ThinSubjectRelation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRelationBySubjectPKGroupPKsBeforeExpiredAt indicates an expected call of ListRelationBySubjectPKGroupPKsBeforeExpiredAt.
+func (mr *MockSubjectGroupManagerMockRecorder) ListRelationBySubjectPKGroupPKsBeforeExpiredAt(groupPKs, expiredAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRelationBySubjectPKGroupPKsBeforeExpiredAt", reflect.TypeOf((*MockSubjectGroupManager)(nil).ListRelationBySubjectPKGroupPKsBeforeExpiredAt), groupPKs, expiredAt)
 }
 
 // ListThinRelationAfterExpiredAtBySubjectPKs mocks base method.

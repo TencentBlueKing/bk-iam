@@ -22,10 +22,10 @@ import (
 )
 
 type relatedResourceType struct {
-	SystemID string `json:"system_id" binding:"required" example:"bk_cmdb"`
-	ID       string `json:"id" binding:"required,max=32" example:"host"`
+	SystemID string `json:"system_id" binding:"required"        example:"bk_cmdb"`
+	ID       string `json:"id"        binding:"required,max=32" example:"host"`
 
-	NameAlias   string `json:"name_alias" example:""`
+	NameAlias   string `json:"name_alias"    example:""`
 	NameAliasEn string `json:"name_alias_en" example:""`
 
 	// 实例选择方式/范围: ["all", "instance", "attribute", "instance:paste"]
@@ -45,39 +45,39 @@ type relatedEnvironment struct {
 }
 
 type actionSerializer struct {
-	ID     string `json:"id" binding:"required,max=32" example:"biz_create"`
-	Name   string `json:"name" binding:"required" example:"biz_create"`
-	NameEn string `json:"name_en" binding:"required" example:"biz_create"`
+	ID     string `json:"id"      binding:"required,max=32" example:"biz_create"`
+	Name   string `json:"name"    binding:"required"        example:"biz_create"`
+	NameEn string `json:"name_en" binding:"required"        example:"biz_create"`
 
-	Description   string `json:"description" binding:"omitempty" example:"biz_create is"`
-	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
-	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
+	Description   string `json:"description"    binding:"omitempty"             example:"biz_create is"`
+	DescriptionEn string `json:"description_en" binding:"omitempty"             example:"biz_create is"`
+	Sensitivity   int64  `json:"sensitivity"    binding:"omitempty,gte=0,lte=9" example:"0"`
 
 	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
-	Type     string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Hidden   bool   `json:"hidden" binding:"omitempty" example:"false"`
+	Type     string `json:"type"      binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
+	Hidden   bool   `json:"hidden"    binding:"omitempty" example:"false"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
-	RelatedEnvironments  []relatedEnvironment  `json:"related_environments" binding:"omitempty"`
+	RelatedEnvironments  []relatedEnvironment  `json:"related_environments"   binding:"omitempty"`
 
 	Version int64 `json:"version" binding:"omitempty,gte=1" example:"1"`
 }
 
 type actionUpdateSerializer struct {
-	Name          string `json:"name" example:"biz_create"`
-	NameEn        string `json:"name_en" example:"biz_create"`
-	Description   string `json:"description" binding:"omitempty" example:"biz_create is"`
-	DescriptionEn string `json:"description_en" binding:"omitempty" example:"biz_create is"`
-	Sensitivity   int64  `json:"sensitivity" binding:"omitempty,gte=0,lte=9" example:"0"`
+	Name          string `json:"name"           example:"biz_create"`
+	NameEn        string `json:"name_en"        example:"biz_create"`
+	Description   string `json:"description"    example:"biz_create is" binding:"omitempty"`
+	DescriptionEn string `json:"description_en" example:"biz_create is" binding:"omitempty"`
+	Sensitivity   int64  `json:"sensitivity"    example:"0"             binding:"omitempty,gte=0,lte=9"`
 
 	AuthType string `json:"auth_type" binding:"omitempty,oneof=rbac abac" example:"abac"`
-	Type     string `json:"type" binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
-	Hidden   bool   `json:"hidden" binding:"omitempty" example:"false"`
+	Type     string `json:"type"      binding:"omitempty,oneof=create edit view delete list manage execute debug use"`
+	Hidden   bool   `json:"hidden"    binding:"omitempty" example:"false"`
 
 	RelatedResourceTypes []relatedResourceType `json:"related_resource_types"`
 	RelatedActions       []string              `json:"related_actions"`
-	RelatedEnvironments  []relatedEnvironment  `json:"related_environments" binding:"omitempty"`
+	RelatedEnvironments  []relatedEnvironment  `json:"related_environments"   binding:"omitempty"`
 
 	Version int64 `json:"version" binding:"omitempty,gte=1" example:"1"`
 }

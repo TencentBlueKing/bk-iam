@@ -29,9 +29,9 @@ type actionGroupActionSerializer struct {
 }
 
 type actionGroupSerializer struct {
-	Name      string                        `json:"name" binding:"required" example:"admin"`
-	NameEn    string                        `json:"name_en" binding:"required" example:"admin"`
-	Actions   []actionGroupActionSerializer `json:"actions,omitempty" binding:"omitempty"`
+	Name      string                        `json:"name"                 binding:"required"  example:"admin"`
+	NameEn    string                        `json:"name_en"              binding:"required"  example:"admin"`
+	Actions   []actionGroupActionSerializer `json:"actions,omitempty"    binding:"omitempty"`
 	SubGroups []actionGroupSerializer       `json:"sub_groups,omitempty" binding:"omitempty"`
 }
 
@@ -97,13 +97,13 @@ func validateActionGroup(actionGroups []actionGroupSerializer, name string) (boo
 }
 
 type resourceCreatorSingleActionSerializer struct {
-	ID       string `json:"id" binding:"required" example:"edit"`
+	ID       string `json:"id"       binding:"required" example:"edit"`
 	Required bool   `json:"required" binding:"required" example:"true"`
 }
 
 type resourceCreatorActionConfig struct {
-	ID               string                                  `json:"id" binding:"required" example:"host"`
-	Actions          []resourceCreatorSingleActionSerializer `json:"actions" binding:"required,gt=0"`
+	ID               string                                  `json:"id"                           binding:"required"`
+	Actions          []resourceCreatorSingleActionSerializer `json:"actions"                      binding:"required,gt=0"`
 	SubResourceTypes []resourceCreatorActionConfig           `json:"sub_resource_types,omitempty" binding:"omitempty"`
 }
 
@@ -144,7 +144,7 @@ func (r *resourceCreatorActionConfig) validate() error {
 type resourceCreatorActionSerializer struct {
 	// 选择支持的方式：接入系统 和 用户，对于用户，则需要在授权接口上额外传入祖先creator信息
 	Mode   string                        `json:"mode,omitempty" binding:"omitempty,oneof=system user" example:"system"`
-	Config []resourceCreatorActionConfig `json:"config" binding:"required"`
+	Config []resourceCreatorActionConfig `json:"config"         binding:"required"`
 }
 
 func (r *resourceCreatorActionSerializer) getAllActionIDResourceTypeIDFromConfig() []ActionIDResourceTypeID {
@@ -187,8 +187,8 @@ type actionIDSerializer struct {
 }
 
 type commonActionSerializer struct {
-	Name    string               `json:"name" binding:"required" example:"admin"`
-	NameEn  string               `json:"name_en" binding:"required" example:"admin"`
+	Name    string               `json:"name"    binding:"required"       example:"admin"`
+	NameEn  string               `json:"name_en" binding:"required"       example:"admin"`
 	Actions []actionIDSerializer `json:"actions" binding:"required,gte=1"`
 }
 
@@ -205,9 +205,9 @@ func getAllFromCommonActions(commonActions []commonActionSerializer) []string {
 }
 
 type featureShieldRuleSerializer struct {
-	Effect  string             `json:"effect" binding:"required,oneof=deny allow" example:"deny"`
-	Feature string             `json:"feature" binding:"required" example:"application.custom_permission"`
-	Action  actionIDSerializer `json:"action" binding:"required"`
+	Effect  string             `json:"effect"  binding:"required,oneof=deny allow" example:"deny"`
+	Feature string             `json:"feature" binding:"required"                  example:"application.custom_permission"`
+	Action  actionIDSerializer `json:"action"  binding:"required"`
 }
 
 func (f *featureShieldRuleSerializer) validate() error {

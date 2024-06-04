@@ -14,7 +14,7 @@ import "iam/pkg/api/common"
 
 // 临时权限 request body
 type temporaryPoliciesSerializer struct {
-	Subject  subject  `json:"subject" binding:"required"`
+	Subject  subject  `json:"subject"  binding:"required"`
 	Policies []policy `json:"policies" binding:"required"`
 }
 
@@ -29,7 +29,7 @@ func (slz *temporaryPoliciesSerializer) validate() (bool, string) {
 
 type temporaryPoliciesDeleteSerializer struct {
 	SubjectType string  `json:"subject_type" binding:"required"`
-	SubjectID   string  `json:"subject_id" binding:"required"`
-	SystemID    string  `json:"system_id" binding:"required"`
-	IDs         []int64 `json:"ids" binding:"required,gt=0"`
+	SubjectID   string  `json:"subject_id"   binding:"required"`
+	SystemID    string  `json:"system_id"    binding:"required"`
+	IDs         []int64 `json:"ids"          binding:"required,gt=0"`
 }

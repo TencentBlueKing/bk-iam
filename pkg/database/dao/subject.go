@@ -23,9 +23,9 @@ import (
 
 // Subject 被授权人
 type Subject struct {
-	PK   int64  `db:"pk" json:"pk"`
+	PK   int64  `db:"pk"   json:"pk"`
 	Type string `db:"type" json:"type"`
-	ID   string `db:"id" json:"id"`
+	ID   string `db:"id"   json:"id"`
 	// 仅用于”查询有某个资源的某个权限的用户列表“，
 	Name string `db:"name" json:"_"`
 }

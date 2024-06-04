@@ -18,7 +18,7 @@ import (
 const superSystemID = "SUPER"
 
 type pageSerializer struct {
-	Limit  int64 `json:"limit" form:"limit" binding:"omitempty,min=0"`
+	Limit  int64 `json:"limit"  form:"limit"  binding:"omitempty,min=0"`
 	Offset int64 `json:"offset" form:"offset" binding:"omitempty,min=0"`
 }
 
@@ -36,52 +36,52 @@ type listSubjectSerializer struct {
 
 type createSubjectSerializer struct {
 	Type string `json:"type" binding:"required,oneof=user group department"`
-	ID   string `json:"id" binding:"required"`
+	ID   string `json:"id"   binding:"required"`
 	Name string `json:"name" binding:"required"`
 }
 
 type deleteSubjectSerializer struct {
 	Type string `json:"type" binding:"required,oneof=user group department"`
-	ID   string `json:"id" binding:"required"`
+	ID   string `json:"id"   binding:"required"`
 }
 
 type listGroupMemberSerializer struct {
 	Type string `form:"type" binding:"required,oneof=group"`
-	ID   string `form:"id" binding:"required"`
+	ID   string `form:"id"   binding:"required"`
 	pageSerializer
 }
 
 type checkSubjectGroupsBelongSerializer struct {
-	Type     string `form:"type" binding:"required,oneof=user department"`
-	ID       string `form:"id" binding:"required"`
+	Type     string `form:"type"      binding:"required,oneof=user department"`
+	ID       string `form:"id"        binding:"required"`
 	GroupIDs string `form:"group_ids" binding:"required"`
 }
 
 type listSubjectGroupSerializer struct {
-	Type            string `form:"type" binding:"required,oneof=user department"`
-	ID              string `form:"id" binding:"required"`
+	Type            string `form:"type"              binding:"required,oneof=user department"`
+	ID              string `form:"id"                binding:"required"`
 	BeforeExpiredAt int64  `form:"before_expired_at" binding:"omitempty,min=0"`
 	pageSerializer
 }
 
 type memberSerializer struct {
 	Type string `json:"type" binding:"required,oneof=user department"`
-	ID   string `json:"id" binding:"required"`
+	ID   string `json:"id"   binding:"required"`
 }
 
 type deleteGroupMemberSerializer struct {
-	Type string `json:"type" binding:"required,oneof=group"`
-	ID   string `json:"id" binding:"required"`
+	Type string `json:"type"    binding:"required,oneof=group"`
+	ID   string `json:"id"      binding:"required"`
 	// 防御，避免出现一次性删除太多成员，影响性能
 	Members []memberSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
 type addGroupMembersSerializer struct {
-	Type      string `json:"type" binding:"required,oneof=group"`
-	ID        string `json:"id" binding:"required"`
+	Type      string `json:"type"       binding:"required,oneof=group"`
+	ID        string `json:"id"         binding:"required"`
 	ExpiredAt int64  `json:"expired_at" binding:"omitempty,min=1,max=4102444800"`
 	// 防御，避免出现一次性添加太多成员，影响性能
-	Members []memberSerializer `json:"members" binding:"required,gt=0,lte=1000"`
+	Members []memberSerializer `json:"members"    binding:"required,gt=0,lte=1000"`
 }
 
 func (s *addGroupMembersSerializer) validate() (bool, string) {
@@ -100,19 +100,19 @@ func (s *addGroupMembersSerializer) validate() (bool, string) {
 }
 
 type subjectDepartment struct {
-	SubjectID     string   `json:"id" binding:"required"`
+	SubjectID     string   `json:"id"          binding:"required"`
 	DepartmentIDs []string `json:"departments" binding:"required"`
 }
 
 type updateSubjectSerializer struct {
 	Type string `json:"type" binding:"required,oneof=user group department"`
-	ID   string `json:"id" binding:"required"`
+	ID   string `json:"id"   binding:"required"`
 	Name string `json:"name" binding:"required"`
 }
 
 type userSerializer struct {
 	Type string `form:"type" binding:"required,oneof=user"`
-	ID   string `form:"id" binding:"required"`
+	ID   string `form:"id"   binding:"required"`
 }
 
 type baseRoleSubjectSerializer struct {
@@ -150,8 +150,8 @@ type memberExpiredAtSerializer struct {
 }
 
 type groupMemberExpiredAtSerializer struct {
-	Type    string                      `json:"type" binding:"required,oneof=group"`
-	ID      string                      `json:"id" binding:"required"`
+	Type    string                      `json:"type"    binding:"required,oneof=group"`
+	ID      string                      `json:"id"      binding:"required"`
 	Members []memberExpiredAtSerializer `json:"members" binding:"required,gt=0,lte=1000"`
 }
 
@@ -172,11 +172,11 @@ type listGroupMemberBeforeExpiredAtSerializer struct {
 
 type subjectSerializer struct {
 	Type string `json:"type" binding:"required,oneof=group"`
-	ID   string `json:"id" binding:"required"`
+	ID   string `json:"id"   binding:"required"`
 }
 
 type filterSubjectsBeforeExpiredAtSerializer struct {
-	Subjects        []subjectSerializer `json:"subjects" binding:"required,gt=0,lte=1000"`
+	Subjects        []subjectSerializer `json:"subjects"          binding:"required,gt=0,lte=1000"`
 	BeforeExpiredAt int64               `json:"before_expired_at" binding:"required,min=1,max=4102444800"`
 }
 
@@ -191,8 +191,8 @@ func (slz *filterSubjectsBeforeExpiredAtSerializer) validate() (bool, string) {
 }
 
 type checkSubjectGroupsQuotaSerializer struct {
-	Type     string `form:"type" binding:"required,oneof=user department"`
-	ID       string `form:"id" binding:"required"`
+	Type     string `form:"type"      binding:"required,oneof=user department"`
+	ID       string `form:"id"        binding:"required"`
 	GroupIDs string `form:"group_ids" binding:"required"`
 }
 
@@ -202,20 +202,20 @@ type listGroupSubjectSerializer struct {
 }
 
 type rbacResource struct {
-	System    string                 `json:"system" binding:"required" example:"bk_paas"`
-	Type      string                 `json:"type" binding:"required" example:"app"`
-	ID        string                 `json:"id" binding:"required" example:"framework"`
+	System    string                 `json:"system"    binding:"required" example:"bk_paas"`
+	Type      string                 `json:"type"      binding:"required" example:"app"`
+	ID        string                 `json:"id"        binding:"required" example:"framework"`
 	Attribute map[string]interface{} `json:"attribute" binding:"required"`
 }
 
 type queryRbacGroupByResourceSerializer struct {
 	ActionID string       `json:"action_id" binding:"omitempty"`
-	Resource rbacResource `json:"resource" binding:"required"`
+	Resource rbacResource `json:"resource"  binding:"required"`
 }
 
 type listTemplateGroupMemberSerializer struct {
-	Type       string `form:"type" binding:"required,oneof=group"`
-	ID         string `form:"id" binding:"required"`
+	Type       string `form:"type"        binding:"required,oneof=group"`
+	ID         string `form:"id"          binding:"required"`
 	TemplateID int64  `form:"template_id" binding:"required"`
 	pageSerializer
 }

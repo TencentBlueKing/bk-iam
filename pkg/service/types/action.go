@@ -12,14 +12,14 @@ package types
 
 // ActionResourceType ...
 type ActionResourceType struct {
-	System      string `json:"system_id" structs:"system_id"`
-	ID          string `json:"id" structs:"id"`
-	NameAlias   string `json:"name_alias" structs:"name_alias"`
+	System      string `json:"system_id"     structs:"system_id"`
+	ID          string `json:"id"            structs:"id"`
+	NameAlias   string `json:"name_alias"    structs:"name_alias"`
 	NameAliasEn string `json:"name_alias_en" structs:"name_alias_en"`
 
 	SelectionMode string `json:"selection_mode" structs:"selection_mode"`
 	// for input, to db storage
-	RelatedInstanceSelections []map[string]interface{} `json:"-" structs:"related_instance_selections"`
+	RelatedInstanceSelections []map[string]interface{} `json:"-"              structs:"related_instance_selections"`
 
 	// for output, to api display
 	InstanceSelections []map[string]interface{} `json:"instance_selections" structs:"instance_selections"`
@@ -32,8 +32,8 @@ type ActionEnvironment struct {
 
 // ReferenceInstanceSelection ...
 type ReferenceInstanceSelection struct {
-	System        string `json:"system_id" structs:"system_id"`
-	ID            string `json:"id" structs:"id"`
+	System        string `json:"system_id"       structs:"system_id"`
+	ID            string `json:"id"              structs:"id"`
 	IgnoreIAMPath bool   `json:"ignore_iam_path" structs:"ignore_iam_path"`
 }
 
@@ -41,31 +41,31 @@ type ReferenceInstanceSelection struct {
 type Action struct {
 	AllowEmptyFields
 
-	ID                   string               `json:"id" structs:"id"`
-	Name                 string               `json:"name" structs:"name"`
-	NameEn               string               `json:"name_en" structs:"name_en"`
-	Description          string               `json:"description" structs:"description"`
-	DescriptionEn        string               `json:"description_en" structs:"description_en"`
-	Sensitivity          int64                `json:"sensitivity" structs:"sensitivity"`
-	AuthType             string               `json:"auth_type" structs:"auth_type"`
-	Type                 string               `json:"type" structs:"type"`
-	Hidden               bool                 `json:"hidden" structs:"hidden"`
-	Version              int64                `json:"version" structs:"version"`
+	ID                   string               `json:"id"                     structs:"id"`
+	Name                 string               `json:"name"                   structs:"name"`
+	NameEn               string               `json:"name_en"                structs:"name_en"`
+	Description          string               `json:"description"            structs:"description"`
+	DescriptionEn        string               `json:"description_en"         structs:"description_en"`
+	Sensitivity          int64                `json:"sensitivity"            structs:"sensitivity"`
+	AuthType             string               `json:"auth_type"              structs:"auth_type"`
+	Type                 string               `json:"type"                   structs:"type"`
+	Hidden               bool                 `json:"hidden"                 structs:"hidden"`
+	Version              int64                `json:"version"                structs:"version"`
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`
-	RelatedActions       []string             `json:"related_actions" structs:"related_actions"`
-	RelatedEnvironments  []ActionEnvironment  `json:"related_environments" structs:"related_environments"`
+	RelatedActions       []string             `json:"related_actions"        structs:"related_actions"`
+	RelatedEnvironments  []ActionEnvironment  `json:"related_environments"   structs:"related_environments"`
 }
 
 type ActionBaseInfo struct {
-	ID            string `json:"id" structs:"id"`
-	Name          string `json:"name" structs:"name"`
-	NameEn        string `json:"name_en" structs:"name_en"`
-	Description   string `json:"description" structs:"description"`
+	ID            string `json:"id"             structs:"id"`
+	Name          string `json:"name"           structs:"name"`
+	NameEn        string `json:"name_en"        structs:"name_en"`
+	Description   string `json:"description"    structs:"description"`
 	DescriptionEn string `json:"description_en" structs:"description_en"`
-	Sensitivity   int64  `json:"sensitivity" structs:"sensitivity"`
-	AuthType      string `json:"auth_type" structs:"auth_type"`
-	Type          string `json:"type" structs:"type"`
-	Version       int64  `json:"version" structs:"version"`
+	Sensitivity   int64  `json:"sensitivity"    structs:"sensitivity"`
+	AuthType      string `json:"auth_type"      structs:"auth_type"`
+	Type          string `json:"type"           structs:"type"`
+	Version       int64  `json:"version"        structs:"version"`
 }
 
 // ThinAction ...

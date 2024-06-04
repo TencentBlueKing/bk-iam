@@ -14,11 +14,11 @@ package types
 type System struct {
 	AllowEmptyFields
 
-	ID             string                 `json:"id" structs:"id"`
-	Name           string                 `json:"name" structs:"name"`
-	NameEn         string                 `json:"name_en" structs:"name_en"`
-	Description    string                 `json:"description" structs:"description"`
-	DescriptionEn  string                 `json:"description_en" structs:"description_en"`
-	Clients        string                 `json:"clients" structs:"clients"`
+	ID             string                 `json:"id"              structs:"id"`
+	Name           string                 `json:"name"            structs:"name"`
+	NameEn         string                 `json:"name_en"         structs:"name_en"`
+	Description    string                 `json:"description"     structs:"description"`
+	DescriptionEn  string                 `json:"description_en"  structs:"description_en"`
+	Clients        string                 `json:"clients"         structs:"clients"`
 	ProviderConfig map[string]interface{} `json:"provider_config" structs:"provider_config"`
 }

@@ -70,8 +70,8 @@ func QueryActions(c *gin.Context) {
 }
 
 type querySubjectsSerializer struct {
-	Type   string `form:"type" binding:"required"`
-	ID     string `form:"id" binding:"required"`
+	Type   string `form:"type"   binding:"required"`
+	ID     string `form:"id"     binding:"required"`
 	System string `form:"system" binding:"required"`
 }
 
@@ -154,10 +154,10 @@ func QuerySubjects(c *gin.Context) {
 }
 
 type queryPoliciesSerializer struct {
-	System      string `form:"system" binding:"required"`
+	System      string `form:"system"       binding:"required"`
 	SubjectType string `form:"subject_type" binding:"required"`
-	SubjectID   string `form:"subject_id" binding:"required"`
-	Action      string `form:"action" binding:"required"`
+	SubjectID   string `form:"subject_id"   binding:"required"`
+	Action      string `form:"action"       binding:"required"`
 }
 
 // QueryPolicies ...
