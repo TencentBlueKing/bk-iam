@@ -111,6 +111,38 @@ func ListSubjectGroups(c *gin.Context) {
 	})
 }
 
+// QuerySubjectGroupsDetail ...
+func QuerySubjectGroupsDetail(c *gin.Context) {
+	var query querySubjectGroupsDetailSerializer
+	if err := c.ShouldBindQuery(&query); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	// input: subject.type= & subject.id= & group_ids=1,2,3,4
+	// output: 个人或部门 直接加入的每个用户组里的详情（包括过期时间、创建时间）
+	groupIDs := strings.Split(query.GroupIDs, ",")
+	if len(groupIDs) > 100 {
+		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
+		return
+	}
+
+	ctl := pap.NewGroupController()
+	subjectGroups, err := ctl.ListSubjectGroupDetails(query.Type, query.ID, groupIDs)
+	if err != nil {
+		err = errorx.Wrapf(
+			err,
+			"Handler",
+			"ctl.ListSubjectGroupDetails type=`%s`, id=`%s` fail",
+			query.Type,
+			query.ID,
+		)
+		util.SystemErrorJSONResponse(c, err)
+		return
+	}
+
+	util.SuccessJSONResponse(c, "ok", subjectGroups)
+}
+
 // CheckSubjectGroupsBelong ...
 func CheckSubjectGroupsBelong(c *gin.Context) {
 	var query checkSubjectGroupsBelongSerializer
