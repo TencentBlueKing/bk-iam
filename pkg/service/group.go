@@ -316,7 +316,6 @@ func (l *groupService) ListSubjectGroupsBySubjectPKGroupPKs(
 			ExpiredAt: r.ExpiredAt,
 			CreatedAt: r.CreatedAt,
 		})
-
 	}
 
 	return subjectGroups, nil
