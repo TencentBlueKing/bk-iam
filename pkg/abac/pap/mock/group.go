@@ -333,6 +333,21 @@ func (mr *MockGroupControllerMockRecorder) ListRbacGroupByResource(systemID, res
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRbacGroupByResource", reflect.TypeOf((*MockGroupController)(nil).ListRbacGroupByResource), systemID, resource)
 }
 
+// ListSubjectGroupDetails mocks base method.
+func (m *MockGroupController) ListSubjectGroupDetails(_type, id string, groupIDs []string) ([]pap.SubjectGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSubjectGroupDetails", _type, id, groupIDs)
+	ret0, _ := ret[0].([]pap.SubjectGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSubjectGroupDetails indicates an expected call of ListSubjectGroupDetails.
+func (mr *MockGroupControllerMockRecorder) ListSubjectGroupDetails(_type, id, groupIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubjectGroupDetails", reflect.TypeOf((*MockGroupController)(nil).ListSubjectGroupDetails), _type, id, groupIDs)
+}
+
 // UpdateGroupMembersExpiredAt mocks base method.
 func (m *MockGroupController) UpdateGroupMembersExpiredAt(_type, id string, members []pap.GroupMember) error {
 	m.ctrl.T.Helper()
