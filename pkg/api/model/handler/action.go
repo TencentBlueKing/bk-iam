@@ -123,7 +123,6 @@ func BatchCreateActions(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/actions/{action_id} [put]
 func UpdateAction(c *gin.Context) {
 	systemID := c.Param("system_id")
 
@@ -256,7 +255,6 @@ func UpdateAction(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/actions/{action_id} [delete]
 func DeleteAction(c *gin.Context) {
 	systemID := c.Param("system_id")
 	actionID := c.Param("action_id")
