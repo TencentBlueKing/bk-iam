@@ -50,7 +50,7 @@ func defaultValidClients(c *gin.Context, originClients string) string {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems [post]
+// @Router /api/v1/model/systems [post]
 func CreateSystem(c *gin.Context) {
 	// validate the body
 	var body systemSerializer
@@ -122,7 +122,7 @@ func CreateSystem(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id} [put]
+// @Router /api/v1/model/systems/{system_id} [put]
 func UpdateSystem(c *gin.Context) {
 	systemID := c.Param("system_id")
 
@@ -210,7 +210,7 @@ func UpdateSystem(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id} [get]
+// @Router /api/v1/model/systems/{system_id} [get]
 func GetSystem(c *gin.Context) {
 	// validate the body
 	systemID := c.Param("system_id")
@@ -253,7 +253,7 @@ func GetSystem(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/clients [get]
+// @Router /api/v1/model/systems/{system_id}/clients [get]
 func GetSystemClients(c *gin.Context) {
 	// validate the body
 	systemID := c.Param("system_id")
