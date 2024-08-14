@@ -47,6 +47,10 @@ type GroupService interface {
 	ListPagingSubjectSystemGroups(
 		subjectPK int64, systemID string, beforeExpiredAt, limit, offset int64,
 	) ([]types.SubjectGroup, error)
+	ListSubjectGroupsBySubjectPKGroupPKs(
+		subjectPK int64,
+		groupPKs []int64,
+	) ([]types.SubjectGroup, error)
 	ListEffectSubjectGroupsBySubjectPKGroupPKs(
 		subjectPK int64,
 		groupPKs []int64,
@@ -287,6 +291,34 @@ func (l *groupService) ListGroupSubjectBeforeExpiredAtByGroupPKs(
 	}
 
 	return convertToGroupSubjects(daoRelations), nil
+}
+
+func (l *groupService) ListSubjectGroupsBySubjectPKGroupPKs(
+	subjectPK int64,
+	groupPKs []int64,
+) (subjectGroups []types.SubjectGroup, err error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupSVC, "ListSubjectGroupsBySubjectPKGroupPKs")
+
+	relations, err := l.manager.ListRelationBySubjectPKGroupPKs(subjectPK, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"manager.ListRelationBySubjectPKGroupPKs subjectPK=`%d`, parenPKs=`%+v` fail",
+			subjectPK, groupPKs,
+		)
+	}
+
+	subjectGroups = make([]types.SubjectGroup, 0, len(relations))
+	for _, r := range relations {
+		subjectGroups = append(subjectGroups, types.SubjectGroup{
+			PK:        r.PK,
+			GroupPK:   r.GroupPK,
+			ExpiredAt: r.ExpiredAt,
+			CreatedAt: r.CreatedAt,
+		})
+	}
+
+	return subjectGroups, nil
 }
 
 func (l *groupService) ListEffectSubjectGroupsBySubjectPKGroupPKs(

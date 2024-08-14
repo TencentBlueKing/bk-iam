@@ -38,7 +38,7 @@ import (
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/resource-types [post]
+// @Router /api/v1/model/systems/{system_id}/resource-types [post]
 func BatchCreateResourceTypes(c *gin.Context) {
 	var body []resourceTypeSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -117,7 +117,7 @@ func BatchCreateResourceTypes(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/resource-types/{resource_type_id} [put]
+// @Router /api/v1/model/systems/{system_id}/resource-types/{resource_type_id} [put]
 func UpdateResourceType(c *gin.Context) {
 	systemID := c.Param("system_id")
 
@@ -219,7 +219,7 @@ func UpdateResourceType(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/resource-types/{resource_type_id} [delete]
+// @Router /api/v1/model/systems/{system_id}/resource-types/{resource_type_id} [delete]
 func DeleteResourceType(c *gin.Context) {
 	systemID := c.Param("system_id")
 	resourceTypeID := c.Param("resource_type_id")
@@ -242,7 +242,7 @@ func DeleteResourceType(c *gin.Context) {
 // @Header 200 {string} X-Request-Id "the request id"
 // @Security AppCode
 // @Security AppSecret
-// @Router /api/v1/systems/{system_id}/resource-types [delete]
+// @Router /api/v1/model/systems/{system_id}/resource-types [delete]
 func BatchDeleteResourceTypes(c *gin.Context) {
 	systemID := c.Param("system_id")
 

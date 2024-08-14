@@ -354,6 +354,95 @@ var _ = Describe("GroupController", func() {
 		})
 	})
 
+	Describe("ListSubjectGroupDetails", func() {
+		var ctl *gomock.Controller
+		var patches *gomonkey.Patches
+		BeforeEach(func() {
+			ctl = gomock.NewController(GinkgoT())
+
+			patches = gomonkey.ApplyFunc(cacheimpls.GetLocalSubjectPK, func(_type, id string) (pk int64, err error) {
+				if _type == "user" && id == "1" {
+					return int64(1), nil
+				}
+				if _type == "user" && id == "2" {
+					return int64(2), nil
+				}
+				if _type == "group" && id == "10" {
+					return int64(10), nil
+				}
+
+				if _type == "group" && id == "20" {
+					return int64(20), nil
+				}
+
+				return 0, sql.ErrNoRows
+			})
+
+			patches.ApplyFunc(cacheimpls.GetSubjectDepartmentPKs, func(subjectPK int64) ([]int64, error) {
+				return []int64{10, 20, 30}, nil
+			})
+		})
+		AfterEach(func() {
+			ctl.Finish()
+			patches.Reset()
+		})
+
+		It("get user subject PK fail", func() {
+			c := &groupController{
+				service: mock.NewMockGroupService(ctl),
+			}
+
+			_, err := c.ListSubjectGroupDetails("user", "notexist", []string{"10", "20"})
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "cacheimpls.GetLocalSubjectPK")
+		})
+		It("get subject all group pks fail", func() {
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().ListSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				nil, errors.New("error"),
+			).AnyTimes()
+
+			c := &groupController{
+				service: mockGroupService,
+			}
+
+			_, err := c.ListSubjectGroupDetails("user", "1", []string{"10", "20"})
+
+			assert.Error(GinkgoT(), err)
+			assert.Contains(GinkgoT(), err.Error(), "ListSubjectGroupsBySubjectPKGroupPKs")
+		})
+
+		It("ok, all groupID valid", func() {
+			mockGroupService := mock.NewMockGroupService(ctl)
+			mockGroupService.EXPECT().ListSubjectGroupsBySubjectPKGroupPKs(gomock.Any(), gomock.Any()).Return(
+				[]types.SubjectGroup{{
+					PK:        1,
+					GroupPK:   10,
+					ExpiredAt: 1,
+					CreatedAt: time.Time{},
+				}, {
+					PK:        2,
+					GroupPK:   20,
+					ExpiredAt: 1,
+					CreatedAt: time.Time{},
+				}}, nil,
+			).AnyTimes()
+
+			c := &groupController{
+				service: mockGroupService,
+			}
+
+			groups, err := c.ListSubjectGroupDetails("user", "1", []string{"10", "20"})
+			assert.NoError(GinkgoT(), err)
+			assert.Len(GinkgoT(), groups, 2)
+			assert.Equal(GinkgoT(), groups[0].PK, int64(1))
+			assert.Equal(GinkgoT(), groups[0].ID, "10")
+			assert.Equal(GinkgoT(), groups[1].PK, int64(2))
+			assert.Equal(GinkgoT(), groups[1].ID, "20")
+
+		})
+	})
+
 	Describe("CheckSubjectExistGroups", func() {
 		var ctl *gomock.Controller
 		var patches *gomonkey.Patches

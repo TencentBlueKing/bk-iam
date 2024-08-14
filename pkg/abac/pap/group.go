@@ -45,6 +45,7 @@ type GroupController interface {
 		_type, id, systemID string, beforeExpiredAt, limit, offset int64,
 	) ([]SubjectGroup, error)
 	ListGroupSubjectBeforeExpiredAtBySubjects(subjects []Subject, expiredAt int64) ([]GroupSubject, error)
+	ListSubjectGroupDetails(_type, id string, groupIDs []string) ([]SubjectGroup, error)
 	CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error)
 
 	GetGroupMemberCount(_type, id string) (int64, error)
@@ -167,6 +168,73 @@ func (c *groupController) ListGroupSubjectBeforeExpiredAtBySubjects(
 	}
 
 	return relations, nil
+}
+
+func (c *groupController) ListSubjectGroupDetails(_type, id string, groupIDs []string) ([]SubjectGroup, error) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListSubjectGroupDetails")
+
+	// subject Type+ID to PK
+	subjectPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
+	if err != nil {
+		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
+	}
+
+	groupPKToID := make(map[int64]string, len(groupIDs))
+	groupPKs := make([]int64, 0, len(groupIDs))
+	for _, groupID := range groupIDs {
+		// if groupID is empty, skip
+		if groupID == "" {
+			continue
+		}
+
+		// get the groupPK via groupID
+		groupPK, err := cacheimpls.GetLocalSubjectPK(types.GroupType, groupID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.WithError(err).Debugf("cacheimpls.GetSubjectPK type=`group`, id=`%s` fail", groupID)
+				continue
+			}
+
+			return nil, errorWrapf(
+				err,
+				"cacheimpls.GetSubjectPK _type=`%s`, id=`%s` fail",
+				types.GroupType,
+				groupID,
+			)
+		}
+
+		groupPKs = append(groupPKs, groupPK)
+		groupPKToID[groupPK] = groupID
+	}
+
+	// NOTE: if the performance is a problem, change this to a local cache, key: subjectPK, value int64Set
+	svcSubjectGroups, err := c.service.ListSubjectGroupsBySubjectPKGroupPKs(subjectPK, groupPKs)
+	if err != nil {
+		return nil, errorWrapf(
+			err,
+			"service.ListSubjectGroupsBySubjectPKGroupPKs subjectPKs=`%d`, groupPKs=`%+v` fail",
+			subjectPK,
+			groupPKs,
+		)
+	}
+
+	groups := make([]SubjectGroup, 0, len(svcSubjectGroups))
+	for _, m := range svcSubjectGroups {
+		groupID, ok := groupPKToID[m.GroupPK]
+		if !ok {
+			continue
+		}
+
+		groups = append(groups, SubjectGroup{
+			PK:        m.PK,
+			Type:      types.GroupType,
+			ID:        groupID,
+			ExpiredAt: m.ExpiredAt,
+			CreatedAt: m.CreatedAt,
+		})
+	}
+
+	return groups, nil
 }
 
 func (c *groupController) CheckSubjectEffectGroups(
