@@ -1,3 +1,18 @@
+# 1.12.15
+
+- add: query subject group details api
+- bugfix: fix model api doc
+
+# 1.12.14
+
+- build: update dependency
+- build: fix lint 
+
+# 1.12.13
+
+- update: pkg dependency update
+- update: ListExistGroupsHasMemberBeforeExpiredAt api update
+
 # 1.12.12
 
 - add: add default sensitivity level query
