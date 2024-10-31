@@ -1,3 +1,7 @@
+# 1.12.16
+
+- bugfix: fix the issue where relationships that have been deleted were not cleaned up in the subject_action_group_resource table due to incorrect queries on the maximum expiration time for users and groups
+
 # 1.12.15
 
 - add: query subject group details api
