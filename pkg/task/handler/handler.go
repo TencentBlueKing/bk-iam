@@ -154,7 +154,13 @@ func (h *groupAlterMessageHandler) alterSubjectActionGroupResource(subjectPK, ac
 				subjectPK, groupPK,
 			)
 		}
-		found := !errors.Is(err, service.ErrGroupMemberNotFound)
+		// Note:
+		//  由于 groupService.GetMaxExpiredAtBySubjectGroup 函数里的
+		//  subjectTemplateGroupManager.GetMaxExpiredAtBySubjectGroup 使用 Max 聚合 SQL 且对 NULL 返回了 nil
+		//  所以导致 不可能存在 sql.ErrNoRows 的情况，即 ErrGroupMemberNotFound 也不可能出现
+		//  临时解决方案：由于 用户与用户组关系存在时 expiredAt 一定不为空，所以这里判断 expiredAt != 0 来表示用户还在用户组里
+		// FIXME (nan): 待底层 GetMaxExpiredAtBySubjectGroup 修复后，这里也对应进行修复
+		found := !errors.Is(err, service.ErrGroupMemberNotFound) && expiredAt != 0
 
 		// 查询group action授权资源实例
 		resourceMap, err := cacheimpls.GetGroupActionAuthorizedResource(
