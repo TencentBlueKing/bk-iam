@@ -136,6 +136,8 @@ func (m *subjectTemplateGroupManager) GetMaxExpiredAtBySubjectGroup(
 		return expiredAt.Int64, nil
 	}
 
+	// FIXME (nan): 使用 Max 聚合 SQL 且对 NULL 返回了 nil, 所以不存在  sql.ErrNoRows 的情况，
+	//  但上层调用点却使用了 sql.ErrNoRows 判断后进行各种逻辑处理，需要 Review 后决策如何修复
 	// Handle NULL case, for example, by returning a default value
 	return 0, nil
 }
