@@ -82,6 +82,9 @@ func (m *subjectBlackListManager) BulkDelete(subjectPKs []int64) error {
 
 // BulkDeleteWithTx ...
 func (m *subjectBlackListManager) BulkDeleteWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
 	sql := `DELETE FROM subject_black_list WHERE subject_pk in (?)`
 	err := database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 	return err

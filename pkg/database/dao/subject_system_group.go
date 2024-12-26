@@ -146,6 +146,9 @@ func (m *subjectSystemGroupManager) updateWithTx(tx *sqlx.Tx, subjectSystemGroup
 }
 
 func (m *subjectSystemGroupManager) deleteBySubjectPKsWithTx(tx *sqlx.Tx, subjectPKs []int64) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
 	sql := `DELETE FROM subject_system_group WHERE subject_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 }

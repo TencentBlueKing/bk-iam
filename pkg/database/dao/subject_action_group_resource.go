@@ -104,6 +104,9 @@ func (m *subjectActionGroupResourceManager) BulkDeleteBySubjectPKsWithTx(
 	tx *sqlx.Tx,
 	subjectPKs []int64,
 ) error {
+	if len(subjectPKs) == 0 {
+		return nil
+	}
 	sql := `DELETE FROM rbac_subject_action_group_resource WHERE subject_pk IN (?)`
 	return database.SqlxDeleteWithTx(tx, sql, subjectPKs)
 }
