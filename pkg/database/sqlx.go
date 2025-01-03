@@ -12,6 +12,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"github.com/pkg/errors"
 	"time"
 
 	"github.com/TencentBlueKing/gopkg/conv"
@@ -98,6 +100,10 @@ func sqlxGetFunc(db *sqlx.DB, dest interface{}, query string, args ...interface{
 		return err
 	}
 	err = db.Get(dest, query, args...)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
 
 	if err == nil {
 		return nil
