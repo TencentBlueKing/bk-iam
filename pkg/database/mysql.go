@@ -36,8 +36,8 @@ const (
 	defaultMaxOpenConns    = 100
 	defaultMaxIdleConns    = 25
 	defaultConnMaxLifetime = 10 * time.Minute
-	verifyCa               = "verify_ca"
-	skipVerify             = "skip_verify"
+	tlsVerifyCa            = "verify_ca"
+	tlsDisable             = "disable"
 )
 
 // DBClient MySQL DB Instance
@@ -98,7 +98,7 @@ func (db *DBClient) Close() {
 
 // NewDBClient :
 func NewDBClient(cfg *config.Database) *DBClient {
-	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s&time_zone=%s&tls=%s",
+	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s&time_zone=%s",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,
@@ -107,8 +107,10 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		"utf8",
 		"UTC",
 		url.QueryEscape("'+00:00'"),
-		cfg.SslMode,
 	)
+	if cfg.SslMode != tlsDisable {
+		dataSource += "&tls=" + url.QueryEscape(cfg.SslMode)
+	}
 
 	maxOpenConns := defaultMaxOpenConns
 	if cfg.MaxOpenConns > 0 {
@@ -156,22 +158,14 @@ func initMysqlTlsConfig(caCertPath string, sslMode string) error {
 	if sslMode == "" {
 		return fmt.Errorf("SSL mode name cannot be empty")
 	}
-	if sslMode != verifyCa && sslMode != skipVerify {
+	if sslMode == tlsDisable {
+		return nil
+	}
+	if sslMode != tlsVerifyCa && sslMode != tlsDisable {
 		return fmt.Errorf("unsupported SSL mode: %s", sslMode)
 	}
-	if sslMode == verifyCa && caCertPath == "" {
+	if sslMode == tlsVerifyCa && caCertPath == "" {
 		return fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
-	}
-
-	// 如果是跳过验证模式，直接配置并返回
-	if sslMode == skipVerify {
-		tlsConfig := &tls.Config{
-			InsecureSkipVerify: true, // 跳过证书验证
-		}
-		if err := mysql.RegisterTLSConfig(sslMode, tlsConfig); err != nil {
-			return fmt.Errorf("failed to register %s TLS config: %w", sslMode, err)
-		}
-		return nil
 	}
 
 	// 读取CA证书
