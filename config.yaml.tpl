@@ -49,6 +49,8 @@ redis:
     readTimeout: 5
     writeTimeout: 5
     masterName: ""
+    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
+    sslMode: "verify_ca"        # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
   - id: "mq"
     type: "standalone"
     addr: "localhost:6379"
@@ -60,6 +62,8 @@ redis:
     readTimeout: 5
     writeTimeout: 5
     masterName: ""
+    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
+    sslMode: "verify_ca"        # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
 
 logger:
   system:

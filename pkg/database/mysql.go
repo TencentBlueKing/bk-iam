@@ -11,12 +11,9 @@
 package database
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -36,8 +33,6 @@ const (
 	defaultMaxOpenConns    = 100
 	defaultMaxIdleConns    = 25
 	defaultConnMaxLifetime = 10 * time.Minute
-	tlsVerifyCa            = "verify_ca"
-	tlsDisable             = "disable"
 )
 
 // DBClient MySQL DB Instance
@@ -108,7 +103,7 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		"UTC",
 		url.QueryEscape("'+00:00'"),
 	)
-	if cfg.SslMode != tlsDisable {
+	if cfg.SslMode != config.TlsDisable {
 		dataSource += "&tls=" + url.QueryEscape(cfg.SslMode)
 	}
 
@@ -158,31 +153,20 @@ func initMysqlTlsConfig(caCertPath string, sslMode string) error {
 	if sslMode == "" {
 		return fmt.Errorf("SSL mode name cannot be empty")
 	}
-	if sslMode == tlsDisable {
+	if sslMode == config.TlsDisable {
 		return nil
 	}
-	if sslMode != tlsVerifyCa && sslMode != tlsDisable {
+	if sslMode != config.TlsVerifyCa && sslMode != config.TlsDisable {
 		return fmt.Errorf("unsupported SSL mode: %s", sslMode)
 	}
-	if sslMode == tlsVerifyCa && caCertPath == "" {
+	if sslMode == config.TlsVerifyCa && caCertPath == "" {
 		return fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
 	}
 
-	// 读取CA证书
-	rootCertPool := x509.NewCertPool()
-	pem, err := os.ReadFile(caCertPath)
-	if err != nil {
-		return fmt.Errorf("failed to read CA certificate file: %w", err)
-	}
-
-	// 添加CA证书到信任池
-	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
-		return fmt.Errorf("failed to append CA certificate to trust pool")
-	}
-
 	// 配置并注册TLS
-	tlsConfig := &tls.Config{
-		RootCAs: rootCertPool, // 信任的CA证书池
+	tlsConfig, err := config.InitTlsConfig(caCertPath)
+	if err != nil {
+		return fmt.Errorf("failed to init tls config: %w", err)
 	}
 	if err := mysql.RegisterTLSConfig(sslMode, tlsConfig); err != nil {
 		return fmt.Errorf("failed to register %s TLS config: %w", sslMode, err)

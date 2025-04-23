@@ -94,6 +94,7 @@ type Redis struct {
 	SentinelPassword string
 	// TLS support
 	CaCertPath string
+	SslMode    string
 }
 
 // Sentry ...

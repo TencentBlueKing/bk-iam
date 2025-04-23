@@ -12,6 +12,8 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
 	"runtime"
 	"strings"
 	"sync"
@@ -56,6 +58,12 @@ func newStandaloneClient(redisConfig *config.Redis) *redis.Client {
 	opt.PoolSize = 20 * runtime.NumCPU()
 	opt.MinIdleConns = 10 * runtime.NumCPU()
 	opt.IdleTimeout = time.Duration(3) * time.Minute
+
+	var err error
+	opt.TLSConfig, err = initRedisTlsConfig(redisConfig.CaCertPath, redisConfig.SslMode)
+	if err != nil {
+		panic(err)
+	}
 
 	// set custom options, from config.yaml
 	if redisConfig.DialTimeout > 0 {
@@ -111,6 +119,12 @@ func newSentinelClient(redisConfig *config.Redis) *redis.Client {
 	opt.PoolSize = 20 * runtime.NumCPU()
 	opt.MinIdleConns = 10 * runtime.NumCPU()
 	opt.IdleTimeout = 3 * time.Minute
+
+	var err error
+	opt.TLSConfig, err = initRedisTlsConfig(redisConfig.CaCertPath, redisConfig.SslMode)
+	if err != nil {
+		panic(err)
+	}
 
 	// set custom options, from config.yaml
 	if redisConfig.DialTimeout > 0 {
@@ -180,4 +194,24 @@ func GetDefaultRedisClient() *redis.Client {
 // GetDefaultMQRedisClient 获取默认的MQ Redis实例
 func GetDefaultMQRedisClient() *redis.Client {
 	return mq
+}
+
+func initRedisTlsConfig(caCertPath string, sslMode string) (*tls.Config, error) {
+	// 参数校验
+	if sslMode == "" {
+		return nil, fmt.Errorf("SSL mode name cannot be empty")
+	}
+	if sslMode == config.TlsDisable {
+		return nil, nil
+	}
+	if sslMode != config.TlsVerifyCa && sslMode != config.TlsDisable {
+		return nil, fmt.Errorf("unsupported SSL mode: %s", sslMode)
+	}
+	if sslMode == config.TlsVerifyCa && caCertPath == "" {
+		return nil, fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
+	}
+
+	// 配置并注册TLS
+	return config.InitTlsConfig(caCertPath)
+
 }
