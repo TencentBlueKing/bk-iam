@@ -25,6 +25,8 @@ databases:
     maxOpenConns: 200
     maxIdleConns: 50
     connMaxLifetimeSecond: 600
+    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为skip_verify可以不指定）
+    sslMode: "skip_verify"      # 目前支持skip_verify（跳过验证）和verify_ca（tls验证两种方式）
 
   - id: "open_paas"
     host: "127.0.0.1"
@@ -32,6 +34,8 @@ databases:
     user: "root"
     password: "123456"
     name: "open_paas"
+    caCertPath: "your_ca_cert"
+    sslMode: "verify_ca"
 
 redis:
   - id: "cache"

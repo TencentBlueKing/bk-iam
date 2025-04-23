@@ -11,8 +11,12 @@
 package database
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -32,6 +36,8 @@ const (
 	defaultMaxOpenConns    = 100
 	defaultMaxIdleConns    = 25
 	defaultConnMaxLifetime = 10 * time.Minute
+	verifyCa               = "verify_ca"
+	skipVerify             = "skip_verify"
 )
 
 // DBClient MySQL DB Instance
@@ -45,6 +51,9 @@ type DBClient struct {
 	maxOpenConns    int
 	maxIdleConns    int
 	connMaxLifetime time.Duration
+
+	caCertPath string
+	sslMode    string
 }
 
 // TestConnection ...
@@ -61,6 +70,10 @@ func (db *DBClient) TestConnection() (err error) {
 // Connect connect to db, and update some settings
 func (db *DBClient) Connect() error {
 	var err error
+	err = initMysqlTlsConfig(db.caCertPath, db.sslMode)
+	if err != nil {
+		return err
+	}
 	db.DB, err = sqlx.Connect("mysql", db.dataSource)
 	if err != nil {
 		return err
@@ -85,7 +98,7 @@ func (db *DBClient) Close() {
 
 // NewDBClient :
 func NewDBClient(cfg *config.Database) *DBClient {
-	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s&time_zone=%s",
+	dataSource := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=%s&parseTime=True&interpolateParams=true&loc=%s&time_zone=%s&tls=%s",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,
@@ -94,6 +107,7 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		"utf8",
 		"UTC",
 		url.QueryEscape("'+00:00'"),
+		cfg.SslMode,
 	)
 
 	maxOpenConns := defaultMaxOpenConns
@@ -131,5 +145,54 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		maxOpenConns:    maxOpenConns,
 		maxIdleConns:    maxIdleConns,
 		connMaxLifetime: connMaxLifetime,
+		caCertPath:      cfg.CaCertPath,
+		sslMode:         cfg.SslMode,
 	}
+}
+
+// initMysqlTlsConfig 初始化MySQL TLS配置
+func initMysqlTlsConfig(caCertPath string, sslMode string) error {
+	// 参数校验
+	if sslMode == "" {
+		return fmt.Errorf("SSL mode name cannot be empty")
+	}
+	if sslMode != verifyCa && sslMode != skipVerify {
+		return fmt.Errorf("unsupported SSL mode: %s", sslMode)
+	}
+	if sslMode == verifyCa && caCertPath == "" {
+		return fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
+	}
+
+	// 如果是跳过验证模式，直接配置并返回
+	if sslMode == skipVerify {
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: true, // 跳过证书验证
+		}
+		if err := mysql.RegisterTLSConfig(sslMode, tlsConfig); err != nil {
+			return fmt.Errorf("failed to register %s TLS config: %w", sslMode, err)
+		}
+		return nil
+	}
+
+	// 读取CA证书
+	rootCertPool := x509.NewCertPool()
+	pem, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return fmt.Errorf("failed to read CA certificate file: %w", err)
+	}
+
+	// 添加CA证书到信任池
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+		return fmt.Errorf("failed to append CA certificate to trust pool")
+	}
+
+	// 配置并注册TLS
+	tlsConfig := &tls.Config{
+		RootCAs: rootCertPool, // 信任的CA证书池
+	}
+	if err := mysql.RegisterTLSConfig(sslMode, tlsConfig); err != nil {
+		return fmt.Errorf("failed to register %s TLS config: %w", sslMode, err)
+	}
+
+	return nil
 }

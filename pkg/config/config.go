@@ -69,6 +69,9 @@ type Database struct {
 	MaxOpenConns          int
 	MaxIdleConns          int
 	ConnMaxLifetimeSecond int
+	// TLS support
+	CaCertPath string
+	SslMode    string
 }
 
 // Redis ...
@@ -89,6 +92,8 @@ type Redis struct {
 	SentinelAddr     string
 	MasterName       string
 	SentinelPassword string
+	// TLS support
+	CaCertPath string
 }
 
 // Sentry ...
