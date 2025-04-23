@@ -26,7 +26,7 @@ databases:
     maxIdleConns: 50
     connMaxLifetimeSecond: 600
     caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
-    sslMode: "skip_verify"      # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
+    sslMode: "verify_ca"      # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
 
   - id: "open_paas"
     host: "127.0.0.1"
