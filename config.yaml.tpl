@@ -26,7 +26,7 @@ databases:
     maxIdleConns: 50
     connMaxLifetimeSecond: 600
     tls:                                    # tls配置
-      enabled: false                        # 是否开启tls
+      enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
       certCertFile: "your cert file"        # 服务器证书路径(可不填)
       certKeyFile: "your key file"          # 服务器私钥路径(可不填)
@@ -38,7 +38,7 @@ databases:
     password: "123456"
     name: "open_paas"
     tls:                                    # tls配置
-      enabled: false                        # 是否开启tls
+      enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
       certCertFile: "your cert file"        # 证书路径
       certKeyFile: "your key file"          # 私钥路径
@@ -56,7 +56,7 @@ redis:
     writeTimeout: 5
     masterName: ""
     tls:                                    # tls配置
-      enabled: false                        # 是否开启tls
+      enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
       certCertFile: "your cert file"        # 证书路径
       certKeyFile: "your key file"          # 私钥路径
@@ -72,7 +72,7 @@ redis:
     writeTimeout: 5
     masterName: ""
     tls:                                    # tls配置
-      enabled: false                        # 是否开启tls
+      enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
       certCertFile: "your cert file"        # 证书路径
       certKeyFile: "your key file"          # 私钥路径
