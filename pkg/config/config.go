@@ -69,9 +69,9 @@ type Database struct {
 	MaxOpenConns          int
 	MaxIdleConns          int
 	ConnMaxLifetimeSecond int
-	// TLS support
-	CaCertPath string
-	SslMode    string
+
+	// tls support
+	TLS TLS
 }
 
 // Redis ...
@@ -93,8 +93,7 @@ type Redis struct {
 	MasterName       string
 	SentinelPassword string
 	// TLS support
-	CaCertPath string
-	SslMode    string
+	TLS TLS
 }
 
 // Sentry ...
@@ -185,6 +184,16 @@ type Config struct {
 	Cryptos map[string]*Crypto
 
 	AuthToken string
+}
+
+type TLS struct {
+	Enabled     bool
+	CertCaFile  string
+	CertFile    string
+	CertKeyFile string
+	// for testing only, default false is secure;
+	// if set true will skip hostname verification, don't enable it in production
+	InsecureSkipVerify bool
 }
 
 // Load 从viper中读取配置文件

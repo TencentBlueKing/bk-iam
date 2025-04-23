@@ -25,8 +25,11 @@ databases:
     maxOpenConns: 200
     maxIdleConns: 50
     connMaxLifetimeSecond: 600
-    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
-    sslMode: "verify_ca"      # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
+    tls:                                    # tls配置
+      enabled: false                        # 是否开启tls
+      certCaFile: "your CA file"            # ca证书路径
+      certCertFile: "your cert file"        # 服务器证书路径(可不填)
+      certKeyFile: "your key file"          # 服务器私钥路径(可不填)
 
   - id: "open_paas"
     host: "127.0.0.1"
@@ -34,8 +37,11 @@ databases:
     user: "root"
     password: "123456"
     name: "open_paas"
-    caCertPath: "your_ca_cert"
-    sslMode: "verify_ca"
+    tls:                                    # tls配置
+      enabled: false                        # 是否开启tls
+      certCaFile: "your CA file"            # ca证书路径
+      certCertFile: "your cert file"        # 证书路径
+      certKeyFile: "your key file"          # 私钥路径
 
 redis:
   - id: "cache"
@@ -49,8 +55,11 @@ redis:
     readTimeout: 5
     writeTimeout: 5
     masterName: ""
-    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
-    sslMode: "verify_ca"        # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
+    tls:                                    # tls配置
+      enabled: false                        # 是否开启tls
+      certCaFile: "your CA file"            # ca证书路径
+      certCertFile: "your cert file"        # 证书路径
+      certKeyFile: "your key file"          # 私钥路径
   - id: "mq"
     type: "standalone"
     addr: "localhost:6379"
@@ -62,8 +71,11 @@ redis:
     readTimeout: 5
     writeTimeout: 5
     masterName: ""
-    caCertPath: "your_ca_cert"  # ca证书路径（sslMode为disable可以不指定）
-    sslMode: "verify_ca"        # 目前支持disable（不使用tls）和verify_ca（tls验证两种方式）
+    tls:                                    # tls配置
+      enabled: false                        # 是否开启tls
+      certCaFile: "your CA file"            # ca证书路径
+      certCertFile: "your cert file"        # 证书路径
+      certKeyFile: "your key file"          # 私钥路径
 
 logger:
   system:

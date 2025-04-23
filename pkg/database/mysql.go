@@ -11,9 +11,12 @@
 package database
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -33,6 +36,7 @@ const (
 	defaultMaxOpenConns    = 100
 	defaultMaxIdleConns    = 25
 	defaultConnMaxLifetime = 10 * time.Minute
+	defaultTLSConfigName   = "custom"
 )
 
 // DBClient MySQL DB Instance
@@ -65,10 +69,6 @@ func (db *DBClient) TestConnection() (err error) {
 // Connect connect to db, and update some settings
 func (db *DBClient) Connect() error {
 	var err error
-	err = initMysqlTlsConfig(db.caCertPath, db.sslMode)
-	if err != nil {
-		return err
-	}
 	db.DB, err = sqlx.Connect("mysql", db.dataSource)
 	if err != nil {
 		return err
@@ -103,8 +103,9 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		"UTC",
 		url.QueryEscape("'+00:00'"),
 	)
-	if cfg.SslMode != config.TlsDisable {
-		dataSource += "&tls=" + url.QueryEscape(cfg.SslMode)
+	if cfg.TLS.Enabled {
+		initMysqlTLS(cfg.TLS.CertCaFile, cfg.TLS.CertFile, cfg.TLS.CertKeyFile, cfg.TLS.InsecureSkipVerify)
+		dataSource = fmt.Sprintf("%s&tls=%s", dataSource, defaultTLSConfigName)
 	}
 
 	maxOpenConns := defaultMaxOpenConns
@@ -142,35 +143,40 @@ func NewDBClient(cfg *config.Database) *DBClient {
 		maxOpenConns:    maxOpenConns,
 		maxIdleConns:    maxIdleConns,
 		connMaxLifetime: connMaxLifetime,
-		caCertPath:      cfg.CaCertPath,
-		sslMode:         cfg.SslMode,
 	}
 }
 
-// initMysqlTlsConfig 初始化MySQL TLS配置
-func initMysqlTlsConfig(caCertPath string, sslMode string) error {
-	// 参数校验
-	if sslMode == "" {
-		return fmt.Errorf("SSL mode name cannot be empty")
-	}
-	if sslMode == config.TlsDisable {
-		return nil
-	}
-	if sslMode != config.TlsVerifyCa && sslMode != config.TlsDisable {
-		return fmt.Errorf("unsupported SSL mode: %s", sslMode)
-	}
-	if sslMode == config.TlsVerifyCa && caCertPath == "" {
-		return fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
-	}
-
-	// 配置并注册TLS
-	tlsConfig, err := config.InitTlsConfig(caCertPath)
+func initMysqlTLS(tlsCertCaFile, tlsCertFile, tlsCertKeyFile string, insecureSkipVerify bool) {
+	// https://pkg.go.dev/github.com/go-sql-driver/mysql#RegisterTLSConfig
+	rootCertPool := x509.NewCertPool()
+	pem, err := os.ReadFile(tlsCertCaFile)
 	if err != nil {
-		return fmt.Errorf("failed to init tls config: %w", err)
-	}
-	if err := mysql.RegisterTLSConfig(sslMode, tlsConfig); err != nil {
-		return fmt.Errorf("failed to register %s TLS config: %w", sslMode, err)
+		log.WithError(err).Fatal("failed to load CA certificate:s%", err)
 	}
 
-	return nil
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+
+		log.Fatal("failed to append CA certificate")
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs:            rootCertPool,
+		InsecureSkipVerify: insecureSkipVerify, // Skip hostname verification for IP addresses
+	}
+
+	if tlsCertFile != "" && tlsCertKeyFile != "" {
+		clientCert := make([]tls.Certificate, 0, 1)
+		certs, err := tls.LoadX509KeyPair(tlsCertFile, tlsCertKeyFile)
+		if err != nil {
+			log.WithError(err).Fatalf("failed to load client certificate and key: %s", err)
+		}
+		clientCert = append(clientCert, certs)
+
+		tlsConfig.Certificates = clientCert
+	}
+
+	err = mysql.RegisterTLSConfig(defaultTLSConfigName, tlsConfig)
+	if err != nil {
+		log.WithError(err).Fatalf("failed to register TLS config: %s", err)
+	}
 }

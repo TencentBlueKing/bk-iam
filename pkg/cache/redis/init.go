@@ -13,7 +13,9 @@ package redis
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -59,10 +61,12 @@ func newStandaloneClient(redisConfig *config.Redis) *redis.Client {
 	opt.MinIdleConns = 10 * runtime.NumCPU()
 	opt.IdleTimeout = time.Duration(3) * time.Minute
 
-	var err error
-	opt.TLSConfig, err = initRedisTlsConfig(redisConfig.CaCertPath, redisConfig.SslMode)
-	if err != nil {
-		panic(err)
+	if redisConfig.TLS.Enabled {
+		var err error
+		opt.TLSConfig, err = initRedisTLS(redisConfig.TLS.CertCaFile, redisConfig.TLS.CertFile, redisConfig.TLS.CertKeyFile, redisConfig.TLS.InsecureSkipVerify)
+		if err != nil {
+			panic(fmt.Sprintf("redis init fail:%v", err))
+		}
 	}
 
 	// set custom options, from config.yaml
@@ -120,10 +124,12 @@ func newSentinelClient(redisConfig *config.Redis) *redis.Client {
 	opt.MinIdleConns = 10 * runtime.NumCPU()
 	opt.IdleTimeout = 3 * time.Minute
 
-	var err error
-	opt.TLSConfig, err = initRedisTlsConfig(redisConfig.CaCertPath, redisConfig.SslMode)
-	if err != nil {
-		panic(err)
+	if redisConfig.TLS.Enabled {
+		var err error
+		opt.TLSConfig, err = initRedisTLS(redisConfig.TLS.CertCaFile, redisConfig.TLS.CertFile, redisConfig.TLS.CertKeyFile, redisConfig.TLS.InsecureSkipVerify)
+		if err != nil {
+			panic(fmt.Sprintf("redis init fail:%v", err))
+		}
 	}
 
 	// set custom options, from config.yaml
@@ -196,22 +202,34 @@ func GetDefaultMQRedisClient() *redis.Client {
 	return mq
 }
 
-func initRedisTlsConfig(caCertPath string, sslMode string) (*tls.Config, error) {
-	// 参数校验
-	if sslMode == "" {
-		return nil, fmt.Errorf("SSL mode name cannot be empty")
-	}
-	if sslMode == config.TlsDisable {
-		return nil, nil
-	}
-	if sslMode != config.TlsVerifyCa && sslMode != config.TlsDisable {
-		return nil, fmt.Errorf("unsupported SSL mode: %s", sslMode)
-	}
-	if sslMode == config.TlsVerifyCa && caCertPath == "" {
-		return nil, fmt.Errorf("CA certificate path cannot be empty when SSL mode is verify_ca")
+func initRedisTLS(tlsCertCaFile, tlsCertFile, tlsCertKeyFile string, insecureSkipVerify bool) (*tls.Config, error) {
+	// https://pkg.go.dev/github.com/go-sql-driver/mysql#RegisterTLSConfig
+	rootCertPool := x509.NewCertPool()
+	pem, err := os.ReadFile(tlsCertCaFile)
+	if err != nil {
+		return nil, err
 	}
 
-	// 配置并注册TLS
-	return config.InitTlsConfig(caCertPath)
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
 
+		return nil, fmt.Errorf("failed to append CA certificate")
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs:            rootCertPool,
+		InsecureSkipVerify: insecureSkipVerify, // Skip hostname verification for IP addresses
+	}
+
+	if tlsCertFile != "" && tlsCertKeyFile != "" {
+		clientCert := make([]tls.Certificate, 0, 1)
+		certs, err := tls.LoadX509KeyPair(tlsCertFile, tlsCertKeyFile)
+		if err != nil {
+			return nil, err
+		}
+		clientCert = append(clientCert, certs)
+
+		tlsConfig.Certificates = clientCert
+	}
+
+	return tlsConfig, nil
 }

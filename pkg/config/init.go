@@ -11,12 +11,8 @@
 package config
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"fmt"
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 // SuperAppCodeSet ...
@@ -25,8 +21,6 @@ var (
 	SuperUserSet             *set.StringSet
 	SupportShieldFeaturesSet *set.StringSet
 	SecurityAuditAppCode     *set.StringSet
-	TlsVerifyCa              = "verify_ca"
-	TlsDisable               = "disable"
 )
 
 // Worker ...
@@ -98,24 +92,4 @@ func InitWorker(w Worker) {
 		MaxSubjectActionAlterEventCheckCount,
 		MaxConsumerCountPerWorker,
 	)
-}
-
-// TLS config
-func InitTlsConfig(caCertPath string) (*tls.Config, error) {
-	// 读取CA证书
-	rootCertPool := x509.NewCertPool()
-	pem, err := os.ReadFile(caCertPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read CA certificate file: %w", err)
-	}
-
-	// 添加CA证书到信任池
-	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
-		return nil, fmt.Errorf("failed to append CA certificate to trust pool")
-	}
-
-	// 配置并注册TLS
-	return &tls.Config{
-		RootCAs: rootCertPool, // 信任的CA证书池
-	}, nil
 }
