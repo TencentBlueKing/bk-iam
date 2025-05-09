@@ -28,7 +28,7 @@ databases:
     tls:                                    # tls配置
       enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
-      certCertFile: "your cert file"        # 服务器证书路径(可不填)
+      certFile: "your cert file"            # 服务器证书路径(可不填)
       certKeyFile: "your key file"          # 服务器私钥路径(可不填)
 
   - id: "open_paas"
@@ -40,7 +40,7 @@ databases:
     tls:                                    # tls配置
       enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
-      certCertFile: "your cert file"        # 证书路径
+      certFile: "your cert file"            # 证书路径
       certKeyFile: "your key file"          # 私钥路径
 
 redis:
@@ -58,7 +58,7 @@ redis:
     tls:                                    # tls配置
       enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
-      certCertFile: "your cert file"        # 证书路径
+      certFile: "your cert file"            # 证书路径
       certKeyFile: "your key file"          # 私钥路径
   - id: "mq"
     type: "standalone"
@@ -74,7 +74,7 @@ redis:
     tls:                                    # tls配置
       enabled: true                         # 是否开启tls
       certCaFile: "your CA file"            # ca证书路径
-      certCertFile: "your cert file"        # 证书路径
+      certFile: "your cert file"            # 证书路径
       certKeyFile: "your key file"          # 私钥路径
 
 logger:
