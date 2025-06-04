@@ -62,14 +62,14 @@ bench:
 
 build:
 	# go build .
-	go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	CGO_ENABLED=0 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 build-linux:
 	# GOOS=linux GOARCH=amd64 go build .
-	GOOS=linux GOARCH=amd64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 build-aarch64:
-	GOOS=linux GOARCH=arm64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -mod=vendor -tags=jsoniter -ldflags "-X iam/pkg/version.Version=${VERSION} -X iam/pkg/version.Commit=`git rev-parse HEAD` -X iam/pkg/version.BuildTime=`date +%Y-%m-%d_%I:%M:%S` -X 'iam/pkg/version.GoVersion=`go version`'" .
 
 all: lint test build
 
