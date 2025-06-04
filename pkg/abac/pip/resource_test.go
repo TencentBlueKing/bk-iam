@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -37,7 +37,7 @@ var _ = Describe("Resource", func() {
 		})
 
 		It("keys empty", func() {
-			d, err := pip.QueryRemoteResourceAttribute("bk_test", "app", "demo123", []string{})
+			d, err := pip.QueryRemoteResourceAttribute("", "bk_test", "app", "demo123", []string{})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), d, 1)
 			id, ok := d["id"]
@@ -47,7 +47,7 @@ var _ = Describe("Resource", func() {
 
 		It("keys only have id", func() {
 			d, err := pip.QueryRemoteResourceAttribute(
-				"bk_test", "app", "demo123", []string{"id"})
+				"", "bk_test", "app", "demo123", []string{"id"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), d, 1)
 			id, ok := d["id"]
@@ -57,12 +57,12 @@ var _ = Describe("Resource", func() {
 
 		It("GetRemoteResource fail", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.GetRemoteResource,
-				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+				func(bkTenantID, system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return nil, errors.New("get remote resource fail")
 				})
 
 			_, err := pip.QueryRemoteResourceAttribute(
-				"bk_test", "app", "demo123", []string{"id", "name"})
+				"", "bk_test", "app", "demo123", []string{"id", "name"})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "get remote resource fail")
 		})
@@ -72,12 +72,12 @@ var _ = Describe("Resource", func() {
 				"hello": 1,
 			}
 			patches = gomonkey.ApplyFunc(cacheimpls.GetRemoteResource,
-				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+				func(bkTenantID, system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return want, nil
 				})
 
 			r, err := pip.QueryRemoteResourceAttribute(
-				"bk_test", "app", "demo123", []string{"id", "name"})
+				"", "bk_test", "app", "demo123", []string{"id", "name"})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, r)
 		})
@@ -106,7 +106,7 @@ var _ = Describe("Resource", func() {
 
 		It("keys empty", func() {
 			d, err := pip.BatchQueryRemoteResourcesAttribute(
-				"bk_test", "app", []string{"demo123", "demo456"}, []string{})
+				"", "bk_test", "app", []string{"demo123", "demo456"}, []string{})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), d, 2)
 			assert.Equal(GinkgoT(), wantIDAttrs, d)
@@ -114,7 +114,7 @@ var _ = Describe("Resource", func() {
 
 		It("keys only have id", func() {
 			d, err := pip.BatchQueryRemoteResourcesAttribute(
-				"bk_test", "app", []string{"demo123", "demo456"}, []string{"id"})
+				"", "bk_test", "app", []string{"demo123", "demo456"}, []string{"id"})
 			assert.NoError(GinkgoT(), err)
 			assert.Len(GinkgoT(), d, 2)
 			assert.Equal(GinkgoT(), wantIDAttrs, d)
@@ -122,12 +122,12 @@ var _ = Describe("Resource", func() {
 
 		It("ListRemoteResources fail", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.ListRemoteResources,
-				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+				func(bkTenantID, system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return nil, errors.New("list remote resource fail")
 				})
 
 			_, err := pip.BatchQueryRemoteResourcesAttribute(
-				"bk_test", "app", []string{"demo123", "demo456"}, []string{"id", "name"})
+				"", "bk_test", "app", []string{"demo123", "demo456"}, []string{"id", "name"})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "list remote resource fail")
 		})
@@ -142,12 +142,12 @@ var _ = Describe("Resource", func() {
 				},
 			}
 			patches = gomonkey.ApplyFunc(cacheimpls.ListRemoteResources,
-				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+				func(bkTenantID, system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return want, nil
 				})
 
 			r, err := pip.BatchQueryRemoteResourcesAttribute(
-				"bk_test", "app", []string{"demo123", "demo456"}, []string{"id", "name"})
+				"", "bk_test", "app", []string{"demo123", "demo456"}, []string{"id", "name"})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), want, r)
 		})

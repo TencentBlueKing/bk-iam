@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@ import (
 )
 
 /*
-PDP模块鉴权上下文
+PDP 模块鉴权上下文
 */
 
 // Request 鉴权请求
@@ -26,6 +26,9 @@ type Request struct {
 	Subject   types.Subject
 	Action    types.Action
 	Resources []types.Resource
+
+	// 额外上下文信息
+	bkTenantID string
 }
 
 // NewRequest new request
@@ -35,6 +38,15 @@ func NewRequest() *Request {
 		Action:    types.NewAction(),
 		Resources: []types.Resource{},
 	}
+}
+
+func (r *Request) GetBkTenantID() string {
+	// TODO: 是否需要从 Subject DB 中获取 BkTenantIDD
+	return r.bkTenantID
+}
+
+func (r *Request) SetBkTenantID(bkTenantID string) {
+	r.bkTenantID = bkTenantID
 }
 
 func (r *Request) HasResources() bool {
@@ -63,7 +75,7 @@ func (r *Request) GetRemoteResources() []*types.Resource {
 	return resources
 }
 
-// ValidateActionResource 检查鉴权传的资源与action关联的资源类型是否匹配
+// ValidateActionResource 检查鉴权传的资源与 action 关联的资源类型是否匹配
 func (r *Request) ValidateActionResource() bool {
 	typeSet := r.getActionResourceTypeIDSet()
 	if typeSet.Size() != len(r.Resources) {
@@ -79,9 +91,9 @@ func (r *Request) ValidateActionResource() bool {
 	return true
 }
 
-// ValidateActionRemoteResource 检查依赖资源是否与action关联资源类型匹配
+// ValidateActionRemoteResource 检查依赖资源是否与 action 关联资源类型匹配
 func (r *Request) ValidateActionRemoteResource() bool {
-	// 检查remote资源全覆盖, local资源部分覆盖
+	// 检查 remote 资源全覆盖，local 资源部分覆盖
 	resourceTypes, _ := r.Action.Attribute.GetResourceTypes()
 
 	remoteTypeSet := set.NewStringSet()
@@ -97,7 +109,7 @@ func (r *Request) ValidateActionRemoteResource() bool {
 	var remoteCount int
 
 	for _, resource := range r.Resources {
-		// 不匹配的local资源
+		// 不匹配的 local 资源
 		if resource.System == r.System {
 			if !localTypeSet.Has(resource.Type) {
 				return false

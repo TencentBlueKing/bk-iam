@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -74,6 +74,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouter.Use(middleware.Metrics())
 	policyRouter.Use(middleware.APILogger())
 	policyRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouter.Use(middleware.BkTenantID())
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	policy.Register(policyRouter)
 
@@ -81,6 +82,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	policyRouterV2.Use(middleware.Metrics())
 	policyRouterV2.Use(middleware.APILogger())
 	policyRouterV2.Use(middleware.NewClientAuthMiddleware(cfg))
+	policyRouterV2.Use(middleware.BkTenantID())
 	policyRouterV2.Use(middleware.NewRateLimitMiddleware(cfg))
 	policy.RegisterV2(policyRouterV2)
 
@@ -90,6 +92,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	openLegacyAPIRouter.Use(middleware.Metrics())
 	openLegacyAPIRouter.Use(middleware.APILogger())
 	openLegacyAPIRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	openLegacyAPIRouter.Use(middleware.BkTenantID())
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	open.RegisterLegacySystemAPIs(openLegacyAPIRouter)
 
@@ -98,6 +101,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	openAPIRouter.Use(middleware.Metrics())
 	openAPIRouter.Use(middleware.APILogger())
 	openAPIRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	openAPIRouter.Use(middleware.BkTenantID())
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	open.Register(openAPIRouter)
 
@@ -106,6 +110,7 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	permModelRouter.Use(middleware.Metrics())
 	permModelRouter.Use(middleware.Audit())
 	permModelRouter.Use(middleware.NewClientAuthMiddleware(cfg))
+	permModelRouter.Use(middleware.BkTenantID())
 	policyRouter.Use(middleware.NewRateLimitMiddleware(cfg))
 	model.Register(permModelRouter)
 

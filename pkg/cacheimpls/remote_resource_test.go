@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -33,7 +33,7 @@ func TestRemoteResourceCacheKey_Key(t *testing.T) {
 		Fields: "id;name",
 	}
 
-	assert.Equal(t, stringx.MD5Hash("test:host:1:id;name"), k.Key())
+	assert.Equal(t, stringx.MD5Hash(":test:host:1:id;name"), k.Key())
 }
 
 func TestGetCMDBResource(t *testing.T) {
@@ -74,7 +74,7 @@ func TestGetCMDBResource(t *testing.T) {
 	ResourceTypeCache = redis.NewMockCache("mockCache", expiration)
 	ResourceTypeCache.Set(ResourceTypeCacheKey{"test", "app"}, resourceType, 0)
 
-	req, _ := component.PrepareRequest(system, resourceType)
+	req, _ := component.PrepareRequest("", system, resourceType)
 
 	mockService := mock.NewMockRemoteResourceClient(ctl)
 	mockService.EXPECT().GetResources(req, "test", "app", []string{"checklist"}, []string{"name"}).Return(
@@ -88,7 +88,7 @@ func TestGetCMDBResource(t *testing.T) {
 
 	RemoteResourceCache = mockCache
 
-	resource, err := GetRemoteResource("test", "app", "checklist", []string{"name"})
+	resource, err := GetRemoteResource("", "test", "app", "checklist", []string{"name"})
 	assert.NoError(t, err)
 	assert.Equal(t, "checklist", resource["id"])
 }

@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -23,7 +23,7 @@ import (
 	"iam/pkg/util"
 )
 
-// 策略相关的api
+// 策略相关的 api
 
 // Query godoc
 // @Summary policy query/策略查询
@@ -79,7 +79,10 @@ func Query(c *gin.Context) {
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body)
 
-	// 如果传的筛选的资源实例为空, 则不判断外部依赖资源是否满足
+	// 设置租户 ID
+	req.SetBkTenantID(util.GetBkTenantID(c))
+
+	// 如果传的筛选的资源实例为空，则不判断外部依赖资源是否满足
 	willCheckRemoteResource := true
 	if len(req.Resources) == 0 {
 		willCheckRemoteResource = false
@@ -158,12 +161,15 @@ func BatchQueryByActions(c *gin.Context) {
 		return
 	}
 
-	// TODO: 这里, subject/resource都是一致的, 只是action是多个, 所以其中pdp.Query会存在重复查询/重复计算?
+	// TODO: 这里，subject/resource 都是一致的，只是 action 是多个，所以其中 pdp.Query 会存在重复查询/重复计算？
 	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
 	for _, action := range body.Actions {
 		req := request.NewRequest()
 		copyRequestFromQueryByActionsBody(req, &body)
 		req.Action.ID = action.ID
+
+		// 设置租户 ID
+		req.SetBkTenantID(util.GetBkTenantID(c))
 
 		var subEntry *debug.Entry
 		if isDebug {
@@ -267,6 +273,9 @@ func QueryByExtResources(c *gin.Context) {
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromQueryBody(req, &body.queryRequest)
+
+	// 设置租户 ID
+	req.SetBkTenantID(util.GetBkTenantID(c))
 
 	// 结构体隔离转换
 	extResources := make([]types.ExtResource, 0, len(body.ExtResources))

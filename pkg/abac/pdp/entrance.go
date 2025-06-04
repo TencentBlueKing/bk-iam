@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -77,7 +77,7 @@ func Eval(
 		})
 	}
 
-	// 1. PIP查询action
+	// 1. PIP 查询 action
 	debug.AddStep(entry, "Fetch action details")
 	err = fillActionDetail(r)
 	if err != nil {
@@ -91,7 +91,7 @@ func Eval(
 	}
 	debug.WithValue(entry, "action", r.Action)
 
-	// 2. 检查请求资源与action关联的类型是否匹配 (填充后的校验)
+	// 2. 检查请求资源与 action 关联的类型是否匹配 (填充后的校验)
 	debug.AddStep(entry, "Validate action resource")
 	if !r.ValidateActionResource() {
 		err = errorWrapf(ErrInvalidActionResource,
@@ -101,11 +101,11 @@ func Eval(
 		return false, err
 	}
 
-	// 3. PIP查询subject相关的属性
+	// 3. PIP 查询 subject 相关的属性
 	debug.AddStep(entry, "Fetch subject details")
 	err = fillSubjectDepartments(r)
 	if err != nil {
-		// 如果用户不存在, 表现为没有权限
+		// 如果用户不存在，表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -117,7 +117,7 @@ func Eval(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
-	// 3. 查询关联的group pks
+	// 3. 查询关联的 group pks
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
 	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
@@ -133,7 +133,7 @@ func Eval(
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
 
-	// 4. actionAuthType为rbac优先走rbac鉴权逻辑
+	// 4. actionAuthType 为 rbac 优先走 rbac 鉴权逻辑
 	if len(rbacGroupPKs) > 0 {
 		debug.AddStep(entry, "RBAC Eval")
 		isPass, err = rbacEval(r.System, r.Action, r.Resources, rbacGroupPKs, withoutCache, entry)
@@ -148,7 +148,7 @@ func Eval(
 		}
 	}
 
-	// 5. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
+	// 5. PRP 查询 subject-action 相关的 policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
 	policies, err := queryPolicies(r.System, r.Subject, r.Action, abacGroupPKs, false, withoutCache, entry)
 	if err != nil {
@@ -197,7 +197,7 @@ func Eval(
 	return isPass, err
 }
 
-// Query 查询请求相关的Policy
+// Query 查询请求相关的 Policy
 func Query(
 	r *request.Request,
 	entry *debug.Entry,
@@ -217,7 +217,7 @@ func Query(
 		return EmptyPolicies, nil
 	}
 
-	// 2. policies表达式转换
+	// 2. policies 表达式转换
 	expr, err := translate.ConditionsTranslate(conditions)
 	if err != nil {
 		err = errorWrapf(err, "translate.ConditionsTranslate conditions=`%+v` fail", conditions)
@@ -253,7 +253,7 @@ func QueryByExtResources(
 		})
 	}
 
-	// 如果策略为空, 直接返回空结果
+	// 如果策略为空，直接返回空结果
 	if len(conditions) == 0 {
 		for i, resource := range extResources {
 			for _, id := range resource.IDs {
@@ -270,7 +270,7 @@ func QueryByExtResources(
 	// 2. 批量查询 ext resource 的属性
 	var remoteResources []map[string]interface{}
 	for i := range extResources {
-		remoteResources, err = queryExtResourceAttrs(&extResources[i], conditions)
+		remoteResources, err = queryExtResourceAttrs(r.GetBkTenantID(), &extResources[i], conditions)
 		if err != nil {
 			err = errorWrapf(err, "queryExtResourceAttrs resource=`%+v` fail", extResources[i])
 			return nil, nil, err
@@ -284,7 +284,7 @@ func QueryByExtResources(
 		}
 	}
 
-	// 3. policies表达式转换
+	// 3. policies 表达式转换
 	var expr map[string]interface{}
 	expr, err = translate.ConditionsTranslate(conditions)
 	if err != nil {
@@ -316,7 +316,7 @@ func QueryAuthPolicies(
 		})
 	}
 
-	// 1. PIP查询action
+	// 1. PIP 查询 action
 	debug.AddStep(entry, "Fetch action details")
 	err = fillActionDetail(r)
 	if err != nil {
@@ -330,11 +330,11 @@ func QueryAuthPolicies(
 	}
 	debug.WithValue(entry, "action", r.Action)
 
-	// 3. PIP查询subject相关的属性
+	// 3. PIP 查询 subject 相关的属性
 	debug.AddStep(entry, "Fetch subject details")
 	err = fillSubjectDepartments(r)
 	if err != nil {
-		// 如果用户不存在, 表现为没有权限
+		// 如果用户不存在，表现为没有权限
 		// if the subject not exists
 		if errors.Is(err, sql.ErrNoRows) {
 			err = ErrSubjectNotExists
@@ -346,7 +346,7 @@ func QueryAuthPolicies(
 	}
 	debug.WithValue(entry, "subject", r.Subject)
 
-	// 3. 查询关联的group pks
+	// 3. 查询关联的 group pks
 	debug.AddStep(entry, "Get Effect AuthType Group PKs")
 	abacGroupPKs, rbacGroupPKs, err := getEffectAuthTypeGroupPKs(r.System, r.Subject, r.Action)
 	if err != nil {
@@ -362,7 +362,7 @@ func QueryAuthPolicies(
 	debug.WithValue(entry, "abacGroupPks", abacGroupPKs)
 	debug.WithValue(entry, "rbacGroupPks", rbacGroupPKs)
 
-	// 4. PRP查询subject-action相关的policies: 根据 system / subject / action 获取策略列表
+	// 4. PRP 查询 subject-action 相关的 policies: 根据 system / subject / action 获取策略列表
 	debug.AddStep(entry, "Query Policies")
 	withRbacPolicies := false
 	if len(rbacGroupPKs) > 0 {

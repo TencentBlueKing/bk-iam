@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -21,16 +21,17 @@ import (
 
 // RemoteResourceCacheKey ...
 type RemoteResourceCacheKey struct {
-	System string
-	Type   string
-	ID     string
+	BkTenantID string
+	System     string
+	Type       string
+	ID         string
 	// a;b;c
 	Fields string
 }
 
 // Key ...
 func (k RemoteResourceCacheKey) Key() string {
-	key := k.System + ":" + k.Type + ":" + k.ID + ":" + k.Fields
+	key := k.BkTenantID + ":" + k.System + ":" + k.Type + ":" + k.ID + ":" + k.Fields
 	return stringx.MD5Hash(key)
 }
 
@@ -41,7 +42,7 @@ func retrieveRemoteResource(k cache.Key) (interface{}, error) {
 
 	fields := strings.Split(k1.Fields, ";")
 
-	resources, err := listRemoteResources(k1.System, k1.Type, []string{k1.ID}, fields)
+	resources, err := listRemoteResources(k1.BkTenantID, k1.System, k1.Type, []string{k1.ID}, fields)
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -57,7 +58,7 @@ func retrieveRemoteResource(k cache.Key) (interface{}, error) {
 }
 
 // GetRemoteResource ...
-func GetRemoteResource(system, _type, id string, fields []string) (remoteResource map[string]interface{}, err error) {
+func GetRemoteResource(bkTenantID, system, _type, id string, fields []string) (remoteResource map[string]interface{}, err error) {
 	// sort
 	if len(fields) > 1 {
 		sort.Strings(fields)
@@ -65,10 +66,11 @@ func GetRemoteResource(system, _type, id string, fields []string) (remoteResourc
 
 	f := strings.Join(fields, ";")
 	key := RemoteResourceCacheKey{
-		System: system,
-		Type:   _type,
-		ID:     id,
-		Fields: f,
+		BkTenantID: bkTenantID,
+		System:     system,
+		Type:       _type,
+		ID:         id,
+		Fields:     f,
 	}
 
 	err = RemoteResourceCache.GetInto(key, &remoteResource, retrieveRemoteResource)

@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -61,7 +61,7 @@ var _ = Describe("Remote", func() {
 				}},
 			}
 			patches = gomonkey.ApplyFunc(queryRemoteResourceAttrs, func(
-				resource *types.Resource, policies []types.AuthPolicy,
+				bkTenantID string, resource *types.Resource, policies []types.AuthPolicy,
 			) (attrs map[string]interface{}, err error) {
 				return nil, errors.New("query remote remote resource attrs fail")
 			})
@@ -83,7 +83,7 @@ var _ = Describe("Remote", func() {
 				"hello": "world",
 			}
 			patches = gomonkey.ApplyFunc(queryRemoteResourceAttrs, func(
-				resource *types.Resource, policies []types.AuthPolicy,
+				bkTenantID string, resource *types.Resource, policies []types.AuthPolicy,
 			) (attrs map[string]interface{}, err error) {
 				return want, nil
 			})
@@ -119,7 +119,7 @@ var _ = Describe("Remote", func() {
 		})
 
 		It("empty", func() {
-			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			_, err := queryRemoteResourceAttrs("", resource, []types.AuthPolicy{})
 			assert.NoError(GinkgoT(), err)
 		})
 
@@ -129,7 +129,7 @@ var _ = Describe("Remote", func() {
 					return nil, errors.New("the error")
 				})
 
-			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{
+			_, err := queryRemoteResourceAttrs("", resource, []types.AuthPolicy{
 				{
 					Version:             "1",
 					ID:                  1,
@@ -165,11 +165,11 @@ var _ = Describe("Remote", func() {
 				})
 
 			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
-				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+				func(bkTenantID, system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return nil, errors.New("the error3")
 				})
 
-			_, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{})
+			_, err := queryRemoteResourceAttrs("", resource, []types.AuthPolicy{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "the error3")
 		})
@@ -186,11 +186,11 @@ var _ = Describe("Remote", func() {
 				})
 
 			patches.ApplyFunc(pip.QueryRemoteResourceAttribute,
-				func(system, _type, id string, keys []string) (map[string]interface{}, error) {
+				func(bkTenantID, system, _type, id string, keys []string) (map[string]interface{}, error) {
 					return map[string]interface{}{"hello": "world"}, nil
 				})
 
-			attrs, err := queryRemoteResourceAttrs(resource, []types.AuthPolicy{
+			attrs, err := queryRemoteResourceAttrs("", resource, []types.AuthPolicy{
 				{
 					Version:             "1",
 					ID:                  1,
@@ -241,11 +241,11 @@ var _ = Describe("Remote", func() {
 				})
 
 			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
-				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+				func(bkTenantID, system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return nil, errors.New("the error2")
 				})
 
-			_, err := queryExtResourceAttrs(resource, []condition.Condition{})
+			_, err := queryExtResourceAttrs("", resource, []condition.Condition{})
 			assert.Error(GinkgoT(), err)
 			assert.Contains(GinkgoT(), err.Error(), "the error2")
 		})
@@ -257,11 +257,11 @@ var _ = Describe("Remote", func() {
 				})
 
 			patches.ApplyFunc(pip.BatchQueryRemoteResourcesAttribute,
-				func(system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
+				func(bkTenantID, system, _type string, ids []string, keys []string) ([]map[string]interface{}, error) {
 					return []map[string]interface{}{{"hello": "world"}}, nil
 				})
 
-			resources, err := queryExtResourceAttrs(resource, []condition.Condition{})
+			resources, err := queryExtResourceAttrs("", resource, []condition.Condition{})
 			assert.NoError(GinkgoT(), err)
 			assert.Equal(GinkgoT(), []map[string]interface{}{{"hello": "world"}}, resources)
 		})

@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -21,10 +21,13 @@ import (
 
 // PrepareRequest ...
 func PrepareRequest(
+	bkTenantID string,
 	system types.System,
 	resourceType types.ResourceType,
 ) (req RemoteResourceRequest, err error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("RemoteResourceClient", "PrepareRequest")
+
+	req.Headers = map[string]string{"X-Bk-Tenant-Id": bkTenantID}
 
 	// 1. parse the providerConfig
 	systemProviderConfig, err := util.MapValueInterfaceToString(system.ProviderConfig)
@@ -71,9 +74,7 @@ func PrepareRequest(
 	req.URL = strings.TrimRight(host, "/") + "/" + strings.TrimLeft(path, "/")
 	// NOTE: currently only support none and basic auth
 	if token != "" {
-		req.Headers = map[string]string{
-			"Authorization": util.BasicAuthAuthorizationHeader("bk_iam", token),
-		}
+		req.Headers["Authorization"] = util.BasicAuthAuthorizationHeader("bk_iam", token)
 	}
 
 	return req, nil

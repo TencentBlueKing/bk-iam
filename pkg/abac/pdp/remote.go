@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -30,7 +30,7 @@ func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (e
 
 	resources := r.GetRemoteResources()
 	for _, resource := range resources {
-		attrs, err = queryRemoteResourceAttrs(resource, policies)
+		attrs, err = queryRemoteResourceAttrs(r.GetBkTenantID(), resource, policies)
 		if err != nil {
 			err = errorWrapf(err, "queryRemoteResourceAttrs resource=`%+v` fail", resource)
 			return err
@@ -41,6 +41,7 @@ func fillRemoteResourceAttrs(r *request.Request, policies []types.AuthPolicy) (e
 }
 
 func queryRemoteResourceAttrs(
+	bkTenantID string,
 	resource *types.Resource,
 	policies []types.AuthPolicy,
 ) (attrs map[string]interface{}, err error) {
@@ -48,7 +49,7 @@ func queryRemoteResourceAttrs(
 
 	timestampNano := time.Now().UnixNano()
 
-	// 查询policies相关的属性key
+	// 查询 policies 相关的属性 key
 	conditions := make([]condition.Condition, 0, len(policies))
 	for _, policy := range policies {
 		condition, err := cacheimpls.GetUnmarshalledResourceExpression(
@@ -64,8 +65,8 @@ func queryRemoteResourceAttrs(
 
 	keys := getConditionAttrKeys(resource, conditions)
 
-	// 6. PIP查询依赖resource相关keys的属性
-	attrs, err = pip.QueryRemoteResourceAttribute(resource.System, resource.Type, resource.ID, keys)
+	// 6. PIP 查询依赖 resource 相关 keys 的属性
+	attrs, err = pip.QueryRemoteResourceAttribute(bkTenantID, resource.System, resource.Type, resource.ID, keys)
 	if err != nil {
 		err = errorWrapf(err,
 			"pip.QueryRemoteResourceAttribute system=`%s`, resourceType=`%s`, resourceID=`%s`, keys=`%+v` fail",
@@ -76,6 +77,7 @@ func queryRemoteResourceAttrs(
 }
 
 func queryExtResourceAttrs(
+	bkTenantID string,
 	resource *types.ExtResource,
 	policies []condition.Condition,
 ) (resources []map[string]interface{}, err error) {
@@ -87,8 +89,8 @@ func queryExtResourceAttrs(
 		ID:     resource.IDs[0],
 	}, policies)
 
-	// 6. PIP查询依赖resource相关keys的属性
-	resources, err = pip.BatchQueryRemoteResourcesAttribute(resource.System, resource.Type, resource.IDs, keys)
+	// 6. PIP 查询依赖 resource 相关 keys 的属性
+	resources, err = pip.BatchQueryRemoteResourcesAttribute(bkTenantID, resource.System, resource.Type, resource.IDs, keys)
 	if err != nil {
 		err = errorWrapf(
 			err,

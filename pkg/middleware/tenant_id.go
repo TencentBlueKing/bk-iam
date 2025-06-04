@@ -8,21 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package util
+package middleware
 
-// RequestIDKey ...
-const (
-	RequestIDKey       = "request_id"
-	RequestIDHeaderKey = "X-Request-Id"
+import (
+	"iam/pkg/util"
 
-	BkTenantIDKey       = "bk_tenant_id"
-	BkTenantIDHeaderKey = "X-Bk-Tenant-Id"
-
-	ClientIDKey = "client_id"
-
-	ErrorIDKey = "err"
-
-	// NeverExpiresUnixTime 永久有效期，使用 2100.01.01 00:00:00 的 unix time 作为永久有效期的表示，单位秒
-	// time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC).Unix()
-	NeverExpiresUnixTime = 4102444800
+	"github.com/gin-gonic/gin"
 )
+
+func BkTenantID() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 从请求头中获取 tenant_id
+		tenantID := c.GetHeader(util.BkTenantIDHeaderKey)
+		// FIXME (nan): 需要根据是否开启多租户模式，强制要求 tenant_id 存在
+
+		// 将 tenant_id 存储在上下文中，以便后续处理中使用
+		util.SetBkTenantID(c, tenantID)
+
+		// 继续处理请求
+		c.Next()
+	}
+}

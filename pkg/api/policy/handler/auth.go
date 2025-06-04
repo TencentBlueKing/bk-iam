@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -83,6 +83,9 @@ func Auth(c *gin.Context) {
 	req := request.NewRequest()
 	copyRequestFromAuthBody(req, &body)
 
+	// 设置租户 ID
+	req.SetBkTenantID(util.GetBkTenantID(c))
+
 	// 鉴权
 	allowed, err := pdp.Eval(req, entry, isForce)
 	debug.WithError(entry, err)
@@ -156,7 +159,7 @@ func BatchAuthByActions(c *gin.Context) {
 		return
 	}
 
-	// 查询  subject-system-action的policies, 然后执行鉴权!
+	// 查询  subject-system-action 的 policies, 然后执行鉴权！
 	result := make(authByActionsResponse, len(body.Actions))
 	for _, action := range body.Actions {
 		req := request.NewRequest()
@@ -248,13 +251,13 @@ func BatchAuthByResources(c *gin.Context) {
 	copyRequestFromAuthByResourcesBody(req, &body)
 
 	/*
-		TODO 2种变更方式
-		1. 走RBAC逻辑
-			- 遍历resource走rbac鉴权, 如果有资源pass, 则记录结果, no pass则回落到abac鉴权
-		2. 走query的逻辑, 分别查询abac与rbac的策略并合并, 遍历走abac鉴权
+		TODO 2 种变更方式
+		1. 走 RBAC 逻辑
+			- 遍历 resource 走 rbac 鉴权，如果有资源 pass, 则记录结果，no pass 则回落到 abac 鉴权
+		2. 走 query 的逻辑，分别查询 abac 与 rbac 的策略并合并，遍历走 abac 鉴权
 	*/
 
-	// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
+	// TODO: 这里下沉到下一层，不应该直接依赖 evaluation, 只应该依赖 pdp
 	// query policies
 	data := make(authByResourcesResponse, len(body.ResourcesList))
 	policies, err := pdp.QueryAuthPolicies(req, entry, isForce)
@@ -289,7 +292,7 @@ func BatchAuthByResources(c *gin.Context) {
 
 	// do eval for each resource
 	for _, resources := range body.ResourcesList {
-		// TODO: 这里下沉到下一层, 不应该直接依赖evaluation, 只应该依赖pdp
+		// TODO: 这里下沉到下一层，不应该直接依赖 evaluation, 只应该依赖 pdp
 		// copy the req, reset and assign the resources
 		r := req
 		r.Resources = make([]types.Resource, 0, len(resources))
