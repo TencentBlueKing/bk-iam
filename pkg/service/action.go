@@ -638,6 +638,7 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 		}
 
 		instanceSelections = append(instanceSelections, map[string]interface{}{
+			"tenant_id":           is.TenantID,
 			"id":                  is.ID,
 			"system_id":           is.System,
 			"ignore_iam_path":     r.IgnoreIAMPath,
