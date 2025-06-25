@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -19,4 +19,6 @@ type InstanceSelection struct {
 	NameEn            string                   `json:"name_en"             structs:"name_en"`
 	IsDynamic         bool                     `json:"is_dynamic"          structs:"is_dynamic"`
 	ResourceTypeChain []map[string]interface{} `json:"resource_type_chain" structs:"resource_type_chain"`
+
+	TenantID string `json:"tenant_id"           structs:"tenant_id"`
 }

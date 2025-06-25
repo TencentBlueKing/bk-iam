@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -86,6 +86,7 @@ func BatchCreateInstanceSelections(c *gin.Context) {
 			NameEn:            is.NameEn,
 			IsDynamic:         is.IsDynamic,
 			ResourceTypeChain: resourceTypeChain,
+			TenantID:          is.TenantID,
 		})
 	}
 
@@ -256,7 +257,7 @@ func batchDeleteInstanceSelections(c *gin.Context, systemID string, ids []string
 	eventSvc := service.NewModelChangeService()
 	for _, ais := range actionInstanceSelectionIDs {
 		for _, id := range ids {
-			// NOTE: 只检查本系统的action是否关联了对应的实例视图
+			// NOTE: 只检查本系统的 action 是否关联了对应的实例视图
 			if ais.ActionSystem == systemID && ais.InstanceSelectionSystem == systemID &&
 				ais.InstanceSelectionID == id {
 				actionPK, err1 := cacheimpls.GetActionPK(systemID, ais.ActionID)
@@ -265,7 +266,7 @@ func batchDeleteInstanceSelections(c *gin.Context, systemID string, ids []string
 						fmt.Sprintf("query action pk fail, systemID=%s, id=%s", systemID, ais.ActionID))
 					return
 				}
-				// 如果Action关联了该实例视图，则再检查是否已经有删除Action的事件
+				// 如果 Action 关联了该实例视图，则再检查是否已经有删除 Action 的事件
 				eventExist, err1 := eventSvc.ExistByTypeModel(
 					service.ModelChangeEventTypeActionDeleted,
 					service.ModelChangeEventStatusPending,

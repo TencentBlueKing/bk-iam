@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -13,8 +13,8 @@ package service
 /*
 service
 
-types定义的数据结构的加载层
-可以从db redis memory中加载
+types 定义的数据结构的加载层
+可以从 db redis memory 中加载
 */
 
 //go:generate mockgen -source=$GOFILE -destination=./mock/$GOFILE -package=mock
@@ -35,7 +35,7 @@ import (
 // ActionSVC ...
 const ActionSVC = "ActionSVC"
 
-// ActionService action加载器
+// ActionService action 加载器
 type ActionService interface {
 	// in this file
 
@@ -45,11 +45,11 @@ type ActionService interface {
 
 	GetAuthType(system, id string) (int64, error)
 
-	// ListBySystem 注意: 查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大, 例如cmdb可能走近100次查询
+	// ListBySystem 注意：查 db 由于有填充resourceTypes/InstanceSelections, db 查询量非常大，例如 cmdb 可能走近 100 次查询
 	// 建议应用层使用 cacheimpls.ListActionBySystem(systemID)
 	ListBySystem(system string) ([]types.Action, error)
 
-	// ListBaseInfoBySystem 只包含原生字段, 不包含resource_types/related_actions等字段, 用于模型变更时的检查
+	// ListBaseInfoBySystem 只包含原生字段，不包含 resource_types/related_actions 等字段，用于模型变更时的检查
 	ListBaseInfoBySystem(system string) ([]types.ActionBaseInfo, error)
 
 	BulkCreate(system string, actions []types.Action) error
@@ -66,9 +66,9 @@ type ActionService interface {
 	// in action_resource_type.go
 
 	ListThinActionResourceTypes(system string, actionID string) ([]types.ThinActionResourceType, error)
-	// ListActionResourceTypeIDByResourceTypeSystem 获取关联的资源类型 by 关联资源类型的系统id
+	// ListActionResourceTypeIDByResourceTypeSystem 获取关联的资源类型 by 关联资源类型的系统 id
 	ListActionResourceTypeIDByResourceTypeSystem(resourceTypeSystem string) ([]types.ActionResourceTypeID, error)
-	// ListActionResourceTypeIDByActionSystem 获取关联资源类型 by 操作的系统id
+	// ListActionResourceTypeIDByActionSystem 获取关联资源类型 by 操作的系统 id
 	ListActionResourceTypeIDByActionSystem(actionSystem string) ([]types.ActionResourceTypeID, error)
 
 	// in action_instance_selection.go
@@ -97,7 +97,7 @@ func NewActionService() ActionService {
 	}
 }
 
-// GetActionPK 获取action pk
+// GetActionPK 获取 action pk
 func (l *actionService) GetActionPK(system, id string) (int64, error) {
 	return l.manager.GetPK(system, id)
 }
@@ -117,7 +117,7 @@ func (l *actionService) GetThinActionByPK(pk int64) (sa types.ThinAction, err er
 	return
 }
 
-// Get 获取action详细信息
+// Get 获取 action 详细信息
 func (l *actionService) Get(system, actionID string) (types.Action, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(ActionSVC, "Get")
 
@@ -145,6 +145,7 @@ func (l *actionService) Get(system, actionID string) (types.Action, error) {
 		Type:     dbAction.Type,
 		Hidden:   dbAction.Hidden,
 		Version:  dbAction.Version,
+		TenantID: dbAction.TenantID,
 	}
 
 	if dbAction.RelatedEnvironments != "" {
@@ -224,6 +225,7 @@ func (l *actionService) ListBySystem(system string) ([]types.Action, error) {
 			Type:          ac.Type,
 			Hidden:        ac.Hidden,
 			Version:       ac.Version,
+			TenantID:      ac.TenantID,
 		}
 		if ac.RelatedActions != "" {
 			err = jsoniter.UnmarshalFromString(ac.RelatedActions, &action.RelatedActions)
@@ -372,6 +374,7 @@ func (l *actionService) BulkCreate(system string, actions []types.Action) error 
 			Type:                ac.Type,
 			Hidden:              ac.Hidden,
 			Version:             ac.Version,
+			TenantID:            ac.TenantID,
 		})
 
 		singleDBActionResourceTypes, singleDBSaaSActionResourceTypes, err1 := l.convertToDBRelatedResourceTypes(
@@ -448,7 +451,7 @@ func (l *actionService) Update(system, actionID string, action types.Action) err
 		// 2. insert into saas_action_resource_type ()
 		//    insert into action_resource_type
 		// TODO: 与创建逻辑一样，代码需复用
-		// NOTE: bug here maybe, 这里如果action.ID没有传, 会更新空到db
+		// NOTE: bug here maybe, 这里如果 action.ID 没有传，会更新空到 db
 		dbActionResourceTypes, sarts, err1 := l.convertToDBRelatedResourceTypes(system, action)
 		if err1 != nil {
 			return errorWrapf(err, "convertToDbRelatedResourceTypes system=`%s`, action=`%+v`", system, action)
@@ -585,9 +588,9 @@ func (l *actionService) toServiceActionResourceType(
 		SelectionMode: sart.SelectionMode,
 	}
 
-	// NOTE: 底层存储实例视图的引用: rawInstanceSelections is {"system_id": a, "id": b}
-	//       给前端SaaS的时候, 查到真实的 实例视图 返回
-	// TODO: 对于模型的查询接口，不应该填充，这整个函数应该拆成两个，一个是SaaS Web API的，一个是模型API的
+	// NOTE: 底层存储实例视图的引用：rawInstanceSelections is {"system_id": a, "id": b}
+	//       给前端 SaaS 的时候，查到真实的 实例视图 返回
+	// TODO: 对于模型的查询接口，不应该填充，这整个函数应该拆成两个，一个是 SaaS Web API 的，一个是模型 API 的
 	instanceSelections, err := l.fillRelatedInstanceSelections(sart.RelatedInstanceSelections)
 	if err != nil {
 		return actionResourceType, errorWrapf(err, "fillRelatedInstanceSelections rawString=`%+v` fail",
@@ -647,7 +650,7 @@ func (l *actionService) fillRelatedInstanceSelections(rawRelatedInstanceSelectio
 	return instanceSelections, nil
 }
 
-// GetAuthType 获取action 的授权类型
+// GetAuthType 获取 action 的授权类型
 func (l *actionService) GetAuthType(system, id string) (int64, error) {
 	authTypeStr, err := l.saasManager.GetAuthType(system, id)
 	if err != nil {

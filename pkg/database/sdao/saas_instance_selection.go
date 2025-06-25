@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -33,6 +33,8 @@ type SaaSInstanceSelection struct {
 	NameEn            string `db:"name_en"`
 	IsDynamic         bool   `db:"is_dynamic"`
 	ResourceTypeChain string `db:"resource_type_chain"` // JSON
+
+	TenantID string `db:"tenant_id"`
 }
 
 // SaaSInstanceSelectionManager ...
@@ -122,7 +124,8 @@ func (m *saasInstanceSelectionManager) getByID(instanceSelection *SaaSInstanceSe
 		name,
 		name_en,
 		is_dynamic,
-		resource_type_chain
+		resource_type_chain,
+		tenant_id
 		FROM saas_instance_selection
 		WHERE system_id = ?
 		AND id = ?
@@ -141,7 +144,8 @@ func (m *saasInstanceSelectionManager) selectBySystem(
 		name,
 		name_en,
 		is_dynamic,
-		resource_type_chain
+		resource_type_chain,
+		tenant_id
 		FROM saas_instance_selection
 		WHERE system_id = ?`
 	return database.SqlxSelect(m.DB, saasInstanceSelections, query, system)
@@ -157,8 +161,9 @@ func (m *saasInstanceSelectionManager) bulkInsertWithTx(
 		name,
 		name_en,
 		is_dynamic,
-		resource_type_chain
-	) VALUES (:system_id, :id, :name, :name_en, :is_dynamic, :resource_type_chain)`
+		resource_type_chain,
+		tenant_id
+	) VALUES (:system_id, :id, :name, :name_en, :is_dynamic, :resource_type_chain, :tenant_id)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasInstanceSelections)
 }
 

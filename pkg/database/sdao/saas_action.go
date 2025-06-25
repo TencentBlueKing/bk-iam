@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -40,6 +40,8 @@ type SaaSAction struct {
 	Type                string `db:"type"`
 	Hidden              bool   `db:"hidden"`
 	Version             int64  `db:"version"`
+
+	TenantID string `db:"tenant_id"`
 }
 
 // SaaSActionManager ...
@@ -139,9 +141,10 @@ func (m *saasActionManager) bulkInsertWithTx(tx *sqlx.Tx, saasActions []SaaSActi
 		auth_type,
 		type,
 		hidden,
-		version
+		version,
+		tenant_id
 	) VALUES (:system_id, :id, :name, :name_en, :description, :description_en, :sensitivity,
-			:related_actions, :related_environments, :auth_type, :type, :hidden, :version)`
+			:related_actions, :related_environments, :auth_type, :type, :hidden, :version, :tenant_id)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasActions)
 }
 
@@ -173,7 +176,8 @@ func (m *saasActionManager) selectBySystem(saasAction *[]SaaSAction, system stri
 		auth_type,
 		type,
 		hidden,
-		version
+		version,
+		tenant_id
 		FROM saas_action
 		WHERE system_id = ?
 		ORDER BY pk`
@@ -190,7 +194,8 @@ func (m *saasActionManager) getByActionID(saasAction *SaaSAction, system, action
 		auth_type,
 		type,
 		hidden,
-		version
+		version,
+		tenant_id
 		FROM saas_action
 		WHERE system_id = ?
 		AND id = ?

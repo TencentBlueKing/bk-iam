@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -37,6 +37,7 @@ type SaaSResourceType struct {
 	Parents        string `db:"parents"`         // JSON
 	ProviderConfig string `db:"provider_config"` // JSON 'iam,saas_iam'
 	Version        int64  `db:"version"`
+	TenantID       string `db:"tenant_id"`
 }
 
 // SaaSResourceTypeManager ...
@@ -126,7 +127,8 @@ func (m *saasResourceTypeManager) bulkInsertWithTx(tx *sqlx.Tx, saasResourceType
 		sensitivity,
 		parents,
 		provider_config,
-		version
+		version,
+		tenant_id
 	) VALUES (
 		:system_id,
 		:id,
@@ -137,7 +139,8 @@ func (m *saasResourceTypeManager) bulkInsertWithTx(tx *sqlx.Tx, saasResourceType
 		:sensitivity,
 		:parents,
 		:provider_config,
-		:version
+		:version,
+		:tenant_id
 	)`
 	return database.SqlxBulkInsertWithTx(tx, query, saasResourceTypes)
 }
@@ -167,7 +170,8 @@ func (m *saasResourceTypeManager) selectBySystem(saasResourceTypes *[]SaaSResour
 		sensitivity,
 		parents,
 		provider_config,
-		version
+		version,
+		tenant_id
 		FROM saas_resource_type
 		WHERE system_id = ?
 		ORDER BY pk`
@@ -186,7 +190,8 @@ func (m *saasResourceTypeManager) selectByID(srt *SaaSResourceType, system, id s
 		sensitivity,
 		parents,
 		provider_config,
-		version
+		version,
+		tenant_id
 		FROM saas_resource_type
 		WHERE system_id = ?
 		AND id = ?`

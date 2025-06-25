@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -90,6 +90,7 @@ func BatchCreateResourceTypes(c *gin.Context) {
 			Parents:        parents,
 			ProviderConfig: structs.Map(rt.ProviderConfig),
 			Version:        rt.Version,
+			TenantID:       rt.TenantID,
 		})
 	}
 	svc := service.NewResourceTypeService()
@@ -278,7 +279,7 @@ func batchDeleteResourceTypes(c *gin.Context, systemID string, ids []string) {
 	eventSvc := service.NewModelChangeService()
 	for _, art := range actionResourceTypes {
 		for _, id := range ids {
-			// NOTE: 只检查自己系统是否存在action关联了该resource type, 第三方系统依赖不影响本系统的删除
+			// NOTE: 只检查自己系统是否存在 action 关联了该 resource type, 第三方系统依赖不影响本系统的删除
 			if art.ActionSystem == systemID && art.ResourceTypeID == id {
 				actionPK, err1 := cacheimpls.GetActionPK(systemID, art.ActionID)
 				if err1 != nil {
@@ -286,7 +287,7 @@ func batchDeleteResourceTypes(c *gin.Context, systemID string, ids []string) {
 						fmt.Sprintf("query action pk fail, systemID=%s, id=%s", systemID, art.ActionID))
 					return
 				}
-				// 如果Action关联了该实例视图，则再检查是否已经有删除Action的事件
+				// 如果 Action 关联了该实例视图，则再检查是否已经有删除 Action 的事件
 				eventExist, err1 := eventSvc.ExistByTypeModel(
 					service.ModelChangeEventTypeActionDeleted,
 					service.ModelChangeEventStatusPending,

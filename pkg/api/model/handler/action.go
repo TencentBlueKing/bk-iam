@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -91,6 +91,8 @@ func BatchCreateActions(c *gin.Context) {
 			Version:       ac.Version,
 
 			RelatedActions: ac.RelatedActions,
+
+			TenantID: ac.TenantID,
 		}
 		action.RelatedResourceTypes = convertToRelatedResourceTypes(ac.RelatedResourceTypes)
 		action.RelatedEnvironments = convertToRelatedEnvironments(ac.RelatedEnvironments)
@@ -312,9 +314,9 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		return
 	}
 
-	// 如果存在需要异步删除Action模型的，则添加对应事件
+	// 如果存在需要异步删除 Action 模型的，则添加对应事件
 	if len(needAsyncDeletedActionIDs) > 0 {
-		// 创建异步删除Action的事件
+		// 创建异步删除 Action 的事件
 		eventSvc := service.NewModelChangeService()
 		events := make([]svctypes.ModelChangeEvent, 0, len(needAsyncDeletedActionIDs))
 		for _, id := range needAsyncDeletedActionIDs {
@@ -369,8 +371,8 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 		}
 	}
 	if len(newIDs) > 0 {
-		// Note: 同步删除的Action，若存在其对应的delete_policy事件，那么需要标记为结束（因为Action是真删除了，代表其一定没有关联Policy）
-		// 对于处理Event失败，并非核心逻辑，不能影响正常删除Action，所以失败时只能记录日志
+		// Note: 同步删除的 Action，若存在其对应的 delete_policy 事件，那么需要标记为结束（因为 Action 是真删除了，代表其一定没有关联 Policy）
+		// 对于处理 Event 失败，并非核心逻辑，不能影响正常删除 Action，所以失败时只能记录日志
 		for _, id := range newIDs {
 			actionPK, err := cacheimpls.GetActionPK(systemID, id)
 			if err != nil {
@@ -379,7 +381,7 @@ func batchDeleteActions(c *gin.Context, systemID string, ids []string) {
 				log.Error(err)
 				continue
 			}
-			// 直接更新掉 delete_policy事件的状态
+			// 直接更新掉 delete_policy 事件的状态
 			eventSvc := service.NewModelChangeService()
 			err = eventSvc.UpdateStatusByModel(
 				service.ModelChangeEventTypeActionPolicyDeleted,

@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -54,6 +54,8 @@ type Action struct {
 	RelatedResourceTypes []ActionResourceType `json:"related_resource_types" structs:"related_resource_types"`
 	RelatedActions       []string             `json:"related_actions"        structs:"related_actions"`
 	RelatedEnvironments  []ActionEnvironment  `json:"related_environments"   structs:"related_environments"`
+
+	TenantID string `json:"tenant_id"              structs:"tenant_id"`
 }
 
 type ActionBaseInfo struct {

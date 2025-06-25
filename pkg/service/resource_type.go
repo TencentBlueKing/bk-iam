@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -22,7 +22,7 @@ import (
 	"iam/pkg/service/types"
 )
 
-// NOTE: service层的error全部wrap后return, 不记录日志
+// NOTE: service 层的 error 全部 wrap 后 return, 不记录日志
 
 // ResourceTypeSVC ...
 const ResourceTypeSVC = "ResourceTypeSVC"
@@ -71,6 +71,7 @@ func (l *resourceTypeService) ListBySystem(system string) (allResourceTypes []ty
 			DescriptionEn: rt.DescriptionEn,
 			Sensitivity:   rt.Sensitivity,
 			Version:       rt.Version,
+			TenantID:      rt.TenantID,
 		}
 
 		// NOTE: the input Parents maybe empty string!
@@ -169,6 +170,7 @@ func (l *resourceTypeService) BulkCreate(system string, resourceTypes []types.Re
 			Sensitivity:    rt.Sensitivity,
 			Parents:        parents,
 			ProviderConfig: providerConfig,
+			TenantID:       rt.TenantID,
 		})
 	}
 

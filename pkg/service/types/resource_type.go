@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -23,4 +23,5 @@ type ResourceType struct {
 	Parents        []map[string]interface{} `json:"parents"         structs:"parents"`
 	ProviderConfig map[string]interface{}   `json:"provider_config" structs:"provider_config"`
 	Version        int64                    `json:"version"         structs:"version"`
+	TenantID       string                   `json:"tenant_id"       structs:"tenant_id"`
 }

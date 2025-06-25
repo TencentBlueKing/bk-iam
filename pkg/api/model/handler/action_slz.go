@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -62,6 +62,8 @@ type actionSerializer struct {
 	RelatedEnvironments  []relatedEnvironment  `json:"related_environments"   binding:"omitempty"`
 
 	Version int64 `json:"version" binding:"omitempty,gte=1" example:"1"`
+
+	TenantID string `json:"tenant_id" binding:"omitempty,max=32" example:"tenant_id"`
 }
 
 type actionUpdateSerializer struct {
@@ -182,8 +184,8 @@ func validateRelatedResourceTypes(data []relatedResourceType, actionID string) (
 
 		relatedResourceTypeID := fmt.Sprintf("system_id=%s,id=%s", d.SystemID, d.ID)
 
-		// selection_mode = attribute的时候, related_instance_selections 可以为空,
-		// 其他情况: instance OR all, 不能为空
+		// selection_mode = attribute 的时候，related_instance_selections 可以为空，
+		// 其他情况：instance OR all, 不能为空
 		if d.SelectionMode != SelectionModeAttribute {
 			if len(d.RelatedInstanceSelections) > 0 {
 				// validate if not empty
