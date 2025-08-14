@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -61,7 +61,7 @@ func ListGroupMember(c *gin.Context) {
 	})
 }
 
-// ListSubjectGroups 获取subject关联的用户组
+// ListSubjectGroups 获取 subject 关联的用户组
 func ListSubjectGroups(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSubjectGroups")
 
@@ -151,8 +151,8 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 		return
 	}
 	// input: subject.type= & subject.id= & group_ids=1,2,3,4
-	// output: 个人组 + 个人-部门-组 列表中, 是否包含了这批 group_ids
-	// 条件: 有效的, 即未过期的
+	// output: 个人组 + 个人 - 部门 - 组 列表中，是否包含了这批 group_ids
+	// 条件：有效的，即未过期的
 	groupIDs := strings.Split(query.GroupIDs, ",")
 	if len(groupIDs) > 100 {
 		util.BadRequestErrorJSONResponse(c, "group_ids should be less than 100")
@@ -176,7 +176,7 @@ func CheckSubjectGroupsBelong(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", groupIDBelong)
 }
 
-// BatchUpdateGroupMembersExpiredAt subject关系续期
+// BatchUpdateGroupMembersExpiredAt subject 关系续期
 func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	var body groupMemberExpiredAtSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -212,7 +212,7 @@ func BatchUpdateGroupMembersExpiredAt(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", gin.H{})
 }
 
-// BatchDeleteGroupMembers 批量删除subject成员
+// BatchDeleteGroupMembers 批量删除 subject 成员
 func BatchDeleteGroupMembers(c *gin.Context) {
 	var body deleteGroupMemberSerializer
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -239,7 +239,7 @@ func BatchDeleteGroupMembers(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", typeCount)
 }
 
-// BatchAddGroupMembers 批量添加subject成员
+// BatchAddGroupMembers 批量添加 subject 成员
 func BatchAddGroupMembers(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchAddGroupMembers")
 
@@ -262,7 +262,7 @@ func BatchAddGroupMembers(c *gin.Context) {
 		})
 	}
 
-	// 检查subject group 数量是否超过限制
+	// 检查 subject group 数量是否超过限制
 	err := checkSubjectGroupsQuota(body.Type, body.ID, papSubjects)
 	if err != nil {
 		if errors.Is(err, errQuota) {
@@ -275,7 +275,16 @@ func BatchAddGroupMembers(c *gin.Context) {
 	}
 
 	ctl := pap.NewGroupController()
-	typeCount, err := ctl.CreateOrUpdateGroupMembers(body.Type, body.ID, papSubjects)
+	var typeCount map[string]int64
+	// Note: 由于底层 subject_system_group 的变更可能会导致死锁，所以这里进行了重试
+	for i := 0; i < util.DBDeadLockRetryCount; i++ {
+		typeCount, err = ctl.CreateOrUpdateGroupMembers(body.Type, body.ID, papSubjects)
+		if util.IsDeadLockError(err) {
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -437,7 +446,7 @@ func ListGroupSubjectBeforeExpiredAt(c *gin.Context) {
 	})
 }
 
-// ListSystemSubjectGroups 获取subject关联有指定系统权限的用户组
+// ListSystemSubjectGroups 获取 subject 关联有指定系统权限的用户组
 func ListSystemSubjectGroups(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "ListSystemSubjectGroups")
 
@@ -491,7 +500,7 @@ func ListSystemSubjectGroups(c *gin.Context) {
 	})
 }
 
-// QueryRbacGroupByResource 查询有资源实例权限的rbac用户组
+// QueryRbacGroupByResource 查询有资源实例权限的 rbac 用户组
 func QueryRbacGroupByResource(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "QueryRbacGroupByResource")
 

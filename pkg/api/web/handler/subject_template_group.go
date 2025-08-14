@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -19,7 +19,7 @@ import (
 	"iam/pkg/util"
 )
 
-// BatchCreateSubjectTemplateGroup 批量创建subject-template-group
+// BatchCreateSubjectTemplateGroup 批量创建 subject-template-group
 func BatchCreateSubjectTemplateGroup(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchCreateSubjectTemplateGroup")
 
@@ -36,7 +36,16 @@ func BatchCreateSubjectTemplateGroup(c *gin.Context) {
 	papSubjectTemplateGroups := convertToPapSubjectTemplateGroup(body)
 
 	ctl := pap.NewGroupController()
-	err := ctl.BulkCreateSubjectTemplateGroup(papSubjectTemplateGroups)
+	var err error
+	// Note: 由于底层 subject_system_group 的变更可能会导致死锁，所以这里进行了重试
+	for i := 0; i < util.DBDeadLockRetryCount; i++ {
+		err = ctl.BulkCreateSubjectTemplateGroup(papSubjectTemplateGroups)
+		if util.IsDeadLockError(err) {
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -67,7 +76,15 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 	papSubjectTemplateGroups := convertToPapSubjectTemplateGroup(body)
 
 	ctl := pap.NewGroupController()
-	err := ctl.BulkDeleteSubjectTemplateGroup(papSubjectTemplateGroups)
+	var err error
+	for i := 0; i < util.DBDeadLockRetryCount; i++ {
+		err = ctl.BulkDeleteSubjectTemplateGroup(papSubjectTemplateGroups)
+		if util.IsDeadLockError(err) {
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		err = errorWrapf(
 			err,
@@ -82,7 +99,7 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 	util.SuccessJSONResponse(c, "ok", nil)
 }
 
-// BatchUpdateSubjectTemplateGroupExpiredAt 批量更新subject-template-group过期时间
+// BatchUpdateSubjectTemplateGroupExpiredAt 批量更新 subject-template-group 过期时间
 func BatchUpdateSubjectTemplateGroupExpiredAt(c *gin.Context) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchUpdateSubjectTemplateGroupExpiredAt")
 
