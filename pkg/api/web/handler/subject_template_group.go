@@ -40,10 +40,10 @@ func BatchCreateSubjectTemplateGroup(c *gin.Context) {
 	// Note: 由于底层 subject_system_group 的变更可能会导致死锁，所以这里进行了重试
 	for i := 0; i < util.DBDeadLockRetryCount; i++ {
 		err = ctl.BulkCreateSubjectTemplateGroup(papSubjectTemplateGroups)
-		if util.IsDeadLockError(err) {
-			continue
+		// 非死锁，无需重试
+		if !util.IsDeadLockError(err) {
+			break
 		}
-		break
 	}
 
 	if err != nil {
@@ -79,10 +79,10 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 	var err error
 	for i := 0; i < util.DBDeadLockRetryCount; i++ {
 		err = ctl.BulkDeleteSubjectTemplateGroup(papSubjectTemplateGroups)
+		// 非死锁，无需重试
 		if util.IsDeadLockError(err) {
-			continue
+			break
 		}
-		break
 	}
 
 	if err != nil {

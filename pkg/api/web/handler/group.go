@@ -279,10 +279,10 @@ func BatchAddGroupMembers(c *gin.Context) {
 	// Note: 由于底层 subject_system_group 的变更可能会导致死锁，所以这里进行了重试
 	for i := 0; i < util.DBDeadLockRetryCount; i++ {
 		typeCount, err = ctl.CreateOrUpdateGroupMembers(body.Type, body.ID, papSubjects)
-		if util.IsDeadLockError(err) {
-			continue
+		// 非死锁，则无需重试
+		if !util.IsDeadLockError(err) {
+			break
 		}
-		break
 	}
 
 	if err != nil {
