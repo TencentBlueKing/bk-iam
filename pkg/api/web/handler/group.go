@@ -13,6 +13,7 @@ package handler
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
@@ -283,6 +284,7 @@ func BatchAddGroupMembers(c *gin.Context) {
 		if !util.IsDeadLockError(err) {
 			break
 		}
+		time.Sleep(util.DBDeadLockRetryInterval)
 	}
 
 	if err != nil {

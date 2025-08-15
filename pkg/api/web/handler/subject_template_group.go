@@ -11,6 +11,8 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/gin-gonic/gin"
 
@@ -44,6 +46,7 @@ func BatchCreateSubjectTemplateGroup(c *gin.Context) {
 		if !util.IsDeadLockError(err) {
 			break
 		}
+		time.Sleep(util.DBDeadLockRetryInterval)
 	}
 
 	if err != nil {
@@ -83,6 +86,7 @@ func BatchDeleteSubjectTemplateGroup(c *gin.Context) {
 		if util.IsDeadLockError(err) {
 			break
 		}
+		time.Sleep(util.DBDeadLockRetryInterval)
 	}
 
 	if err != nil {

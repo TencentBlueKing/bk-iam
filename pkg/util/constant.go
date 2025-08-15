@@ -10,6 +10,10 @@
 
 package util
 
+import (
+	"time"
+)
+
 // RequestIDKey ...
 const (
 	RequestIDKey       = "request_id"
@@ -23,5 +27,8 @@ const (
 	// time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC).Unix()
 	NeverExpiresUnixTime = 4102444800
 
+	// DBDeadLockRetryCount 数据库死锁重试次数
 	DBDeadLockRetryCount = 3
+	// DBDeadLockRetryInterval 数据库死锁重试间隔，50ms
+	DBDeadLockRetryInterval = 50 * time.Microsecond
 )
