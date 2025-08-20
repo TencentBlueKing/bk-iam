@@ -64,6 +64,15 @@ redis:
     masterName: "__BK_IAM_REDIS_SENTINEL_MASTER_NAME__"
     sentinelPassword: "__BK_IAM_REDIS_SENTINEL_PASSWORD__"
 
+# 全局默认配额设置
+quota:
+  model:
+    max_actions_limit: 300
+    max_resource_types_limit: 100
+    max_instance_selections_limit: 100
+  web:
+    subject_max_groups_limit: 200
+
 customQuotas:
   - id: bk_cmdb
     quota:
