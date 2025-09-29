@@ -46,7 +46,7 @@ func ListGroupMember(c *gin.Context) {
 		return
 	}
 
-	relations, err := ctl.ListPagingGroupMember(subject.Type, subject.ID, subject.Limit, subject.Offset)
+	relations, err := ctl.ListPagingGroupMember(subject.Type, subject.ID, subject.Limit, subject.Offset, subject.IsSorted, subject.SortType)
 	if err != nil {
 		err = errorWrapf(
 			err, "ctl.ListPagingGroupMember type=`%s`, id=`%s`, limit=`%d`, offset=`%d`",

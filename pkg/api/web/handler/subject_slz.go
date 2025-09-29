@@ -46,8 +46,10 @@ type deleteSubjectSerializer struct {
 }
 
 type listGroupMemberSerializer struct {
-	Type string `form:"type" binding:"required,oneof=group"`
-	ID   string `form:"id"   binding:"required"`
+	Type     string `form:"type" binding:"required,oneof=group"`
+	ID       string `form:"id"   binding:"required"`
+	IsSorted bool   `form:"is_sorted" binding:"omitempty"`
+	SortType string `form:"sort_type" binding:"omitempty,oneof=DESC ASC"`
 	pageSerializer
 }
 

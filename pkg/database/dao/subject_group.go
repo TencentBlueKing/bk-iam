@@ -76,7 +76,7 @@ type SubjectGroupManager interface {
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 
 	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
-	ListPagingGroupMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingGroupMember(groupPK int64, limit, offset int64, isSorted bool, sortType string) ([]SubjectRelation, error)
 	ListPagingGroupMemberBeforeExpiredAt(
 		groupPK int64, expiredAt int64, limit, offset int64,
 	) (members []SubjectRelation, err error)
@@ -290,10 +290,10 @@ func (m *subjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(subject
 }
 
 // ListPagingGroupMember ...
-func (m *subjectGroupManager) ListPagingGroupMember(groupPK int64, limit, offset int64) (
+func (m *subjectGroupManager) ListPagingGroupMember(groupPK int64, limit, offset int64, isSorted bool, sortType string) (
 	members []SubjectRelation, err error,
 ) {
-	err = m.selectPagingMembers(&members, groupPK, limit, offset)
+	err = m.selectPagingMembers(&members, groupPK, limit, offset, isSorted, sortType)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -458,8 +458,33 @@ func (m *subjectGroupManager) BulkUpdateExpiredAtWithTx(
 }
 
 func (m *subjectGroupManager) selectPagingMembers(
-	members *[]SubjectRelation, groupPK int64, limit, offset int64,
+	members *[]SubjectRelation, groupPK int64, limit, offset int64, isSorted bool, sortType string,
 ) error {
+	if isSorted && sortType == "DESC" {
+		query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE parent_pk = ?
+		 ORDER BY policy_expired_at DESC
+		 LIMIT ? OFFSET ?`
+		return database.SqlxSelect(m.DB, members, query, groupPK, limit, offset)
+	} else if isSorted && sortType == "ASC" {
+		query := `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE parent_pk = ?
+		 ORDER BY policy_expired_at ASC
+		 LIMIT ? OFFSET ?`
+		return database.SqlxSelect(m.DB, members, query, groupPK, limit, offset)
+	}
 	query := `SELECT
 		 pk,
 		 subject_pk,
