@@ -54,6 +54,21 @@ func AuthV2(c *gin.Context) {
 		return
 	}
 
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			return authV2Response{
+				Allowed: true,
+			}
+		},
+	) {
+		return
+	}
+
 	// 隔离结构体
 	req := request.NewRequest()
 	copyRequestFromAuthV2Body(req, systemID, &body)
@@ -112,6 +127,22 @@ func BatchAuthV2ByActions(c *gin.Context) {
 
 	// check blacklist
 	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+		return
+	}
+	// check super permission
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			data := make(authByActionsResponse, len(body.Actions))
+			for _, action := range body.Actions {
+				data[action.ID] = true
+			}
+			return data
+		},
+	) {
 		return
 	}
 

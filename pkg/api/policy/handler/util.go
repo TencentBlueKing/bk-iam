@@ -22,7 +22,6 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/logging/debug"
-	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
@@ -182,11 +181,6 @@ func copyRequestFromAuthByResourcesBody(req *request.Request, body *authByResour
 
 func hasSystemSuperPermission(systemID, _type, id string) (bool, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "validateSystemSuperUser")
-
-	// check default superuser
-	if _type == svctypes.UserType && config.SuperUserSet.Has(id) {
-		return true, nil
-	}
 
 	// check system manager or super manager
 	systemIDs, err := cacheimpls.ListSubjectRoleSystemID(_type, id)

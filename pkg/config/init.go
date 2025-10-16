@@ -39,10 +39,6 @@ func InitSuperAppCode(superAppCode string) {
 // InitSuperUser ...
 func InitSuperUser(users string) {
 	SuperUserSet = set.SplitStringToSet(users, ",")
-
-	if !SuperUserSet.Has("admin") {
-		SuperUserSet.Add("admin")
-	}
 }
 
 // InitSupportShieldFeatures ...
