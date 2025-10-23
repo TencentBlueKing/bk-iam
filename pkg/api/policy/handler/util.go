@@ -12,7 +12,6 @@ package handler
 
 import (
 	"fmt"
-	svctypes "iam/pkg/service/types"
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -23,6 +22,7 @@ import (
 	"iam/pkg/cacheimpls"
 	"iam/pkg/config"
 	"iam/pkg/logging/debug"
+	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
 
