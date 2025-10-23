@@ -255,6 +255,12 @@ var _ = Describe("util", func() {
 			assert.NoError(GinkgoT(), err)
 		})
 
+		It("ok, super_user", func() {
+			ok, err := hasSystemSuperPermission("bk_cmdb", "user", "admin")
+			assert.True(GinkgoT(), ok)
+			assert.NoError(GinkgoT(), err)
+		})
+
 		It("ok, system_manager", func() {
 			patches = gomonkey.ApplyFunc(cacheimpls.ListSubjectRoleSystemID,
 				func(subjectType, subjectID string) ([]string, error) {
