@@ -12,6 +12,7 @@ package handler
 
 import (
 	"fmt"
+	svctypes "iam/pkg/service/types"
 	"strings"
 
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -181,6 +182,11 @@ func copyRequestFromAuthByResourcesBody(req *request.Request, body *authByResour
 
 func hasSystemSuperPermission(systemID, _type, id string) (bool, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "validateSystemSuperUser")
+
+	// check default superuser
+	if _type == svctypes.UserType && config.SuperUserSet.Has(id) {
+		return true, nil
+	}
 
 	// check system manager or super manager
 	systemIDs, err := cacheimpls.ListSubjectRoleSystemID(_type, id)
