@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -19,7 +19,7 @@ import (
 	svctypes "iam/pkg/service/types"
 )
 
-// 需要db操作的校验, 统一叫 checkXXXX
+// 需要 db 操作的校验，统一叫 checkXXXX
 type AllInstanceSelections struct {
 	AllBaseInfo
 	InstanceSelections []svctypes.InstanceSelection
@@ -33,8 +33,8 @@ func NewAllInstanceSelections(instanceSelections []svctypes.InstanceSelection) *
 
 	for _, rt := range instanceSelections {
 		idSet[rt.ID] = rt.ID
-		nameSet[rt.Name] = rt.ID
-		nameEnSet[rt.NameEn] = rt.ID
+		nameSet[genNameWithTenant(rt.TenantID, rt.Name)] = rt.ID
+		nameEnSet[genNameWithTenant(rt.TenantID, rt.NameEn)] = rt.ID
 	}
 
 	return &AllInstanceSelections{
@@ -62,10 +62,10 @@ func checkAllInstanceSelectionsQuotaAndUnique(
 		if allInstanceSelections.ContainsID(rt.ID) {
 			return fmt.Errorf("instance selection id[%s] already exists", rt.ID)
 		}
-		if allInstanceSelections.ContainsName(rt.Name) {
+		if allInstanceSelections.ContainsName(genNameWithTenant(rt.TenantID, rt.Name)) {
 			return fmt.Errorf("instance selection name[%s] already exists", rt.Name)
 		}
-		if allInstanceSelections.ContainsNameEn(rt.NameEn) {
+		if allInstanceSelections.ContainsNameEn(genNameWithTenant(rt.TenantID, rt.NameEn)) {
 			return fmt.Errorf("instance selection name_en[%s] already exists", rt.NameEn)
 		}
 	}
@@ -91,16 +91,24 @@ func checkInstanceSelectionUpdateUnique(systemID string, instanceSelectionID str
 		return errors.New("query all instance selection fail")
 	}
 
+	tenantID := ""
+	for _, is := range instanceSelections {
+		if is.ID == instanceSelectionID {
+			tenantID = is.TenantID
+			break
+		}
+	}
+
 	allInstanceSelections := NewAllInstanceSelections(instanceSelections)
 	// 先查看 instanceSelection 是否存在
 	if !allInstanceSelections.ContainsID(instanceSelectionID) {
 		return fmt.Errorf("instance selection id[%s] not exists", instanceSelectionID)
 	}
 	// check name and name_en is unique
-	if name != "" && allInstanceSelections.ContainsNameExcludeSelf(name, instanceSelectionID) {
+	if name != "" && allInstanceSelections.ContainsNameExcludeSelf(genNameWithTenant(tenantID, name), instanceSelectionID) {
 		return fmt.Errorf("instance selection name(%s) already exists", name)
 	}
-	if nameEn != "" && allInstanceSelections.ContainsNameEnExcludeSelf(nameEn, instanceSelectionID) {
+	if nameEn != "" && allInstanceSelections.ContainsNameEnExcludeSelf(genNameWithTenant(tenantID, nameEn), instanceSelectionID) {
 		return fmt.Errorf("instance selection name_en(%s) already exists", nameEn)
 	}
 	return nil
