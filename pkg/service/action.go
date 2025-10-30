@@ -322,6 +322,7 @@ func (l *actionService) ListBaseInfoBySystem(system string) ([]types.ActionBaseI
 			AuthType:      ac.AuthType,
 			Type:          ac.Type,
 			Version:       ac.Version,
+			TenantID:      ac.TenantID,
 		}
 		actions = append(actions, action)
 	}

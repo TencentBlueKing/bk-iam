@@ -68,6 +68,8 @@ type ActionBaseInfo struct {
 	AuthType      string `json:"auth_type"      structs:"auth_type"`
 	Type          string `json:"type"           structs:"type"`
 	Version       int64  `json:"version"        structs:"version"`
+
+	TenantID string `json:"tenant_id" structs:"tenant_id"`
 }
 
 // ThinAction ...

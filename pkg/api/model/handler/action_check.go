@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@ import (
 	svctypes "iam/pkg/service/types"
 )
 
-// 需要db操作的校验, 统一叫 checkXXXX
+// 需要 db 操作的校验，统一叫 checkXXXX
 
 type AllActions struct {
 	AllBaseInfo
@@ -40,8 +40,8 @@ func NewAllActions(actions []svctypes.ActionBaseInfo) *AllActions {
 
 	for _, ac := range actions {
 		idSet[ac.ID] = ac.ID
-		nameSet[ac.Name] = ac.ID
-		nameEnSet[ac.NameEn] = ac.ID
+		nameSet[genNameWithTenant(ac.TenantID, ac.Name)] = ac.ID
+		nameEnSet[genNameWithTenant(ac.TenantID, ac.NameEn)] = ac.ID
 	}
 
 	return &AllActions{
@@ -74,10 +74,10 @@ func checkActionsQuotaAndAllUnique(systemID string, inActions []actionSerializer
 		if allActions.ContainsID(ac.ID) {
 			return fmt.Errorf("action id[%s] already exists", ac.ID)
 		}
-		if allActions.ContainsName(ac.Name) {
+		if allActions.ContainsName(genNameWithTenant(ac.TenantID, ac.Name)) {
 			return fmt.Errorf("action name[%s] already exists", ac.Name)
 		}
-		if allActions.ContainsNameEn(ac.NameEn) {
+		if allActions.ContainsNameEn(genNameWithTenant(ac.TenantID, ac.NameEn)) {
 			return fmt.Errorf("action name_en[%s] already exists", ac.NameEn)
 		}
 	}
@@ -99,7 +99,7 @@ func checkResourceTypeAllExists(arts map[string][]relatedResourceType) error {
 		for _, rrt := range rrts {
 			allResourceTypes, ok := systemSet[rrt.SystemID]
 			if !ok {
-				// 一般关联的系统不会超过2个
+				// 一般关联的系统不会超过 2 个
 				var err error
 				allRts, err := rtSvc.ListBySystem(rrt.SystemID)
 
@@ -135,20 +135,30 @@ func checkActionUpdateResourceTypeAllExists(actionID string, resourceTypes []rel
 }
 
 func checkActionUpdateUnique(systemID, actionID, name, nameEn string) error {
-	allActions, err := BuildAllActions(systemID)
+	svc := service.NewActionService()
+	actions, err := svc.ListBaseInfoBySystem(systemID)
 	if err != nil {
-		return err
+		return errors.New("query all action fail")
 	}
 
+	tenantID := ""
+	for _, ac := range actions {
+		if ac.ID == actionID {
+			tenantID = ac.TenantID
+			break
+		}
+	}
+
+	allActions := NewAllActions(actions)
 	if !allActions.ContainsID(actionID) {
 		return fmt.Errorf("action id[%s] not exists", actionID)
 	}
 
 	// check name / name_en should be unique
-	if name != "" && allActions.ContainsNameExcludeSelf(name, actionID) {
+	if name != "" && allActions.ContainsNameExcludeSelf(genNameWithTenant(tenantID, name), actionID) {
 		return fmt.Errorf("action name[%s] already exists", name)
 	}
-	if nameEn != "" && allActions.ContainsNameEnExcludeSelf(nameEn, actionID) {
+	if nameEn != "" && allActions.ContainsNameEnExcludeSelf(genNameWithTenant(tenantID, nameEn), actionID) {
 		return fmt.Errorf("action name_en[%s] already exists", nameEn)
 	}
 	return nil
@@ -219,7 +229,7 @@ func (c *actionHasAnyPolicyChecker) CanAlter(systemID, actionID string) (bool, e
 	}
 
 	// 如果策略存在，需要再检查是否已经发起异步删除策略的事件
-	// TODO: 可以重构，提供一个定制部分参数的ExistByTypeModel方法，因为该方法使用的地方挺多，但是status/modelType是一样的
+	// TODO: 可以重构，提供一个定制部分参数的 ExistByTypeModel 方法，因为该方法使用的地方挺多，但是 status/modelType 是一样的
 	eventExist, err := c.modelChangeService.ExistByTypeModel(
 		service.ModelChangeEventTypeActionPolicyDeleted,
 		service.ModelChangeEventStatusPending,
@@ -277,7 +287,7 @@ func checkUpdateActionRelatedResourceTypeNotChanged(
 
 	// if not policies, no need to check
 	canAlter, err := newActionHasAnyPolicyChecker().CanAlter(systemID, actionID)
-	// TODO: 目前删除Action策略的事件只能用于删除Action模型，其他都暂时不可用，所以这里调整Action关联的资源类型还是必须保证DB里真正无策略
+	// TODO: 目前删除 Action 策略的事件只能用于删除 Action 模型，其他都暂时不可用，所以这里调整 Action 关联的资源类型还是必须保证 DB 里真正无策略
 	if err == nil && canAlter {
 		return nil
 	}
