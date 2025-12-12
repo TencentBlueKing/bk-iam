@@ -76,7 +76,7 @@ type SubjectGroupManager interface {
 	BulkUpdateExpiredAtWithTx(tx *sqlx.Tx, relations []SubjectRelation) error
 
 	ListGroupMember(groupPK int64) ([]SubjectRelation, error)
-	ListPagingGroupMember(groupPK int64, limit, offset int64) ([]SubjectRelation, error)
+	ListPagingGroupMember(groupPK int64, limit, offset int64, ordering string) ([]SubjectRelation, error)
 	ListPagingGroupMemberBeforeExpiredAt(
 		groupPK int64, expiredAt int64, limit, offset int64,
 	) (members []SubjectRelation, err error)
@@ -290,10 +290,10 @@ func (m *subjectGroupManager) ListThinRelationAfterExpiredAtBySubjectPKs(subject
 }
 
 // ListPagingGroupMember ...
-func (m *subjectGroupManager) ListPagingGroupMember(groupPK int64, limit, offset int64) (
+func (m *subjectGroupManager) ListPagingGroupMember(groupPK int64, limit, offset int64, ordering string) (
 	members []SubjectRelation, err error,
 ) {
-	err = m.selectPagingMembers(&members, groupPK, limit, offset)
+	err = m.selectPagingMembers(&members, groupPK, limit, offset, ordering)
 	if errors.Is(err, sql.ErrNoRows) {
 		return members, nil
 	}
@@ -458,8 +458,19 @@ func (m *subjectGroupManager) BulkUpdateExpiredAtWithTx(
 }
 
 func (m *subjectGroupManager) selectPagingMembers(
-	members *[]SubjectRelation, groupPK int64, limit, offset int64,
+	members *[]SubjectRelation, groupPK int64, limit, offset int64, ordering string,
 ) error {
+	orderByClause := "ORDER BY pk DESC"
+	if ordering != "" {
+		switch ordering {
+		case "expired_at":
+			orderByClause = "ORDER BY policy_expired_at ASC"
+		case "-expired_at":
+			orderByClause = "ORDER BY policy_expired_at DESC"
+		default:
+			orderByClause = "ORDER BY pk DESC"
+		}
+	}
 	query := `SELECT
 		 pk,
 		 subject_pk,
@@ -468,7 +479,7 @@ func (m *subjectGroupManager) selectPagingMembers(
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?
-		 ORDER BY pk DESC
+		 ` + orderByClause + `
 		 LIMIT ? OFFSET ?`
 	return database.SqlxSelect(m.DB, members, query, groupPK, limit, offset)
 }

@@ -214,18 +214,16 @@ func (mr *MockGroupControllerMockRecorder) ListGroupSubjectBeforeExpiredAtBySubj
 }
 
 // ListPagingGroupMember mocks base method.
-func (m *MockGroupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]pap.GroupMember, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPagingGroupMember", _type, id, limit, offset)
+func (m *MockGroupController) ListPagingGroupMember(_type, id string, limit, offset int64, ordering string) ([]pap.GroupMember, error) {
+	ret := m.ctrl.Call(m, "ListPagingGroupMember", _type, id, limit, offset, ordering)
 	ret0, _ := ret[0].([]pap.GroupMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListPagingGroupMember indicates an expected call of ListPagingGroupMember.
-func (mr *MockGroupControllerMockRecorder) ListPagingGroupMember(_type, id, limit, offset interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingGroupMember", reflect.TypeOf((*MockGroupController)(nil).ListPagingGroupMember), _type, id, limit, offset)
+func (mr *MockGroupControllerMockRecorder) ListPagingGroupMember(_type, id, limit, offset, ordering interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPagingGroupMember", reflect.TypeOf((*MockGroupController)(nil).ListPagingGroupMember), _type, id, limit, offset, ordering)
 }
 
 // ListPagingGroupMemberBeforeExpiredAt mocks base method.
