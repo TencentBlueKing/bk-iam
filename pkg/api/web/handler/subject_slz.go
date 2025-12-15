@@ -48,7 +48,7 @@ type deleteSubjectSerializer struct {
 type listGroupMemberSerializer struct {
 	Type     string `form:"type" binding:"required,oneof=group"`
 	ID       string `form:"id"   binding:"required"`
-	Ordering string `form:"ordering" binding:"omitempty"`
+	Ordering string `form:"ordering" binding:"omitempty,oneof=expired_at -expired_at"`
 	pageSerializer
 }
 

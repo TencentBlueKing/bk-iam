@@ -460,18 +460,9 @@ func (m *subjectGroupManager) BulkUpdateExpiredAtWithTx(
 func (m *subjectGroupManager) selectPagingMembers(
 	members *[]SubjectRelation, groupPK int64, limit, offset int64, ordering string,
 ) error {
-	orderByClause := "ORDER BY pk DESC"
-	if ordering != "" {
-		switch ordering {
-		case "expired_at":
-			orderByClause = "ORDER BY policy_expired_at ASC"
-		case "-expired_at":
-			orderByClause = "ORDER BY policy_expired_at DESC"
-		default:
-			orderByClause = "ORDER BY pk DESC"
-		}
-	}
-	query := `SELECT
+	var query string
+	if ordering == "expired_at" {
+		query = `SELECT
 		 pk,
 		 subject_pk,
 		 parent_pk,
@@ -479,8 +470,31 @@ func (m *subjectGroupManager) selectPagingMembers(
 		 created_at
 		 FROM subject_relation
 		 WHERE parent_pk = ?
-		 ` + orderByClause + `
+		 ORDER BY policy_expired_at ASC
 		 LIMIT ? OFFSET ?`
+	} else if ordering == "-expired_at" {
+		query = `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE parent_pk = ?
+		 ORDER BY policy_expired_at DESC
+		 LIMIT ? OFFSET ?`
+	} else {
+		query = `SELECT
+		 pk,
+		 subject_pk,
+		 parent_pk,
+		 policy_expired_at,
+		 created_at
+		 FROM subject_relation
+		 WHERE parent_pk = ?
+		 ORDER BY pk DESC
+		 LIMIT ? OFFSET ?`
+	}
 	return database.SqlxSelect(m.DB, members, query, groupPK, limit, offset)
 }
 
