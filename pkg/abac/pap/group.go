@@ -49,7 +49,7 @@ type GroupController interface {
 	CheckSubjectEffectGroups(_type, id string, groupIDs []string) (map[string]map[string]interface{}, error)
 
 	GetGroupMemberCount(_type, id string) (int64, error)
-	ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error)
+	ListPagingGroupMember(_type, id string, limit, offset int64, ordering string) ([]GroupMember, error)
 	GetGroupMemberCountBeforeExpiredAt(_type, id string, expiredAt int64) (int64, error)
 	ListPagingGroupMemberBeforeExpiredAt(
 		_type, id string, expiredAt int64, limit, offset int64,
@@ -397,18 +397,22 @@ func (c *groupController) GetGroupMemberCount(_type, id string) (int64, error) {
 }
 
 // ListPagingGroupMember ...
-func (c *groupController) ListPagingGroupMember(_type, id string, limit, offset int64) ([]GroupMember, error) {
+func (c *groupController) ListPagingGroupMember(
+	_type, id string,
+	limit, offset int64,
+	ordering string,
+) ([]GroupMember, error) {
 	errorWrapf := errorx.NewLayerFunctionErrorWrapf(GroupCTL, "ListPagingGroupMember")
 	groupPK, err := cacheimpls.GetLocalSubjectPK(_type, id)
 	if err != nil {
 		return nil, errorWrapf(err, "cacheimpls.GetLocalSubjectPK _type=`%s`, id=`%s` fail", _type, id)
 	}
 
-	svcMembers, err := c.service.ListPagingGroupMember(groupPK, limit, offset)
+	svcMembers, err := c.service.ListPagingGroupMember(groupPK, limit, offset, ordering)
 	if err != nil {
 		return nil, errorWrapf(
-			err, "service.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d` fail",
-			groupPK, limit, offset,
+			err, "service.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d`, ordering=`%s` fail",
+			groupPK, limit, offset, ordering,
 		)
 	}
 

@@ -94,7 +94,7 @@ func fixBound(bound string, loop int) string {
 	return buffer.String()
 }
 
-//nolint
+// nolint
 func compileNamedQuery(qs []byte, bindType int) (query string, names []string, err error) {
 	names = make([]string, 0, 10)
 	rebound := make([]byte, 0, len(qs))
@@ -172,7 +172,7 @@ func compileNamedQuery(qs []byte, bindType int) (query string, names []string, e
 	return string(rebound), names, err
 }
 
-//nolint
+// nolint
 func bindArgs(names []string, arg interface{}, m *reflectx.Mapper) ([]interface{}, error) {
 	arglist := make([]interface{}, 0, len(names))
 

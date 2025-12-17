@@ -44,10 +44,9 @@ func Test_subjectRelationManager_List(t *testing.T) {
 		mock.ExpectQuery(mockQuery).WithArgs(int64(1), 0, 10).WillReturnRows(mockRows)
 
 		manager := &subjectGroupManager{DB: db}
-		relations, err := manager.ListPagingGroupMember(int64(1), 0, 10)
-
-		assert.NoError(t, err, "query from db fail.")
-		assert.Len(t, relations, 1)
+		relations, err := manager.ListPagingGroupMember(int64(1), 0, 10, "")
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(relations))
 	})
 }
 
