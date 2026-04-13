@@ -11,7 +11,7 @@
 package handler
 
 const (
-	systemSupportFields = "id,name,name_en,clients,provider_config,description,description_en"
+	systemSupportFields = "id,name,name_en,clients,provider_config,description,description_en,tenant_id"
 	systemDefaultFields = "id,name,name_en"
 )
 

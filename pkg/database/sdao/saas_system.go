@@ -33,6 +33,7 @@ type SaaSSystem struct {
 	DescriptionEn  string `db:"description_en"`
 	Clients        string `db:"clients"`         // 逗号分隔
 	ProviderConfig string `db:"provider_config"` // JSON 'iam,saas_iam'
+	TenantId       string `db:"tenant_id"`
 }
 
 // SaaSSystemManager ...
@@ -140,7 +141,8 @@ func (m *saasSystemManager) selectAll(saasSystems *[]SaaSSystem) error {
 		description,
 		description_en,
 		clients,
-		provider_config
+		provider_config,
+		tenant_id
 		FROM saas_system_info ORDER BY created_at`
 	return database.SqlxSelect(m.DB, saasSystems, query)
 }

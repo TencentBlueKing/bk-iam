@@ -21,4 +21,5 @@ type System struct {
 	DescriptionEn  string                 `json:"description_en"  structs:"description_en"`
 	Clients        string                 `json:"clients"         structs:"clients"`
 	ProviderConfig map[string]interface{} `json:"provider_config" structs:"provider_config"`
+	TenantId       string                 `json:"tenant_id"       structs:"tenant_id"`
 }

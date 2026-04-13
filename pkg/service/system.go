@@ -99,6 +99,7 @@ func (l *systemService) ListAll() (allSystems []types.System, err error) {
 			Description:   sys.Description,
 			DescriptionEn: sys.DescriptionEn,
 			Clients:       sys.Clients,
+			TenantId:      sys.TenantId,
 		}
 		err = jsoniter.UnmarshalFromString(sys.ProviderConfig, &system.ProviderConfig)
 		if err != nil {
