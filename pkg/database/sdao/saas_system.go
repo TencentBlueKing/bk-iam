@@ -33,7 +33,7 @@ type SaaSSystem struct {
 	DescriptionEn  string `db:"description_en"`
 	Clients        string `db:"clients"`         // 逗号分隔
 	ProviderConfig string `db:"provider_config"` // JSON 'iam,saas_iam'
-	TenantId       string `db:"tenant_id"`
+	TenantID       string `db:"tenant_id"`
 }
 
 // SaaSSystemManager ...
@@ -105,8 +105,9 @@ func (m *saasSystemManager) insertWithTx(tx *sqlx.Tx, system SaaSSystem) error {
         description,
         description_en,
 		clients,
-		provider_config
-	) VALUES (:id, :name, :name_en, :description, :description_en, :clients, :provider_config)`
+		provider_config,
+        tenant_id
+	) VALUES (:id, :name, :name_en, :description, :description_en, :clients, :provider_config, :tenant_id)`
 	return database.SqlxInsertWithTx(tx, query, system)
 }
 
@@ -126,7 +127,8 @@ func (m *saasSystemManager) selectOne(saasSystem *SaaSSystem, id string) error {
 		description,
 		description_en,
 		clients,
-		provider_config
+		provider_config,
+		tenant_id
 		FROM saas_system_info
 		WHERE id = ?
 		LIMIT 1`

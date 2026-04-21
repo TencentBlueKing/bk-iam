@@ -94,6 +94,7 @@ func CreateSystem(c *gin.Context) {
 		DescriptionEn:  body.DescriptionEn,
 		Clients:        clients,
 		ProviderConfig: structs.Map(body.ProviderConfig),
+		TenantID:       body.TenantID,
 	}
 
 	svc := service.NewSystemService()
@@ -180,6 +181,7 @@ func UpdateSystem(c *gin.Context) {
 		DescriptionEn:  body.DescriptionEn,
 		Clients:        clients,
 		ProviderConfig: providerConfig,
+		TenantID:       body.TenantID,
 
 		AllowEmptyFields: allowEmptyFields,
 	}
@@ -238,6 +240,7 @@ func GetSystem(c *gin.Context) {
 		DescriptionEn:  system.DescriptionEn,
 		Clients:        system.Clients,
 		ProviderConfig: system.ProviderConfig,
+		TenantID:       system.TenantID,
 	})
 }
 
