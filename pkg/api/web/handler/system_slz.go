@@ -12,7 +12,7 @@ package handler
 
 const (
 	systemSupportFields = "id,name,name_en,clients,provider_config,description,description_en,tenant_id"
-	systemDefaultFields = "id,name,name_en"
+	systemDefaultFields = "id,name,name_en,tenant_id"
 )
 
 type systemQuerySerializer struct {
