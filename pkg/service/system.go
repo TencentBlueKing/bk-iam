@@ -209,7 +209,6 @@ func (l *systemService) Update(id string, system types.System) error {
 		DescriptionEn:  system.DescriptionEn,
 		Clients:        system.Clients,
 		ProviderConfig: providerConfigStr,
-		TenantID:       system.TenantID,
 
 		AllowBlankFields: allowBlank,
 	}

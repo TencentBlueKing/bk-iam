@@ -20,6 +20,11 @@ const (
 
 	ClientIDKey = "client_id"
 
+	// AppTenantModeKey 请求方应用的租户模式（global/single），从网关 JWT app.tenant_mode 解析
+	AppTenantModeKey = "app_tenant_mode"
+	// AppTenantIDKey 请求方应用的 tenant_id（global 模式下为空），从网关 JWT app.tenant_id 解析
+	AppTenantIDKey = "app_tenant_id"
+
 	ErrorIDKey = "err"
 
 	// NeverExpiresUnixTime 永久有效期，使用 2100.01.01 00:00:00 的 unix time 作为永久有效期的表示，单位秒

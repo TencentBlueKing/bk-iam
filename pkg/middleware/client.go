@@ -43,7 +43,11 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 
 		requestFrom := c.GetHeader("X-Bkapi-From")
 
-		var clientID string
+		var (
+			clientID    string
+			tenantMode  string
+			appTenantID string
+		)
 
 		// X-Bkapi-From: apigw
 		if requestFrom == APIGatewayRequest {
@@ -64,13 +68,16 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 			}
 
 			var err error
-			clientID, err = getClientIDFromJWTToken(jwtToken, apiGatewayPublicKey)
+			appInfo, err := getAppInfoFromJWTToken(jwtToken, apiGatewayPublicKey)
 			if err != nil {
 				message := fmt.Sprintf("request from apigateway jwt token invalid! err=%s", err.Error())
 				util.UnauthorizedJSONResponse(c, message)
 				c.Abort()
 				return
 			}
+			clientID = appInfo.AppCode
+			tenantMode = appInfo.TenantMode
+			appTenantID = appInfo.TenantID
 		} else {
 			appCode := c.GetHeader("X-Bk-App-Code")
 			appSecret := c.GetHeader("X-Bk-App-Secret")
@@ -91,10 +98,13 @@ func ClientAuthMiddleware(apiGatewayPublicKey []byte) gin.HandlerFunc {
 			}
 
 			clientID = appCode
+
 		}
 
-		// 3. set client_id
+		// 3. set client_id & app tenant info
 		util.SetClientID(c, clientID)
+		util.SetAppTenantMode(c, tenantMode)
+		util.SetAppTenantID(c, appTenantID)
 
 		c.Next()
 	}

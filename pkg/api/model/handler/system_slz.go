@@ -26,8 +26,6 @@ type systemSerializer struct {
 	DescriptionEn string `json:"description_en" binding:"omitempty"       example:"Platform as A Service"`
 	Clients       string `json:"clients"        binding:"required"        example:"bk_paas,bk_esb"`
 
-	TenantID string `json:"tenant_id"      binding:"omitempty,max=32" example:""`
-
 	ProviderConfig systemProviderConfig `json:"provider_config" binding:"required"`
 }
 
@@ -37,8 +35,6 @@ type systemUpdateSerializer struct {
 	Description   string `json:"description"    binding:"omitempty" example:"Platform as A Service"`
 	DescriptionEn string `json:"description_en" binding:"omitempty" example:"Platform as A Service"`
 	Clients       string `json:"clients"        binding:"omitempty" example:"bk_paas,bk_esb"`
-
-	TenantID string `json:"tenant_id"      binding:"omitempty,max=32" example:""`
 
 	ProviderConfig *systemProviderConfig `json:"provider_config" binding:"omitempty"`
 }

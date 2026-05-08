@@ -85,6 +85,15 @@ func CreateSystem(c *gin.Context) {
 	// 注册这个系统的client一定是其合法client!
 	clients := defaultValidClients(c, body.Clients)
 
+	// 根据网关 JWT 推断 system 归属的 tenant_id（不再信任 body.TenantID）
+	//   - 全租户应用（app.tenant_mode=global）：tenant_id = ""
+	//   - 单租户应用（app.tenant_mode=single）：tenant_id = app.tenant_id
+	tenantID, err := util.InferSystemTenantID(c)
+	if err != nil {
+		util.BadRequestErrorJSONResponse(c, err.Error())
+		return
+	}
+
 	// add the logical here
 	system := svctypes.System{
 		ID:             body.ID,
@@ -94,7 +103,7 @@ func CreateSystem(c *gin.Context) {
 		DescriptionEn:  body.DescriptionEn,
 		Clients:        clients,
 		ProviderConfig: structs.Map(body.ProviderConfig),
-		TenantID:       body.TenantID,
+		TenantID:       tenantID,
 	}
 
 	svc := service.NewSystemService()
@@ -181,7 +190,6 @@ func UpdateSystem(c *gin.Context) {
 		DescriptionEn:  body.DescriptionEn,
 		Clients:        clients,
 		ProviderConfig: providerConfig,
-		TenantID:       body.TenantID,
 
 		AllowEmptyFields: allowEmptyFields,
 	}
