@@ -62,13 +62,6 @@ func SystemExistsAndClientValid() gin.HandlerFunc {
 			return
 		}
 
-		// 租户校验
-		if !util.CanAccessSystem(c, system.TenantID) {
-			util.NotFoundJSONResponse(c, fmt.Sprintf("system(%s) not found", systemID))
-			c.Abort()
-			return
-		}
-
 		clientID := util.GetClientID(c)
 		if clientID == "" {
 			util.UnauthorizedJSONResponse(c, "app code and app secret required")

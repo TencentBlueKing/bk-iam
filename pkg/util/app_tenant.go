@@ -39,33 +39,3 @@ func InferSystemTenantID(c *gin.Context) (string, error) {
 		)
 	}
 }
-
-// CanAccessSystem 判断当前请求方（根据网关 JWT 中的 app 信息）是否有权访问指定 system
-//
-// 访问规则：
-//   - 全租户应用（tenant_mode=global）：可以访问所有 system（含全租户系统与任意单租户系统）
-//   - 单租户应用（tenant_mode=single）：
-//   - 可以访问全租户系统（systemTenantID == ""）
-//   - 只能访问属于自己租户的单租户系统（systemTenantID == app.tenant_id）
-//   - 其它情况（JWT 缺失或非法）：一律拒绝
-//
-// 注意：本函数依赖 ClientAuthMiddleware 已将 JWT 解析结果写入 Context
-func CanAccessSystem(c *gin.Context, systemTenantID string) bool {
-	mode := GetAppTenantMode(c)
-	appTenantID := GetAppTenantID(c)
-
-	switch mode {
-	case AppTenantModeGlobal:
-		// 全租户应用：放行全部
-		return true
-	case AppTenantModeSingle:
-		// 单租户应用：必须有 tenant_id
-		if appTenantID == "" {
-			return false
-		}
-		// 全租户系统所有单租户应用均可访问；单租户系统仅限同租户
-		return systemTenantID == "" || systemTenantID == appTenantID
-	default:
-		return false
-	}
-}
