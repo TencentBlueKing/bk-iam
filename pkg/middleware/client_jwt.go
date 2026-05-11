@@ -153,9 +153,7 @@ func verifyClientID(jwtToken string, publicKey []byte) (clientID string, err err
 	return clientID, nil
 }
 
-// getAppInfoFromJWTToken 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
-// 解析成功后会将 AppInfo 写入缓存（复用 JWTTokenClientID 缓存能力时只缓存 clientID，
-// 这里为保持逻辑简单，每次请求都重新解析 JWT；如需缓存可后续扩展）
+// 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
 func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInfo, error) {
 	claims, err := parseBKJWTToken(jwtToken, apiGatewayPublicKey)
 	if err != nil {
@@ -200,7 +198,7 @@ func verifyAppInfo(claims jwt.MapClaims) (AppInfo, error) {
 		return AppInfo{}, ErrAPIGatewayJWTAppCodeNotString
 	}
 
-	// 3. tenant_mode （可能不存在，做兼容处理）
+	// 3. tenant_mode
 	var tenantMode string
 	if v, exists := app["tenant_mode"]; exists && v != nil {
 		tenantMode, ok = v.(string)
@@ -209,7 +207,7 @@ func verifyAppInfo(claims jwt.MapClaims) (AppInfo, error) {
 		}
 	}
 
-	// 4. tenant_id （可能不存在，做兼容处理）
+	// 4. tenant_id
 	var tenantID string
 	if v, exists := app["tenant_id"]; exists && v != nil {
 		tenantID, ok = v.(string)
