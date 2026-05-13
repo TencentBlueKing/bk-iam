@@ -37,26 +37,28 @@ func Register(cfg *config.Config, router *gin.Engine) {
 	metricRouter.Use(middleware.TokenAuth(cfg.AuthToken))
 	metricRouter.GET("", gin.WrapH(promhttp.Handler()))
 
-	// pprof
-	pprofRouter := router.Group("/debug/pprof")
-	if !cfg.Debug {
-		pprofRouter.Use(gin.BasicAuth(gin.Accounts{
-			"bk-iam": "DebugModel@bk",
-		}))
-	}
-	{
-		pprofRouter.GET("/", pprofHandler(pprof.Index))
-		pprofRouter.GET("/cmdline", pprofHandler(pprof.Cmdline))
-		pprofRouter.GET("/profile", pprofHandler(pprof.Profile))
-		pprofRouter.POST("/symbol", pprofHandler(pprof.Symbol))
-		pprofRouter.GET("/symbol", pprofHandler(pprof.Symbol))
-		pprofRouter.GET("/trace", pprofHandler(pprof.Trace))
-		pprofRouter.GET("/allocs", pprofHandler(pprof.Handler("allocs").ServeHTTP))
-		pprofRouter.GET("/block", pprofHandler(pprof.Handler("block").ServeHTTP))
-		pprofRouter.GET("/goroutine", pprofHandler(pprof.Handler("goroutine").ServeHTTP))
-		pprofRouter.GET("/heap", pprofHandler(pprof.Handler("heap").ServeHTTP))
-		pprofRouter.GET("/mutex", pprofHandler(pprof.Handler("mutex").ServeHTTP))
-		pprofRouter.GET("/threadcreate", pprofHandler(pprof.Handler("threadcreate").ServeHTTP))
+	// pprof: only register routes in debug mode or when PprofPassword is configured
+	if cfg.Debug || cfg.PprofPassword != "" {
+		pprofRouter := router.Group("/debug/pprof")
+		if !cfg.Debug {
+			pprofRouter.Use(gin.BasicAuth(gin.Accounts{
+				"bk-iam": cfg.PprofPassword,
+			}))
+		}
+		{
+			pprofRouter.GET("/", pprofHandler(pprof.Index))
+			pprofRouter.GET("/cmdline", pprofHandler(pprof.Cmdline))
+			pprofRouter.GET("/profile", pprofHandler(pprof.Profile))
+			pprofRouter.POST("/symbol", pprofHandler(pprof.Symbol))
+			pprofRouter.GET("/symbol", pprofHandler(pprof.Symbol))
+			pprofRouter.GET("/trace", pprofHandler(pprof.Trace))
+			pprofRouter.GET("/allocs", pprofHandler(pprof.Handler("allocs").ServeHTTP))
+			pprofRouter.GET("/block", pprofHandler(pprof.Handler("block").ServeHTTP))
+			pprofRouter.GET("/goroutine", pprofHandler(pprof.Handler("goroutine").ServeHTTP))
+			pprofRouter.GET("/heap", pprofHandler(pprof.Handler("heap").ServeHTTP))
+			pprofRouter.GET("/mutex", pprofHandler(pprof.Handler("mutex").ServeHTTP))
+			pprofRouter.GET("/threadcreate", pprofHandler(pprof.Handler("threadcreate").ServeHTTP))
+		}
 	}
 
 	// swagger docs
