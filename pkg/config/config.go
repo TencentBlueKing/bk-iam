@@ -195,7 +195,8 @@ type Config struct {
 
 	Cryptos map[string]*Crypto
 
-	AuthToken string
+	AuthToken     string
+	PprofPassword string
 }
 
 // Load 从 viper 中读取配置文件
