@@ -46,28 +46,24 @@ const (
 	TenantModeSingle = "single" // 单租户应用
 )
 
-// AppInfo 从网关 JWT 中解析出的应用信息
-type AppInfo struct {
-	AppCode    string // 应用 code
-	TenantMode string // 租户模式：global / single
-	TenantID   string // 租户 id（global 时为空）
-}
-
-func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clientID string, err error) {
+// 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
+func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (cacheimpls.AppInfo, error) {
 	// check if in cache
-	clientID, err = cacheimpls.GetJWTTokenClientID(jwtToken)
+	appInfo, err := cacheimpls.GetJWTTokenAppInfo(jwtToken)
 	if err == nil {
-		return clientID, nil
+		// 缓存命中
+		return appInfo, nil
 	}
 
 	// parse in time
-	clientID, err = verifyClientID(jwtToken, apiGatewayPublicKey)
+	appInfo, err = verifyAppInfo(jwtToken, apiGatewayPublicKey)
 	if err != nil {
-		return "", err
+		return cacheimpls.AppInfo{}, err
 	}
+
 	// set into cache
-	cacheimpls.SetJWTTokenClientID(jwtToken, clientID)
-	return clientID, nil
+	cacheimpls.SetJWTTokenAppInfo(jwtToken, appInfo)
+	return appInfo, nil
 }
 
 func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error) {
@@ -102,131 +98,77 @@ func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error
 	return claims, nil
 }
 
-func verifyClientID(jwtToken string, publicKey []byte) (clientID string, err error) {
-	var claims jwt.MapClaims
-	claims, err = parseBKJWTToken(jwtToken, publicKey)
+// verifyAppInfo 从 JWT token 中提取并校验 app 信息
+func verifyAppInfo(jwtToken string, publicKey []byte) (cacheimpls.AppInfo, error) {
+	// 1. 解析 JWT token
+	claims, err := parseBKJWTToken(jwtToken, publicKey)
 	if err != nil {
-		return
+		return cacheimpls.AppInfo{}, err
 	}
 
+	// 2. 从 claims 中提取 app 字段
 	appInfo, ok := claims["app"]
 	if !ok {
-		err = ErrAPIGatewayJWTMissingApp
-		return
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTMissingApp
 	}
 
 	app, ok := appInfo.(map[string]interface{})
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoParseFail
-		return
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppInfoParseFail
 	}
 
+	// 3. verified 必须为 true
 	verifiedRaw, ok := app["verified"]
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoNoVerified
-		return
-	}
-
-	verified, ok := verifiedRaw.(bool)
-	if !ok {
-		err = ErrAPIGatewayJWTAppInfoVerifiedNotBool
-		return
-	}
-
-	if !verified {
-		err = ErrAPIGatewayJWTAppNotVerified
-		return
-	}
-
-	appCode, ok := app["app_code"]
-	if !ok {
-		err = ErrAPIGatewayJWTAppInfoNoAppCode
-		return
-	}
-
-	clientID, ok = appCode.(string)
-	if !ok {
-		err = ErrAPIGatewayJWTAppCodeNotString
-		return
-	}
-
-	return clientID, nil
-}
-
-// 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
-func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInfo, error) {
-	claims, err := parseBKJWTToken(jwtToken, apiGatewayPublicKey)
-	if err != nil {
-		return AppInfo{}, err
-	}
-
-	return verifyAppInfo(claims)
-}
-
-// verifyAppInfo 从 jwt claims 中提取并校验 app 信息
-func verifyAppInfo(claims jwt.MapClaims) (AppInfo, error) {
-	appInfo, ok := claims["app"]
-	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTMissingApp
-	}
-
-	app, ok := appInfo.(map[string]interface{})
-	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTAppInfoParseFail
-	}
-
-	// 1. verified 必须为 true
-	verifiedRaw, ok := app["verified"]
-	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoVerified
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppInfoNoVerified
 	}
 	verified, ok := verifiedRaw.(bool)
 	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTAppInfoVerifiedNotBool
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppInfoVerifiedNotBool
 	}
 	if !verified {
-		return AppInfo{}, ErrAPIGatewayJWTAppNotVerified
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppNotVerified
 	}
 
-	// 2. app_code
+	// 4. app_code
 	appCodeRaw, ok := app["app_code"]
 	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoAppCode
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppInfoNoAppCode
 	}
 	appCode, ok := appCodeRaw.(string)
 	if !ok {
-		return AppInfo{}, ErrAPIGatewayJWTAppCodeNotString
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppCodeNotString
 	}
 
-	// 3. tenant_mode
+	// 5. tenant_mode
 	var tenantMode string
 	if v, exists := app["tenant_mode"]; exists && v != nil {
 		tenantMode, ok = v.(string)
 		if !ok {
-			return AppInfo{}, ErrAPIGatewayJWTAppTenantModeNotString
+			return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppTenantModeNotString
 		}
 	}
 
-	// 4. tenant_id
+	// 6. tenant_id
 	var tenantID string
 	if v, exists := app["tenant_id"]; exists && v != nil {
 		tenantID, ok = v.(string)
 		if !ok {
-			return AppInfo{}, ErrAPIGatewayJWTAppTenantIDNotString
+			return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppTenantIDNotString
 		}
 	}
 
-	// 5. 校验 tenant_mode 合法性（仅当存在时）
+	// 7. 校验 tenant_mode 合法性（仅当存在时）
 	if tenantMode != "" && tenantMode != TenantModeGlobal && tenantMode != TenantModeSingle {
-		return AppInfo{}, ErrAPIGatewayJWTAppTenantModeInvalid
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppTenantModeInvalid
 	}
 
-	// 6. single 模式必须带 tenant_id
+	// 8. single 模式必须带 tenant_id
 	if tenantMode == TenantModeSingle && tenantID == "" {
-		return AppInfo{}, ErrAPIGatewayJWTAppSingleTenantNoID
+		return cacheimpls.AppInfo{}, ErrAPIGatewayJWTAppSingleTenantNoID
 	}
 
-	return AppInfo{
+	return cacheimpls.AppInfo{
 		AppCode:    appCode,
 		TenantMode: tenantMode,
 		TenantID:   tenantID,

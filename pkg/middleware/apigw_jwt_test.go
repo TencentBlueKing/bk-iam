@@ -23,8 +23,8 @@ import (
 	"iam/pkg/cacheimpls"
 )
 
-var _ = Describe("client_jwt", func() {
-	Describe("getClientIDFromJWTToken", func() {
+var _ = Describe("apigw_jwt", func() {
+	Describe("getAppInfoFromJWTToken", func() {
 		var patches *gomonkey.Patches
 		BeforeEach(func() {
 		})
@@ -34,45 +34,42 @@ var _ = Describe("client_jwt", func() {
 			}
 		})
 		It("hit cache", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
-				return "abc", nil
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenAppInfo, func(string) (cacheimpls.AppInfo, error) {
+				return cacheimpls.AppInfo{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
 			})
 
-			clientID, err := getClientIDFromJWTToken("aaa", []byte(""))
+			appInfo, err := getAppInfoFromJWTToken("aaa", []byte(""))
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "abc", clientID)
+			assert.Equal(GinkgoT(), "abc", appInfo.AppCode)
+			assert.Equal(GinkgoT(), "global", appInfo.TenantMode)
 		})
 
 		It("miss cache, error in verify", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
-				return "", errors.New("an error")
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenAppInfo, func(string) (cacheimpls.AppInfo, error) {
+				return cacheimpls.AppInfo{}, errors.New("an error")
 			})
 
-			_, err := getClientIDFromJWTToken("aaa", []byte(""))
+			_, err := getAppInfoFromJWTToken("aaa", []byte(""))
 			assert.Error(GinkgoT(), err)
 		})
 
 		It("miss cache, verify ok", func() {
-			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenClientID, func(string) (string, error) {
-				return "", errors.New("an error")
+			patches = gomonkey.ApplyFunc(cacheimpls.GetJWTTokenAppInfo, func(string) (cacheimpls.AppInfo, error) {
+				return cacheimpls.AppInfo{}, errors.New("an error")
 			})
-			patches.ApplyFunc(cacheimpls.SetJWTTokenClientID, func(string, string) {
+			patches.ApplyFunc(cacheimpls.SetJWTTokenAppInfo, func(string, cacheimpls.AppInfo) {
 			})
-			patches.ApplyFunc(verifyClientID, func(string, []byte) (string, error) {
-				return "abc", nil
+			patches.ApplyFunc(verifyAppInfo, func(string, []byte) (cacheimpls.AppInfo, error) {
+				return cacheimpls.AppInfo{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
 			})
 
-			clientID, err := getClientIDFromJWTToken("aaa", []byte(""))
+			appInfo, err := getAppInfoFromJWTToken("aaa", []byte(""))
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "abc", clientID)
-
-			// clientID, err = cacheimpls.GetJWTTokenClientID("aaa")
-			// assert.NoError(GinkgoT(), err)
-			// assert.Equal(GinkgoT(), "abc", clientID)
+			assert.Equal(GinkgoT(), "abc", appInfo.AppCode)
 		})
 	})
 
-	Describe("verifyClientID", func() {
+	Describe("verifyAppInfo", func() {
 		var patches *gomonkey.Patches
 		AfterEach(func() {
 			if patches != nil {
@@ -85,7 +82,7 @@ var _ = Describe("client_jwt", func() {
 				return nil, errors.New("an error")
 			})
 
-			_, err := verifyClientID("aaa", []byte(""))
+			_, err := verifyAppInfo("aaa", []byte(""))
 			assert.Error(GinkgoT(), err)
 		})
 
@@ -93,15 +90,106 @@ var _ = Describe("client_jwt", func() {
 			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
 				return jwt.MapClaims{
 					"app": map[string]interface{}{
+						"app_code":    "bk_test",
+						"verified":    true,
+						"tenant_mode": "global",
+					},
+				}, nil
+			})
+
+			appInfo, err := verifyAppInfo("aaa", []byte(""))
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "bk_test", appInfo.AppCode)
+			assert.Equal(GinkgoT(), "global", appInfo.TenantMode)
+		})
+
+		It("parse ok with single tenant", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
+						"app_code":    "bk_test",
+						"verified":    true,
+						"tenant_mode": "single",
+						"tenant_id":   "tenant123",
+					},
+				}, nil
+			})
+
+			appInfo, err := verifyAppInfo("aaa", []byte(""))
+			assert.NoError(GinkgoT(), err)
+			assert.Equal(GinkgoT(), "bk_test", appInfo.AppCode)
+			assert.Equal(GinkgoT(), "single", appInfo.TenantMode)
+			assert.Equal(GinkgoT(), "tenant123", appInfo.TenantID)
+		})
+
+		It("missing verified", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
 						"app_code": "bk_test",
+					},
+				}, nil
+			})
+
+			_, err := verifyAppInfo("aaa", []byte(""))
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppInfoNoVerified)
+		})
+
+		It("not verified", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
+						"app_code": "bk_test",
+						"verified": false,
+					},
+				}, nil
+			})
+
+			_, err := verifyAppInfo("aaa", []byte(""))
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppNotVerified)
+		})
+
+		It("missing app_code", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
 						"verified": true,
 					},
 				}, nil
 			})
 
-			clientID, err := verifyClientID("aaa", []byte(""))
-			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "bk_test", clientID)
+			_, err := verifyAppInfo("aaa", []byte(""))
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppInfoNoAppCode)
+		})
+
+		It("invalid tenant_mode", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
+						"app_code":    "bk_test",
+						"verified":    true,
+						"tenant_mode": "invalid",
+					},
+				}, nil
+			})
+
+			_, err := verifyAppInfo("aaa", []byte(""))
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppTenantModeInvalid)
+		})
+
+		It("single tenant missing tenant_id", func() {
+			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
+				return jwt.MapClaims{
+					"app": map[string]interface{}{
+						"app_code":    "bk_test",
+						"verified":    true,
+						"tenant_mode": "single",
+					},
+				}, nil
+			})
+
+			_, err := verifyAppInfo("aaa", []byte(""))
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppSingleTenantNoID)
 		})
 	})
 })
