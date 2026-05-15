@@ -59,8 +59,8 @@ var _ = Describe("apigw_jwt", func() {
 			})
 			patches.ApplyFunc(cacheimpls.SetJWTTokenAppInfo, func(string, cacheimpls.AppInfo) {
 			})
-			patches.ApplyFunc(verifyAppInfo, func(string, []byte) (cacheimpls.AppInfo, error) {
-				return cacheimpls.AppInfo{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
+		patches.ApplyFunc(verifyAppInfo, func(string, []byte) (AppInfoDTO, error) {
+			return AppInfoDTO{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
 			})
 
 			appInfo, err := getAppInfoFromJWTToken("aaa", []byte(""))
