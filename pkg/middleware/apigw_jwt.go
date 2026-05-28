@@ -17,6 +17,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 
 	"iam/pkg/cacheimpls"
+	"iam/pkg/util"
 )
 
 var (
@@ -38,12 +39,6 @@ var (
 	ErrAPIGatewayJWTAppTenantIDNotString   = errors.New("tenant_id not string")
 	ErrAPIGatewayJWTAppTenantModeInvalid   = errors.New("tenant_mode invalid, must be global or single")
 	ErrAPIGatewayJWTAppSingleTenantNoID    = errors.New("single tenant app must have tenant_id")
-)
-
-// 租户模式常量（与 APIGateway 签发的 JWT 保持一致）
-const (
-	TenantModeGlobal = "global" // 全租户应用
-	TenantModeSingle = "single" // 单租户应用
 )
 
 type AppInfoDTO struct {
@@ -173,12 +168,12 @@ func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfoDTO, error) {
 	}
 
 	// 7. 校验 tenant_mode 合法性（仅当存在时）
-	if tenantMode != "" && tenantMode != TenantModeGlobal && tenantMode != TenantModeSingle {
+	if tenantMode != "" && tenantMode != util.AppTenantModeGlobal && tenantMode != util.AppTenantModeSingle {
 		return AppInfoDTO{}, ErrAPIGatewayJWTAppTenantModeInvalid
 	}
 
 	// 8. single 模式必须带 tenant_id
-	if tenantMode == TenantModeSingle && tenantID == "" {
+	if tenantMode == util.AppTenantModeSingle && tenantID == "" {
 		return AppInfoDTO{}, ErrAPIGatewayJWTAppSingleTenantNoID
 	}
 

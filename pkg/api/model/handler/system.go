@@ -85,7 +85,7 @@ func CreateSystem(c *gin.Context) {
 	// 注册这个系统的client一定是其合法client!
 	clients := defaultValidClients(c, body.Clients)
 
-	// 根据网关 JWT 推断 system 归属的 tenant_id（不再信任 body.TenantID）
+	// 根据网关 JWT 推断 system 归属的 tenant_id
 	//   - 全租户应用（app.tenant_mode=global）：tenant_id = ""
 	//   - 单租户应用（app.tenant_mode=single）：tenant_id = app.tenant_id
 	tenantID, err := util.InferSystemTenantID(c)
