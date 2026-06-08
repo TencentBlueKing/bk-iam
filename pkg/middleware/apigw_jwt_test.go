@@ -59,8 +59,8 @@ var _ = Describe("apigw_jwt", func() {
 			})
 			patches.ApplyFunc(cacheimpls.SetJWTTokenAppInfo, func(string, cacheimpls.AppInfo) {
 			})
-			patches.ApplyFunc(verifyAppInfo, func(string, []byte) (AppInfoDTO, error) {
-				return AppInfoDTO{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
+			patches.ApplyFunc(verifyAppInfo, func(string, []byte) (AppInfo, error) {
+				return AppInfo{AppCode: "abc", TenantMode: "global", TenantID: ""}, nil
 			})
 
 			appInfo, err := getAppInfoFromJWTToken("aaa", []byte(""))
@@ -160,36 +160,6 @@ var _ = Describe("apigw_jwt", func() {
 
 			_, err := verifyAppInfo("aaa", []byte(""))
 			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppInfoNoAppCode)
-		})
-
-		It("invalid tenant_mode", func() {
-			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
-				return jwt.MapClaims{
-					"app": map[string]interface{}{
-						"app_code":    "bk_test",
-						"verified":    true,
-						"tenant_mode": "invalid",
-					},
-				}, nil
-			})
-
-			_, err := verifyAppInfo("aaa", []byte(""))
-			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppTenantModeInvalid)
-		})
-
-		It("single tenant missing tenant_id", func() {
-			patches = gomonkey.ApplyFunc(parseBKJWTToken, func(string, []byte) (jwt.MapClaims, error) {
-				return jwt.MapClaims{
-					"app": map[string]interface{}{
-						"app_code":    "bk_test",
-						"verified":    true,
-						"tenant_mode": "single",
-					},
-				}, nil
-			})
-
-			_, err := verifyAppInfo("aaa", []byte(""))
-			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTAppSingleTenantNoID)
 		})
 	})
 })

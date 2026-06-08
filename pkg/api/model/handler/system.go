@@ -11,6 +11,8 @@
 package handler
 
 import (
+	"iam/pkg/middleware"
+
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
 	"github.com/fatih/structs"
@@ -88,7 +90,7 @@ func CreateSystem(c *gin.Context) {
 	// 根据网关 JWT 推断 system 归属的 tenant_id
 	//   - 全租户应用（app.tenant_mode=global）：tenant_id = ""
 	//   - 单租户应用（app.tenant_mode=single）：tenant_id = app.tenant_id
-	tenantID, err := util.InferSystemTenantID(c)
+	tenantID, err := middleware.InferSystemTenantID(c)
 	if err != nil {
 		util.BadRequestErrorJSONResponse(c, err.Error())
 		return
@@ -248,7 +250,6 @@ func GetSystem(c *gin.Context) {
 		DescriptionEn:  system.DescriptionEn,
 		Clients:        system.Clients,
 		ProviderConfig: system.ProviderConfig,
-		TenantID:       system.TenantID,
 	})
 }
 

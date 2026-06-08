@@ -1,8 +1,10 @@
-package util
+package middleware
 
 import (
 	"errors"
 	"fmt"
+
+	"iam/pkg/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,13 +13,13 @@ import (
 //   - 全租户应用（tenant_mode=global）：返回 ""，该 system 对所有租户可见
 //   - 单租户应用（tenant_mode=single）：返回 app.tenant_id
 func InferSystemTenantID(c *gin.Context) (string, error) {
-	mode := GetAppTenantMode(c)
-	appTenantID := GetAppTenantID(c)
+	mode := util.GetAppTenantMode(c)
+	appTenantID := util.GetAppTenantID(c)
 
 	switch mode {
-	case AppTenantModeGlobal:
+	case util.AppTenantModeGlobal:
 		return "", nil
-	case AppTenantModeSingle:
+	case util.AppTenantModeSingle:
 		if appTenantID == "" {
 			return "", errors.New("single tenant app must have tenant_id in jwt")
 		}

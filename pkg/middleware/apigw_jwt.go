@@ -17,7 +17,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 
 	"iam/pkg/cacheimpls"
-	"iam/pkg/util"
 )
 
 var (
@@ -37,23 +36,21 @@ var (
 
 	ErrAPIGatewayJWTAppTenantModeNotString = errors.New("tenant_mode not string")
 	ErrAPIGatewayJWTAppTenantIDNotString   = errors.New("tenant_id not string")
-	ErrAPIGatewayJWTAppTenantModeInvalid   = errors.New("tenant_mode invalid, must be global or single")
-	ErrAPIGatewayJWTAppSingleTenantNoID    = errors.New("single tenant app must have tenant_id")
 )
 
-type AppInfoDTO struct {
+type AppInfo struct {
 	AppCode    string
 	TenantMode string // 租户模式：global / single
 	TenantID   string // 租户 id（global 时为空）
 }
 
 // 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
-func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInfoDTO, error) {
+func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInfo, error) {
 	// check if in cache
 	cachedAppInfo, err := cacheimpls.GetJWTTokenAppInfo(jwtToken)
 	if err == nil {
 		// 缓存命中
-		return AppInfoDTO{
+		return AppInfo{
 			AppCode:    cachedAppInfo.AppCode,
 			TenantMode: cachedAppInfo.TenantMode,
 			TenantID:   cachedAppInfo.TenantID,
@@ -63,7 +60,7 @@ func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInf
 	// parse in time
 	appInfo, err := verifyAppInfo(jwtToken, apiGatewayPublicKey)
 	if err != nil {
-		return AppInfoDTO{}, err
+		return AppInfo{}, err
 	}
 
 	// set into cache
@@ -108,45 +105,45 @@ func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error
 }
 
 // verifyAppInfo 从 JWT token 中提取并校验 app 信息
-func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfoDTO, error) {
+func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfo, error) {
 	// 1. 解析 JWT token
 	claims, err := parseBKJWTToken(jwtToken, publicKey)
 	if err != nil {
-		return AppInfoDTO{}, err
+		return AppInfo{}, err
 	}
 
 	// 2. 从 claims 中提取 app 字段
 	appInfo, ok := claims["app"]
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTMissingApp
+		return AppInfo{}, ErrAPIGatewayJWTMissingApp
 	}
 
 	app, ok := appInfo.(map[string]interface{})
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppInfoParseFail
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoParseFail
 	}
 
 	// 3. verified 必须为 true
 	verifiedRaw, ok := app["verified"]
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppInfoNoVerified
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoVerified
 	}
 	verified, ok := verifiedRaw.(bool)
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppInfoVerifiedNotBool
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoVerifiedNotBool
 	}
 	if !verified {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppNotVerified
+		return AppInfo{}, ErrAPIGatewayJWTAppNotVerified
 	}
 
 	// 4. app_code
 	appCodeRaw, ok := app["app_code"]
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppInfoNoAppCode
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoAppCode
 	}
 	appCode, ok := appCodeRaw.(string)
 	if !ok {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppCodeNotString
+		return AppInfo{}, ErrAPIGatewayJWTAppCodeNotString
 	}
 
 	// 5. tenant_mode
@@ -154,7 +151,7 @@ func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfoDTO, error) {
 	if v, exists := app["tenant_mode"]; exists && v != nil {
 		tenantMode, ok = v.(string)
 		if !ok {
-			return AppInfoDTO{}, ErrAPIGatewayJWTAppTenantModeNotString
+			return AppInfo{}, ErrAPIGatewayJWTAppTenantModeNotString
 		}
 	}
 
@@ -163,21 +160,11 @@ func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfoDTO, error) {
 	if v, exists := app["tenant_id"]; exists && v != nil {
 		tenantID, ok = v.(string)
 		if !ok {
-			return AppInfoDTO{}, ErrAPIGatewayJWTAppTenantIDNotString
+			return AppInfo{}, ErrAPIGatewayJWTAppTenantIDNotString
 		}
 	}
 
-	// 7. 校验 tenant_mode 合法性（仅当存在时）
-	if tenantMode != "" && tenantMode != util.AppTenantModeGlobal && tenantMode != util.AppTenantModeSingle {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppTenantModeInvalid
-	}
-
-	// 8. single 模式必须带 tenant_id
-	if tenantMode == util.AppTenantModeSingle && tenantID == "" {
-		return AppInfoDTO{}, ErrAPIGatewayJWTAppSingleTenantNoID
-	}
-
-	return AppInfoDTO{
+	return AppInfo{
 		AppCode:    appCode,
 		TenantMode: tenantMode,
 		TenantID:   tenantID,

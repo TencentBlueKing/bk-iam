@@ -74,7 +74,6 @@ type systemResponse struct {
 	DescriptionEn  string                 `json:"description_en"  example:"Platform as A Service"`
 	Clients        string                 `json:"clients"         example:"bk_paas,bk_esb"`
 	ProviderConfig map[string]interface{} `json:"provider_config"`
-	TenantID       string                 `json:"tenant_id"       example:""`
 }
 
 type systemCreateResponse struct {
