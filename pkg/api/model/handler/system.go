@@ -11,7 +11,8 @@
 package handler
 
 import (
-	"iam/pkg/middleware"
+	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/gopkg/collection/set"
 	"github.com/TencentBlueKing/gopkg/errorx"
@@ -25,6 +26,29 @@ import (
 	svctypes "iam/pkg/service/types"
 	"iam/pkg/util"
 )
+
+// getAppTenantID 根据当前请求的网关 JWT 信息确定创建/更新 system 时应使用的 tenant_id
+//   - 全租户应用（tenant_mode=global）：返回 ""，该 system 对所有租户可见
+//   - 单租户应用（tenant_mode=single）：返回 app.tenant_id
+func getAppTenantID(c *gin.Context) (string, error) {
+	mode := util.GetAppTenantMode(c)
+	appTenantID := util.GetAppTenantID(c)
+
+	switch mode {
+	case util.AppTenantModeGlobal:
+		return "", nil
+	case util.AppTenantModeSingle:
+		if appTenantID == "" {
+			return "", errors.New("single tenant app must have tenant_id in jwt")
+		}
+		return appTenantID, nil
+	default:
+		return "", fmt.Errorf(
+			"unknown or missing tenant_mode: %q, request must come from apigateway with a valid jwt",
+			mode,
+		)
+	}
+}
 
 // add the clientID into body.Clients if not exists, 注册这个系统的client一定是其合法client!
 func defaultValidClients(c *gin.Context, originClients string) string {
@@ -87,10 +111,10 @@ func CreateSystem(c *gin.Context) {
 	// 注册这个系统的client一定是其合法client!
 	clients := defaultValidClients(c, body.Clients)
 
-	// 根据网关 JWT 推断 system 归属的 tenant_id
-	//   - 全租户应用（app.tenant_mode=global）：tenant_id = ""
-	//   - 单租户应用（app.tenant_mode=single）：tenant_id = app.tenant_id
-	tenantID, err := middleware.InferSystemTenantID(c)
+	//  根据请求的App 确定 system 归属的 tenant_id
+	//   - 全租户应用： 接入系统为全租户
+	//   - 单租户应用： 接入系统为单租户，租户与应用一致
+	tenantID, err := getAppTenantID(c)
 	if err != nil {
 		util.BadRequestErrorJSONResponse(c, err.Error())
 		return
