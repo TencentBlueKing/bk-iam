@@ -37,7 +37,7 @@ var (
 	LocalRemoteResourceListCache    memory.Cache
 	LocalSubjectPKCache             memory.Cache
 	LocalSubjectDepartmentCache     memory.Cache
-	LocalAPIGatewayJWTClientIDCache memory.Cache
+	LocalAPIGatewayJWTAppInfoCache  memory.Cache
 	LocalActionCache                memory.Cache // for iam engine
 	LocalUnmarshaledExpressionCache *gocache.Cache
 	LocalGroupSystemAuthTypeCache   *gocache.Cache
@@ -167,10 +167,10 @@ func InitCaches(disabled bool) {
 
 	// 无影响, 重算而已不查db
 
-	LocalAPIGatewayJWTClientIDCache = memory.NewCache(
-		"local_apigw_jwt_client_id",
+	LocalAPIGatewayJWTAppInfoCache = memory.NewCache(
+		"local_apigw_jwt_app_info",
 		disabled,
-		retrieveAPIGatewayJWTClientID,
+		retrieveAPIGatewayJWTAppInfo,
 		30*time.Second,
 		nil,
 	)

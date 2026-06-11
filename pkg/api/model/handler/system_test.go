@@ -182,8 +182,8 @@ func TestCreateSystem(t *testing.T) {
 			}).
 			Expect(t).
 			Assert(util.NewResponseAssertFunc(t, func(resp util.Response) error {
-				assert.Equal(t, resp.Code, util.SystemError)
-				assert.Contains(t, resp.Message, "system error")
+				assert.Equal(t, resp.Code, util.BadRequestError)
+				assert.Contains(t, resp.Message, "unknown or missing tenant_mode")
 				return nil
 			})).
 			Status(http.StatusOK).

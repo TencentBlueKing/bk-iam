@@ -65,6 +65,26 @@ func SetBkTenantID(c *gin.Context, bkTenantID string) {
 	c.Set(BkTenantIDKey, bkTenantID)
 }
 
+// GetAppTenantMode 获取请求方应用的租户模式（global/single），来自网关 JWT
+func GetAppTenantMode(c *gin.Context) string {
+	return c.GetString(AppTenantModeKey)
+}
+
+// SetAppTenantMode ...
+func SetAppTenantMode(c *gin.Context, tenantMode string) {
+	c.Set(AppTenantModeKey, tenantMode)
+}
+
+// GetAppTenantID 获取请求方应用的 tenant_id（global 模式下为空），来自网关 JWT
+func GetAppTenantID(c *gin.Context) string {
+	return c.GetString(AppTenantIDKey)
+}
+
+// SetAppTenantID ...
+func SetAppTenantID(c *gin.Context, appTenantID string) {
+	c.Set(AppTenantIDKey, appTenantID)
+}
+
 // GetError ...
 func GetError(c *gin.Context) (interface{}, bool) {
 	return c.Get(ErrorIDKey)

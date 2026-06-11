@@ -65,6 +65,7 @@ func (l *systemService) Get(id string) (system types.System, err error) {
 	system.Description = saasSystem.Description
 	system.DescriptionEn = saasSystem.DescriptionEn
 	system.Clients = saasSystem.Clients
+	system.TenantID = saasSystem.TenantID
 
 	err = jsoniter.UnmarshalFromString(saasSystem.ProviderConfig, &system.ProviderConfig)
 	if err != nil {
@@ -99,6 +100,7 @@ func (l *systemService) ListAll() (allSystems []types.System, err error) {
 			Description:   sys.Description,
 			DescriptionEn: sys.DescriptionEn,
 			Clients:       sys.Clients,
+			TenantID:      sys.TenantID,
 		}
 		err = jsoniter.UnmarshalFromString(sys.ProviderConfig, &system.ProviderConfig)
 		if err != nil {
@@ -145,6 +147,7 @@ func (l *systemService) Create(system types.System) error {
 		DescriptionEn:  system.DescriptionEn,
 		Clients:        system.Clients,
 		ProviderConfig: providerConfig,
+		TenantID:       system.TenantID,
 	}
 
 	// 执行插入

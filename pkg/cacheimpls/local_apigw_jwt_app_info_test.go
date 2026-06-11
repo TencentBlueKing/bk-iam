@@ -19,9 +19,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var _ = Describe("LocalApigwJwtClientId", func() {
+var _ = Describe("LocalApigwJWTAppInfo", func() {
 	It("Key", func() {
-		key := APIGatewayJWTClientIDCacheKey{
+		key := APIGatewayJWTAppInfoCacheKey{
 			JWTToken: "abc",
 		}
 
@@ -29,12 +29,12 @@ var _ = Describe("LocalApigwJwtClientId", func() {
 	})
 
 	It("retrieve should not work", func() {
-		key := APIGatewayJWTClientIDCacheKey{
+		key := APIGatewayJWTAppInfoCacheKey{
 			JWTToken: "abc",
 		}
 
-		value, err := retrieveAPIGatewayJWTClientID(key)
-		assert.Equal(GinkgoT(), "", value.(string))
+		value, err := retrieveAPIGatewayJWTAppInfo(key)
+		assert.Equal(GinkgoT(), AppInfo{}, value.(AppInfo))
 		assert.NoError(GinkgoT(), err)
 	})
 
@@ -47,31 +47,36 @@ var _ = Describe("LocalApigwJwtClientId", func() {
 			}
 			mockCache := memory.NewCache(
 				"mockCache", false, retrieveFunc, expiration, nil)
-			LocalAPIGatewayJWTClientIDCache = mockCache
+			LocalAPIGatewayJWTAppInfoCache = mockCache
 		})
 
 		It("not exists", func() {
-			_, err := GetJWTTokenClientID("abc")
+			_, err := GetJWTTokenAppInfo("abc")
 			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTCacheNotFound)
 		})
 
-		It("not string", func() {
-			key := APIGatewayJWTClientIDCacheKey{
+		It("not AppInfo", func() {
+			key := APIGatewayJWTAppInfoCacheKey{
 				JWTToken: "abc",
 			}
 
-			LocalAPIGatewayJWTClientIDCache.Set(key, 1)
+			LocalAPIGatewayJWTAppInfoCache.Set(key, 1)
 
-			_, err := GetJWTTokenClientID("abc")
-			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTClientIDNotString)
+			_, err := GetJWTTokenAppInfo("abc")
+			assert.ErrorIs(GinkgoT(), err, ErrAPIGatewayJWTValueNotAppInfo)
 		})
 
 		It("ok", func() {
-			SetJWTTokenClientID("abc", "bk_test")
+			expectedAppInfo := AppInfo{
+				AppCode:    "bk_test",
+				TenantMode: "global",
+				TenantID:   "",
+			}
+			SetJWTTokenAppInfo("abc", expectedAppInfo)
 
-			clientID, err := GetJWTTokenClientID("abc")
+			appInfo, err := GetJWTTokenAppInfo("abc")
 			assert.NoError(GinkgoT(), err)
-			assert.Equal(GinkgoT(), "bk_test", clientID)
+			assert.Equal(GinkgoT(), expectedAppInfo, appInfo)
 		})
 	})
 })

@@ -33,23 +33,43 @@ var (
 	ErrAPIGatewayJWTAppInfoNoVerified      = errors.New("verified not in app info")
 	ErrAPIGatewayJWTAppInfoVerifiedNotBool = errors.New("verified not bool")
 	ErrAPIGatewayJWTAppNotVerified         = errors.New("app not verified")
+
+	ErrAPIGatewayJWTAppTenantModeNotString = errors.New("tenant_mode not string")
+	ErrAPIGatewayJWTAppTenantIDNotString   = errors.New("tenant_id not string")
 )
 
-func getClientIDFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (clientID string, err error) {
+type AppInfo struct {
+	AppCode    string
+	TenantMode string // 租户模式：global / single
+	TenantID   string // 租户 id（global 时为空）
+}
+
+// 从网关 JWT 中解析出 app_code、tenant_mode、tenant_id
+func getAppInfoFromJWTToken(jwtToken string, apiGatewayPublicKey []byte) (AppInfo, error) {
 	// check if in cache
-	clientID, err = cacheimpls.GetJWTTokenClientID(jwtToken)
+	cachedAppInfo, err := cacheimpls.GetJWTTokenAppInfo(jwtToken)
 	if err == nil {
-		return clientID, nil
+		// 缓存命中
+		return AppInfo{
+			AppCode:    cachedAppInfo.AppCode,
+			TenantMode: cachedAppInfo.TenantMode,
+			TenantID:   cachedAppInfo.TenantID,
+		}, nil
 	}
 
 	// parse in time
-	clientID, err = verifyClientID(jwtToken, apiGatewayPublicKey)
+	appInfo, err := verifyAppInfo(jwtToken, apiGatewayPublicKey)
 	if err != nil {
-		return "", err
+		return AppInfo{}, err
 	}
+
 	// set into cache
-	cacheimpls.SetJWTTokenClientID(jwtToken, clientID)
-	return clientID, nil
+	cacheimpls.SetJWTTokenAppInfo(jwtToken, cacheimpls.AppInfo{
+		AppCode:    appInfo.AppCode,
+		TenantMode: appInfo.TenantMode,
+		TenantID:   appInfo.TenantID,
+	})
+	return appInfo, nil
 }
 
 func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error) {
@@ -84,53 +104,69 @@ func parseBKJWTToken(tokenString string, publicKey []byte) (jwt.MapClaims, error
 	return claims, nil
 }
 
-func verifyClientID(jwtToken string, publicKey []byte) (clientID string, err error) {
-	var claims jwt.MapClaims
-	claims, err = parseBKJWTToken(jwtToken, publicKey)
+// verifyAppInfo 从 JWT token 中提取并校验 app 信息
+func verifyAppInfo(jwtToken string, publicKey []byte) (AppInfo, error) {
+	// 1. 解析 JWT token
+	claims, err := parseBKJWTToken(jwtToken, publicKey)
 	if err != nil {
-		return
+		return AppInfo{}, err
 	}
 
+	// 2. 从 claims 中提取 app 字段
 	appInfo, ok := claims["app"]
 	if !ok {
-		err = ErrAPIGatewayJWTMissingApp
-		return
+		return AppInfo{}, ErrAPIGatewayJWTMissingApp
 	}
 
 	app, ok := appInfo.(map[string]interface{})
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoParseFail
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoParseFail
 	}
 
+	// 3. verified 必须为 true
 	verifiedRaw, ok := app["verified"]
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoNoVerified
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoVerified
 	}
-
 	verified, ok := verifiedRaw.(bool)
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoVerifiedNotBool
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoVerifiedNotBool
 	}
-
 	if !verified {
-		err = ErrAPIGatewayJWTAppNotVerified
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppNotVerified
 	}
 
-	appCode, ok := app["app_code"]
+	// 4. app_code
+	appCodeRaw, ok := app["app_code"]
 	if !ok {
-		err = ErrAPIGatewayJWTAppInfoNoAppCode
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppInfoNoAppCode
 	}
-
-	clientID, ok = appCode.(string)
+	appCode, ok := appCodeRaw.(string)
 	if !ok {
-		err = ErrAPIGatewayJWTAppCodeNotString
-		return
+		return AppInfo{}, ErrAPIGatewayJWTAppCodeNotString
 	}
 
-	return clientID, nil
+	// 5. tenant_mode
+	var tenantMode string
+	if v, exists := app["tenant_mode"]; exists && v != nil {
+		tenantMode, ok = v.(string)
+		if !ok {
+			return AppInfo{}, ErrAPIGatewayJWTAppTenantModeNotString
+		}
+	}
+
+	// 6. tenant_id
+	var tenantID string
+	if v, exists := app["tenant_id"]; exists && v != nil {
+		tenantID, ok = v.(string)
+		if !ok {
+			return AppInfo{}, ErrAPIGatewayJWTAppTenantIDNotString
+		}
+	}
+
+	return AppInfo{
+		AppCode:    appCode,
+		TenantMode: tenantMode,
+		TenantID:   tenantID,
+	}, nil
 }
