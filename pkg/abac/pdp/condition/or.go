@@ -110,14 +110,12 @@ func (c *OrCondition) PartialEval(ctx types.EvalContextor) (bool, Condition) {
 			return true, NewAnyCondition()
 		default:
 			key := condition.GetKeys()[0]
-			dotIdx := strings.LastIndexByte(key, '.')
-			if dotIdx == -1 {
+			if !strings.Contains(key, ".") {
 				// panic("should contain dot in key")
 				return false, nil
 			}
-			_type := key[:dotIdx]
 
-			if ctx.HasResource(_type) {
+			if types.CanPartialEvalAttribute(ctx, key) {
 				// a OR b, if a true, return True
 				if condition.Eval(ctx) {
 					return true, NewAnyCondition()

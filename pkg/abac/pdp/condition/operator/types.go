@@ -5,6 +5,7 @@ package operator
 const (
 	AND            = "AND"
 	OR             = "OR"
+	IN             = "IN"
 	ANY            = "Any"
 	Bool           = "Bool"
 	StringPrefix   = "StringPrefix"

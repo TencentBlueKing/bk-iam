@@ -42,6 +42,7 @@ func init() {
 	conditionFactories = map[string]conditionFunc{
 		operator.AND:            newAndCondition,
 		operator.OR:             newOrCondition,
+		operator.IN:             newInCondition,
 		operator.ANY:            newAnyCondition,
 		operator.StringEquals:   newStringEqualsCondition,
 		operator.StringPrefix:   newStringPrefixCondition,

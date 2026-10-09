@@ -19,6 +19,11 @@ import (
 // TokenAuth auth by token
 func TokenAuth(token string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if token == "" {
+			c.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+
 		queryToken := c.DefaultQuery("token", "")
 		if queryToken != token {
 			c.AbortWithStatus(http.StatusUnauthorized)

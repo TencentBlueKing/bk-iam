@@ -27,4 +27,13 @@ func TestRegister(t *testing.T) {
 	RegisterV2(g2)
 
 	assert.NotNil(t, g)
+
+	routeCount := 0
+	for _, route := range r.Routes() {
+		if route.Method == "POST" && (route.Path == "/test/query_by_actions_without_resources" ||
+			route.Path == "/test2/systems/:system_id/query_by_actions_without_resources/") {
+			routeCount++
+		}
+	}
+	assert.Equal(t, 2, routeCount)
 }

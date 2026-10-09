@@ -32,6 +32,7 @@ func Register(r *gin.RouterGroup) {
 	r.POST("/query", handler.Query)
 	// 批量查询
 	r.POST("/query_by_actions", handler.BatchQueryByActions)
+	r.POST("/query_by_actions_without_resources", handler.BatchQueryByActionsWithoutResources)
 	// 批量第三方依赖策略查询
 	r.POST("/query_by_ext_resources", handler.QueryByExtResources)
 }
@@ -58,5 +59,6 @@ func RegisterV2(r *gin.RouterGroup) {
 		// in query_v2.go
 		// 批量查询
 		s.POST("/query_by_actions/", handler.BatchQueryV2ByActions)
+		s.POST("/query_by_actions_without_resources/", handler.BatchQueryV2ByActionsWithoutResources)
 	}
 }

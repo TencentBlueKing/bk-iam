@@ -1,4 +1,4 @@
-FROM golang:1.22 AS builder
+FROM golang:1.22-bullseye AS builder
 
 COPY ./ /app
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN sed -i 's/`bkiam`.//g' /app/build/support-files/sql/*
 ARG BINARY=iam
 RUN make build && chmod +x ${BINARY}
 
-FROM debian:bullseye-slim
+FROM tencentos/tencentos3-minimal
 
 ARG BINARY=iam
 RUN mkdir -p /app/logs

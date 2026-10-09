@@ -183,3 +183,90 @@ func BatchQueryV2ByActions(c *gin.Context) {
 
 	util.SuccessJSONResponseWithDebug(c, "ok", policies, entry)
 }
+
+// BatchQueryV2ByActionsWithoutResources godoc
+// @Summary batch query v2 by actions without resources
+// @Description returns effective action expressions for distributed authorization without resource pre-evaluation
+// @ID api-v2-policy-batch-query-by-actions-without-resources
+// @Tags policy
+// @Accept json
+// @Produce json
+// @Param body body queryV2ByActionsRequest true "the batch query by action request; resources must be empty"
+// @Success 200 {array} actionPoliciesResponse
+// @Header 200 {string} X-Request-Id "the request id"
+// @Security AppCode
+// @Security AppSecret
+// @Router /api/v2/policy/systems/{system_id}/query_by_actions_without_resources/ [post]
+func BatchQueryV2ByActionsWithoutResources(c *gin.Context) {
+	errorWrapf := errorx.NewLayerFunctionErrorWrapf("Handler", "BatchQueryV2ByActionsWithoutResources")
+	entry, isDebug, isForce := getDebugData(c)
+	defer debug.EntryPool.Put(entry)
+
+	var body queryV2ByActionsRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.BadRequestErrorJSONResponse(c, util.ValidationErrorMessage(err))
+		return
+	}
+	if len(body.Resources) != 0 {
+		util.BadRequestErrorJSONResponse(c, "resources must be empty")
+		return
+	}
+
+	systemID := c.Param("system_id")
+	clientID := util.GetClientID(c)
+	if err := ValidateSystemMatchClient(systemID, clientID); err != nil {
+		util.BadRequestErrorJSONResponse(c, err.Error())
+		return
+	}
+
+	if shouldReturnIfSubjectInBlackList(c, body.Subject.Type, body.Subject.ID) {
+		return
+	}
+
+	if shouldReturnIfSubjectHasSystemSuperPermission(
+		c,
+		systemID,
+		body.Subject.Type,
+		body.Subject.ID,
+		func() interface{} {
+			policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+			for _, action := range body.Actions {
+				policies = append(policies, actionPoliciesResponse{
+					Action:    actionInResponse(action),
+					Condition: AnyExpression,
+				})
+			}
+			return policies
+		},
+	) {
+		return
+	}
+
+	policies := make([]actionPoliciesResponse, 0, len(body.Actions))
+	for _, action := range body.Actions {
+		req := request.NewRequest()
+		copyRequestFromQueryV2ByActionsBody(req, systemID, &body)
+		req.Action.ID = action.ID
+
+		var subEntry *debug.Entry
+		if isDebug {
+			subEntry = debug.EntryPool.Get()
+		}
+
+		expr, err := pdp.Query(req, subEntry, false, isForce)
+		debug.WithError(subEntry, err)
+		if err != nil {
+			err = errorWrapf(err, "systemID=`%s`, request.Action.ID=`%s`, body=`%+v`", systemID, action.ID, body)
+			util.SystemErrorJSONResponseWithDebug(c, err, subEntry)
+			return
+		}
+
+		policies = append(policies, actionPoliciesResponse{
+			Action:    actionInResponse(action),
+			Condition: expr,
+		})
+		debug.AddSubDebug(entry, subEntry)
+	}
+
+	util.SuccessJSONResponseWithDebug(c, "ok", policies, entry)
+}

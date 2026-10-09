@@ -22,6 +22,14 @@ type ObjectSetInterface interface {
 	GetAttribute(key string) interface{}
 }
 
+// ObjectAttributeExistenceInterface is an optional extension implemented by
+// object sets that can distinguish an absent attribute from a nil value.
+// Keeping it separate avoids breaking existing ObjectSetInterface
+// implementations.
+type ObjectAttributeExistenceInterface interface {
+	HasAttribute(key string) bool
+}
+
 // ObjectSet is the struct of objects
 type ObjectSet struct {
 	data map[string]map[string]interface{}
@@ -61,28 +69,76 @@ func (s *ObjectSet) Size() int {
 	return len(s.data)
 }
 
-// GetAttribute will get the attribute from object, the key is `type.attributeName`,
-// will return nil if 1 object not exists 2 object has no that field
+type attributeKeyPart struct {
+	objectType    string
+	attributeName string
+}
+
+// splitAttributeKey returns all supported ways to split a condition key.
+//
+// The legacy format uses the last dot as the separator. Keep it first so
+// existing policies retain exactly the same lookup precedence. The canonical
+// format is {system}.{resource_type}.{attribute}, where attribute may contain
+// dots, so its separator is the second dot.
+func splitAttributeKey(key string) []attributeKeyPart {
+	parts := make([]attributeKeyPart, 0, 2)
+
+	lastDotIdx := strings.LastIndexByte(key, '.')
+	if lastDotIdx <= 0 || lastDotIdx == len(key)-1 {
+		return parts
+	}
+	parts = append(parts, attributeKeyPart{
+		objectType:    key[:lastDotIdx],
+		attributeName: key[lastDotIdx+1:],
+	})
+
+	firstDotIdx := strings.IndexByte(key, '.')
+	if firstDotIdx == -1 {
+		return parts
+	}
+	secondDotOffset := strings.IndexByte(key[firstDotIdx+1:], '.')
+	if secondDotOffset == -1 {
+		return parts
+	}
+	secondDotIdx := firstDotIdx + 1 + secondDotOffset
+	if secondDotIdx == lastDotIdx || secondDotIdx == len(key)-1 {
+		return parts
+	}
+
+	parts = append(parts, attributeKeyPart{
+		objectType:    key[:secondDotIdx],
+		attributeName: key[secondDotIdx+1:],
+	})
+	return parts
+}
+
+func (s *ObjectSet) getAttribute(key string) (interface{}, bool) {
+	for _, part := range splitAttributeKey(key) {
+		obj, exists := s.Get(part.objectType)
+		if !exists {
+			continue
+		}
+
+		value, exists := obj[part.attributeName]
+		if exists {
+			return value, true
+		}
+	}
+	return nil, false
+}
+
+// GetAttribute will get the attribute from object. It supports both the
+// legacy `type.attribute` lookup and the canonical
+// `{system}.{resource_type}.{attribute}` lookup with dots in attribute IDs.
 func (s *ObjectSet) GetAttribute(key string) interface{} {
-	// {system}.{type}.{key} => {system}.{type} and {key}
-	dotIdx := strings.LastIndexByte(key, '.')
-	if dotIdx == -1 {
-		return nil
-	}
-
-	_type := key[:dotIdx]
-
-	obj, exists := s.Get(_type)
-	if !exists {
-		return nil
-	}
-
-	attributeName := key[dotIdx+1:]
-
-	value, ok := obj[attributeName]
-	if !ok {
-		return nil
-	}
-
+	value, _ := s.getAttribute(key)
 	return value
+}
+
+// HasAttribute reports whether the condition key resolves to an existing
+// attribute. It deliberately distinguishes an absent attribute from a present
+// attribute whose value is nil.
+func (s *ObjectSet) HasAttribute(key string) bool {
+	_, exists := s.getAttribute(key)
+	return exists
 }

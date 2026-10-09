@@ -1,5 +1,5 @@
 /*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-权限中心(BlueKing-IAM) available.
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云 - 权限中心 (BlueKing-IAM) available.
  * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at http://opensource.org/licenses/MIT
@@ -11,6 +11,7 @@
 package util
 
 import (
+	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -40,4 +41,8 @@ func ReportToSentry(message string, extra map[string]interface{}) {
 	if sentryOn {
 		sentry.CaptureEvent(ev)
 	}
+}
+
+func IsDeadLockError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "Error 1213: Deadlock found")
 }

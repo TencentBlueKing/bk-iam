@@ -17,3 +17,37 @@ type EvalContextor interface {
 
 	HasResource(_type string) bool
 }
+
+// AttributeExistenceContextor is implemented by contexts that can distinguish
+// an absent attribute from an attribute with a nil value.
+type AttributeExistenceContextor interface {
+	HasAttr(name string) bool
+}
+
+// CanPartialEvalAttribute reports whether a condition can be evaluated with
+// the current context.
+//
+// The legacy last-dot resource lookup is attempted first and keeps its old
+// behavior. For dotted attribute IDs, the canonical resource type is used as a
+// fallback. A canonical condition is evaluated only when the attribute itself
+// is present; otherwise it must remain in the partial-evaluation result.
+func CanPartialEvalAttribute(ctx EvalContextor, key string) bool {
+	parts := splitAttributeKey(key)
+	for index, part := range parts {
+		if !ctx.HasResource(part.objectType) {
+			continue
+		}
+
+		// Preserve legacy behavior for the original split result.
+		if index == 0 {
+			return true
+		}
+
+		if attrCtx, ok := ctx.(AttributeExistenceContextor); ok {
+			return attrCtx.HasAttr(key)
+		}
+		// Custom/test contexts predating HasAttr retain their old behavior.
+		return true
+	}
+	return false
+}

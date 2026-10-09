@@ -135,6 +135,12 @@ func (c *EvalContext) GetAttr(name string) (interface{}, error) {
 	return c.objSet.GetAttribute(name), nil
 }
 
+// HasAttr reports whether the requested resource attribute exists in context.
+func (c *EvalContext) HasAttr(name string) bool {
+	objSet, ok := c.objSet.(pdptypes.ObjectAttributeExistenceInterface)
+	return ok && objSet.HasAttribute(name)
+}
+
 func (c *EvalContext) HasResource(_type string) bool {
 	// has {system}.{resource_type}
 	return c.objSet.Has(_type)

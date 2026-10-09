@@ -64,7 +64,7 @@ type GroupService interface {
 
 	GetGroupMemberCount(groupPK int64) (int64, error)
 	GetGroupMemberCountBeforeExpiredAt(groupPK int64, expiredAt int64) (int64, error)
-	ListPagingGroupMember(groupPK, limit, offset int64) ([]types.GroupMember, error)
+	ListPagingGroupMember(groupPK, limit, offset int64, ordering string) ([]types.GroupMember, error)
 	ListPagingGroupMemberBeforeExpiredAt(
 		groupPK int64, expiredAt int64, limit, offset int64,
 	) ([]types.GroupMember, error)
@@ -398,12 +398,22 @@ func (l *groupService) GetGroupMemberCount(groupPK int64) (int64, error) {
 }
 
 // ListPagingGroupMember ...
-func (l *groupService) ListPagingGroupMember(groupPK, limit, offset int64) ([]types.GroupMember, error) {
-	daoRelations, err := l.manager.ListPagingGroupMember(groupPK, limit, offset)
+func (l *groupService) ListPagingGroupMember(
+	groupPK, limit, offset int64,
+	ordering string,
+) ([]types.GroupMember, error) {
+	daoRelations, err := l.manager.ListPagingGroupMember(groupPK, limit, offset, ordering)
 	if err != nil {
-		return nil, errorx.Wrapf(err, GroupSVC,
-			"ListPagingGroupMember", "manager.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d`",
-			groupPK, limit, offset)
+		return nil, errorx.Wrapf(
+			err,
+			GroupSVC,
+			"ListPagingGroupMember",
+			"manager.ListPagingGroupMember groupPK=`%d`, limit=`%d`, offset=`%d`, ordering=`%s`",
+			groupPK,
+			limit,
+			offset,
+			ordering,
+		)
 	}
 
 	return convertToGroupMembers(daoRelations), nil

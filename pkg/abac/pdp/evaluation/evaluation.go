@@ -20,6 +20,7 @@ import (
 	"iam/pkg/abac/pdp/condition"
 	"iam/pkg/abac/pdp/condition/operator"
 	"iam/pkg/abac/pdp/evalctx"
+	pdptypes "iam/pkg/abac/pdp/types"
 	"iam/pkg/abac/types"
 	"iam/pkg/cacheimpls"
 )
@@ -155,15 +156,13 @@ func partialEvalPolicy(
 		return true, condition.NewAnyCondition(), nil
 	default:
 		key := cond.GetKeys()[0]
-		dotIdx := strings.LastIndexByte(key, '.')
-		if dotIdx == -1 {
+		if !strings.Contains(key, ".") {
 			log.Errorf("policy condition key should contains dot! policy=`%+v`, condition=`%+v`, key=`%s`",
 				policy, cond, key)
 			// wrong policy expression, return ture with remained condition!!!!
 			return true, cond, nil
 		}
-		_type := key[:dotIdx]
-		if ctx.HasResource(_type) {
+		if pdptypes.CanPartialEvalAttribute(ctx, key) {
 			if cond.Eval(ctx) {
 				return true, condition.NewAnyCondition(), nil
 			} else {

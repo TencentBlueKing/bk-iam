@@ -46,7 +46,8 @@ const (
 // @Security AppCode
 // @Security AppSecret
 // @Router /api/v1/model/systems/{system_id}/query [get]
-// nolint:gocognit
+//
+//nolint:gocognit
 func SystemInfoQuery(c *gin.Context) {
 	var query querySerializer
 	if err := c.ShouldBindQuery(&query); err != nil {
